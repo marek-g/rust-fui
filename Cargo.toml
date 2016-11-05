@@ -1,0 +1,6 @@
+[package]
+name = "fui"
+version = "0.1.0"
+authors = ["Marek G <gibekm@gmail.com>"]
+
+[dependencies]
