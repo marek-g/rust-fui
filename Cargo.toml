@@ -4,3 +4,7 @@ version = "0.1.0"
 authors = ["Marek G <gibekm@gmail.com>"]
 
 [dependencies]
+piston = "*"
+piston_window = "*"
+piston2d-graphics = "*"
+piston2d-opengl_graphics = "*"
