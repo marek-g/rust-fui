@@ -1,45 +1,56 @@
 extern crate piston;
 extern crate piston_window;
-extern crate graphics;
 extern crate opengl_graphics;
 
 use self::piston_window::PistonWindow;
 use self::piston::window::WindowSettings;
 use self::piston::event_loop::*;
 use self::piston::input::*;
-use self::opengl_graphics::{ GlGraphics, OpenGL };
+use self::opengl_graphics::OpenGL;
+
+use backend::opengl_renderer::*;
+use controls::control::*;
+use render::conversion::*;
 
 pub struct Application {
+    main_window: PistonWindow,
+    renderer: OpenGLRenderer,
 
-    main_window : PistonWindow,
-    gl: GlGraphics,
+    root_control: Option<Box<Control>>,
 
     rotation: f64
 }
 
 impl Application {
-
-    pub fn new(title : &str) -> Self {
+    pub fn new(title : &'static str) -> Self {
         let opengl_version = OpenGL::V3_2;
 
-        let mut window : PistonWindow = WindowSettings::new(
+        let window : PistonWindow = WindowSettings::new(
             title,
-            [600, 600]
+            [800, 600]
         )
             .opengl(opengl_version)
+            .decorated(true)
             .resizable(true)
             .exit_on_esc(true)
+            .vsync(true)
             .build()
             .unwrap();
 
-        window.set_ups(60);
-        window.set_max_fps(60);
-
         Application {
             main_window: window,
-            gl: GlGraphics::new(opengl_version),
+            renderer: OpenGLRenderer::new(opengl_version),
+            root_control: None,
             rotation: 0.0
         }
+    }
+
+    pub fn set_root_control(&mut self, root_control: Box<Control>) {
+        self.root_control = Some(root_control);
+    }
+
+    pub fn clear_root_control(&mut self) {
+        self.root_control = None;
     }
 
     pub fn run(&mut self) {
@@ -56,27 +67,13 @@ impl Application {
     }
 
     fn render(&mut self, args: &RenderArgs) {
-        use self::graphics::*;
-
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
-
-        let square = rectangle::square(0.0, 0.0, 250.0);
-        let rotation = self.rotation;
-        let (x, y) = ((args.width / 2) as f64,
-                      (args.height / 2) as f64);
-
-        self.gl.draw(args.viewport(), |c, gl| {
-            // Clear the screen.
-            clear(GREEN, gl);
-
-            let transform = c.transform.trans(x, y)
-                .rot_rad(rotation)
-                .trans(-250.0/2.0, -250.0/2.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
-        });
+        match self.root_control {
+            Some(ref root) => {
+                let primitives = convert_control_to_primitives(&**root);
+                self.renderer.draw_primitives(args, primitives);
+            },
+            _ => {}
+        }
     }
 
     fn update(&mut self, args: &UpdateArgs) {
