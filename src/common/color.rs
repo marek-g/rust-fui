@@ -1,3 +1,1 @@
-pub enum Color {
-    Argb(f32, f32, f32, f32),
-}
+pub type Color = [f32; 4]; // A, R, G, B

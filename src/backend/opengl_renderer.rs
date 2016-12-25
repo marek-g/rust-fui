@@ -4,7 +4,7 @@ extern crate piston;
 
 use self::piston::input::*;
 use self::opengl_graphics::{ GlGraphics, OpenGL };
-use render::primitive::Primitive;
+use render::primitive::{ Primitive, PrimitiveKind };
 
 pub struct OpenGLRenderer {
     gl: GlGraphics,
@@ -19,24 +19,23 @@ impl OpenGLRenderer {
                            primitives: Vec<Primitive>) {
         use self::graphics::*;
 
-        const GREEN: [f32; 4] = [0.0, 1.0, 0.0, 1.0];
-        const RED:   [f32; 4] = [1.0, 0.0, 0.0, 1.0];
+        //let (x, y) = ((args.width / 2) as f64,
+        //              (args.height / 2) as f64);
 
-        let square = rectangle::square(0.0, 0.0, 250.0);
-        let rotation = 0.1;
-        let (x, y) = ((args.width / 2) as f64,
-                      (args.height / 2) as f64);
-
-        self.gl.draw(args.viewport(), |c, gl| {
+        self.gl.draw(args.viewport(), |context, gl| {
             // Clear the screen.
-            clear(GREEN, gl);
+            clear([0.0, 1.0, 0.0, 1.0], gl);
 
-            let transform = c.transform.trans(x, y)
-                .rot_rad(rotation)
-                .trans(-250.0/2.0, -250.0/2.0);
-
-            // Draw a box rotating around the middle of the screen.
-            rectangle(RED, square, transform, gl);
+            for primitive in &primitives {
+                match primitive.kind {
+                    PrimitiveKind::Rectangle { ref color, x, y, width, height } => {
+                        rectangle([color[1], color[2], color[3], color[0]],
+                                  [x as f64, y as f64, width as f64, height as f64],
+                                  context.transform, gl);
+                    },
+                    _ => ()
+                }
+            }
         });
     }
 }
