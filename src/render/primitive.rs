@@ -11,6 +11,12 @@ pub enum PrimitiveKind {
         color: Color,
         x: f32, y: f32,
         width: f32, height: f32
+    },
+    Text {
+        color: Color,
+        x: f32, y: f32,
+        size: f32,
+        text: &'static str,
     }
 }
 

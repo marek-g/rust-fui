@@ -23,7 +23,7 @@ impl Control for Button {
             }
         });
 
-        vec.push(Primitive  {
+        vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 1.0],
                 thickness: 1.0,
@@ -31,7 +31,7 @@ impl Control for Button {
                 x2: x, y2: y,
             }
         });
-        vec.push(Primitive  {
+        vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 1.0],
                 thickness: 1.0,
@@ -39,7 +39,7 @@ impl Control for Button {
                 x2: x + width - 1.0, y2: y,
             }
         });
-        vec.push(Primitive  {
+        vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 0.0, 0.0, 0.0],
                 thickness: 1.0,
@@ -47,12 +47,21 @@ impl Control for Button {
                 x2: x + width - 1.0, y2: y + height - 1.0,
             }
         });
-        vec.push(Primitive  {
+        vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 0.0, 0.0, 0.0],
                 thickness: 1.0,
                 x1: x + width - 1.0, y1: y + height - 1.0,
                 x2: x + width - 1.0, y2: y,
+            }
+        });
+
+        vec.push(Primitive {
+            kind: PrimitiveKind::Text {
+                color: [1.0, 0.0, 0.0, 0.0],
+                x: x + 10.0, y: y + height / 2.0 + 10.0,
+                size: height / 2.0,
+                text: "Test button",
             }
         });
 

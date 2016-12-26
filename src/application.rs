@@ -12,16 +12,16 @@ use backend::opengl_renderer::*;
 use controls::control::*;
 use render::conversion::*;
 
-pub struct Application {
+pub struct Application<'a> {
     main_window: PistonWindow,
-    renderer: OpenGLRenderer,
+    renderer: OpenGLRenderer<'a>,
 
     root_control: Option<Box<Control>>,
 
     rotation: f64
 }
 
-impl Application {
+impl<'a> Application<'a> {
     pub fn new(title : &'static str) -> Self {
         let opengl_version = OpenGL::V3_2;
 

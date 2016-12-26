@@ -4,15 +4,21 @@ extern crate piston;
 
 use self::piston::input::*;
 use self::opengl_graphics::{ GlGraphics, OpenGL };
+use self::opengl_graphics::glyph_cache::GlyphCache;
 use render::primitive::{ Primitive, PrimitiveKind };
 
-pub struct OpenGLRenderer {
+pub struct OpenGLRenderer<'a> {
     gl: GlGraphics,
+    glyph_cache: GlyphCache<'a>,
 }
 
-impl OpenGLRenderer {
-    pub fn new(gl_version: OpenGL) -> OpenGLRenderer {
-        OpenGLRenderer { gl: GlGraphics::new(gl_version) }
+impl<'a> OpenGLRenderer<'a> {
+    pub fn new(gl_version: OpenGL) -> OpenGLRenderer<'a> {
+        OpenGLRenderer {
+            gl: GlGraphics::new(gl_version),
+            // TODO: error handling
+            glyph_cache: GlyphCache::new("c:\\windows\\fonts\\arial.ttf").unwrap()
+        }
     }
 
     pub fn draw_primitives(&mut self, args: &RenderArgs,
@@ -22,7 +28,10 @@ impl OpenGLRenderer {
         //let (x, y) = ((args.width / 2) as f64,
         //              (args.height / 2) as f64);
 
-        self.gl.draw(args.viewport(), |context, gl| {
+        let gl = &mut self.gl;
+        let glyph_cache = &mut self.glyph_cache;
+
+        gl.draw(args.viewport(), |context, gl| {
             // Clear the screen.
             clear([0.0, 1.0, 0.0, 1.0], gl);
 
@@ -40,6 +49,14 @@ impl OpenGLRenderer {
                         rectangle([color[1], color[2], color[3], color[0]],
                                   [x as f64, y as f64, width as f64, height as f64],
                                   context.transform, gl);
+                    },
+
+                    PrimitiveKind::Text { ref color, x, y, size, text: ref src_text } => {
+                        text([color[1], color[2], color[3], color[0]],
+                            size as u32,
+                            src_text,
+                            glyph_cache,
+                            context.transform.trans(x as f64, y as f64), gl);
                     }
 
                 }
