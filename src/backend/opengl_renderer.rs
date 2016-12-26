@@ -28,12 +28,20 @@ impl OpenGLRenderer {
 
             for primitive in &primitives {
                 match primitive.kind {
+
+                    PrimitiveKind::Line { ref color, thickness, x1, y1, x2, y2 } => {
+                        line([color[1], color[2], color[3], color[0]],
+                            thickness as f64 / 2.0,
+                            [x1 as f64, y1 as f64, x2 as f64, y2 as f64],
+                            context.transform, gl);
+                    },
+
                     PrimitiveKind::Rectangle { ref color, x, y, width, height } => {
                         rectangle([color[1], color[2], color[3], color[0]],
                                   [x as f64, y as f64, width as f64, height as f64],
                                   context.transform, gl);
-                    },
-                    _ => ()
+                    }
+
                 }
             }
         });
