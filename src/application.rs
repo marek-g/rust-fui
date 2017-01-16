@@ -8,13 +8,14 @@ use self::piston::event_loop::*;
 use self::piston::input::*;
 use self::opengl_graphics::OpenGL;
 
-use backend::opengl_renderer::*;
+use backend::renderer::*;
+use common::size::*;
 use controls::control::*;
 use render::conversion::*;
 
 pub struct Application<'a> {
     main_window: PistonWindow,
-    renderer: OpenGLRenderer<'a>,
+    renderer: Renderer<'a>,
 
     root_control: Option<Box<Control>>,
 
@@ -39,7 +40,7 @@ impl<'a> Application<'a> {
 
         Application {
             main_window: window,
-            renderer: OpenGLRenderer::new(opengl_version),
+            renderer: Renderer::new(),
             root_control: None,
             rotation: 0.0
         }
@@ -68,7 +69,10 @@ impl<'a> Application<'a> {
 
     fn render(&mut self, args: &RenderArgs) {
         match self.root_control {
-            Some(ref root) => {
+            Some(ref mut root) => {
+                let control_size = root.get_preferred_size(Size::new(args.width as f32, args.height as f32),
+                    &mut self.renderer);
+                root.set_size(control_size, &mut self.renderer);
                 let primitives = convert_control_to_primitives(&**root);
                 self.renderer.draw_primitives(args, primitives);
             },

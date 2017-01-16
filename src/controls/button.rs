@@ -1,19 +1,41 @@
+use common::size::Size;
+use backend::renderer::Renderer;
 use controls::control::Control;
 use render::primitive::{Primitive, PrimitiveKind};
 
 pub struct Button {
+    text: &'static str,
+    font_size: f32,
 
+    text_width: f32,
+    size: Size
+}
+
+impl Button {
+    pub fn new() -> Self {
+        Button { text: "Hello World!", font_size: 20.0, text_width: 0.0, size: Size::new(0.0, 0.0) }
+    }
 }
 
 impl Control for Button {
+
+    fn get_preferred_size(&mut self, size: Size, renderer: &mut Renderer) -> Size {
+        self.text_width = renderer.text_width(self.font_size, self.text);
+        Size { width: self.text_width * 1.2, height: self.font_size * 1.2 }
+    }
+
+    fn set_size(&mut self, size: Size, renderer: &mut Renderer) -> Size {
+        self.size = size;
+        size
+    }
 
     fn to_primitives(&self) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = 200.0;
         let y = 100.0;
-        let width = 200.0;
-        let height = 50.0;
+        let width = self.size.width;
+        let height = self.size.height;
 
         vec.push(Primitive {
             kind: PrimitiveKind::Rectangle {
@@ -59,9 +81,9 @@ impl Control for Button {
         vec.push(Primitive {
             kind: PrimitiveKind::Text {
                 color: [1.0, 0.0, 0.0, 0.0],
-                x: x + 10.0, y: y + height / 2.0 + 10.0,
-                size: height / 2.0,
-                text: "Test button",
+                x: x + (width - self.text_width) / 2.0, y: y + (height - self.font_size) / 2.0,
+                size: self.font_size,
+                text: self.text,
             }
         });
 

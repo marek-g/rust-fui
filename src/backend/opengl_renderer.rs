@@ -4,8 +4,9 @@ extern crate piston;
 
 use self::piston::input::*;
 use self::opengl_graphics::{ GlGraphics, OpenGL };
-use self::opengl_graphics::glyph_cache::GlyphCache;
+use self::opengl_graphics::glyph_cache::{ GlyphCache, FontSize };
 use render::primitive::{ Primitive, PrimitiveKind };
+use backend::opengl_renderer::graphics::character::CharacterCache;
 
 pub struct OpenGLRenderer<'a> {
     gl: GlGraphics,
@@ -56,11 +57,15 @@ impl<'a> OpenGLRenderer<'a> {
                             size as u32,
                             src_text,
                             glyph_cache,
-                            context.transform.trans(x as f64, y as f64), gl);
+                            context.transform.trans(x as f64, (y + size) as f64), gl);
                     }
 
                 }
             }
         });
+    }
+
+    pub fn text_width(&mut self, size: f32, text: &str) -> f32 {
+        self.glyph_cache.width(size as FontSize, &text) as f32
     }
 }
