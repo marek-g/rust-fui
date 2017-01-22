@@ -1,48 +1,23 @@
-extern crate piston;
-extern crate piston_window;
-extern crate opengl_graphics;
-
-use self::piston_window::PistonWindow;
-use self::piston::window::WindowSettings;
-use self::piston::event_loop::*;
-use self::piston::input::*;
-use self::opengl_graphics::OpenGL;
-
 use backend::renderer::*;
 use common::size::*;
 use controls::control::*;
 use render::conversion::*;
 
-pub struct Application<'a> {
-    main_window: PistonWindow,
-    renderer: Renderer<'a>,
+pub struct Application {
+    backend_app: ::backend::application::Application,
+    renderer: Renderer,
 
     root_control: Option<Box<Control>>,
-
-    rotation: f64
 }
 
-impl<'a> Application<'a> {
+
+
+impl Application {
     pub fn new(title : &'static str) -> Self {
-        let opengl_version = OpenGL::V3_2;
-
-        let window : PistonWindow = WindowSettings::new(
-            title,
-            [800, 600]
-        )
-            .opengl(opengl_version)
-            .decorated(true)
-            .resizable(true)
-            .exit_on_esc(true)
-            .vsync(true)
-            .build()
-            .unwrap();
-
         Application {
-            main_window: window,
+            backend_app: ::backend::application::Application::new(&title),
             renderer: Renderer::new(),
             root_control: None,
-            rotation: 0.0
         }
     }
 
@@ -55,19 +30,10 @@ impl<'a> Application<'a> {
     }
 
     pub fn run(&mut self) {
-        let mut events = self.main_window.events();
-        while let Some(e) = events.next(&mut self.main_window) {
-            if let Some(r) = e.render_args() {
-                self.render(&r);
-            }
-
-            if let Some(u) = e.update_args() {
-                self.update(&u);
-            }
-        }
+        self.backend_app.run();
     }
 
-    fn render(&mut self, args: &RenderArgs) {
+    /*fn render(&mut self, args: &RenderArgs) {
         match self.root_control {
             Some(ref mut root) => {
                 let control_size = root.get_preferred_size(Size::new(args.width as f32, args.height as f32),
@@ -78,10 +44,5 @@ impl<'a> Application<'a> {
             },
             _ => {}
         }
-    }
-
-    fn update(&mut self, args: &UpdateArgs) {
-        // Rotate 2 radians per second.
-        self.rotation += 1.0 * args.dt;
-    }
+    }*/
 }

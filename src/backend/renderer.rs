@@ -1,28 +1,20 @@
-extern crate opengl_graphics;
-extern crate piston;
-
-use backend::opengl_renderer::OpenGLRenderer;
-use self::opengl_graphics::OpenGL;
-
-use self::piston::input::*;
+use backend::gfx_renderer::GFXRenderer;
 use render::primitive::Primitive;
 
-
-pub struct Renderer<'a> {
-    renderer : OpenGLRenderer<'a>
+pub struct Renderer {
+    renderer: GFXRenderer
 }
 
-impl<'a> Renderer<'a> {
-
-    pub fn new() -> Renderer<'a> {
+impl Renderer {
+    pub fn new() -> Renderer {
         Renderer {
-            renderer : OpenGLRenderer::new(OpenGL::V3_2)
+            renderer: GFXRenderer::new()
         }
     }
 
-    pub fn draw_primitives(&mut self, args: &RenderArgs,
-                           primitives: Vec<Primitive>) {
-        self.renderer.draw_primitives(&args, primitives);
+    pub fn draw_primitives(&mut self, primitives: Vec<Primitive>,
+        width: f32, height: f32) {
+        self.renderer.draw_primitives(primitives, width, height);
     }
 
     pub fn text_width(&mut self, size: f32, text: &str) -> f32 {

@@ -1,31 +1,32 @@
-extern crate graphics;
-extern crate opengl_graphics;
-extern crate piston;
+extern crate gfx;
+extern crate winit;
 
-use self::piston::input::*;
-use self::opengl_graphics::{ GlGraphics, OpenGL };
-use self::opengl_graphics::glyph_cache::{ GlyphCache, FontSize };
-use render::primitive::{ Primitive, PrimitiveKind };
-use backend::opengl_renderer::graphics::character::CharacterCache;
+use render::primitive::Primitive;
 
-pub struct OpenGLRenderer<'a> {
-    gl: GlGraphics,
+pub struct GFXRenderer {
+    /*gl: gfx_device_dx11,
     glyph_cache: GlyphCache<'a>,
+
+    rotate: f64*/
 }
 
-impl<'a> OpenGLRenderer<'a> {
-    pub fn new(gl_version: OpenGL) -> OpenGLRenderer<'a> {
-        OpenGLRenderer {
-            gl: GlGraphics::new(gl_version),
+impl GFXRenderer {
+    pub fn new() -> GFXRenderer {
+        GFXRenderer {
+            /*gl: gfx_device_dx11::create::create(|s|
+                window.get_proc_address(s) as *const std::os::raw::c_void),
             // TODO: error handling
-            glyph_cache: GlyphCache::new("c:\\windows\\fonts\\arial.ttf").unwrap()
+            glyph_cache: GlyphCache::new("c:\\windows\\fonts\\arial.ttf").unwrap(),
+            rotate: 0.0*/
         }
     }
 
-    pub fn draw_primitives(&mut self, args: &RenderArgs,
-                           primitives: Vec<Primitive>) {
-        use self::graphics::*;
+    pub fn draw_primitives(&mut self, primitives: Vec<Primitive>,
+        width: f32, height: f32) {
+        /*use self::graphics::*;
 
+        self.rotate += 0.1;
+        let rotate = self.rotate;
         //let (x, y) = ((args.width / 2) as f64,
         //              (args.height / 2) as f64);
 
@@ -43,13 +44,13 @@ impl<'a> OpenGLRenderer<'a> {
                         line([color[1], color[2], color[3], color[0]],
                             thickness as f64 / 2.0,
                             [x1 as f64, y1 as f64, x2 as f64, y2 as f64],
-                            context.transform, gl);
+                            context.transform.trans(400.0,200.0).rot_rad(rotate).trans(-200.0,-100.0), gl);
                     },
 
                     PrimitiveKind::Rectangle { ref color, x, y, width, height } => {
                         rectangle([color[1], color[2], color[3], color[0]],
                                   [x as f64, y as f64, width as f64, height as f64],
-                                  context.transform, gl);
+                                  context.transform.trans(400.0,200.0).rot_rad(rotate).trans(-200.0,-100.0), gl);
                     },
 
                     PrimitiveKind::Text { ref color, x, y, size, text: ref src_text } => {
@@ -57,15 +58,16 @@ impl<'a> OpenGLRenderer<'a> {
                             size as u32,
                             src_text,
                             glyph_cache,
-                            context.transform.trans(x as f64, (y + size) as f64), gl);
+                            context.transform.trans(400.0,200.0).rot_rad(rotate).trans(x as f64, (y + size) as f64).trans(-200.0,-100.0), gl);
                     }
 
                 }
             }
-        });
+        });*/
     }
 
     pub fn text_width(&mut self, size: f32, text: &str) -> f32 {
-        self.glyph_cache.width(size as FontSize, &text) as f32
+        //self.glyph_cache.width(size as FontSize, &text) as f32
+        1.0
     }
 }

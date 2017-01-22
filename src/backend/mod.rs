@@ -1,2 +1,5 @@
 pub mod renderer;
-pub mod opengl_renderer;
+pub mod application;
+
+pub mod gfx_renderer;
+pub mod gfx_application;
