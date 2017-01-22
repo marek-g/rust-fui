@@ -1,5 +1,5 @@
 use common::size::Size;
-use backend::renderer::Renderer;
+use application::Application;
 use controls::control::Control;
 use render::primitive::{Primitive, PrimitiveKind};
 
@@ -19,12 +19,12 @@ impl Button {
 
 impl Control for Button {
 
-    fn get_preferred_size(&mut self, size: Size, renderer: &mut Renderer) -> Size {
-        self.text_width = renderer.text_width(self.font_size, self.text);
+    fn get_preferred_size(&mut self, size: Size, app: &mut ::backend::application::Application) -> Size {
+        self.text_width = app.text_width(self.font_size, self.text);
         Size { width: self.text_width * 1.2, height: self.font_size * 1.2 }
     }
 
-    fn set_size(&mut self, size: Size, renderer: &mut Renderer) -> Size {
+    fn set_size(&mut self, size: Size, app: &mut ::backend::application::Application) -> Size {
         self.size = size;
         size
     }
