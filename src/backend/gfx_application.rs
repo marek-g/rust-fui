@@ -105,10 +105,11 @@ impl GFXApplication {
             match primitive.kind {
 
                 PrimitiveKind::Line { ref color, thickness, x1, y1, x2, y2 } => {
-                    self.line([color[1], color[2], color[3], color[0]],
-                        thickness / 2.0f32,
+                    let matrix = self.view_matrix.clone();
+                    self.line(color,
+                        thickness,
                         [x1, y1, x2, y2],
-                        nalgebra::new_identity(3));
+                        matrix);
                         //context.transform.trans(400.0,200.0).rot_rad(rotate).trans(-200.0,-100.0));
                 },
 
@@ -117,7 +118,7 @@ impl GFXApplication {
                               [x, y, width, height],
                               nalgebra::new_identity(2));*/
                     let matrix = self.view_matrix.clone();
-                    self.rectangle([color[1], color[2], color[3], color[0]],
+                    self.rectangle(color,
                                    [x, y, x + width - 1.0f32, y + height - 1.0f32],
                                    matrix);
                                    //nalgebra::new_identity(3));
@@ -125,7 +126,7 @@ impl GFXApplication {
                 },
 
                 PrimitiveKind::Text { ref color, x, y, size, text: ref src_text } => {
-                    self.text([color[1], color[2], color[3], color[0]],
+                    self.text(color,
                         size as u32,
                         src_text,
                         //glyph_cache,
@@ -145,14 +146,33 @@ impl GFXApplication {
         120.0
     }
 
-    fn line(&mut self, color: Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
-
-    }
-
-    fn rectangle(&mut self, color: Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+    fn line(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
         let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
         let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
-        let col = [color[1], color[2], color[3]];
+        let col = [color[0], color[1], color[2]];
+
+        let TRIANGLE: [Vertex; 3] = [
+            Vertex { pos: [ p1[0], p1[1] ], color: col },
+            Vertex { pos: [ p2[0], p2[1] ], color: col },
+            Vertex { pos: [ p1[0], p1[1] ], color: col },
+            /*Vertex { pos: [ p2[0], p1[1] ], color: col },
+            Vertex { pos: [ p2[0], p2[1] ], color: col },
+            Vertex { pos: [ p1[0], p2[1] ], color: col },*/
+        ];
+        let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
+
+        let mut data = pipe::Data {
+            vbuf: vertex_buffer,
+            out: self.target_view.clone()
+        };
+
+        self.encoder.draw(&slice, &self.pipeline, &data);
+    }
+
+    fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+        let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
+        let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
+        let col = [color[0], color[1], color[2]];
 
         let TRIANGLE: [Vertex; 6] = [
             Vertex { pos: [ p1[0], p1[1] ], color: col },
@@ -172,7 +192,7 @@ impl GFXApplication {
         self.encoder.draw(&slice, &self.pipeline, &data);
     }
 
-    fn text(&mut self, color: Color, size: u32, src_text: &'static str, matrix: nalgebra::Matrix3<f32>) {
+    fn text(&mut self, color: &Color, size: u32, src_text: &'static str, matrix: nalgebra::Matrix3<f32>) {
 
     }
 
