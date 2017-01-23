@@ -32,7 +32,8 @@ pub struct GFXApplication {
     device: gfx_device_dx11::Device,
     factory: gfx_device_dx11::Factory,
     target_view: gfx_core::handle::RenderTargetView<gfx_device_dx11::Resources, ColorFormat>,
-    pipeline: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
+    pipeline_triangles: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
+    pipeline_lines: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
     encoder: gfx::Encoder<gfx_device_dx11::Resources, gfx_device_dx11::CommandBuffer<gfx_device_dx11::CommandList>>,
 
     view_matrix: nalgebra::Matrix3<f32>,
@@ -54,9 +55,22 @@ impl GFXApplication {
         let vertex_shader = include_bytes!("data/vertex.fx");
         let pixel_shader = include_bytes!("data/pixel.fx");
 
-        let pipeline = factory.create_pipeline_simple(
+        let main_shaderset = factory.create_shader_set(
             vertex_shader,
             pixel_shader,
+        ).unwrap();
+
+        let pipeline_triangles = factory.create_pipeline_state(
+            &main_shaderset,
+            gfx::Primitive::TriangleList,
+            gfx::state::Rasterizer::new_fill(),
+            pipe::new()
+        ).unwrap();
+
+        let pipeline_lines = factory.create_pipeline_state(
+            &main_shaderset,
+            gfx::Primitive::LineList,
+            gfx::state::Rasterizer::new_fill(),
             pipe::new()
         ).unwrap();
 
@@ -69,7 +83,8 @@ impl GFXApplication {
             device: device,
             factory: factory,
             target_view: target_view,
-            pipeline: pipeline,
+            pipeline_triangles: pipeline_triangles,
+            pipeline_lines: pipeline_lines,
             encoder: encoder,
 
             view_matrix: GFXApplication::view_matrix_from_resolution(width, height),
@@ -147,6 +162,33 @@ impl GFXApplication {
     }
 
     fn line(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+        if thickness == 1.0f32 {
+            self.line_native(color, points, matrix);
+        } else {
+            self.line_triangulated(color, thickness, points, matrix);
+        }
+    }
+
+    fn line_native(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+        let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
+        let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
+        let col = [color[0], color[1], color[2]];
+
+        let LINE: [Vertex; 2] = [
+            Vertex { pos: [ p1[0], p1[1] ], color: col },
+            Vertex { pos: [ p2[0], p2[1] ], color: col },
+        ];
+        let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&LINE, ());
+
+        let mut data = pipe::Data {
+            vbuf: vertex_buffer,
+            out: self.target_view.clone()
+        };
+
+        self.encoder.draw(&slice, &self.pipeline_lines, &data);
+    }
+
+    fn line_triangulated(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
         let len = (((points[0] - points[2])*(points[0] - points[2]) + (points[3] - points[1])*(points[3] - points[1]))  as f32).sqrt();
         let normal_x = (points[3] - points[1]) / len;
         let normal_y = -(points[0] - points[2]) / len;
@@ -183,7 +225,7 @@ impl GFXApplication {
             out: self.target_view.clone()
         };
 
-        self.encoder.draw(&slice, &self.pipeline, &data);
+        self.encoder.draw(&slice, &self.pipeline_triangles, &data);
     }
 
     fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
@@ -206,7 +248,7 @@ impl GFXApplication {
             out: self.target_view.clone()
         };
 
-        self.encoder.draw(&slice, &self.pipeline, &data);
+        self.encoder.draw(&slice, &self.pipeline_triangles, &data);
     }
 
     fn text(&mut self, color: &Color, size: u32, src_text: &'static str, matrix: nalgebra::Matrix3<f32>) {

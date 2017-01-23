@@ -49,6 +49,15 @@ impl Control for Button {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 1.0],
                 thickness: 1.0,
+                x1: 0.0, y1: 0.0,
+                x2: 1023.0, y2: 767.0,
+            }
+        });
+
+        vec.push(Primitive {
+            kind: PrimitiveKind::Line {
+                color: [1.0, 1.0, 1.0, 1.0],
+                thickness: 1.0,
                 x1: x, y1: y + height - 1.0,
                 x2: x, y2: y,
             }
