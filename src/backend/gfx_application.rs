@@ -147,17 +147,34 @@ impl GFXApplication {
     }
 
     fn line(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
-        let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
-        let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
+        let len = (((points[0] - points[2])*(points[0] - points[2]) + (points[3] - points[1])*(points[3] - points[1]))  as f32).sqrt();
+        let normal_x = (points[3] - points[1]) / len;
+        let normal_y = -(points[0] - points[2]) / len;
+
+        let diff_x = normal_x * thickness * 0.5f32;
+        let diff_y = normal_y * thickness * 0.5f32;
+        let p1a_x = points[0] - diff_x;
+        let p1a_y = points[1] - diff_y;
+        let p1b_x = points[0] + diff_x;
+        let p1b_y = points[1] + diff_y;
+        let p2a_x = points[2] - diff_x;
+        let p2a_y = points[3] - diff_y;
+        let p2b_x = points[2] + diff_x;
+        let p2b_y = points[3] + diff_y;
+
+        let p1a = matrix.mul(nalgebra::Point3::new(p1a_x, p1a_y, 1.0f32));
+        let p1b = matrix.mul(nalgebra::Point3::new(p1b_x, p1b_y, 1.0f32));
+        let p2a = matrix.mul(nalgebra::Point3::new(p2a_x, p2a_y, 1.0f32));
+        let p2b = matrix.mul(nalgebra::Point3::new(p2b_x, p2b_y, 1.0f32));
         let col = [color[0], color[1], color[2]];
 
-        let TRIANGLE: [Vertex; 3] = [
-            Vertex { pos: [ p1[0], p1[1] ], color: col },
-            Vertex { pos: [ p2[0], p2[1] ], color: col },
-            Vertex { pos: [ p1[0], p1[1] ], color: col },
-            /*Vertex { pos: [ p2[0], p1[1] ], color: col },
-            Vertex { pos: [ p2[0], p2[1] ], color: col },
-            Vertex { pos: [ p1[0], p2[1] ], color: col },*/
+        let TRIANGLE: [Vertex; 6] = [
+            Vertex { pos: [ p1a[0], p1a[1] ], color: col },
+            Vertex { pos: [ p2a[0], p2a[1] ], color: col },
+            Vertex { pos: [ p1b[0], p1b[1] ], color: col },
+            Vertex { pos: [ p1b[0], p1b[1] ], color: col },
+            Vertex { pos: [ p2a[0], p2a[1] ], color: col },
+            Vertex { pos: [ p2b[0], p2b[1] ], color: col },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
 
