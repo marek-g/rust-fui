@@ -130,12 +130,9 @@ impl GFXApplication {
                 },
 
                 PrimitiveKind::Rectangle { ref color, x, y, width, height } => {
-                    /*self.rectangle([color[1], color[2], color[3], color[0]],
-                              [x, y, width, height],
-                              nalgebra::new_identity(2));*/
                     let matrix = self.view_matrix.clone();
                     self.rectangle(color,
-                                   [x, y, x + width - 1.0f32, y + height - 1.0f32],
+                                   [x, y, x + width, y + height],
                                    matrix);
                                    //nalgebra::new_identity(3));
                               //context.transform.trans(400.0,200.0).rot_rad(rotate).trans(-200.0,-100.0));
@@ -254,8 +251,8 @@ impl GFXApplication {
     }
 
     fn view_matrix_from_resolution(width: f32, height: f32) -> nalgebra::Matrix3<f32> {
-        nalgebra::Matrix3::new(2.0f32 / (width - 1.0f32), 0.0f32, -1.0f32,
-            0.0f32, -2.0f32 / (height - 1.0f32), 1.0f32,
-            0.0f32, 0.0f32, 1.0f32)
+        nalgebra::Matrix3::new(2.0f32 / width, 0.0f32, -1.0f32,
+                               0.0f32, -2.0f32 / height, 1.0f32,
+                               0.0f32, 0.0f32, 1.0f32)
     }
 }

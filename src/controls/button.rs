@@ -45,14 +45,14 @@ impl Control for Button {
             }
         });
 
-        vec.push(Primitive {
+        /*vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 0.5],
                 thickness: 1.0,
                 x1: 0.0, y1: 0.0,
                 x2: 1023.0, y2: 767.0,
             }
-        });
+        });*/
         vec.push(Primitive {
             kind: PrimitiveKind::Rectangle {
                 color: [0.2, 1.0, 0.0, 0.2],
@@ -60,6 +60,17 @@ impl Control for Button {
                 width: width - 1.0, height: height - 1.0
             }
         });
+
+        for i in 0..768 {
+            vec.push(Primitive {
+                kind: PrimitiveKind::Rectangle {
+                    color: [1.0, 1.0, 0.0, 0.5],
+                    //x: i as f32, y: i as f32,
+                    x: 1023.0, y: 767.0,
+                    width: 1.0, height: 1.0
+                }
+            });
+        }
 
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
