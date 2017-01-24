@@ -39,7 +39,7 @@ impl Control for Button {
 
         vec.push(Primitive {
             kind: PrimitiveKind::Rectangle {
-                color: [0.5, 1.0, 0.0, 0.0],
+                color: [0.1, 1.0, 0.0, 0.2],
                 x: x, y: y,
                 width: width - 1.0, height: height - 1.0
             }
@@ -47,10 +47,17 @@ impl Control for Button {
 
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
-                color: [1.0, 1.0, 1.0, 1.0],
+                color: [1.0, 1.0, 1.0, 0.5],
                 thickness: 1.0,
                 x1: 0.0, y1: 0.0,
                 x2: 1023.0, y2: 767.0,
+            }
+        });
+        vec.push(Primitive {
+            kind: PrimitiveKind::Rectangle {
+                color: [0.2, 1.0, 0.0, 0.2],
+                x: x - 60.0, y: y + 10.0,
+                width: width - 1.0, height: height - 1.0
             }
         });
 

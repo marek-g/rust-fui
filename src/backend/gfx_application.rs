@@ -18,12 +18,13 @@ pub type DepthFormat = gfx::format::DepthStencil;
 gfx_defines! {
     vertex Vertex {
         pos: [f32; 2] = "a_Pos",
-        color: [f32; 3] = "a_Color",
+        color: [f32; 4] = "a_Color",
     }
 
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
-        out: gfx::RenderTarget<ColorFormat> = "Target0",
+        //out: gfx::RenderTarget<ColorFormat> = "Target0",
+        out: gfx::BlendTarget<ColorFormat> = ("Target0", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
     }
 }
 
@@ -172,11 +173,10 @@ impl GFXApplication {
     fn line_native(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
         let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
         let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
-        let col = [color[0], color[1], color[2]];
 
         let LINE: [Vertex; 2] = [
-            Vertex { pos: [ p1[0], p1[1] ], color: col },
-            Vertex { pos: [ p2[0], p2[1] ], color: col },
+            Vertex { pos: [ p1[0], p1[1] ], color: *color },
+            Vertex { pos: [ p2[0], p2[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&LINE, ());
 
@@ -208,15 +208,14 @@ impl GFXApplication {
         let p1b = matrix.mul(nalgebra::Point3::new(p1b_x, p1b_y, 1.0f32));
         let p2a = matrix.mul(nalgebra::Point3::new(p2a_x, p2a_y, 1.0f32));
         let p2b = matrix.mul(nalgebra::Point3::new(p2b_x, p2b_y, 1.0f32));
-        let col = [color[0], color[1], color[2]];
 
         let TRIANGLE: [Vertex; 6] = [
-            Vertex { pos: [ p1a[0], p1a[1] ], color: col },
-            Vertex { pos: [ p2a[0], p2a[1] ], color: col },
-            Vertex { pos: [ p1b[0], p1b[1] ], color: col },
-            Vertex { pos: [ p1b[0], p1b[1] ], color: col },
-            Vertex { pos: [ p2a[0], p2a[1] ], color: col },
-            Vertex { pos: [ p2b[0], p2b[1] ], color: col },
+            Vertex { pos: [ p1a[0], p1a[1] ], color: *color },
+            Vertex { pos: [ p2a[0], p2a[1] ], color: *color },
+            Vertex { pos: [ p1b[0], p1b[1] ], color: *color },
+            Vertex { pos: [ p1b[0], p1b[1] ], color: *color },
+            Vertex { pos: [ p2a[0], p2a[1] ], color: *color },
+            Vertex { pos: [ p2b[0], p2b[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
 
@@ -231,15 +230,14 @@ impl GFXApplication {
     fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
         let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
         let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
-        let col = [color[0], color[1], color[2]];
 
         let TRIANGLE: [Vertex; 6] = [
-            Vertex { pos: [ p1[0], p1[1] ], color: col },
-            Vertex { pos: [ p2[0], p1[1] ], color: col },
-            Vertex { pos: [ p1[0], p2[1] ], color: col },
-            Vertex { pos: [ p2[0], p1[1] ], color: col },
-            Vertex { pos: [ p2[0], p2[1] ], color: col },
-            Vertex { pos: [ p1[0], p2[1] ], color: col },
+            Vertex { pos: [ p1[0], p1[1] ], color: *color },
+            Vertex { pos: [ p2[0], p1[1] ], color: *color },
+            Vertex { pos: [ p1[0], p2[1] ], color: *color },
+            Vertex { pos: [ p2[0], p1[1] ], color: *color },
+            Vertex { pos: [ p2[0], p2[1] ], color: *color },
+            Vertex { pos: [ p1[0], p2[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
 
