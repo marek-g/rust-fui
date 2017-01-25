@@ -40,68 +40,41 @@ impl Control for Button {
         vec.push(Primitive {
             kind: PrimitiveKind::Rectangle {
                 color: [0.1, 1.0, 0.0, 0.2],
-                x: x, y: y,
-                width: width - 1.0, height: height - 1.0
+                x: x + 1.0, y: y + 1.0,
+                width: width - 2.0, height: height - 2.0
             }
         });
-
-        /*vec.push(Primitive {
-            kind: PrimitiveKind::Line {
-                color: [1.0, 1.0, 1.0, 0.5],
-                thickness: 1.0,
-                x1: 0.0, y1: 0.0,
-                x2: 1023.0, y2: 767.0,
-            }
-        });*/
-        vec.push(Primitive {
-            kind: PrimitiveKind::Rectangle {
-                color: [0.2, 1.0, 0.0, 0.2],
-                x: x - 60.0, y: y + 10.0,
-                width: width - 1.0, height: height - 1.0
-            }
-        });
-
-        for i in 0..768 {
-            vec.push(Primitive {
-                kind: PrimitiveKind::Rectangle {
-                    color: [1.0, 1.0, 0.0, 0.5],
-                    //x: i as f32, y: i as f32,
-                    x: 1023.0, y: 767.0,
-                    width: 1.0, height: 1.0
-                }
-            });
-        }
 
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 1.0],
                 thickness: 1.0,
-                x1: x, y1: y + height - 1.0,
-                x2: x, y2: y,
+                x1: x + 0.5, y1: y + height - 1.0 + 0.5,
+                x2: x + 0.5, y2: y + 0.5,
             }
         });
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
                 color: [1.0, 1.0, 1.0, 1.0],
                 thickness: 1.0,
-                x1: x, y1: y,
-                x2: x + width - 1.0, y2: y,
+                x1: x + 0.5, y1: y + 0.5,
+                x2: x + width - 1.0 + 0.5, y2: y + 0.5,
             }
         });
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
-                color: [1.0, 0.0, 0.0, 0.0],
+                color: [0.0, 0.0, 0.0, 1.0],
                 thickness: 1.0,
-                x1: x, y1: y + height - 1.0,
-                x2: x + width - 1.0, y2: y + height - 1.0,
+                x1: x + width - 1.0 + 0.5, y1: y + 0.5,
+                x2: x + width - 1.0 + 0.5, y2: y + height - 1.0 + 0.5,
             }
         });
         vec.push(Primitive {
             kind: PrimitiveKind::Line {
-                color: [1.0, 0.0, 0.0, 0.0],
+                color: [0.0, 0.0, 0.0, 1.0],
                 thickness: 1.0,
-                x1: x + width - 1.0, y1: y + height - 1.0,
-                x2: x + width - 1.0, y2: y,
+                x1: x + width - 1.0 + 0.5, y1: y + height - 1.0 + 0.5,
+                x2: x + 0.5, y2: y + height - 1.0 + 0.5,
             }
         });
 
