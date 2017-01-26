@@ -3,12 +3,12 @@ extern crate gfx_core;
 extern crate gfx_window_dxgi;
 extern crate gfx_device_dx11;
 extern crate winit;
-extern crate nalgebra;
 
 use self::gfx_core::Factory;
 use self::gfx_core::Device;
 use gfx::traits::FactoryExt;
 use ::common::color::Color;
+use ::common::matrix::*;
 use ::render::primitive::{ Primitive, PrimitiveKind };
 use std::ops::Mul;
 
@@ -37,7 +37,7 @@ pub struct GFXApplication {
     pipeline_lines: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
     encoder: gfx::Encoder<gfx_device_dx11::Resources, gfx_device_dx11::CommandBuffer<gfx_device_dx11::CommandList>>,
 
-    view_matrix: nalgebra::Matrix3<f32>,
+    view_matrix: Matrix2x3<f32>,
 
     rotate: f64,
 }
@@ -122,6 +122,9 @@ impl GFXApplication {
 
                 PrimitiveKind::Line { ref color, thickness, x1, y1, x2, y2 } => {
                     let matrix = self.view_matrix.clone();
+                    /*let matrix = matrix * nalgebra::append_translation(&matrix, nalgebra::Vector3::new(400.0,200.0,0.0));
+                    let matrix = nalgebra::append_rotation(&matrix, nalgebra::Vector3::new(rotate,0.0,0.0));
+                    let matrix = nalgebra::append_translation(&matrix, nalgebra::Vector3::new(-200.0,-100.0,0.0));*/
                     self.line(color,
                         thickness,
                         [x1, y1, x2, y2],
@@ -139,11 +142,12 @@ impl GFXApplication {
                 },
 
                 PrimitiveKind::Text { ref color, x, y, size, text: ref src_text } => {
+                    let matrix = self.view_matrix.clone();
                     self.text(color,
                         size as u32,
                         src_text,
                         //glyph_cache,
-                         nalgebra::new_identity(3));
+                        matrix);
                         //context.transform.trans(400.0,200.0).rot_rad(rotate).trans(x as f64, (y + size) as f64).trans(-200.0,-100.0));
                 }
             }
@@ -159,7 +163,7 @@ impl GFXApplication {
         120.0
     }
 
-    fn line(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+    fn line(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: Matrix2x3<f32>) {
         if thickness == 1.0f32 {
             self.line_native(color, points, matrix);
         } else {
@@ -167,9 +171,9 @@ impl GFXApplication {
         }
     }
 
-    fn line_native(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
-        let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
-        let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
+    fn line_native(&mut self, color: &Color, points: [f32; 4], matrix: Matrix2x3<f32>) {
+        let p1 = matrix * [ points[0], points[1] ];
+        let p2 = matrix * [ points[2], points[3] ];
 
         let LINE: [Vertex; 2] = [
             Vertex { pos: [ p1[0], p1[1] ], color: *color },
@@ -185,7 +189,7 @@ impl GFXApplication {
         self.encoder.draw(&slice, &self.pipeline_lines, &data);
     }
 
-    fn line_triangulated(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
+    fn line_triangulated(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: Matrix2x3<f32>) {
         let len = (((points[0] - points[2])*(points[0] - points[2]) + (points[3] - points[1])*(points[3] - points[1]))  as f32).sqrt();
         let normal_x = (points[3] - points[1]) / len;
         let normal_y = -(points[0] - points[2]) / len;
@@ -201,10 +205,10 @@ impl GFXApplication {
         let p2b_x = points[2] + diff_x;
         let p2b_y = points[3] + diff_y;
 
-        let p1a = matrix.mul(nalgebra::Point3::new(p1a_x, p1a_y, 1.0f32));
-        let p1b = matrix.mul(nalgebra::Point3::new(p1b_x, p1b_y, 1.0f32));
-        let p2a = matrix.mul(nalgebra::Point3::new(p2a_x, p2a_y, 1.0f32));
-        let p2b = matrix.mul(nalgebra::Point3::new(p2b_x, p2b_y, 1.0f32));
+        let p1a = matrix * [ p1a_x, p1a_y ];
+        let p1b = matrix * [ p1b_x, p1b_y ];
+        let p2a = matrix * [ p2a_x, p2a_y ];
+        let p2b = matrix * [ p2b_x, p2b_y ];
 
         let TRIANGLE: [Vertex; 6] = [
             Vertex { pos: [ p1a[0], p1a[1] ], color: *color },
@@ -224,9 +228,9 @@ impl GFXApplication {
         self.encoder.draw(&slice, &self.pipeline_triangles, &data);
     }
 
-    fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: nalgebra::Matrix3<f32>) {
-        let p1 = matrix.mul(nalgebra::Point3::new(points[0], points[1], 1.0f32));
-        let p2 = matrix.mul(nalgebra::Point3::new(points[2], points[3], 1.0f32));
+    fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: Matrix2x3<f32>) {
+        let p1 = matrix * [ points[0], points[1] ];
+        let p2 = matrix * [ points[2], points[3] ];
 
         let TRIANGLE: [Vertex; 6] = [
             Vertex { pos: [ p1[0], p1[1] ], color: *color },
@@ -246,13 +250,12 @@ impl GFXApplication {
         self.encoder.draw(&slice, &self.pipeline_triangles, &data);
     }
 
-    fn text(&mut self, color: &Color, size: u32, src_text: &'static str, matrix: nalgebra::Matrix3<f32>) {
+    fn text(&mut self, color: &Color, size: u32, src_text: &'static str, matrix: Matrix2x3<f32>) {
 
     }
 
-    fn view_matrix_from_resolution(width: f32, height: f32) -> nalgebra::Matrix3<f32> {
-        nalgebra::Matrix3::new(2.0f32 / width, 0.0f32, -1.0f32,
-                               0.0f32, -2.0f32 / height, 1.0f32,
-                               0.0f32, 0.0f32, 1.0f32)
+    fn view_matrix_from_resolution(width: f32, height: f32) -> Matrix2x3<f32> {
+        Matrix2x3::new(2.0f32 / width, 0.0f32, -1.0f32,
+                       0.0f32, -2.0f32 / height, 1.0f32)
     }
 }
