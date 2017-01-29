@@ -16,14 +16,33 @@ pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
 
 gfx_defines! {
-    vertex Vertex {
+    vertex ColorVertex {
         pos: [f32; 2] = "a_Pos",
         color: [f32; 4] = "a_Color",
     }
 
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
+    vertex TexturedVertex {
+        pos: [f32; 2] = "a_Pos",
+        tex_coord: [f32; 2] = "a_TexCoord",
+    }
+
+    constant Locals {
+        transform: [[f32; 4]; 4] = "u_Transform",
+    }
+
+    pipeline ColorPipeline {
+        vbuf: gfx::VertexBuffer<ColorVertex> = (),
+        locals: gfx::ConstantBuffer<Locals> = "Locals",
+        transform: gfx::Global<[[f32; 4]; 4]> = "u_Transform",
         //out: gfx::RenderTarget<ColorFormat> = "Target0",
+        out: gfx::BlendTarget<ColorFormat> = ("Target0", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
+    }
+
+    pipeline TexturedPipeline {
+        vbuf: gfx::VertexBuffer<TexturedVertex> = (),
+        locals: gfx::ConstantBuffer<Locals> = "Locals",
+        transform: gfx::Global<[[f32; 4]; 4]> = "u_Transform",
+        color: gfx::TextureSampler<[f32; 4]> = "t_Color",
         out: gfx::BlendTarget<ColorFormat> = ("Target0", gfx::state::ColorMask::all(), gfx::preset::blend::ALPHA),
     }
 }
@@ -33,8 +52,9 @@ pub struct GFXApplication {
     device: gfx_device_dx11::Device,
     factory: gfx_device_dx11::Factory,
     target_view: gfx_core::handle::RenderTargetView<gfx_device_dx11::Resources, ColorFormat>,
-    pipeline_triangles: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
-    pipeline_lines: gfx::PipelineState<gfx_device_dx11::Resources, pipe::Meta>,
+    color_pipeline_triangles: gfx::PipelineState<gfx_device_dx11::Resources, ColorPipeline::Meta>,
+    color_pipeline_lines: gfx::PipelineState<gfx_device_dx11::Resources, ColorPipeline::Meta>,
+    textured_pipeline_triangles: gfx::PipelineState<gfx_device_dx11::Resources, TexturedPipeline::Meta>,
     encoder: gfx::Encoder<gfx_device_dx11::Resources, gfx_device_dx11::CommandBuffer<gfx_device_dx11::CommandList>>,
 
     view_matrix: Matrix2x3<f32>,
@@ -53,26 +73,40 @@ impl GFXApplication {
         //let backend = device.get_shader_model();
         //let mut device = gfx_device_dx11::Deferred::from(device);
 
-        let vertex_shader = include_bytes!("data/vertex.fx");
-        let pixel_shader = include_bytes!("data/pixel.fx");
+        let colored_vertex_shader = include_bytes!("data/colored_vertex.fx");
+        let colored_pixel_shader = include_bytes!("data/colored_pixel.fx");
+        let textured_vertex_shader = include_bytes!("data/textured_vertex.fx");
+        let textured_pixel_shader = include_bytes!("data/textured_pixel.fx");
 
-        let main_shaderset = factory.create_shader_set(
-            vertex_shader,
-            pixel_shader,
+        let colored_shaderset = factory.create_shader_set(
+            colored_vertex_shader,
+            colored_pixel_shader,
         ).unwrap();
 
-        let pipeline_triangles = factory.create_pipeline_state(
-            &main_shaderset,
+        let textured_shaderset = factory.create_shader_set(
+            textured_vertex_shader,
+            textured_pixel_shader,
+        ).unwrap();
+
+        let color_pipeline_triangles = factory.create_pipeline_state(
+            &colored_shaderset,
             gfx::Primitive::TriangleList,
             gfx::state::Rasterizer::new_fill(),
-            pipe::new()
+            ColorPipeline::new()
         ).unwrap();
 
-        let pipeline_lines = factory.create_pipeline_state(
-            &main_shaderset,
+        let color_pipeline_lines = factory.create_pipeline_state(
+            &colored_shaderset,
             gfx::Primitive::LineList,
             gfx::state::Rasterizer::new_fill(),
-            pipe::new()
+            ColorPipeline::new()
+        ).unwrap();
+
+        let textured_pipeline_triangles = factory.create_pipeline_state(
+            &textured_shaderset,
+            gfx::Primitive::TriangleList,
+            gfx::state::Rasterizer::new_fill(),
+            TexturedPipeline::new()
         ).unwrap();
 
         let mut encoder: gfx::Encoder<gfx_device_dx11::Resources, gfx_device_dx11::CommandBuffer<gfx_device_dx11::CommandList>>  = factory.create_command_buffer().into();
@@ -84,8 +118,9 @@ impl GFXApplication {
             device: device,
             factory: factory,
             target_view: target_view,
-            pipeline_triangles: pipeline_triangles,
-            pipeline_lines: pipeline_lines,
+            color_pipeline_triangles: color_pipeline_triangles,
+            color_pipeline_lines: color_pipeline_lines,
+            textured_pipeline_triangles: textured_pipeline_triangles,
             encoder: encoder,
 
             view_matrix: GFXApplication::view_matrix_from_resolution(width, height),
@@ -175,18 +210,23 @@ impl GFXApplication {
         let p1 = matrix * [ points[0], points[1] ];
         let p2 = matrix * [ points[2], points[3] ];
 
-        let LINE: [Vertex; 2] = [
-            Vertex { pos: [ p1[0], p1[1] ], color: *color },
-            Vertex { pos: [ p2[0], p2[1] ], color: *color },
+        let LINE: [ColorVertex; 2] = [
+            ColorVertex { pos: [ p1[0], p1[1] ], color: *color },
+            ColorVertex { pos: [ p2[0], p2[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&LINE, ());
 
-        let mut data = pipe::Data {
+        let mut data = ColorPipeline::Data {
             vbuf: vertex_buffer,
+            locals: self.factory.create_constant_buffer(1),
+            transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
             out: self.target_view.clone()
         };
 
-        self.encoder.draw(&slice, &self.pipeline_lines, &data);
+        let locals = Locals { transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]] };
+        self.encoder.update_constant_buffer(&data.locals, &locals);
+
+        self.encoder.draw(&slice, &self.color_pipeline_lines, &data);
     }
 
     fn line_triangulated(&mut self, color: &Color, thickness: f32, points: [f32; 4], matrix: Matrix2x3<f32>) {
@@ -210,44 +250,54 @@ impl GFXApplication {
         let p2a = matrix * [ p2a_x, p2a_y ];
         let p2b = matrix * [ p2b_x, p2b_y ];
 
-        let TRIANGLE: [Vertex; 6] = [
-            Vertex { pos: [ p1a[0], p1a[1] ], color: *color },
-            Vertex { pos: [ p2a[0], p2a[1] ], color: *color },
-            Vertex { pos: [ p1b[0], p1b[1] ], color: *color },
-            Vertex { pos: [ p1b[0], p1b[1] ], color: *color },
-            Vertex { pos: [ p2a[0], p2a[1] ], color: *color },
-            Vertex { pos: [ p2b[0], p2b[1] ], color: *color },
+        let TRIANGLE: [ColorVertex; 6] = [
+            ColorVertex { pos: [ p1a[0], p1a[1] ], color: *color },
+            ColorVertex { pos: [ p2a[0], p2a[1] ], color: *color },
+            ColorVertex { pos: [ p1b[0], p1b[1] ], color: *color },
+            ColorVertex { pos: [ p1b[0], p1b[1] ], color: *color },
+            ColorVertex { pos: [ p2a[0], p2a[1] ], color: *color },
+            ColorVertex { pos: [ p2b[0], p2b[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
 
-        let mut data = pipe::Data {
+        let mut data = ColorPipeline::Data {
             vbuf: vertex_buffer,
+            locals: self.factory.create_constant_buffer(1),
+            transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
             out: self.target_view.clone()
         };
 
-        self.encoder.draw(&slice, &self.pipeline_triangles, &data);
+        let locals = Locals { transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]] };
+        self.encoder.update_constant_buffer(&data.locals, &locals);
+
+        self.encoder.draw(&slice, &self.color_pipeline_triangles, &data);
     }
 
     fn rectangle(&mut self, color: &Color, points: [f32; 4], matrix: Matrix2x3<f32>) {
         let p1 = matrix * [ points[0], points[1] ];
         let p2 = matrix * [ points[2], points[3] ];
 
-        let TRIANGLE: [Vertex; 6] = [
-            Vertex { pos: [ p1[0], p1[1] ], color: *color },
-            Vertex { pos: [ p2[0], p1[1] ], color: *color },
-            Vertex { pos: [ p1[0], p2[1] ], color: *color },
-            Vertex { pos: [ p2[0], p1[1] ], color: *color },
-            Vertex { pos: [ p2[0], p2[1] ], color: *color },
-            Vertex { pos: [ p1[0], p2[1] ], color: *color },
+        let TRIANGLE: [ColorVertex; 6] = [
+            ColorVertex { pos: [ p1[0], p1[1] ], color: *color },
+            ColorVertex { pos: [ p2[0], p1[1] ], color: *color },
+            ColorVertex { pos: [ p1[0], p2[1] ], color: *color },
+            ColorVertex { pos: [ p2[0], p1[1] ], color: *color },
+            ColorVertex { pos: [ p2[0], p2[1] ], color: *color },
+            ColorVertex { pos: [ p1[0], p2[1] ], color: *color },
         ];
         let (vertex_buffer, slice) = self.factory.create_vertex_buffer_with_slice(&TRIANGLE, ());
 
-        let mut data = pipe::Data {
+        let mut data = ColorPipeline::Data {
             vbuf: vertex_buffer,
+            locals: self.factory.create_constant_buffer(1),
+            transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
             out: self.target_view.clone()
         };
 
-        self.encoder.draw(&slice, &self.pipeline_triangles, &data);
+        let locals = Locals { transform: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]] };
+        self.encoder.update_constant_buffer(&data.locals, &locals);
+
+        self.encoder.draw(&slice, &self.color_pipeline_triangles, &data);
     }
 
     fn text(&mut self, color: &Color, size: u32, src_text: &'static str, matrix: Matrix2x3<f32>) {

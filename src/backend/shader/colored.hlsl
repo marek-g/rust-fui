@@ -3,10 +3,14 @@ struct VsOutput {
     float4 color: COLOR;
 };
 
+cbuffer Locals {
+	float4x4 u_Transform;
+};
+
 VsOutput Vertex(float2 pos : a_Pos, float4 color : a_Color) {
     VsOutput output = {
-        float4(pos, 0.0, 1.0),
-        color,
+        mul(u_Transform, float4(pos, 0.0, 1.0)),
+        color
     };
     return output;
 }
