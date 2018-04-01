@@ -1,7 +1,7 @@
 [package]
-name = "fui"
+name = "fui_examples"
 version = "0.1.0"
-authors = ["Marek G <gibekm@gmail.com>"]
+authors = ["Marek G <no@mail.com>"]
 
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }

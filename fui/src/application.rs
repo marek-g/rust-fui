@@ -4,7 +4,7 @@ use drawing::backend::*;
 use drawing::renderer::Renderer;
 use drawing::resources::Resources;
 use drawing::units::*;
-use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture };
+use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory };
 use drawing_gfx::font_gfx_text::GfxTextFont;
 use common::size::*;
 use controls::control::*;
@@ -12,7 +12,7 @@ use controls::control::*;
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
-    resources: Resources<GfxTexture, GfxTextFont<Resources, GfxWindowBackend::Factory>>,
+    resources: Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>>,
     renderer: Renderer<GfxWindowBackend>,
     root_control: Option<Box<Control>>,
 }
@@ -68,8 +68,8 @@ impl Application {
         //let mut test = &mut self;
         if let Some(ref mut root) = self.root_control {
             let control_size = root.get_preferred_size(::common::size::Size::new(width as f32, height as f32),
-                                                       &mut self.renderer);
-            root.set_size(control_size, &mut self.renderer);
+                                                       &mut self);
+            root.set_size(control_size, &mut self);
             let primitives = root.to_primitives();
 
             self.renderer.draw(PhysPixelSize::new(width as f32, height as f32),

@@ -1,7 +1,7 @@
 [package]
 name = "fui"
 version = "0.1.0"
-authors = ["Marek G <gibekm@gmail.com>"]
+authors = ["Marek G <no@mail.com>"]
 
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }

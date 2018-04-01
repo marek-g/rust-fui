@@ -1,7 +1,8 @@
 use common::size::Size;
 use application::Application;
 use controls::control::Control;
-use render::primitive::{Primitive, PrimitiveKind};
+use drawing::primitive::Primitive;
+use drawing::units::*;
 
 pub struct Button {
     text: &'static str,
@@ -37,57 +38,46 @@ impl Control for Button {
         let width = self.size.width;
         let height = self.size.height;
 
-        vec.push(Primitive {
-            kind: PrimitiveKind::Rectangle {
-                color: [0.1, 1.0, 0.0, 0.2],
-                x: x + 1.0, y: y + 1.0,
-                width: width - 2.0, height: height - 2.0
-            }
+        vec.push(Primitive::Rectangle {
+            color: [0.1, 1.0, 0.0, 0.2],
+            rect: UserPixelRect::new(UserPixelPoint::new(x + 1.0, y + 1.0),
+                UserPixelSize::new(width - 2.0, height - 2.0))
         });
 
-        vec.push(Primitive {
-            kind: PrimitiveKind::Line {
-                color: [1.0, 1.0, 1.0, 1.0],
-                thickness: 1.0,
-                x1: x + 0.5, y1: y + height - 1.0 + 0.5,
-                x2: x + 0.5, y2: y + 0.5,
-            }
+        vec.push(Primitive::Line {
+            color: [1.0, 1.0, 1.0, 1.0],
+            thickness: UserPixelThickness::new(1.0f32),
+            start_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
+            end_point: UserPixelPoint::new(x + 0.5, y + 0.5),
         });
-        vec.push(Primitive {
-            kind: PrimitiveKind::Line {
-                color: [1.0, 1.0, 1.0, 1.0],
-                thickness: 1.0,
-                x1: x + 0.5, y1: y + 0.5,
-                x2: x + width - 1.0 + 0.5, y2: y + 0.5,
-            }
+        vec.push(Primitive::Line {
+            color: [1.0, 1.0, 1.0, 1.0],
+            thickness: UserPixelThickness::new(1.0f32),
+            start_point: UserPixelPoint::new(x + 0.5, y + 0.5),
+            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
         });
-        vec.push(Primitive {
-            kind: PrimitiveKind::Line {
-                color: [0.0, 0.0, 0.0, 1.0],
-                thickness: 1.0,
-                x1: x + width - 1.0 + 0.5, y1: y + 0.5,
-                x2: x + width - 1.0 + 0.5, y2: y + height - 1.0 + 0.5,
-            }
+        vec.push(Primitive::Line {
+            color: [0.0, 0.0, 0.0, 1.0],
+            thickness: UserPixelThickness::new(1.0f32),
+            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
+            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
         });
-        vec.push(Primitive {
-            kind: PrimitiveKind::Line {
-                color: [0.0, 0.0, 0.0, 1.0],
-                thickness: 1.0,
-                x1: x + width - 1.0 + 0.5, y1: y + height - 1.0 + 0.5,
-                x2: x + 0.5, y2: y + height - 1.0 + 0.5,
-            }
+        vec.push(Primitive::Line {
+            color: [0.0, 0.0, 0.0, 1.0],
+            thickness: UserPixelThickness::new(1.0f32),
+            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
+            end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        vec.push(Primitive {
-            kind: PrimitiveKind::Text {
-                color: [1.0, 0.0, 0.0, 0.0],
-                x: x + (width - self.text_width) / 2.0, y: y + (height - self.font_size) / 2.0,
-                size: self.font_size,
-                text: self.text,
-            }
+        vec.push(Primitive::Text {
+            resource_key: "F1",
+            color: [1.0, 0.0, 0.0, 0.0],
+            position: UserPixelPoint::new(x + (width - self.text_width) / 2.0, y + (height - self.font_size) / 2.0),
+            size: self.font_size as u16,
+            text: self.text,
         });
 
         vec
     }
 
-}
+}   
