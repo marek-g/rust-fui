@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "request": "launch",
+            "type": "lldb",
+            "sourceLanguages": ["rust"],
+            "program": "${workspaceRoot}/target/debug/example1",
+            //"type": "gdb",
+            //"target": "${workspaceRoot}/target/debug/example1.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build"
+        }
+    ]
+}

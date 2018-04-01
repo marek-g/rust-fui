@@ -1,0 +1,11 @@
+[package]
+name = "fui"
+version = "0.1.0"
+authors = ["Marek G <gibekm@gmail.com>"]
+
+[dependencies]
+fui = { path = "../../rust-fui/fui", version = "*" }
+
+[[bin]]
+name = "example1"
+path = "src/example1.rs"
