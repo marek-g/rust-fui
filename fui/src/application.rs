@@ -1,19 +1,16 @@
 extern crate winit;
 
 use drawing::backend::*;
-use drawing::renderer::Renderer;
-use drawing::resources::Resources;
 use drawing::units::*;
-use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory };
-use drawing_gfx::font_gfx_text::GfxTextFont;
+
+use drawing_context::DrawingContext;
 use common::size::*;
 use controls::control::*;
 
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
-    resources: Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>>,
-    renderer: Renderer<GfxWindowBackend>,
+    drawing_context: DrawingContext,
     root_control: Option<Box<Control>>,
 }
 
@@ -21,13 +18,13 @@ impl Application {
     pub fn new(title: &'static str) -> Self {
         let window_builder = winit::WindowBuilder::new()
             .with_title(title);
-        let mut events_loop = winit::EventsLoop::new();
+        let events_loop = winit::EventsLoop::new();
+        let drawing_context = DrawingContext::create(window_builder, &events_loop);
 
         Application {
             title: title,
             events_loop: events_loop,
-            resources: Resources::new(),
-            renderer: Renderer::new(GfxWindowBackend::create_window_backend(window_builder, &events_loop)),
+            drawing_context: drawing_context,
             root_control: None,
         }
     }
@@ -44,19 +41,30 @@ impl Application {
         let mut width = 0;
         let mut height = 0;
 
-        'main: loop {
-            self.events_loop.poll_events(|event| {
-                if let winit::Event::WindowEvent { event, .. } = event {
-                    match event {
-                        winit::WindowEvent::Closed => return,
-                        winit::WindowEvent::Resized(w, h) => {
-                           width = w; height = h;
-                           self.renderer.update_window_size(w as u16, h as u16)
-                        },
-                        _ => (),
+        let mut running = true;
+
+        while running {
+            {
+                let events_loop = &mut self.events_loop;
+                let drawing_context = &mut self.drawing_context;
+
+                events_loop.poll_events(|event| {
+                    if let winit::Event::WindowEvent { event, .. } = event {
+                        match event {
+                            winit::WindowEvent::Closed => {
+                                running = false;
+                            },
+                            winit::WindowEvent::Resized(w, h) => {
+                            width = w; height = h;
+                            drawing_context.update_window_size(w as u16, h as u16)
+                            },
+                            _ => (),
+                        }
                     }
-                }
-            });
+                });
+            }
+
+            if !running { return }
 
             if width <= 0 || height <= 0 { continue }
 
@@ -68,17 +76,12 @@ impl Application {
         //let mut test = &mut self;
         if let Some(ref mut root) = self.root_control {
             let control_size = root.get_preferred_size(::common::size::Size::new(width as f32, height as f32),
-                                                       &mut self);
-            root.set_size(control_size, &mut self);
+                                                       &mut self.drawing_context);
+            root.set_size(control_size, &mut self.drawing_context);
             let primitives = root.to_primitives();
 
-            self.renderer.draw(PhysPixelSize::new(width as f32, height as f32),
-                primitives, &mut self.resources);
+            self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
+                primitives);
         }
-    }
-
-    pub fn text_width(&self, size: f32, text: &str) -> f32 {
-        //self.backend_app.text_width(size, text)
-        1.0
     }
 }

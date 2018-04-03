@@ -1,5 +1,5 @@
 use common::size::Size;
-use application::Application;
+use drawing_context::DrawingContext;
 use controls::control::Control;
 use drawing::primitive::Primitive;
 use drawing::units::*;
@@ -20,12 +20,12 @@ impl Button {
 
 impl Control for Button {
 
-    fn get_preferred_size(&mut self, size: Size, app: &mut Application) -> Size {
-        self.text_width = app.text_width(self.font_size, self.text);
+    fn get_preferred_size(&mut self, size: Size, drawing_context: &mut DrawingContext) -> Size {
+        self.text_width = drawing_context.text_width(self.font_size, self.text);
         Size { width: self.text_width * 1.2, height: self.font_size * 1.2 }
     }
 
-    fn set_size(&mut self, size: Size, app: &mut Application) -> Size {
+    fn set_size(&mut self, size: Size, drawing_context: &mut DrawingContext) -> Size {
         self.size = size;
         size
     }
