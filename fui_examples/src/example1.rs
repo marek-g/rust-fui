@@ -1,5 +1,4 @@
-//#![feature(windows_subsystem)]
-//#![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 extern crate fui;
 

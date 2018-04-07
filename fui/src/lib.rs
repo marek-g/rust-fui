@@ -6,3 +6,4 @@ pub mod application;
 pub mod drawing_context;
 pub mod common;
 pub mod controls;
+pub mod high_dpi;

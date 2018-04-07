@@ -6,6 +6,7 @@ use drawing::units::*;
 use drawing_context::DrawingContext;
 use common::size::*;
 use controls::control::*;
+use high_dpi::*;
 
 pub struct Application {
     title: &'static str,
@@ -16,6 +17,8 @@ pub struct Application {
 
 impl Application {
     pub fn new(title: &'static str) -> Self {
+        ::high_dpi::set_process_high_dpi_aware();
+
         let window_builder = winit::WindowBuilder::new()
             .with_title(title);
         let events_loop = winit::EventsLoop::new();
