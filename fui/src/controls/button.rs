@@ -9,22 +9,23 @@ pub struct Button {
     font_name: &'static str,
     font_size: u8,
 
-    text_width: u16,
+    text_size: Size,
     size: Size
 }
 
 impl Button {
     pub fn new() -> Self {
-        Button { text: "Hello World!", font_name: "OpenSans-Regular.ttf", font_size: 20u8, text_width: 0u16, size: Size::new(0.0, 0.0) }
+        Button { text: "Hello World!", font_name: "OpenSans-Regular.ttf", font_size: 20u8,
+            text_size: Size::new(0.0, 0.0), size: Size::new(0.0, 0.0) }
     }
 }
 
 impl Control for Button {
 
     fn get_preferred_size(&mut self, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        let (text_width, _) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &self.text);
-        self.text_width = text_width;
-        Size { width: self.text_width as f32 * 1.2, height: self.font_size as f32 * 1.2 }
+        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &self.text);
+        self.text_size = Size::new(text_width as f32, text_height as f32);
+        Size::new(self.text_size.width * 1.2, self.text_size.height as f32 * 1.2)
     }
 
     fn set_size(&mut self, size: Size, drawing_context: &mut DrawingContext) -> Size {
@@ -73,8 +74,8 @@ impl Control for Button {
 
         vec.push(Primitive::Text {
             resource_key: self.font_name,
-            color: [1.0, 0.0, 0.0, 0.0],
-            position: UserPixelPoint::new(x + (width - self.text_width as f32) / 2.0, y + (height - self.font_size as f32) / 2.0),
+            color: [1.0, 1.0, 1.0, 1.0],
+            position: UserPixelPoint::new(x + (width - self.text_size.width) / 2.0, y + (height - self.text_size.height) / 2.0),
             size: self.font_size as u16,
             text: self.text,
         });
