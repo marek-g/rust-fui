@@ -75,10 +75,10 @@ impl<C: Control> Application<C> {
 
     fn render(&mut self, width: u32, height: u32) {
         if let Some(ref mut root) = self.root_control {
-            let control_size = root.get_style().get_preferred_size(root,
+            let control_size = root.get_preferred_size(
                 ::common::size::Size::new(width as f32, height as f32),
                 &mut self.drawing_context);
-            let primitives = root.get_style().to_primitives(root, control_size, &mut self.drawing_context);
+            let primitives = root.to_primitives(control_size, &mut self.drawing_context);
 
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);
