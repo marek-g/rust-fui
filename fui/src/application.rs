@@ -4,18 +4,16 @@ use drawing::backend::*;
 use drawing::units::*;
 
 use drawing_context::DrawingContext;
-use common::size::*;
 use controls::control::*;
-use high_dpi::*;
 
-pub struct Application {
+pub struct Application<C: Control> {
     title: &'static str,
     events_loop: winit::EventsLoop,
     drawing_context: DrawingContext,
-    root_control: Option<Box<Control>>,
+    root_control: Option<C>,
 }
 
-impl Application {
+impl<C: Control> Application<C> {
     pub fn new(title: &'static str) -> Self {
         ::high_dpi::set_process_high_dpi_aware();
 
@@ -32,7 +30,7 @@ impl Application {
         }
     }
 
-    pub fn set_root_control(&mut self, root_control: Box<Control>) {
+    pub fn set_root_control(&mut self, root_control: C) {
         self.root_control = Some(root_control);
     }
 
@@ -76,12 +74,11 @@ impl Application {
     }
 
     fn render(&mut self, width: u32, height: u32) {
-        //let mut test = &mut self;
         if let Some(ref mut root) = self.root_control {
-            let control_size = root.get_preferred_size(::common::size::Size::new(width as f32, height as f32),
-                                                       &mut self.drawing_context);
-            root.set_size(control_size, &mut self.drawing_context);
-            let primitives = root.to_primitives();
+            let control_size = root.get_style().get_preferred_size(root,
+                ::common::size::Size::new(width as f32, height as f32),
+                &mut self.drawing_context);
+            let primitives = root.get_style().to_primitives(root, control_size, &mut self.drawing_context);
 
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);

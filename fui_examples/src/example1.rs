@@ -8,7 +8,7 @@ use fui::controls::button::*;
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
-    let btn1 = Box::new(Button::new());
+    let btn1 = Button::new();
     app.set_root_control(btn1);
     //app.clear_root_control();
 
