@@ -5,7 +5,7 @@ use drawing::primitive::Primitive;
 use drawing::units::*;
 
 pub struct ButtonState {
-    text: &'static str,
+    text: String,
 }
 
 pub struct Button<S: Style<ButtonState>> {
@@ -16,7 +16,7 @@ pub struct Button<S: Style<ButtonState>> {
 impl Button<ButtonDefaultStyle> {
     pub fn new() -> Self {
         Button {
-            state: ButtonState { text: "Hello World!" },
+            state: ButtonState { text: "Hello World!".to_string() },
             style: ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 },
         }
     }
@@ -31,6 +31,10 @@ impl<S: Style<ButtonState>> Control for Button<S> {
     }
 }
 
+//
+// Button Default Style
+//
+
 pub struct ButtonDefaultStyle {
     font_name: &'static str,
     font_size: u8,
@@ -43,7 +47,7 @@ impl Style<ButtonState> for ButtonDefaultStyle {
         Size::new((text_width as f32) * 1.2, (text_height as f32) * 1.2)
     }
 
-    fn to_primitives(&self, state: &ButtonState, size: Size, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives<'a>(&self, state: &'a ButtonState, size: Size, drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
         let x = 200.0;
@@ -89,7 +93,7 @@ impl Style<ButtonState> for ButtonDefaultStyle {
             color: [1.0, 1.0, 1.0, 1.0],
             position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
             size: self.font_size as u16,
-            text: state.text,
+            text: &state.text,
         });
 
         vec
