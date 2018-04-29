@@ -9,7 +9,8 @@ use fui::controls::control::*;
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
-    let btn1 = Button::new();
+    let mut btn1 = Button::new();
+    btn1.events.clicked.set(|| { println!("clicked!") });
     app.set_root_control(btn1);
     //app.clear_root_control();
 

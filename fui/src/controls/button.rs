@@ -3,23 +3,20 @@ use drawing_context::DrawingContext;
 use controls::control::*;
 use drawing::primitive::Primitive;
 use drawing::units::*;
+use event::*;
 
 pub struct ButtonProperties {
-    text: String,
+    pub text: String,
+}
+
+pub struct ButtonEvents {
+    pub clicked: Event
 }
 
 pub struct Button<S: Style<ButtonProperties>> {
-    properties: ButtonProperties,
+    pub properties: ButtonProperties,
+    pub events: ButtonEvents,
     style: S,
-}
-
-impl Button<ButtonDefaultStyle> {
-    pub fn new() -> Self {
-        Button {
-            properties: ButtonProperties { text: "Hello World!".to_string() },
-            style: ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 },
-        }
-    }
 }
 
 impl<S: Style<ButtonProperties>> Control for Button<S> {
@@ -30,6 +27,7 @@ impl<S: Style<ButtonProperties>> Control for Button<S> {
         self.style.to_primitives(&self.properties, size, drawing_context)
     }
 }
+
 
 //
 // Button Default Style
@@ -99,4 +97,19 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         vec
     }
 
+}
+
+
+//
+//
+//
+
+impl Button<ButtonDefaultStyle> {
+    pub fn new() -> Self {
+        Button {
+            properties: ButtonProperties { text: "Hello World!".to_string() },
+            events: ButtonEvents { clicked: Event::new(||{}) },
+            style: ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 },
+        }
+    }
 }
