@@ -18,7 +18,8 @@ pub struct Button<S: Style<ButtonProperties>> {
     pub events: ButtonEvents,
     style: S,
 
-    x: u16, y: u16, width: u16, height: u16
+    x: u16, y: u16, width: u16, height: u16,
+    is_mouse_captured: bool
 }
 
 impl<S: Style<ButtonProperties>> Control for Button<S> {
@@ -27,7 +28,16 @@ impl<S: Style<ButtonProperties>> Control for Button<S> {
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
-        println!("event: {:?}", event);
+        if let ::winit::Event::WindowEvent { ref event, .. } = event {
+            match event {
+                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
+                    self.events.clicked.emit();
+                },
+                _ => ()
+            }
+        }
+
+        //println!("event: {:?}", event);
         true
     }
 
@@ -125,7 +135,8 @@ impl Button<ButtonDefaultStyle> {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new(||{}) },
             style: ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 },
-            x: 0, y: 0, width: 0, height: 0
+            x: 0, y: 0, width: 0, height: 0,
+            is_mouse_captured: false
         }
     }
 }
