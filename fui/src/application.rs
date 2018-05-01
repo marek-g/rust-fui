@@ -48,19 +48,27 @@ impl<C: Control> Application<C> {
             {
                 let events_loop = &mut self.events_loop;
                 let drawing_context = &mut self.drawing_context;
+                let root_control = &mut self.root_control;
 
                 events_loop.poll_events(|event| {
-                    if let winit::Event::WindowEvent { event, .. } = event {
+                    if let winit::Event::WindowEvent { ref event, .. } = event {
                         match event {
                             winit::WindowEvent::Closed => {
                                 running = false;
                             },
-                            winit::WindowEvent::Resized(w, h) => {
-                            width = w; height = h;
-                            drawing_context.update_window_size(w as u16, h as u16)
+                            winit::WindowEvent::Resized(ref w, ref h) => {
+                                width = *w; height = *h;
+                                if let Some(ref mut root_control) = root_control {
+                                    root_control.update_size(0, 0, *w as u16, *h as u16);
+                                }
+                                drawing_context.update_window_size(*w as u16, *h as u16)
                             },
-                            _ => (),
+                            _ => ()
                         }
+                    };
+
+                    if let Some(ref mut root_control) = root_control {
+                        root_control.handle_event(&event);
                     }
                 });
             }
@@ -75,10 +83,7 @@ impl<C: Control> Application<C> {
 
     fn render(&mut self, width: u32, height: u32) {
         if let Some(ref mut root) = self.root_control {
-            let control_size = root.get_preferred_size(
-                ::common::size::Size::new(width as f32, height as f32),
-                &mut self.drawing_context);
-            let primitives = root.to_primitives(control_size, &mut self.drawing_context);
+            let primitives = root.to_primitives(&mut self.drawing_context);
 
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);
