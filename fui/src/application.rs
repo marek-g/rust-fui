@@ -1,10 +1,10 @@
 extern crate winit;
 
-use drawing::backend::*;
 use drawing::units::{ PhysPixelSize };
 
 use drawing_context::DrawingContext;
 use controls::control::*;
+use common::rect::Rect;
 
 pub struct Application {
     title: &'static str,
@@ -59,7 +59,7 @@ impl Application {
                             winit::WindowEvent::Resized(ref w, ref h) => {
                                 width = *w; height = *h;
                                 if let Some(ref mut root_control) = root_control {
-                                    root_control.set_size(Rect { x: 0, y: 0, width: *w as u16, height: *h as u16 });
+                                    root_control.set_size(Rect::new(0f32, 0f32, *w as f32, *h as f32));
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
                             },

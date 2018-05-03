@@ -2,7 +2,10 @@
 
 extern crate shared_library;
 
-use std::{result, mem};
+use std::result;
+
+#[cfg(windows)]
+use std::mem;
 
 /// Makes the process high-DPI aware.
 ///
@@ -33,6 +36,7 @@ pub fn set_process_high_dpi_aware() {
 }
 
 
+#[cfg(windows)]
 type Result = result::Result<(), ()>;
 
 // Helper function to dynamically load a function pointer and call it.

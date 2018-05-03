@@ -1,3 +1,4 @@
+use common::rect::Rect;
 use common::size::Size;
 use drawing_context::DrawingContext;
 use controls::control::*;
@@ -68,7 +69,7 @@ pub struct ButtonDefaultStyle {
 
 impl Style<ButtonProperties> for ButtonDefaultStyle {
 
-    fn get_preferred_size(&self, properties: &ButtonProperties, size: Size, drawing_context: &mut DrawingContext) -> Size {
+    fn get_preferred_size(&self, properties: &ButtonProperties, _size: Size, drawing_context: &mut DrawingContext) -> Size {
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
         Size::new((text_width as f32) * 1.2, (text_height as f32) * 1.2)
     }
@@ -78,10 +79,10 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
-        let x = rect.x as f32;
-        let y = rect.y as f32;
-        let width = rect.width as f32;
-        let height = rect.height as f32;
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
 
@@ -140,7 +141,7 @@ impl Button {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new(||{}) },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
-            rect: Rect { x: 0, y: 0, width: 0, height: 0 },
+            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             is_mouse_captured: false
         }
     }

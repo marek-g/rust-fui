@@ -1,6 +1,6 @@
 use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory };
 use drawing_gfx::font_gfx_text::*;
-use drawing::backend::{Backend, WindowBackend};
+use drawing::backend::WindowBackend;
 use drawing::font::*;
 use drawing::renderer::Renderer;
 use drawing::resources::Resources;
