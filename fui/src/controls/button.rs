@@ -2,7 +2,7 @@ use common::size::Size;
 use drawing_context::DrawingContext;
 use controls::control::*;
 use drawing::primitive::Primitive;
-use drawing::units::*;
+use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
 
 pub struct ButtonProperties {
@@ -13,18 +13,32 @@ pub struct ButtonEvents {
     pub clicked: Event
 }
 
-pub struct Button<S: Style<ButtonProperties>> {
+pub struct Button {
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
-    style: S,
+    style: Box<Style<ButtonProperties>>,
 
-    x: u16, y: u16, width: u16, height: u16,
+    rect: Rect,
     is_mouse_captured: bool
 }
 
-impl<S: Style<ButtonProperties>> Control for Button<S> {
-    fn update_size(&mut self, x: u16, y: u16, width: u16, height: u16) {
-        self.x = x; self.y = y; self.width = width; self.height = height;
+impl Control for Button {
+    type Properties = ButtonProperties;
+
+    fn get_properties(&self) -> &Self::Properties {
+        &self.properties
+    }
+
+    fn get_syle(&self) -> &Box<Style<Self::Properties>> {
+        &self.style
+    }
+
+    fn set_size(&mut self, rect: Rect) {
+        self.rect = rect;
+    }
+
+    fn get_size(&self) -> Rect {
+        self.rect
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
@@ -39,15 +53,6 @@ impl<S: Style<ButtonProperties>> Control for Button<S> {
 
         //println!("event: {:?}", event);
         true
-    }
-
-    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        self.style.get_preferred_size(&self.properties, size, drawing_context)
-    }
-    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.style.to_primitives(&self.properties,
-            self.x, self.y, self.width, self.height,
-            drawing_context)
     }
 }
 
@@ -69,14 +74,14 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
     }
 
     fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
-        x: u16, y: u16, width: u16, height: u16,
+        rect: Rect,
         drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
-        let x = x as f32;
-        let y = x as f32;
-        let width = width as f32;
-        let height = height as f32;
+        let x = rect.x as f32;
+        let y = rect.y as f32;
+        let width = rect.width as f32;
+        let height = rect.height as f32;
 
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
 
@@ -129,14 +134,41 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 //
 //
 
-impl Button<ButtonDefaultStyle> {
+impl Button {
     pub fn new() -> Self {
         Button {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new(||{}) },
-            style: ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 },
-            x: 0, y: 0, width: 0, height: 0,
+            style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
+            rect: Rect { x: 0, y: 0, width: 0, height: 0 },
             is_mouse_captured: false
         }
     }
+}
+
+
+//
+// object safe trait
+//
+
+impl ControlObject for Button {
+
+    fn set_size(&mut self, rect: Rect) {
+        (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
+    }
+
+    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+        (self as &mut Control<Properties = ButtonProperties>).handle_event(event)
+    }
+
+    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size {
+        self.get_syle().get_preferred_size(self.get_properties(), size, drawing_context)
+    }
+
+    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+        self.get_syle().to_primitives(&self.get_properties(),
+            self.get_size(),
+            drawing_context)
+    }
+
 }

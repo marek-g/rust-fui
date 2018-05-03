@@ -1,19 +1,19 @@
 extern crate winit;
 
 use drawing::backend::*;
-use drawing::units::*;
+use drawing::units::{ PhysPixelSize };
 
 use drawing_context::DrawingContext;
 use controls::control::*;
 
-pub struct Application<C: Control> {
+pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
     drawing_context: DrawingContext,
-    root_control: Option<C>,
+    root_control: Option<Box<ControlObject>>,
 }
 
-impl<C: Control> Application<C> {
+impl Application {
     pub fn new(title: &'static str) -> Self {
         ::high_dpi::set_process_high_dpi_aware();
 
@@ -30,7 +30,7 @@ impl<C: Control> Application<C> {
         }
     }
 
-    pub fn set_root_control(&mut self, root_control: C) {
+    pub fn set_root_control(&mut self, root_control: Box<ControlObject>) {
         self.root_control = Some(root_control);
     }
 
@@ -59,7 +59,7 @@ impl<C: Control> Application<C> {
                             winit::WindowEvent::Resized(ref w, ref h) => {
                                 width = *w; height = *h;
                                 if let Some(ref mut root_control) = root_control {
-                                    root_control.update_size(0, 0, *w as u16, *h as u16);
+                                    root_control.set_size(Rect { x: 0, y: 0, width: *w as u16, height: *h as u16 });
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
                             },
