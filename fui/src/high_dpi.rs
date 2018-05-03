@@ -2,6 +2,7 @@
 
 extern crate shared_library;
 
+#[cfg(windows)]
 use std::result;
 
 #[cfg(windows)]

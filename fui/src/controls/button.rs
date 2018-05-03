@@ -5,6 +5,7 @@ use controls::control::*;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
+use gestures::gesture_detector::GestureDetector;
 
 pub struct ButtonProperties {
     pub text: String,
@@ -20,7 +21,24 @@ pub struct Button {
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
-    is_mouse_captured: bool
+    gesture_detector: GestureDetector,
+}
+
+impl Button {
+    pub fn new() -> Self {
+        let mut button = Button {
+            properties: ButtonProperties { text: "Hello World!".to_string() },
+            events: ButtonEvents { clicked: Event::new(||{}) },
+            style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
+            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            gesture_detector: GestureDetector::new()
+        };
+
+        button.gesture_detector.on_hover_enter.set(||{ println!("on hover enter"); });
+        button.gesture_detector.on_hover_leave.set(||{ println!("on hover leave"); });
+
+        button
+    }
 }
 
 impl Control for Button {
@@ -36,6 +54,7 @@ impl Control for Button {
 
     fn set_size(&mut self, rect: Rect) {
         self.rect = rect;
+        self.gesture_detector.set_rect(rect);
     }
 
     fn get_size(&self) -> Rect {
@@ -43,6 +62,8 @@ impl Control for Button {
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
+        self.gesture_detector.handle_event(&event);
+
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
@@ -128,23 +149,6 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         vec
     }
 
-}
-
-
-//
-//
-//
-
-impl Button {
-    pub fn new() -> Self {
-        Button {
-            properties: ButtonProperties { text: "Hello World!".to_string() },
-            events: ButtonEvents { clicked: Event::new(||{}) },
-            style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
-            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            is_mouse_captured: false
-        }
-    }
 }
 
 
