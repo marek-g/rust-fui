@@ -43,12 +43,12 @@ impl GestureDetector {
                         self.mouse_pos_y >= self.rect.y && self.mouse_pos_y < self.rect.y + self.rect.height {
                         if !self.is_hover {
                             self.is_hover = true;
-                            self.on_hover_enter.emit(());
+                            self.on_hover_enter.emit(&());
                         }
                     } else {
                         if self.is_hover {
                             self.is_hover = false;
-                            self.on_hover_leave.emit(());
+                            self.on_hover_leave.emit(&());
                         }
                     }
 
@@ -57,7 +57,7 @@ impl GestureDetector {
                 ::winit::WindowEvent::CursorLeft { .. } => {
                     if self.is_hover {
                         self.is_hover = false;
-                        self.on_hover_leave.emit(());
+                        self.on_hover_leave.emit(&());
                     }
                 }
                 _ => ()

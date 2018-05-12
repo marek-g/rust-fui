@@ -22,20 +22,24 @@ pub struct Button {
 
     rect: Rect,
     gesture_detector: GestureDetector,
+    gesture_detector_subscription: EventSubscription<()>
 }
 
 impl Button {
     pub fn new() -> Self {
+        let mut gesture_detector = GestureDetector::new();
+
+        let s1 = gesture_detector.on_hover_enter.subscribe(|()|{ println!("on hover enter"); });
+        let s2 = gesture_detector.on_hover_leave.subscribe(|()|{ println!("on hover leave"); });
+
         let mut button = Button {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            gesture_detector: GestureDetector::new()
+            gesture_detector: gesture_detector,
+            gesture_detector_subscription: s1
         };
-
-        button.gesture_detector.on_hover_enter.set(|()|{ println!("on hover enter"); });
-        button.gesture_detector.on_hover_leave.set(|()|{ println!("on hover leave"); });
 
         button
     }
@@ -67,7 +71,7 @@ impl Control for Button {
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
-                    self.events.clicked.emit(());
+                    self.events.clicked.emit(&());
                 },
                 _ => ()
             }
