@@ -2,8 +2,10 @@ use common::rect::Rect;
 use event::Event;
 
 pub struct GestureDetector {
-    pub on_hover_enter: Event,
-    pub on_hover_leave: Event,
+    pub on_hover_enter: Event<()>,
+    pub on_hover_leave: Event<()>,
+    pub on_tap_down: Event<(f32, f32)>,
+    pub on_tap_up: Event<(f32, f32)>,
 
     rect: Rect,
 
@@ -16,8 +18,10 @@ pub struct GestureDetector {
 impl GestureDetector {
     pub fn new() -> Self {
         GestureDetector {
-            on_hover_enter: Event::new(||{}),
-            on_hover_leave: Event::new(||{}),
+            on_hover_enter: Event::new(),
+            on_hover_leave: Event::new(),
+            on_tap_down: Event::new(),
+            on_tap_up: Event::new(),
             rect: Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32),
             mouse_pos_x: 0f32, mouse_pos_y: 0f32,
             is_hover: false
@@ -39,12 +43,12 @@ impl GestureDetector {
                         self.mouse_pos_y >= self.rect.y && self.mouse_pos_y < self.rect.y + self.rect.height {
                         if !self.is_hover {
                             self.is_hover = true;
-                            self.on_hover_enter.emit();
+                            self.on_hover_enter.emit(());
                         }
                     } else {
                         if self.is_hover {
                             self.is_hover = false;
-                            self.on_hover_leave.emit();
+                            self.on_hover_leave.emit(());
                         }
                     }
 
@@ -53,7 +57,7 @@ impl GestureDetector {
                 ::winit::WindowEvent::CursorLeft { .. } => {
                     if self.is_hover {
                         self.is_hover = false;
-                        self.on_hover_leave.emit();
+                        self.on_hover_leave.emit(());
                     }
                 }
                 _ => ()

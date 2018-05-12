@@ -1,19 +1,21 @@
-pub struct Event {
-    pub callback: Box<FnMut()>
+pub struct Event<A> {
+    pub callback: Option<Box<FnMut(A)>>
 }
 
-impl Event {
-    pub fn new<F: 'static + FnMut()>(f: F) -> Self {
+impl<A> Event<A> {
+    pub fn new() -> Self {
         Event {
-            callback: Box::new(f)
+            callback: None
         }
     }
 
-    pub fn set<F: 'static + FnMut()>(&mut self, f: F) {
-        self.callback = Box::new(f);
+    pub fn set<F: 'static + FnMut(A)>(&mut self, f: F) {
+        self.callback = Some(Box::new(f));
     }
 
-    pub fn emit(&mut self) {
-        (self.callback)();
+    pub fn emit(&mut self, args: A) {
+        if let Some(ref mut f) = &mut self.callback {
+            f(args);
+        }
     }
 }

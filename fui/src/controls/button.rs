@@ -12,7 +12,7 @@ pub struct ButtonProperties {
 }
 
 pub struct ButtonEvents {
-    pub clicked: Event
+    pub clicked: Event<()>
 }
 
 pub struct Button {
@@ -28,14 +28,14 @@ impl Button {
     pub fn new() -> Self {
         let mut button = Button {
             properties: ButtonProperties { text: "Hello World!".to_string() },
-            events: ButtonEvents { clicked: Event::new(||{}) },
+            events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             gesture_detector: GestureDetector::new()
         };
 
-        button.gesture_detector.on_hover_enter.set(||{ println!("on hover enter"); });
-        button.gesture_detector.on_hover_leave.set(||{ println!("on hover leave"); });
+        button.gesture_detector.on_hover_enter.set(|()|{ println!("on hover enter"); });
+        button.gesture_detector.on_hover_leave.set(|()|{ println!("on hover leave"); });
 
         button
     }
@@ -67,7 +67,7 @@ impl Control for Button {
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
-                    self.events.clicked.emit();
+                    self.events.clicked.emit(());
                 },
                 _ => ()
             }
