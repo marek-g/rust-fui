@@ -11,20 +11,20 @@ pub struct ButtonProperties {
     pub text: String,
 }
 
-pub struct ButtonEvents {
-    pub clicked: Event<()>
+pub struct ButtonEvents<'a> {
+    pub clicked: Event<'a, ()>
 }
 
-pub struct Button<'a> {
+pub struct Button<'a, 'b> {
     pub properties: ButtonProperties,
-    pub events: ButtonEvents,
+    pub events: ButtonEvents<'b>,
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
     gesture_detector: GestureDetector<'a>
 }
 
-impl<'a> Button<'a> {
+impl<'a, 'b> Button<'a, 'b> {
     pub fn new() -> Self {
         let mut gesture_detector = GestureDetector::new();
 
@@ -41,7 +41,7 @@ impl<'a> Button<'a> {
     }
 }
 
-impl<'a> Control for Button<'a> {
+impl<'a, 'b> Control for Button<'a, 'b> {
     type Properties = ButtonProperties;
 
     fn get_properties(&self) -> &Self::Properties {
@@ -156,7 +156,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 // object safe trait
 //
 
-impl<'a> ControlObject for Button<'a> {
+impl<'a, 'b> ControlObject for Button<'a, 'b> {
 
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
