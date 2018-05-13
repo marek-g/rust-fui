@@ -15,35 +15,33 @@ pub struct ButtonEvents {
     pub clicked: Event<()>
 }
 
-pub struct Button {
+pub struct Button<'a> {
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
-    gesture_detector: GestureDetector,
-    _gesture_detector_subscription: EventSubscription<()>
+    gesture_detector: GestureDetector<'a>
 }
 
-impl Button {
+impl<'a> Button<'a> {
     pub fn new() -> Self {
         let mut gesture_detector = GestureDetector::new();
 
-        let s1 = gesture_detector.on_hover_enter.subscribe(|_|{ println!("on hover enter"); });
-        let s2 = gesture_detector.on_hover_leave.subscribe(|_|{ println!("on hover leave"); });
+        gesture_detector.on_hover_enter.set(|_|{ println!("on hover enter"); });
+        gesture_detector.on_hover_leave.set(|_|{ println!("on hover leave"); });
 
         Button {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            gesture_detector: gesture_detector,
-            _gesture_detector_subscription: s1
+            gesture_detector: gesture_detector
         }
     }
 }
 
-impl Control for Button {
+impl<'a> Control for Button<'a> {
     type Properties = ButtonProperties;
 
     fn get_properties(&self) -> &Self::Properties {
@@ -158,7 +156,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 // object safe trait
 //
 
-impl ControlObject for Button {
+impl<'a> ControlObject for Button<'a> {
 
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
