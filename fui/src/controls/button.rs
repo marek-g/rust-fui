@@ -5,7 +5,7 @@ use controls::control::*;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
-use gestures::gesture_detector::GestureDetector;
+use gestures::gesture_detector::{ GestureDetector, Gesture };
 
 pub struct ButtonProperties {
     pub text: String,
@@ -15,33 +15,31 @@ pub struct ButtonEvents<'a> {
     pub clicked: Event<'a, ()>
 }
 
-pub struct Button<'a, 'b> {
+pub struct Button<'a> {
     pub properties: ButtonProperties,
-    pub events: ButtonEvents<'b>,
+    pub events: ButtonEvents<'a>,
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
-    gesture_detector: GestureDetector<'a>
+    gesture_detector: GestureDetector,
+
+    pub xxx: i32,
 }
 
-impl<'a, 'b> Button<'a, 'b> {
+impl<'a> Button<'a> {
     pub fn new() -> Self {
-        let mut gesture_detector = GestureDetector::new();
-
-        gesture_detector.on_hover_enter.set(|_|{ println!("on hover enter"); });
-        gesture_detector.on_hover_leave.set(|_|{ println!("on hover leave"); });
-
-        Button {
+        Button::<'a> {
             properties: ButtonProperties { text: "Hello World!".to_string() },
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            gesture_detector: gesture_detector
+            gesture_detector: GestureDetector::new(),
+            xxx: 10,
         }
     }
 }
 
-impl<'a, 'b> Control for Button<'a, 'b> {
+impl<'a> Control for Button<'a> {
     type Properties = ButtonProperties;
 
     fn get_properties(&self) -> &Self::Properties {
@@ -62,7 +60,10 @@ impl<'a, 'b> Control for Button<'a, 'b> {
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
-        self.gesture_detector.handle_event(&event);
+        self.gesture_detector.handle_event(&event).map(|gesture| match gesture {
+            Gesture::HoverEnter => { self.xxx += 1; println!("on hover enter: {:?}", self.xxx); },
+            _ => ()
+        });
 
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
@@ -156,7 +157,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 // object safe trait
 //
 
-impl<'a, 'b> ControlObject for Button<'a, 'b> {
+impl<'a> ControlObject for Button<'a> {
 
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
