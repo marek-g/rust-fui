@@ -62,19 +62,15 @@ impl<'a> Control for Button<'a> {
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
         self.gesture_detector.handle_event(&event).map(|gesture| match gesture {
             Gesture::HoverEnter => { self.xxx += 1; println!("on hover enter: {:?}", self.xxx); },
+            Gesture::HoverLeave => { self.xxx += 1; println!("on hover leave: {:?}", self.xxx); },
+            Gesture::TapUp { inside, tap_down_inside, .. } => {
+                if inside && tap_down_inside {
+                    self.events.clicked.emit(&());
+                }
+            }
             _ => ()
         });
 
-        if let ::winit::Event::WindowEvent { ref event, .. } = event {
-            match event {
-                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
-                    self.events.clicked.emit(&());
-                },
-                _ => ()
-            }
-        }
-
-        //println!("event: {:?}", event);
         true
     }
 }

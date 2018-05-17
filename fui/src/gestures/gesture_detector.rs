@@ -3,8 +3,8 @@ use common::rect::Rect;
 pub enum Gesture {
     HoverEnter,
     HoverLeave,
-    TapDown(f32, f32),
-    TapUp(f32, f32)
+    TapDown { position: (f32, f32), inside: bool },
+    TapUp { position: (f32, f32), inside: bool, tap_down_inside: bool }
 }
 
 pub struct GestureDetector {
@@ -13,7 +13,8 @@ pub struct GestureDetector {
     mouse_pos_x: f32,
     mouse_pos_y: f32,
 
-    is_hover: bool
+    is_hover: bool,
+    is_tap_down_inside: bool
 }
 
 impl GestureDetector {
@@ -21,7 +22,8 @@ impl GestureDetector {
         GestureDetector {
             rect: Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32),
             mouse_pos_x: 0f32, mouse_pos_y: 0f32,
-            is_hover: false
+            is_hover: false,
+            is_tap_down_inside: false
         }
     }
 
@@ -36,8 +38,7 @@ impl GestureDetector {
                     self.mouse_pos_x = position.0 as f32;
                     self.mouse_pos_y = position.1 as f32;
 
-                    if self.mouse_pos_x >= self.rect.x && self.mouse_pos_x < self.rect.x + self.rect.width &&
-                        self.mouse_pos_y >= self.rect.y && self.mouse_pos_y < self.rect.y + self.rect.height {
+                    if self.is_pointer_inside() {
                         if !self.is_hover {
                             self.is_hover = true;
 
@@ -50,8 +51,6 @@ impl GestureDetector {
                             return Some(Gesture::HoverLeave);
                         }
                     }
-
-                    //println!("mouse: {:?}", position);
                 },
                 ::winit::WindowEvent::CursorLeft { .. } => {
                     if self.is_hover {
@@ -59,10 +58,29 @@ impl GestureDetector {
 
                         return Some(Gesture::HoverLeave);
                     }
-                }
+                },
+                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Pressed, .. } => {
+                    self.is_tap_down_inside = self.is_pointer_inside();
+                    return Some(Gesture::TapDown {
+                        position: (self.mouse_pos_x, self.mouse_pos_y),
+                        inside: self.is_tap_down_inside
+                    });
+                },
+                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
+                    return Some(Gesture::TapUp {
+                        position: (self.mouse_pos_x, self.mouse_pos_y),
+                        inside: self.is_pointer_inside(),
+                        tap_down_inside: self.is_tap_down_inside
+                    });
+                },
                 _ => ()
             }
         }
         None
+    }
+
+    fn is_pointer_inside(&self) -> bool {
+        self.mouse_pos_x >= self.rect.x && self.mouse_pos_x < self.rect.x + self.rect.width &&
+            self.mouse_pos_y >= self.rect.y && self.mouse_pos_y < self.rect.y + self.rect.height
     }
 }
