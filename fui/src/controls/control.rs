@@ -5,6 +5,7 @@ use drawing::primitive::Primitive;
 
 pub trait Style<P> {
     fn get_preferred_size(&self, properties: &P, size: Size, drawing_context: &mut DrawingContext) -> Size;
+    fn set_size(&mut self, properties: &mut P, rect: Rect);
     fn to_primitives<'a>(&self, properties: &'a P,
         rect: Rect,
         drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>>;

@@ -39,6 +39,7 @@ impl Control for Text {
 
     fn set_size(&mut self, rect: Rect) {
         self.rect = rect;
+        self.style.set_size(&mut self.properties, rect);
     }
 
     fn get_size(&self) -> Rect {
@@ -63,7 +64,10 @@ pub struct TextDefaultStyle {
 impl Style<TextProperties> for TextDefaultStyle {
     fn get_preferred_size(&self, properties: &TextProperties, _size: Size, drawing_context: &mut DrawingContext) -> Size {
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
-        Size::new((text_width as f32) * 1.2, (text_height as f32) * 1.2)
+        Size::new(text_width as f32, text_height as f32)
+    }
+
+    fn set_size(&mut self, properties: &mut TextProperties, rect: Rect) {    
     }
 
     fn to_primitives<'a>(&self, properties: &'a TextProperties,

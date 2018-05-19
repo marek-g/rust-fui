@@ -8,7 +8,7 @@ use event::*;
 use gestures::gesture_detector::{ GestureDetector, Gesture };
 
 pub struct ButtonProperties {
-    pub text: String,
+    pub content: Box<ControlObject>,
 }
 
 pub struct ButtonEvents<'a> {
@@ -27,9 +27,9 @@ pub struct Button<'a> {
 }
 
 impl<'a> Button<'a> {
-    pub fn new() -> Self {
+    pub fn new(content: Box<ControlObject>) -> Self {
         Button::<'a> {
-            properties: ButtonProperties { text: "Hello World!".to_string() },
+            properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -52,6 +52,7 @@ impl<'a> Control for Button<'a> {
 
     fn set_size(&mut self, rect: Rect) {
         self.rect = rect;
+        self.style.set_size(&mut self.properties, rect);
         self.gesture_detector.set_rect(rect);
     }
 
@@ -87,9 +88,14 @@ pub struct ButtonDefaultStyle {
 
 impl Style<ButtonProperties> for ButtonDefaultStyle {
 
-    fn get_preferred_size(&self, properties: &ButtonProperties, _size: Size, drawing_context: &mut DrawingContext) -> Size {
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
-        Size::new((text_width as f32) * 1.2, (text_height as f32) * 1.2)
+    fn get_preferred_size(&self, properties: &ButtonProperties, size: Size, drawing_context: &mut DrawingContext) -> Size {
+        let content_size = properties.content.get_preferred_size(size, drawing_context);
+        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
+    }
+
+    fn set_size(&mut self, properties: &mut ButtonProperties, rect: Rect) {
+        let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
+        properties.content.set_size(content_rect);
     }
 
     fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
@@ -101,8 +107,6 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         let y = rect.y;
         let width = rect.width;
         let height = rect.height;
-
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
 
         vec.push(Primitive::Rectangle {
             color: [0.1, 1.0, 0.0, 0.2],
@@ -135,13 +139,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        vec.push(Primitive::Text {
-            resource_key: self.font_name,
-            color: [1.0, 1.0, 1.0, 1.0],
-            position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
-            size: self.font_size as u16,
-            text: &properties.text,
-        });
+        vec.append(&mut properties.content.to_primitives(drawing_context));
 
         vec
     }
