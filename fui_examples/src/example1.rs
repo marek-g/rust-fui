@@ -4,6 +4,7 @@ extern crate fui;
 
 use fui::application::*;
 use fui::controls::button::*;
+use fui::controls::text::*;
 use fui::controls::control::*;
 
 fn main() {
@@ -11,11 +12,14 @@ fn main() {
 
     let mut btn1 = Box::new(Button::new());
     let event_subscription = btn1.events.clicked.subscribe(|_| { println!("clicked!") });
-    app.set_root_control(btn1);
+    
+    app.set_root_control(Box::new(Text::new("Marek".to_string())));
+
+    //app.set_root_control(btn1);
     //app.clear_root_control();
 
-    let mut v: Vec<Box<ControlObject>> = vec![];
-    v.push(Box::new(Button::new()));
+    //let mut v: Vec<Box<ControlObject>> = vec![];
+    //v.push(Box::new(Button::new()));
 
     app.run();
 }
