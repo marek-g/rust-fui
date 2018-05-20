@@ -27,15 +27,15 @@ pub struct Button<'a> {
 }
 
 impl<'a> Button<'a> {
-    pub fn new(content: Box<ControlObject>) -> Self {
-        Button::<'a> {
+    pub fn new(content: Box<ControlObject>) -> Box<Self> {
+        Box::new(Button::<'a> {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             gesture_detector: GestureDetector::new(),
             xxx: 10,
-        }
+        })
     }
 }
 

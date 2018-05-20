@@ -19,12 +19,12 @@ pub struct Horizontal {
 }
 
 impl Horizontal {
-    pub fn new(children: Vec<Box<ControlObject>>) -> Self {
-        Horizontal {
+    pub fn new(children: Vec<Box<ControlObject>>) -> Box<Self> {
+        Box::new(Horizontal {
             properties: HorizontalProperties { children: children },
             style: Box::new(HorizontalDefaultStyle { desired_size: RefCell::new(Vec::new()) }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-        }
+        })
     }
 }
 

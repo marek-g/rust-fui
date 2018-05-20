@@ -17,12 +17,12 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(text: String) -> Self {
-        Text {
+    pub fn new(text: String) -> Box<Self> {
+        Box::new(Text {
             properties: TextProperties { text: text },
             style: Box::new(TextDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-        }
+        })
     }
 }
 
