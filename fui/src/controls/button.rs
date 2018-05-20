@@ -88,8 +88,8 @@ pub struct ButtonDefaultStyle {
 
 impl Style<ButtonProperties> for ButtonDefaultStyle {
 
-    fn get_preferred_size(&self, properties: &ButtonProperties, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        let content_size = properties.content.get_preferred_size(size, drawing_context);
+    fn get_preferred_size(&self, properties: &ButtonProperties, drawing_context: &mut DrawingContext, size: Size) -> Size {
+        let content_size = properties.content.get_preferred_size(drawing_context, size);
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
@@ -161,8 +161,8 @@ impl<'a> ControlObject for Button<'a> {
         (self as &mut Control<Properties = ButtonProperties>).handle_event(event)
     }
 
-    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        self.get_syle().get_preferred_size(self.get_properties(), size, drawing_context)
+    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
+        self.get_syle().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {

@@ -4,7 +4,7 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 
 pub trait Style<P> {
-    fn get_preferred_size(&self, properties: &P, size: Size, drawing_context: &mut DrawingContext) -> Size;
+    fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_size(&mut self, properties: &mut P, rect: Rect);
     fn to_primitives<'a>(&self, properties: &'a P,
         rect: Rect,
@@ -28,7 +28,7 @@ pub trait ControlObject {
     fn handle_event(&mut self, event: &::winit::Event) -> bool;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
-    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size;
+    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
@@ -43,8 +43,8 @@ pub trait ControlObject {
         self.handle_event(event)
     }
 
-    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        self.get_syle().get_preferred_size(self.get_properties(), size, drawing_context)
+    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
+        self.get_syle().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {

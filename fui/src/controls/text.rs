@@ -62,7 +62,7 @@ pub struct TextDefaultStyle {
 }
 
 impl Style<TextProperties> for TextDefaultStyle {
-    fn get_preferred_size(&self, properties: &TextProperties, _size: Size, drawing_context: &mut DrawingContext) -> Size {
+    fn get_preferred_size(&self, properties: &TextProperties, drawing_context: &mut DrawingContext, _size: Size) -> Size {
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
         Size::new(text_width as f32, text_height as f32)
     }
@@ -108,8 +108,8 @@ impl ControlObject for Text {
         (self as &mut Control<Properties = TextProperties>).handle_event(event)
     }
 
-    fn get_preferred_size(&self, size: Size, drawing_context: &mut DrawingContext) -> Size {
-        self.get_syle().get_preferred_size(self.get_properties(), size, drawing_context)
+    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
+        self.get_syle().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
