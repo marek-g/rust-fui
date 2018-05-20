@@ -3,7 +3,7 @@ extern crate winit;
 use drawing::units::{ PhysPixelSize };
 
 use drawing_context::DrawingContext;
-use controls::control::*;
+use control::*;
 use common::rect::Rect;
 
 pub struct Application {

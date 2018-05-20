@@ -7,6 +7,7 @@ pub mod application;
 pub mod drawing_context;
 pub mod callback;
 pub mod common;
+pub mod control;
 pub mod controls;
 pub mod event;
 pub mod gestures;

@@ -1,7 +1,7 @@
+use control::*;
 use common::rect::Rect;
 use common::size::Size;
 use drawing_context::DrawingContext;
-use controls::control::*;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
