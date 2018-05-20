@@ -33,7 +33,7 @@ impl Control for Text {
         &self.properties
     }
 
-    fn get_syle(&self) -> &Box<Style<Self::Properties>> {
+    fn get_style(&self) -> &Box<Style<Self::Properties>> {
         &self.style
     }
 
@@ -71,8 +71,7 @@ impl Style<TextProperties> for TextDefaultStyle {
     }
 
     fn to_primitives<'a>(&self, properties: &'a TextProperties,
-        rect: Rect,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
+        drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
         let x = rect.x;
@@ -109,12 +108,11 @@ impl ControlObject for Text {
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_syle().get_preferred_size(self.get_properties(), drawing_context, size)
+        self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_syle().to_primitives(&self.get_properties(),
-            self.get_size(),
-            drawing_context)
+        self.get_style().to_primitives(&self.get_properties(),
+            drawing_context, self.get_size())
     }
 }

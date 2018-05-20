@@ -7,15 +7,14 @@ pub trait Style<P> {
     fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_size(&mut self, properties: &mut P, rect: Rect);
     fn to_primitives<'a>(&self, properties: &'a P,
-        rect: Rect,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>>;
+        drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>>;
 }
 
 pub trait Control {
     type Properties;
 
     fn get_properties(&self) -> &Self::Properties;
-    fn get_syle(&self) -> &Box<Style<Self::Properties>>;
+    fn get_style(&self) -> &Box<Style<Self::Properties>>;
 
     fn set_size(&mut self, rect: Rect);
     fn get_size(&self) -> Rect;
@@ -44,13 +43,12 @@ pub trait ControlObject {
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_syle().get_preferred_size(self.get_properties(), drawing_context, size)
+        self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_syle().to_primitives(&self.get_properties(),
-            self.get_size(),
-            drawing_context)
+        self.get_style().to_primitives(&self.get_properties(),
+            drawing_context, self.get_size())
     }
 
 }*/

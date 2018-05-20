@@ -5,6 +5,7 @@ use drawing::units::{ PhysPixelSize };
 use drawing_context::DrawingContext;
 use control::*;
 use common::rect::Rect;
+use common::size::Size;
 
 pub struct Application {
     title: &'static str,
@@ -59,6 +60,8 @@ impl Application {
                             winit::WindowEvent::Resized(ref w, ref h) => {
                                 width = *w; height = *h;
                                 if let Some(ref mut root_control) = root_control {
+                                    let size = Size::new(*w as f32, *h as f32);
+                                    let control_size = root_control.get_preferred_size(drawing_context, size);
                                     root_control.set_size(Rect::new(0f32, 0f32, *w as f32, *h as f32));
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
