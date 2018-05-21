@@ -30,7 +30,7 @@ impl<'a> Button<'a> {
         Box::new(Button::<'a> {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Event::new() },
-            style: Box::new(ButtonDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
+            style: Box::new(ButtonDefaultStyle { }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             gesture_detector: GestureDetector::new(),
             xxx: 10,
@@ -85,8 +85,6 @@ impl<'a> Control for Button<'a> {
 //
 
 pub struct ButtonDefaultStyle {
-    font_name: &'static str,
-    font_size: u8,
 }
 
 impl Style<ButtonProperties> for ButtonDefaultStyle {

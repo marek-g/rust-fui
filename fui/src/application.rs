@@ -5,10 +5,12 @@ use drawing::units::{ PhysPixelSize };
 use drawing_context::DrawingContext;
 use control::*;
 use common::*;
+use events::*;
 
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
+    event_processor: EventProcessor,
     drawing_context: DrawingContext,
     root_control: Option<Box<ControlObject>>,
 }
@@ -25,6 +27,7 @@ impl Application {
         Application {
             title: title,
             events_loop: events_loop,
+            event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
             root_control: None,
         }
@@ -47,6 +50,7 @@ impl Application {
         while running {
             {
                 let events_loop = &mut self.events_loop;
+                let event_processor = &mut self.event_processor;
                 let drawing_context = &mut self.drawing_context;
                 let root_control = &mut self.root_control;
 
@@ -70,7 +74,7 @@ impl Application {
                     };
 
                     if let Some(ref mut root_control) = root_control {
-                        root_control.handle_event(&event);
+                        event_processor.handle_event(root_control, &event);
                     }
                 });
             }
