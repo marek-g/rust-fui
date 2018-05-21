@@ -17,7 +17,7 @@ fn main() {
     let text1 = Text::new("Label".to_string());
     
     app.set_root_control(Horizontal::new(vec![
-        btn1, text1
+        text1, btn1
     ]));
 
     //app.set_root_control(btn1);

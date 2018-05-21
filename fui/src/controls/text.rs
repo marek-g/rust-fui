@@ -46,6 +46,10 @@ impl Control for Text {
         self.rect
     }
 
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        Vec::new()
+    }
+
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
         true
     }
@@ -101,6 +105,10 @@ impl Style<TextProperties> for TextDefaultStyle {
 impl ControlObject for Text {
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = TextProperties>).set_size(rect)
+    }
+
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        (self as &mut Control<Properties = TextProperties>).get_children()
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {

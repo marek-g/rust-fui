@@ -48,6 +48,10 @@ impl Control for Horizontal {
         self.rect
     }
 
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        self.properties.children.iter_mut().collect()
+    }
+
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
         true
     }
@@ -112,6 +116,10 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 impl ControlObject for Horizontal {
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = HorizontalProperties>).set_size(rect)
+    }
+
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        (self as &mut Control<Properties = HorizontalProperties>).get_children()
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {

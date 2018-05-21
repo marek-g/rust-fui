@@ -60,6 +60,10 @@ impl<'a> Control for Button<'a> {
         self.rect
     }
 
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        Vec::new()
+    }
+
     fn handle_event(&mut self, event: &::winit::Event) -> bool {
         self.gesture_detector.handle_event(&event).map(|gesture| match gesture {
             Gesture::HoverEnter => { self.xxx += 1; println!("on hover enter: {:?}", self.xxx); },
@@ -154,6 +158,10 @@ impl<'a> ControlObject for Button<'a> {
 
     fn set_size(&mut self, rect: Rect) {
         (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
+    }
+
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+        (self as &mut Control<Properties = ButtonProperties>).get_children()
     }
 
     fn handle_event(&mut self, event: &::winit::Event) -> bool {

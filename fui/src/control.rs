@@ -19,11 +19,14 @@ pub trait Control {
     fn set_size(&mut self, rect: Rect);
     fn get_size(&self) -> Rect;
 
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
     fn handle_event(&mut self, event: &::winit::Event) -> bool;
 }
 
 pub trait ControlObject {
     fn set_size(&mut self, rect: Rect);
+
+    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
     fn handle_event(&mut self, event: &::winit::Event) -> bool;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
