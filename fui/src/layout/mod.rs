@@ -1,1 +1,2 @@
-pub mod horizontal;
+mod horizontal;
+pub use self::horizontal::*;

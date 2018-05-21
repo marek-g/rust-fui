@@ -4,8 +4,7 @@ use drawing::units::{ PhysPixelSize };
 
 use drawing_context::DrawingContext;
 use control::*;
-use common::rect::Rect;
-use common::size::Size;
+use common::*;
 
 pub struct Application {
     title: &'static str,

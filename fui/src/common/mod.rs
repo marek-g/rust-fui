@@ -1,5 +1,14 @@
-pub mod color;
-pub mod matrix;
-pub mod rect;
-pub mod size;
-pub mod unit;
+mod color;
+pub use self::color::*;
+
+mod matrix;
+pub use self::matrix::*;
+
+mod rect;
+pub use self::rect::*;
+
+mod size;
+pub use self::size::*;
+
+mod unit;
+pub use self::unit::*;

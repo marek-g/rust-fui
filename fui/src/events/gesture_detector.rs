@@ -1,4 +1,4 @@
-use common::rect::Rect;
+use common::*;
 
 pub enum Gesture {
     HoverEnter,

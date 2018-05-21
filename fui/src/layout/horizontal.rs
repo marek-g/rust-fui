@@ -1,8 +1,7 @@
 use std::f32;
 use std::cell::RefCell;
 use control::*;
-use common::rect::Rect;
-use common::size::Size;
+use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };

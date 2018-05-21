@@ -4,9 +4,8 @@ extern crate fui;
 
 use fui::application::*;
 use fui::control::*;
-use fui::controls::button::*;
-use fui::controls::text::*;
-use fui::layout::horizontal::*;
+use fui::controls::*;
+use fui::layout::*;
 
 fn main() {
     let mut app = Application::new("Marek Ogarek");

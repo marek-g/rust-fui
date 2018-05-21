@@ -1,2 +1,5 @@
-pub mod button;
-pub mod text;
+mod button;
+pub use self::button::*;
+
+mod text;
+pub use self::text::*;
