@@ -5,7 +5,7 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
-use gestures::gesture_detector::{ GestureDetector, Gesture };
+use events::gesture_detector::{ GestureDetector, Gesture };
 
 pub struct ButtonProperties {
     pub content: Box<ControlObject>,

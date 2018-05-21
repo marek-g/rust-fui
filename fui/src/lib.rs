@@ -10,6 +10,6 @@ pub mod common;
 pub mod control;
 pub mod controls;
 pub mod event;
-pub mod gestures;
+pub mod events;
 pub mod high_dpi;
 pub mod layout;
