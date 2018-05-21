@@ -4,7 +4,7 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use event::*;
-use events::{ GestureDetector, Gesture };
+use events::*;
 
 pub struct ButtonProperties {
     pub content: Box<ControlObject>,
@@ -20,7 +20,6 @@ pub struct Button<'a> {
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
-    gesture_detector: GestureDetector,
 
     pub xxx: i32,
 }
@@ -32,7 +31,6 @@ impl<'a> Button<'a> {
             events: ButtonEvents { clicked: Event::new() },
             style: Box::new(ButtonDefaultStyle { }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            gesture_detector: GestureDetector::new(),
             xxx: 10,
         })
     }
@@ -52,7 +50,6 @@ impl<'a> Control for Button<'a> {
     fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
         self.style.set_rect(&mut self.properties, rect);
-        self.gesture_detector.set_rect(rect);
     }
 
     fn get_rect(&self) -> Rect {
@@ -63,19 +60,21 @@ impl<'a> Control for Button<'a> {
         Vec::new()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
-        self.gesture_detector.handle_event(&event).map(|gesture| match gesture {
-            Gesture::HoverEnter => { self.xxx += 1; println!("on hover enter: {:?}", self.xxx); },
-            Gesture::HoverLeave => { self.xxx += 1; println!("on hover leave: {:?}", self.xxx); },
-            Gesture::TapUp { inside, tap_down_inside, .. } => {
-                if inside && tap_down_inside {
+    fn is_hit_test_visible(&self) -> bool {
+        true
+    }
+
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
+        match event {
+            ControlEvent::TapUp{ ref position } => {
+                if position.0 >= self.rect.x && position.0 <= self.rect.x + self.rect.width &&
+                    position.1 >= self.rect.y && position.1 <= self.rect.y + self.rect.height {
                     self.events.clicked.emit(&());
                 }
-            }
-            _ => ()
-        });
-
-        true
+                true
+            },
+            _ => false
+        }
     }
 }
 
@@ -161,11 +160,15 @@ impl<'a> ControlObject for Button<'a> {
         (self as &Control<Properties = ButtonProperties>).get_rect()
     }
 
+    fn is_hit_test_visible(&self) -> bool {
+        (self as &Control<Properties = ButtonProperties>).is_hit_test_visible()
+    }
+
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         (self as &mut Control<Properties = ButtonProperties>).get_children()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
         (self as &mut Control<Properties = ButtonProperties>).handle_event(event)
     }
 

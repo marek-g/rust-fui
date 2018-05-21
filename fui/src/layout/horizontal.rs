@@ -5,6 +5,7 @@ use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
+use events::*;
 
 pub struct HorizontalProperties {
     pub children: Vec<Box<ControlObject>>
@@ -51,7 +52,11 @@ impl Control for Horizontal {
         self.properties.children.iter_mut().collect()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+    fn is_hit_test_visible(&self) -> bool {
+        false
+    }
+
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
         true
     }
 }
@@ -121,11 +126,15 @@ impl ControlObject for Horizontal {
         (self as &Control<Properties = HorizontalProperties>).get_rect()
     }
 
+    fn is_hit_test_visible(&self) -> bool {
+        (self as &Control<Properties = HorizontalProperties>).is_hit_test_visible()
+    }
+
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         (self as &mut Control<Properties = HorizontalProperties>).get_children()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
         (self as &mut Control<Properties = HorizontalProperties>).handle_event(event)
     }
 

@@ -3,6 +3,7 @@ use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
+use events::*;
 
 pub struct TextProperties {
     pub text: String,
@@ -49,7 +50,11 @@ impl Control for Text {
         Vec::new()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+    fn is_hit_test_visible(&self) -> bool {
+        false
+    }
+
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
         true
     }
 }
@@ -110,11 +115,15 @@ impl ControlObject for Text {
         (self as &Control<Properties = TextProperties>).get_rect()
     }
 
+    fn is_hit_test_visible(&self) -> bool {
+        (self as &Control<Properties = TextProperties>).is_hit_test_visible()
+    }
+
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         (self as &mut Control<Properties = TextProperties>).get_children()
     }
 
-    fn handle_event(&mut self, event: &::winit::Event) -> bool {
+    fn handle_event(&mut self, event: ControlEvent) -> bool {
         (self as &mut Control<Properties = TextProperties>).handle_event(event)
     }
 

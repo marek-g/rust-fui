@@ -14,7 +14,7 @@ fn main() {
     let event_subscription1 = btn1.events.clicked.subscribe(|_| { println!("clicked 1!") });
 
     let mut btn2 = Button::new(Text::new("Marek 2".to_string()));
-    let event_subscription2 = btn1.events.clicked.subscribe(|_| { println!("clicked 2!") });
+    let event_subscription2 = btn2.events.clicked.subscribe(|_| { println!("clicked 2!") });
 
     let text1 = Text::new("Label".to_string());
     
