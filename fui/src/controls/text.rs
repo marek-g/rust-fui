@@ -107,6 +107,10 @@ impl ControlObject for Text {
         (self as &mut Control<Properties = TextProperties>).set_rect(rect)
     }
 
+    fn get_rect(&self) -> Rect {
+        (self as &Control<Properties = TextProperties>).get_rect()
+    }
+
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         (self as &mut Control<Properties = TextProperties>).get_children()
     }
@@ -121,6 +125,6 @@ impl ControlObject for Text {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, self.get_rect())
+            drawing_context, (self as &Control<Properties = TextProperties>).get_rect())
     }
 }

@@ -118,6 +118,10 @@ impl ControlObject for Horizontal {
         (self as &mut Control<Properties = HorizontalProperties>).set_rect(rect)
     }
 
+    fn get_rect(&self) -> Rect {
+        (self as &Control<Properties = HorizontalProperties>).get_rect()
+    }
+
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         (self as &mut Control<Properties = HorizontalProperties>).get_children()
     }
@@ -132,6 +136,6 @@ impl ControlObject for Horizontal {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(self.get_properties(),
-            drawing_context, self.get_rect())
+            drawing_context, (self as &Control<Properties = HorizontalProperties>).get_rect())
     }
 }

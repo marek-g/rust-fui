@@ -25,6 +25,7 @@ pub trait Control {
 
 pub trait ControlObject {
     fn set_rect(&mut self, rect: Rect);
+    fn get_rect(&self) -> Rect;
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
     fn handle_event(&mut self, event: &::winit::Event) -> bool;
