@@ -39,12 +39,12 @@ impl Control for Horizontal {
         &self.style
     }
 
-    fn set_size(&mut self, rect: Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
-        self.style.set_size(&mut self.properties, rect);
+        self.style.set_rect(&mut self.properties, rect);
     }
 
-    fn get_size(&self) -> Rect {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
 
@@ -83,7 +83,7 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         result
     }
 
-    fn set_size(&mut self, properties: &mut HorizontalProperties, rect: Rect) {
+    fn set_rect(&mut self, properties: &mut HorizontalProperties, rect: Rect) {
         let mut child_rect = rect;
         let desired_size = self.desired_size.borrow();
 
@@ -91,7 +91,7 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
             let child_size = desired_size[i];
             child_rect.width = child_size.width;
             child_rect.height = child_size.height;
-            child.set_size(child_rect);
+            child.set_rect(child_rect);
             child_rect.x += child_rect.width;
         }
     }
@@ -114,8 +114,8 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 //
 
 impl ControlObject for Horizontal {
-    fn set_size(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = HorizontalProperties>).set_size(rect)
+    fn set_rect(&mut self, rect: Rect) {
+        (self as &mut Control<Properties = HorizontalProperties>).set_rect(rect)
     }
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
@@ -132,6 +132,6 @@ impl ControlObject for Horizontal {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(self.get_properties(),
-            drawing_context, self.get_size())
+            drawing_context, self.get_rect())
     }
 }

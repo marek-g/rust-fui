@@ -37,12 +37,12 @@ impl Control for Text {
         &self.style
     }
 
-    fn set_size(&mut self, rect: Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
-        self.style.set_size(&mut self.properties, rect);
+        self.style.set_rect(&mut self.properties, rect);
     }
 
-    fn get_size(&self) -> Rect {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
 
@@ -71,7 +71,7 @@ impl Style<TextProperties> for TextDefaultStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_size(&mut self, properties: &mut TextProperties, rect: Rect) {    
+    fn set_rect(&mut self, properties: &mut TextProperties, rect: Rect) {    
     }
 
     fn to_primitives<'a>(&self, properties: &'a TextProperties,
@@ -103,8 +103,8 @@ impl Style<TextProperties> for TextDefaultStyle {
 //
 
 impl ControlObject for Text {
-    fn set_size(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = TextProperties>).set_size(rect)
+    fn set_rect(&mut self, rect: Rect) {
+        (self as &mut Control<Properties = TextProperties>).set_rect(rect)
     }
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
@@ -121,6 +121,6 @@ impl ControlObject for Text {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, self.get_size())
+            drawing_context, self.get_rect())
     }
 }

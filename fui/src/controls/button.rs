@@ -50,13 +50,13 @@ impl<'a> Control for Button<'a> {
         &self.style
     }
 
-    fn set_size(&mut self, rect: Rect) {
+    fn set_rect(&mut self, rect: Rect) {
         self.rect = rect;
-        self.style.set_size(&mut self.properties, rect);
+        self.style.set_rect(&mut self.properties, rect);
         self.gesture_detector.set_rect(rect);
     }
 
-    fn get_size(&self) -> Rect {
+    fn get_rect(&self) -> Rect {
         self.rect
     }
 
@@ -97,9 +97,9 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
-    fn set_size(&mut self, properties: &mut ButtonProperties, rect: Rect) {
+    fn set_rect(&mut self, properties: &mut ButtonProperties, rect: Rect) {
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
-        properties.content.set_size(content_rect);
+        properties.content.set_rect(content_rect);
     }
 
     fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
@@ -156,8 +156,8 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 
 impl<'a> ControlObject for Button<'a> {
 
-    fn set_size(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = ButtonProperties>).set_size(rect)
+    fn set_rect(&mut self, rect: Rect) {
+        (self as &mut Control<Properties = ButtonProperties>).set_rect(rect)
     }
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
@@ -174,7 +174,7 @@ impl<'a> ControlObject for Button<'a> {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, self.get_size())
+            drawing_context, self.get_rect())
     }
 
 }
