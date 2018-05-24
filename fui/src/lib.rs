@@ -13,3 +13,6 @@ pub mod event;
 pub mod events;
 pub mod high_dpi;
 pub mod layout;
+
+mod view;
+pub use view::*;

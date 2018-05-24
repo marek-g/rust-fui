@@ -6,6 +6,7 @@ use drawing_context::DrawingContext;
 use control::*;
 use common::*;
 use events::*;
+use View;
 
 pub struct Application {
     title: &'static str,
@@ -35,6 +36,10 @@ impl Application {
 
     pub fn set_root_control(&mut self, root_control: Box<ControlObject>) {
         self.root_control = Some(root_control);
+    }
+
+    pub fn set_root_view_model<V: View>(&mut self, view_model: &mut V) {
+        self.root_control = Some(view_model.create_view());
     }
 
     pub fn clear_root_control(&mut self) {
