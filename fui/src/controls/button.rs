@@ -3,7 +3,7 @@ use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
-use event::*;
+use callback::*;
 use events::*;
 
 pub struct ButtonProperties {
@@ -11,7 +11,7 @@ pub struct ButtonProperties {
 }
 
 pub struct ButtonEvents<'a> {
-    pub clicked: Event<'a, ()>
+    pub clicked: Callback<'a, ()>
 }
 
 pub struct Button<'a> {
@@ -28,7 +28,7 @@ impl<'a> Button<'a> {
     pub fn new(content: Box<ControlObject>) -> Box<Self> {
         Box::new(Button::<'a> {
             properties: ButtonProperties { content: content },
-            events: ButtonEvents { clicked: Event::new() },
+            events: ButtonEvents { clicked: Callback::new() },
             style: Box::new(ButtonDefaultStyle { }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             xxx: 10,
@@ -69,7 +69,7 @@ impl<'a> Control for Button<'a> {
             ControlEvent::TapUp{ ref position } => {
                 if position.0 >= self.rect.x && position.0 <= self.rect.x + self.rect.width &&
                     position.1 >= self.rect.y && position.1 <= self.rect.y + self.rect.height {
-                    self.events.clicked.emit(&());
+                    self.events.clicked.emit(());
                 }
                 true
             },

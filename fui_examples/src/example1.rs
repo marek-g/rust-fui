@@ -29,10 +29,10 @@ impl MainViewModel {
 impl View for MainViewModel {
     fn create_view(&mut self) -> Box<ControlObject> {
         let mut btn1 = Button::new(Text::new("Decrease".to_string()));
-        let event_subscription1 = btn1.events.clicked.subscribe(|_| { println!("clicked 1!") });
+        btn1.events.clicked.set(|_| { println!("clicked 1!") });
 
         let mut btn2 = Button::new(Text::new("Increase".to_string()));
-        let event_subscription2 = btn2.events.clicked.subscribe(|_| { println!("clicked 2!") });
+        btn2.events.clicked.set(|_| { println!("clicked 2!") });
 
         let text1 = Text::new("Count: 0".to_string());
 
