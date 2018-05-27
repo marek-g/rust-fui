@@ -35,17 +35,14 @@ impl MainViewModel {
     }
 }
 
-struct MainViewModelRC(Rc<RefCell<MainViewModel>>);
-
-impl View for MainViewModelRC {
-    fn create_view(&self) -> Box<ControlObject>
-    {
+impl View for MainViewModel {
+    fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> Box<ControlObject> {
         let mut btn1 = Button::new(Text::new("Decrease".to_string()));
-        let self_rc = self.0.clone();
+        let self_rc = view_model.clone();
         btn1.events.clicked.set(move |_| { self_rc.borrow_mut().decrease(); });
 
         let mut btn2 = Button::new(Text::new("Increase".to_string()));
-        let self_rc = self.0.clone();
+        let self_rc = view_model.clone();
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
         let text1 = Text::new("Count: 0".to_string());
@@ -59,8 +56,8 @@ impl View for MainViewModelRC {
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
-    let mut main_view_model = MainViewModelRC(Rc::new(RefCell::new(MainViewModel::new())));
-    app.set_root_view_model(&mut main_view_model);
+    let mut main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
+    app.set_root_view_model(&main_view_model);
 
     //let main_view = main_view_model.create_view();
     //app.set_root_control(main_view);

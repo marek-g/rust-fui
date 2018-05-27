@@ -1,5 +1,7 @@
 extern crate winit;
 
+use std::cell::RefCell;
+use std::rc::Rc;
 use drawing::units::{ PhysPixelSize };
 
 use drawing_context::DrawingContext;
@@ -38,8 +40,8 @@ impl Application {
         self.root_control = Some(root_control);
     }
 
-    pub fn set_root_view_model<V: View>(&mut self, view_model: &mut V) {
-        self.root_control = Some(view_model.create_view());
+    pub fn set_root_view_model<V: View>(&mut self, view_model: &Rc<RefCell<V>>) {
+        self.root_control = Some(V::create_view(view_model));
     }
 
     pub fn clear_root_control(&mut self) {
