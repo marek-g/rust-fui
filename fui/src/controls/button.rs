@@ -10,13 +10,13 @@ pub struct ButtonProperties {
     pub content: Box<ControlObject>,
 }
 
-pub struct ButtonEvents<'a> {
-    pub clicked: Callback<'a, ()>
+pub struct ButtonEvents {
+    pub clicked: Callback<()>
 }
 
-pub struct Button<'a> {
+pub struct Button {
     pub properties: ButtonProperties,
-    pub events: ButtonEvents<'a>,
+    pub events: ButtonEvents,
     style: Box<Style<ButtonProperties>>,
 
     rect: Rect,
@@ -24,9 +24,9 @@ pub struct Button<'a> {
     pub xxx: i32,
 }
 
-impl<'a> Button<'a> {
+impl Button {
     pub fn new(content: Box<ControlObject>) -> Box<Self> {
-        Box::new(Button::<'a> {
+        Box::new(Button {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Callback::new() },
             style: Box::new(ButtonDefaultStyle { }),
@@ -36,7 +36,7 @@ impl<'a> Button<'a> {
     }
 }
 
-impl<'a> Control for Button<'a> {
+impl Control for Button {
     type Properties = ButtonProperties;
 
     fn get_properties(&self) -> &Self::Properties {
@@ -150,7 +150,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 // object safe trait
 //
 
-impl<'a> ControlObject for Button<'a> {
+impl ControlObject for Button {
 
     fn set_rect(&mut self, rect: Rect) {
         (self as &mut Control<Properties = ButtonProperties>).set_rect(rect)
