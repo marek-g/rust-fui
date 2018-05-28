@@ -29,10 +29,6 @@ impl MainViewModel {
         println!("decrease!");
         self.counter -= 1;
     }
-
-    pub fn test_immutable(&self) {
-        println!("test immutable!");
-    }
 }
 
 impl View for MainViewModel {

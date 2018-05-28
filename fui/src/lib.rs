@@ -9,10 +9,16 @@ pub mod callback;
 pub mod common;
 pub mod control;
 pub mod controls;
-pub mod event;
+
+mod event;
+pub use event::*;
+
 pub mod events;
 pub mod high_dpi;
 pub mod layout;
+
+mod property;
+pub use property::*;
 
 mod view;
 pub use view::*;

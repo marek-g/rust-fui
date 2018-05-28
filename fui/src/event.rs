@@ -6,23 +6,23 @@ use std::cell::RefCell;
 // EventSubscription is an owner of the callback.
 // Calling the callback stops when EventSubscription is dropped.
 //
-pub struct EventSubscription<'a, A> {
-    _callback: Rc<Box<RefCell<'a + FnMut(&A)>>>
+pub struct EventSubscription<A> {
+    _callback: Rc<Box<RefCell<'static + FnMut(&A)>>>
 }
 
-pub struct Event<'a, A> {
-    pub callbacks: Vec<Weak<Box<RefCell<'a + FnMut(&A)>>>>
+pub struct Event<A> {
+    pub callbacks: Vec<Weak<Box<RefCell<'static + FnMut(&A)>>>>
 }
 
-impl<'a, A> Event<'a, A> {
+impl<A> Event<A> {
     pub fn new() -> Self {
         Event {
             callbacks: Vec::new()
         }
     }
 
-    pub fn subscribe<F: 'a + FnMut(&A)>(&mut self, f: F) -> EventSubscription<'a, A> {
-        let box_callback: Box<RefCell<'a + FnMut(&A)>> = Box::new(RefCell::new(f));
+    pub fn subscribe<F: 'static + FnMut(&A)>(&mut self, f: F) -> EventSubscription<A> {
+        let box_callback: Box<RefCell<FnMut(&A)>> = Box::new(RefCell::new(f));
         let rc_callback = Rc::new(box_callback);
         let weak_callback = Rc::downgrade(&rc_callback);
 
