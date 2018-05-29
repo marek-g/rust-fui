@@ -1,9 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use control::ControlObject;
+use Binding;
 
 pub struct ViewData {
     pub root_control: Box<ControlObject>,
+    pub bindings: Vec<Box<Binding>>
 }
 
 pub trait View {

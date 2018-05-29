@@ -4,11 +4,15 @@ extern crate drawing_gfx;
 extern crate find_folder;
 
 pub mod application;
-pub mod drawing_context;
+
+mod binding;
+pub use binding::*;
+
 pub mod callback;
 pub mod common;
 pub mod control;
 pub mod controls;
+pub mod drawing_context;
 
 mod event;
 pub use event::*;

@@ -49,6 +49,8 @@ impl View for MainViewModel {
 
         ViewData {
             root_control: root_control,
+            bindings: vec![
+            ]
         }
     }
 }
