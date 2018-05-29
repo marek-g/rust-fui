@@ -95,7 +95,7 @@ impl Style<TextProperties> for TextDefaultStyle {
             color: [1.0, 1.0, 1.0, 1.0],
             position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
             size: self.font_size as u16,
-            text: "TODO" //&properties.text.get(),
+            text: properties.text.get(),
         });
 
         vec
