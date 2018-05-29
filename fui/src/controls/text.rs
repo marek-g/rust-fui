@@ -4,9 +4,10 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use events::*;
+use Property;
 
 pub struct TextProperties {
-    pub text: String,
+    pub text: Property<String>,
 }
 
 pub struct Text {
@@ -19,7 +20,7 @@ pub struct Text {
 impl Text {
     pub fn new(text: String) -> Box<Self> {
         Box::new(Text {
-            properties: TextProperties { text: text },
+            properties: TextProperties { text: Property::new(text) },
             style: Box::new(TextDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
         })
@@ -71,7 +72,7 @@ pub struct TextDefaultStyle {
 
 impl Style<TextProperties> for TextDefaultStyle {
     fn get_preferred_size(&self, properties: &TextProperties, drawing_context: &mut DrawingContext, _size: Size) -> Size {
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
+        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text.get());
         Size::new(text_width as f32, text_height as f32)
     }
 
@@ -87,14 +88,14 @@ impl Style<TextProperties> for TextDefaultStyle {
         let width = rect.width;
         let height = rect.height;
 
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text);
+        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text.get());
 
         vec.push(Primitive::Text {
             resource_key: self.font_name,
             color: [1.0, 1.0, 1.0, 1.0],
             position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
             size: self.font_size as u16,
-            text: &properties.text,
+            text: "TODO" //&properties.text.get(),
         });
 
         vec

@@ -11,23 +11,25 @@ use fui::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use Property;
+
 struct MainViewModel {
-    pub counter: i32
+    pub counter: Property<i32>
 }
 
 impl MainViewModel {
     pub fn new() -> Self {
-        MainViewModel { counter: 10 }
+        MainViewModel { counter: Property::new(10) }
     }
 
     pub fn increase(&mut self) {
         println!("increase!");
-        self.counter += 1;
+        self.counter.set(self.counter.get() + 1);
     }
 
     pub fn decrease(&mut self) {
         println!("decrease!");
-        self.counter -= 1;
+        self.counter.set(self.counter.get() - 1);
     }
 }
 
@@ -41,7 +43,12 @@ impl View for MainViewModel {
         let self_rc = view_model.clone();
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
-        let text1 = Text::new("Count: 0".to_string());
+        let mut text1 = Text::new(format!("Count: {}", view_model.borrow().counter.get()).to_string());
+
+        let mut vm = view_model.borrow_mut();
+        let bindings = vec![
+            text1.properties.text.bind(&mut vm.counter, |counter| { format!("Counter {}", counter) } )
+        ]; 
 
         let root_control = Horizontal::new(vec![
             text1, btn1, btn2
@@ -49,8 +56,7 @@ impl View for MainViewModel {
 
         ViewData {
             root_control: root_control,
-            bindings: vec![
-            ]
+            bindings: bindings,
         }
     }
 }
@@ -58,7 +64,7 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
-    let mut main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
+    let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
     app.set_root_view_model(&main_view_model);
 
     //let main_view = main_view_model.create_view();

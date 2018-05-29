@@ -2,6 +2,8 @@ use std::rc::Rc;
 use std::rc::Weak;
 use std::cell::RefCell;
 
+use Binding;
+use BindingData;
 use Event;
 use EventSubscription;
 
@@ -9,7 +11,7 @@ pub struct Property<T> {
     pub data: Rc<RefCell<PropertyData<T>>>
 }
 
-impl<T: 'static + Copy> Property<T> {
+impl<T: 'static + Clone> Property<T> {
     pub fn new(val: T) -> Self {
         Property {
             data: Rc::new(RefCell::new(PropertyData::new(val)))
@@ -21,19 +23,20 @@ impl<T: 'static + Copy> Property<T> {
     }
 
     pub fn get(&self) -> T {
-        self.data.borrow().value
+        self.data.borrow().value.clone()
     }
 
-    pub fn bind<TSrc, F: 'static + FnMut(&TSrc) -> T>(&mut self, src_property: &mut Property<TSrc>, f: F) -> EventSubscription<TSrc> {
+    pub fn bind<TSrc: 'static, F: 'static + FnMut(&TSrc) -> T>(&mut self, src_property: &mut Property<TSrc>, f: F) -> Box<Binding> {
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(RefCell::new(f));
-        src_property.data.borrow_mut().changed.subscribe(move |src_val| {
+        let event_subscription = src_property.data.borrow_mut().changed.subscribe(move |src_val| {
             if let Some(ref_cell_dest_property_data) = weak_data.upgrade() {
                 let dest_property_data = &mut *ref_cell_dest_property_data.borrow_mut();
                 let f = &mut *boxed_f.borrow_mut();
                 dest_property_data.set(f(src_val));
             }
-        })
+        });
+        Box::new(BindingData { subscription: event_subscription })
     }
 }
 
