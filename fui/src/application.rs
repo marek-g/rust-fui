@@ -9,13 +9,14 @@ use control::*;
 use common::*;
 use events::*;
 use View;
+use ViewData;
 
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
     event_processor: EventProcessor,
     drawing_context: DrawingContext,
-    root_control: Option<Box<ControlObject>>,
+    root_view: Option<ViewData>,
 }
 
 impl Application {
@@ -32,20 +33,20 @@ impl Application {
             events_loop: events_loop,
             event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
-            root_control: None,
+            root_view: None,
         }
     }
 
-    pub fn set_root_control(&mut self, root_control: Box<ControlObject>) {
-        self.root_control = Some(root_control);
+    pub fn set_root_view(&mut self, root_view: ViewData) {
+        self.root_view = Some(root_view);
     }
 
     pub fn set_root_view_model<V: View>(&mut self, view_model: &Rc<RefCell<V>>) {
-        self.root_control = Some(V::create_view(view_model));
+        self.root_view = Some(V::create_view(view_model));
     }
 
-    pub fn clear_root_control(&mut self) {
-        self.root_control = None;
+    pub fn clear_root(&mut self) {
+        self.root_view = None;
     }
 
     pub fn run(&mut self) {
@@ -59,7 +60,7 @@ impl Application {
                 let events_loop = &mut self.events_loop;
                 let event_processor = &mut self.event_processor;
                 let drawing_context = &mut self.drawing_context;
-                let root_control = &mut self.root_control;
+                let root_view = &mut self.root_view;
 
                 events_loop.poll_events(|event| {
                     if let winit::Event::WindowEvent { ref event, .. } = event {
@@ -69,10 +70,10 @@ impl Application {
                             },
                             winit::WindowEvent::Resized(ref w, ref h) => {
                                 width = *w; height = *h;
-                                if let Some(ref mut root_control) = root_control {
+                                if let Some(ref mut root_view) = root_view {
                                     let size = Size::new(*w as f32, *h as f32);
-                                    let control_size = root_control.get_preferred_size(drawing_context, size);
-                                    root_control.set_rect(Rect::new(0f32, 0f32, *w as f32, *h as f32));
+                                    let control_size = root_view.root_control.get_preferred_size(drawing_context, size);
+                                    root_view.root_control.set_rect(Rect::new(0f32, 0f32, *w as f32, *h as f32));
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
                             },
@@ -80,8 +81,8 @@ impl Application {
                         }
                     };
 
-                    if let Some(ref mut root_control) = root_control {
-                        event_processor.handle_event(root_control, &event);
+                    if let Some(ref mut root_view) = root_view {
+                        event_processor.handle_event(&mut root_view.root_control, &event);
                     }
                 });
             }
@@ -95,8 +96,8 @@ impl Application {
     }
 
     fn render(&mut self, width: u32, height: u32) {
-        if let Some(ref mut root) = self.root_control {
-            let primitives = root.to_primitives(&mut self.drawing_context);
+        if let Some(ref mut root_view) = self.root_view {
+            let primitives = root_view.root_control.to_primitives(&mut self.drawing_context);
 
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);

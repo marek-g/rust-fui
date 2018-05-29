@@ -32,7 +32,7 @@ impl MainViewModel {
 }
 
 impl View for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> Box<ControlObject> {
+    fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         let mut btn1 = Button::new(Text::new("Decrease".to_string()));
         let self_rc = view_model.clone();
         btn1.events.clicked.set(move |_| { self_rc.borrow_mut().decrease(); });
@@ -43,9 +43,13 @@ impl View for MainViewModel {
 
         let text1 = Text::new("Count: 0".to_string());
 
-        Horizontal::new(vec![
+        let root_control = Horizontal::new(vec![
             text1, btn1, btn2
-        ])
+        ]);
+
+        ViewData {
+            root_control: root_control,
+        }
     }
 }
 
