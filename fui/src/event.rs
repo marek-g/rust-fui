@@ -2,10 +2,10 @@ use std::rc::Rc;
 use std::rc::Weak;
 use std::cell::RefCell;
 
-//
-// EventSubscription is an owner of the callback.
-// Calling the callback stops when EventSubscription is dropped.
-//
+///
+/// EventSubscription is an owner of the callback.
+/// Calling the callback stops when EventSubscription is dropped.
+///
 pub struct EventSubscription<A> {
     _callback: Rc<Box<RefCell<'static + FnMut(&A)>>>
 }

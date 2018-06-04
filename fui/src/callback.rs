@@ -11,6 +11,10 @@ impl<A> Callback<A> {
         self.callback = Some(Box::new(f));
     }
 
+    pub fn clear(&mut self) {
+        self.callback = None;
+    }
+
     pub fn emit(&mut self, args: A) {
         if let Some(ref mut f) = self.callback {
             f(args)

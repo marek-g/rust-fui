@@ -1,11 +1,9 @@
 use std::rc::Rc;
-use std::rc::Weak;
 use std::cell::RefCell;
 
 use Binding;
 use BindingData;
 use Event;
-use EventSubscription;
 
 pub struct Property<T> {
     pub data: Rc<RefCell<PropertyData<T>>>
