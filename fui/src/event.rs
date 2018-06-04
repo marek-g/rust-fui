@@ -22,7 +22,7 @@ impl<A> Event<A> {
         }
     }
 
-    pub fn subscribe<F: 'static + Fn(&A)>(&mut self, f: F) -> EventSubscription<A> {
+    pub fn subscribe<F: 'static + Fn(&A)>(&self, f: F) -> EventSubscription<A> {
         let mut callback = Callback::<A>::new();
         callback.set(f);
         let rc_callback = Rc::new(callback);

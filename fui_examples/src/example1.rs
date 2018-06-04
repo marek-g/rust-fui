@@ -25,7 +25,7 @@ impl MainViewModel {
 
     pub fn increase(&mut self) {
         println!("increase!");
-        self.counter2.set(self.counter.get() + 1);
+        self.counter.set(self.counter.get() + 1);
     }
 
     pub fn decrease(&mut self) {
@@ -54,7 +54,7 @@ impl View for MainViewModel {
             vm.counter2.bind(&vm.counter, |&counter| { counter }),
 
             // test for two way binding
-            //vm.counter.bind(&vm.counter2, |&counter| { counter }),
+            vm.counter.bind(&vm.counter2, |&counter| { counter }),
         ];
 
         let root_control = Horizontal::new(vec![
