@@ -14,12 +14,13 @@ use std::rc::Rc;
 use Property;
 
 struct MainViewModel {
-    pub counter: Property<i32>
+    pub counter: Property<i32>,
+    pub counter2: Property<i32>
 }
 
 impl MainViewModel {
     pub fn new() -> Self {
-        MainViewModel { counter: Property::new(10) }
+        MainViewModel { counter: Property::new(10), counter2: Property::new(0) }
     }
 
     pub fn increase(&mut self) {
@@ -44,14 +45,19 @@ impl View for MainViewModel {
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
         let mut text1 = Text::new(format!("Count: {}", view_model.borrow().counter.get()).to_string());
+        let mut text2 = Text::new(format!("Count2: {}", view_model.borrow().counter2.get()).to_string());
 
-        let mut vm = view_model.borrow_mut();
+        let mut vm = view_model.borrow();
+        //let mut c1 = &mut vm.counter;
+        //let mut c2 = &mut vm.counter2;
         let bindings = vec![
-            text1.properties.text.bind(&mut vm.counter, |counter| { format!("Counter {}", counter) } )
+            text1.properties.text.bind(&vm.counter, |counter| { format!("Counter {}", counter) } ),
+            text2.properties.text.bind(&vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
+            vm.counter2.bind(&vm.counter, |&counter| { counter })
         ]; 
 
         let root_control = Horizontal::new(vec![
-            text1, btn1, btn2
+            text1, btn1, btn2, text2
         ]);
 
         ViewData {

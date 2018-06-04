@@ -24,14 +24,13 @@ impl<T: 'static + Clone> Property<T> {
         self.data.borrow().value.clone()
     }
 
-    pub fn bind<TSrc: 'static, F: 'static + FnMut(&TSrc) -> T>(&mut self, src_property: &mut Property<TSrc>, f: F) -> Box<Binding> {
+    pub fn bind<TSrc: 'static, F: 'static + Fn(&TSrc) -> T>(&self, src_property: &Property<TSrc>, f: F) -> Box<Binding> {
         let weak_data = Rc::downgrade(&self.data);
-        let boxed_f = Box::new(RefCell::new(f));
+        let boxed_f = Box::new(f);
         let event_subscription = src_property.data.borrow_mut().changed.subscribe(move |src_val| {
             if let Some(ref_cell_dest_property_data) = weak_data.upgrade() {
                 let dest_property_data = &mut *ref_cell_dest_property_data.borrow_mut();
-                let f = &mut *boxed_f.borrow_mut();
-                dest_property_data.set(f(src_val));
+                dest_property_data.set(boxed_f(src_val));
             }
         });
         Box::new(BindingData { subscription: event_subscription })
