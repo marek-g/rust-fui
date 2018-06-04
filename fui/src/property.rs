@@ -16,8 +16,13 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         }
     }
 
-    pub fn set(&self, val: T) {
+    pub fn set(&mut self, val: T) {
         self.data.set(val);
+    }
+
+    pub fn change<F: 'static + Fn(T) -> T>(&mut self, f: F) {
+        let val = self.data.get();
+        self.data.set(f(val));
     }
 
     pub fn get(&self) -> T {

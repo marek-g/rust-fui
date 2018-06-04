@@ -25,12 +25,12 @@ impl MainViewModel {
 
     pub fn increase(&mut self) {
         println!("increase!");
-        self.counter.set(self.counter.get() + 1);
+        self.counter.change(|c| c + 1);
     }
 
     pub fn decrease(&mut self) {
         println!("decrease!");
-        self.counter2.set(self.counter2.get() - 1);
+        self.counter.change(|c| c - 1);
     }
 }
 
@@ -44,10 +44,10 @@ impl View for MainViewModel {
         let self_rc = view_model.clone();
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
-        let mut text1 = Text::new(format!("Count: {}", view_model.borrow().counter.get()).to_string());
-        let mut text2 = Text::new(format!("Count2: {}", view_model.borrow().counter2.get()).to_string());
+        let text1 = Text::new(format!("Count: {}", view_model.borrow().counter.get()).to_string());
+        let text2 = Text::new(format!("Count2: {}", view_model.borrow().counter2.get()).to_string());
 
-        let mut vm = view_model.borrow();
+        let vm = view_model.borrow();
         let bindings = vec![
             text1.properties.text.bind(&vm.counter, |counter| { format!("Counter {}", counter) } ),
             text2.properties.text.bind(&vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
