@@ -32,6 +32,10 @@ impl MainViewModel {
         println!("decrease!");
         self.counter.change(|c| c - 1);
     }
+
+    pub fn borrow(&mut self) -> (&mut Property<i32>, &mut Property<i32>) {
+        (&mut self.counter, &mut self.counter2)
+    }
 }
 
 impl View for MainViewModel {
@@ -44,17 +48,17 @@ impl View for MainViewModel {
         let self_rc = view_model.clone();
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
-        let text1 = Text::new("".to_string());
-        let text2 = Text::new("".to_string());
+        let mut text1 = Text::new("".to_string());
+        let mut text2 = Text::new("".to_string());
 
-        let vm = view_model.borrow();
+        let mut vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
-            text1.properties.text.bind(&vm.counter, |counter| { format!("Counter {}", counter) } ),
-            text2.properties.text.bind(&vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
-            vm.counter2.bind(&vm.counter, |&counter| { counter }),
+            text1.properties.text.bind(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
+            text2.properties.text.bind(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
+            vm.counter2.bind(&mut vm.counter, |&counter| { counter }),
 
             // test for two way binding
-            vm.counter.bind(&vm.counter2, |&counter| { counter }),
+            vm.counter.bind(&mut vm.counter2, |&counter| { counter }),
         ];
 
         let root_control = Horizontal::new(vec![
