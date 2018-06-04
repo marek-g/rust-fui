@@ -25,12 +25,12 @@ impl MainViewModel {
 
     pub fn increase(&mut self) {
         println!("increase!");
-        self.counter.set(self.counter.get() + 1);
+        self.counter2.set(self.counter.get() + 1);
     }
 
     pub fn decrease(&mut self) {
         println!("decrease!");
-        self.counter.set(self.counter.get() - 1);
+        self.counter2.set(self.counter2.get() - 1);
     }
 }
 
@@ -48,13 +48,14 @@ impl View for MainViewModel {
         let mut text2 = Text::new(format!("Count2: {}", view_model.borrow().counter2.get()).to_string());
 
         let mut vm = view_model.borrow();
-        //let mut c1 = &mut vm.counter;
-        //let mut c2 = &mut vm.counter2;
         let bindings = vec![
             text1.properties.text.bind(&vm.counter, |counter| { format!("Counter {}", counter) } ),
             text2.properties.text.bind(&vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
-            vm.counter2.bind(&vm.counter, |&counter| { counter })
-        ]; 
+            vm.counter2.bind(&vm.counter, |&counter| { counter }),
+
+            // test for two way binding
+            //vm.counter.bind(&vm.counter2, |&counter| { counter }),
+        ];
 
         let root_control = Horizontal::new(vec![
             text1, btn1, btn2, text2
