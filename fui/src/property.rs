@@ -35,7 +35,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
 
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
-        let event_subscription = src_property.data.changed.subscribe(move |src_val| {
+        let event_subscription = src_property.data.changed.borrow_mut().subscribe(move |src_val| {
             if let Some(dest_property_data) = weak_data.upgrade() {
                 dest_property_data.set(boxed_f(src_val));
             }
@@ -46,21 +46,21 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
 
 pub struct PropertyData<T> {
     pub value: RefCell<T>,
-    pub changed: Event<T>
+    pub changed: RefCell<Event<T>>
 }
 
 impl<T: 'static + Clone + PartialEq> PropertyData<T> {
     pub fn new(val: T) -> Self {
         PropertyData {
             value: RefCell::new(val),
-            changed: Event::new()
+            changed: RefCell::new(Event::new())
         }
     }
 
     pub fn set(&self, val: T) {
         let old_value = self.value.replace(val.clone());
         if old_value != val {
-            self.changed.emit(&val);
+            self.changed.borrow().emit(&val);
         }
     }
 
