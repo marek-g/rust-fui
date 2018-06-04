@@ -44,8 +44,8 @@ impl View for MainViewModel {
         let self_rc = view_model.clone();
         btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
 
-        let text1 = Text::new(format!("Count: {}", view_model.borrow().counter.get()).to_string());
-        let text2 = Text::new(format!("Count2: {}", view_model.borrow().counter2.get()).to_string());
+        let text1 = Text::new("".to_string());
+        let text2 = Text::new("".to_string());
 
         let vm = view_model.borrow();
         let bindings = vec![

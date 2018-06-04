@@ -29,7 +29,9 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         self.data.get()
     }
 
-    pub fn bind<TSrc: 'static, F: 'static + Fn(&TSrc) -> T>(&self, src_property: &Property<TSrc>, f: F) -> Box<Binding> {
+    pub fn bind<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(&TSrc) -> T>(&self, src_property: &Property<TSrc>, f: F) -> Box<Binding> {
+        self.data.set(f(&src_property.get()));
+
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
         let event_subscription = src_property.data.changed.subscribe(move |src_val| {
