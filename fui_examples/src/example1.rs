@@ -53,12 +53,12 @@ impl View for MainViewModel {
 
         let mut vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
-            text1.properties.text.bind(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
-            text2.properties.text.bind(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
-            vm.counter2.bind(&mut vm.counter, |&counter| { counter }),
+            text1.properties.text.bindc(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
+            text2.properties.text.bindc(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
 
-            // test for two way binding
-            vm.counter.bind(&mut vm.counter2, |&counter| { counter }),
+            // test for two way binding            
+            vm.counter2.bind(&mut vm.counter),
+            vm.counter.bind(&mut vm.counter2),
         ];
 
         let root_control = Horizontal::new(vec![
