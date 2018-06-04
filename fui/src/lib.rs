@@ -8,7 +8,9 @@ pub mod application;
 mod binding;
 pub use binding::*;
 
-pub mod callback;
+mod callback;
+pub use callback::*;
+
 pub mod common;
 pub mod control;
 pub mod controls;

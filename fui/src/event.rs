@@ -1,49 +1,50 @@
 use std::rc::Rc;
 use std::rc::Weak;
 use std::cell::RefCell;
+use Callback;
 
 ///
 /// EventSubscription is an owner of the callback.
 /// Calling the callback stops when EventSubscription is dropped.
 ///
 pub struct EventSubscription<A> {
-    _callback: Rc<Box<RefCell<'static + FnMut(&A)>>>
+    _callback: Rc<Callback<A>>
 }
 
 pub struct Event<A> {
-    pub callbacks: Vec<Weak<Box<RefCell<'static + FnMut(&A)>>>>
+    pub callbacks: RefCell<Vec<Weak<Callback<A>>>>
 }
 
 impl<A> Event<A> {
     pub fn new() -> Self {
         Event {
-            callbacks: Vec::new()
+            callbacks: RefCell::new(Vec::new())
         }
     }
 
-    pub fn subscribe<F: 'static + FnMut(&A)>(&mut self, f: F) -> EventSubscription<A> {
-        let box_callback: Box<RefCell<FnMut(&A)>> = Box::new(RefCell::new(f));
-        let rc_callback = Rc::new(box_callback);
+    pub fn subscribe<F: 'static + Fn(&A)>(&mut self, f: F) -> EventSubscription<A> {
+        let mut callback = Callback::<A>::new();
+        callback.set(f);
+        let rc_callback = Rc::new(callback);
         let weak_callback = Rc::downgrade(&rc_callback);
 
-        self.callbacks.push(weak_callback);
+        self.callbacks.borrow_mut().push(weak_callback);
         EventSubscription { _callback: rc_callback }
     }
 
-    pub fn emit(&mut self, args: &A) {
+    pub fn emit(&self, args: &A) {
         let mut cleanup = false;
 
-        for weak_callback in self.callbacks.iter() {
-            if let Some(mut ref_cell_f) = weak_callback.upgrade() {
-                let f = &mut *ref_cell_f.borrow_mut();
-                f(&args)
+        for weak_callback in self.callbacks.borrow().iter() {
+            if let Some(callback) = weak_callback.upgrade() {
+                callback.emit(args);
             } else {
                 cleanup = true;
             }
         }
 
         if cleanup {
-            self.callbacks.retain(|ref weak_callback| {
+            self.callbacks.borrow_mut().retain(|ref weak_callback| {
                 let got_ref = weak_callback.clone().upgrade();
                 match got_ref { None => false, _ => true }
             });

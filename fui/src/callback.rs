@@ -4,7 +4,7 @@
 /// Callback is the owner of the listener clousure.
 ///
 pub struct Callback<A> {
-    callback: Option<Box<'static + FnMut(&A)>>
+    callback: Option<Box<'static + Fn(&A)>>
 }
 
 impl<A> Callback<A> {
@@ -12,7 +12,7 @@ impl<A> Callback<A> {
         Callback { callback: None }
     }
 
-    pub fn set<F: 'static + FnMut(&A)>(&mut self, f: F) {
+    pub fn set<F: 'static + Fn(&A)>(&mut self, f: F) {
         self.callback = Some(Box::new(f));
     }
 
@@ -20,8 +20,8 @@ impl<A> Callback<A> {
         self.callback = None;
     }
 
-    pub fn emit(&mut self, args: &A) {
-        if let Some(ref mut f) = self.callback {
+    pub fn emit(&self, args: &A) {
+        if let Some(ref f) = self.callback {
             f(args)
         }
     }
