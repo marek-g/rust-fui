@@ -1,3 +1,8 @@
+///
+/// Callback can hold one listener that can be called any time with emit() method.
+///
+/// Callback is the owner of the listener clousure.
+///
 pub struct Callback<A> {
     callback: Option<Box<'static + FnMut(&A)>>
 }
