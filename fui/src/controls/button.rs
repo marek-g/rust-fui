@@ -69,7 +69,7 @@ impl Control for Button {
             ControlEvent::TapUp{ ref position } => {
                 if position.0 >= self.rect.x && position.0 <= self.rect.x + self.rect.width &&
                     position.1 >= self.rect.y && position.1 <= self.rect.y + self.rect.height {
-                    self.events.clicked.emit(());
+                    self.events.clicked.emit(&());
                 }
                 true
             },
