@@ -24,33 +24,31 @@ impl MainViewModel {
     }
 
     pub fn increase(&mut self) {
-        println!("increase!");
         self.counter.change(|c| c + 1);
     }
 
     pub fn decrease(&mut self) {
-        println!("decrease!");
         self.counter.change(|c| c - 1);
-    }
-
-    pub fn borrow(&mut self) -> (&mut Property<i32>, &mut Property<i32>) {
-        (&mut self.counter, &mut self.counter2)
     }
 }
 
 impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
+        // controls
         let mut btn1 = Button::new(Text::new("Decrease".to_string()));
-        let self_rc = view_model.clone();
-        btn1.events.clicked.set(move |_| { self_rc.borrow_mut().decrease(); });
-
         let mut btn2 = Button::new(Text::new("Increase".to_string()));
-        let self_rc = view_model.clone();
-        btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
-
         let mut text1 = Text::new("".to_string());
         let mut text2 = Text::new("".to_string());
 
+        // events
+        // event!(btn1.events.clicked, view_model, |vm| { vm.decrease(); });
+        // btn1.events.clicked.set(view_model, |vm| { vm.decrease(); });
+        let self_rc = view_model.clone();
+        btn1.events.clicked.set(move |_| { self_rc.borrow_mut().decrease(); });
+        let self_rc = view_model.clone();
+        btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
+
+        // bindings
         let mut vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
             text1.properties.text.bindc(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
@@ -61,6 +59,7 @@ impl View for MainViewModel {
             vm.counter.bind(&mut vm.counter2),
         ];
 
+        // layout
         let root_control = Horizontal::new(vec![
             text1, btn1, btn2, text2
         ]);
