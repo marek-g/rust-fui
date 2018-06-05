@@ -3,7 +3,6 @@
 extern crate fui;
 
 use fui::application::*;
-use fui::control::*;
 use fui::controls::*;
 use fui::layout::*;
 use fui::*;
@@ -45,7 +44,7 @@ impl View for MainViewModel {
         btn2.events.clicked.set_vm(view_model, |vm, _| { vm.increase(); });
 
         // bindings
-        let mut vm: &mut MainViewModel = &mut view_model.borrow_mut();
+        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
             text1.properties.text.bindc(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
             text2.properties.text.bindc(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
@@ -72,15 +71,6 @@ fn main() {
 
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
     app.set_root_view_model(&main_view_model);
-
-    //let main_view = main_view_model.create_view();
-    //app.set_root_control(main_view);
-
-    //app.set_root_control(btn1);
-    //app.clear_root_control();
-
-    //let mut v: Vec<Box<ControlObject>> = vec![];
-    //v.push(Button::new());
 
     app.run();
 }
