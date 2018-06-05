@@ -41,7 +41,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         Box::new(BindingData { subscription: event_subscription })
     }
 
-    pub fn bindc<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(&TSrc) -> T>(&mut self,
+    pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(&TSrc) -> T>(&mut self,
         src_property: &mut Property<TSrc>, f: F) -> Box<Binding> {
         self.set(f(&src_property.get()));
 

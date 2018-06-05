@@ -46,8 +46,8 @@ impl View for MainViewModel {
         // bindings
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
-            text1.properties.text.bindc(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
-            text2.properties.text.bindc(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
+            text1.properties.text.bind_c(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
+            text2.properties.text.bind_c(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
 
             // test for two way binding            
             vm.counter2.bind(&mut vm.counter),
