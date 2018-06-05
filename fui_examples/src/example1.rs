@@ -41,12 +41,8 @@ impl View for MainViewModel {
         let mut text2 = Text::new("".to_string());
 
         // events
-        // event!(btn1.events.clicked, view_model, |vm| { vm.decrease(); });
-        // btn1.events.clicked.set(view_model, |vm| { vm.decrease(); });
-        let self_rc = view_model.clone();
-        btn1.events.clicked.set(move |_| { self_rc.borrow_mut().decrease(); });
-        let self_rc = view_model.clone();
-        btn2.events.clicked.set(move |_| { self_rc.borrow_mut().increase(); });
+        btn1.events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
+        btn2.events.clicked.set_vm(view_model, |vm, _| { vm.increase(); });
 
         // bindings
         let mut vm: &mut MainViewModel = &mut view_model.borrow_mut();
