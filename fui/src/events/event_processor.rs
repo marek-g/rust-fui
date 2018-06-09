@@ -6,6 +6,7 @@ use std::rc::Rc;
 use control::ControlObject;
 use events::*;
 use ViewData;
+use RootView;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ControlEvent {
@@ -26,18 +27,18 @@ impl EventProcessor {
         }
     }
 
-    pub fn handle_event(&mut self, root_view: &ViewData, event: &winit::Event) {
+    pub fn handle_event(&mut self, root_view: &mut RootView, event: &winit::Event) {
         self.handle_hover(root_view, event);
 
         self.gesture_detector.handle_event(event).map(|ev| match ev {
             Gesture::TapUp { position, captured_position } => {
-                self.dispatch_event_by_hit_target(&root_view.root_control, captured_position, ControlEvent::TapUp { position: position });
+                self.dispatch_event_by_hit_target(&root_view.view_data.root_control, captured_position, ControlEvent::TapUp { position: position });
             },
             _ => ()
         });
     }
 
-    fn handle_hover(&mut self, root_view: &ViewData, event: &winit::Event) {
+    fn handle_hover(&mut self, root_view: &mut RootView, event: &winit::Event) {
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 winit::WindowEvent::CursorMoved { position, .. } => {

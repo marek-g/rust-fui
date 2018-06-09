@@ -9,13 +9,14 @@ use common::*;
 use events::*;
 use View;
 use ViewData;
+use RootView;
 
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
     event_processor: EventProcessor,
     drawing_context: DrawingContext,
-    root_view: Option<ViewData>,
+    root_view: Option<RootView>,
 }
 
 impl Application {
@@ -40,12 +41,12 @@ impl Application {
         self.title
     }
 
-    pub fn set_root_view(&mut self, root_view: ViewData) {
-        self.root_view = Some(root_view);
+    pub fn set_root_view(&mut self, view_data: ViewData) {
+        self.root_view = Some(RootView::new(view_data));
     }
 
     pub fn set_root_view_model<V: View>(&mut self, view_model: &Rc<RefCell<V>>) {
-        self.root_view = Some(V::create_view(view_model));
+        self.set_root_view(V::create_view(view_model));
     }
 
     pub fn clear_root(&mut self) {
@@ -75,7 +76,7 @@ impl Application {
                                 width = *w; height = *h;
                                 if let Some(ref mut root_view) = root_view {
                                     let size = Size::new(*w as f32, *h as f32);
-                                    let mut root_control = root_view.root_control.borrow_mut();
+                                    let mut root_control = root_view.view_data.root_control.borrow_mut();
                                     let _ = root_control.get_preferred_size(drawing_context, size);
                                     root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
                                 }
@@ -86,7 +87,7 @@ impl Application {
                     };
 
                     if let Some(ref mut root_view) = root_view {
-                        event_processor.handle_event(&root_view, &event);
+                        event_processor.handle_event(root_view, &event);
                     }
                 });
             }
@@ -104,11 +105,11 @@ impl Application {
             let dirty = true;
             if dirty {
                 let size = Size::new(width as f32, height as f32);
-                let _ = root_view.root_control.borrow().get_preferred_size(&mut self.drawing_context, size);
-                root_view.root_control.borrow_mut().set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+                let _ = root_view.view_data.root_control.borrow().get_preferred_size(&mut self.drawing_context, size);
+                root_view.view_data.root_control.borrow_mut().set_rect(Rect::new(0f32, 0f32, size.width, size.height));
             }
 
-            let mut root_control = root_view.root_control.borrow_mut();
+            let mut root_control = root_view.view_data.root_control.borrow_mut();
             let primitives = root_control.to_primitives(&mut self.drawing_context);
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);
