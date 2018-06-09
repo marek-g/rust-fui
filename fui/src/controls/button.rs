@@ -18,10 +18,6 @@ pub struct Button {
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     style: Box<Style<ButtonProperties>>,
-
-    rect: Rect,
-
-    pub xxx: i32,
 }
 
 impl Button {
@@ -29,9 +25,9 @@ impl Button {
         Box::new(Button {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Callback::new() },
-            style: Box::new(ButtonDefaultStyle { }),
-            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            xxx: 10,
+            style: Box::new(ButtonDefaultStyle {
+                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            }),
         })
     }
 }
@@ -47,15 +43,6 @@ impl Control for Button {
         &self.style
     }
 
-    fn set_rect(&mut self, rect: Rect) {
-        self.rect = rect;
-        self.style.set_rect(&mut self.properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.rect
-    }
-
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
         Vec::new()
     }
@@ -67,8 +54,9 @@ impl Control for Button {
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         match event {
             ControlEvent::TapUp{ ref position } => {
-                if position.0 >= self.rect.x && position.0 <= self.rect.x + self.rect.width &&
-                    position.1 >= self.rect.y && position.1 <= self.rect.y + self.rect.height {
+                let rect = self.style.get_rect();
+                if position.0 >= rect.x && position.0 <= rect.x + rect.width &&
+                    position.1 >= rect.y && position.1 <= rect.y + rect.height {
                     self.events.clicked.emit(&());
                 }
                 true
@@ -84,6 +72,7 @@ impl Control for Button {
 //
 
 pub struct ButtonDefaultStyle {
+    rect: Rect,
 }
 
 impl Style<ButtonProperties> for ButtonDefaultStyle {
@@ -94,8 +83,14 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
     }
 
     fn set_rect(&mut self, properties: &mut ButtonProperties, rect: Rect) {
+        self.rect = rect;
+
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
         properties.content.set_rect(content_rect);
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.rect
     }
 
     fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
@@ -151,13 +146,14 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 //
 
 impl ControlObject for Button {
-
     fn set_rect(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = ButtonProperties>).set_rect(rect)
+        let style = &mut self.style;
+        let properties = &mut self.properties;
+        style.set_rect(properties, rect);
     }
 
     fn get_rect(&self) -> Rect {
-        (self as &Control<Properties = ButtonProperties>).get_rect()
+        self.get_style().get_rect()
     }
 
     fn is_hit_test_visible(&self) -> bool {
@@ -178,7 +174,7 @@ impl ControlObject for Button {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, (self as &Control<Properties = ButtonProperties>).get_rect())
+            drawing_context, self.get_style().get_rect())
     }
 
 }

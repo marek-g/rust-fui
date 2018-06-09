@@ -14,16 +14,16 @@ pub struct HorizontalProperties {
 pub struct Horizontal {
     pub properties: HorizontalProperties,
     style: Box<Style<HorizontalProperties>>,
-
-    rect: Rect,
 }
 
 impl Horizontal {
     pub fn new(children: Vec<Box<ControlObject>>) -> Box<Self> {
         Box::new(Horizontal {
             properties: HorizontalProperties { children: children },
-            style: Box::new(HorizontalDefaultStyle { desired_size: RefCell::new(Vec::new()) }),
-            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            style: Box::new(HorizontalDefaultStyle {
+                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+                desired_size: RefCell::new(Vec::new())
+            }),
         })
     }
 }
@@ -37,15 +37,6 @@ impl Control for Horizontal {
 
     fn get_style(&self) -> &Box<Style<Self::Properties>> {
         &self.style
-    }
-
-    fn set_rect(&mut self, rect: Rect) {
-        self.rect = rect;
-        self.style.set_rect(&mut self.properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.rect
     }
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
@@ -67,6 +58,7 @@ impl Control for Horizontal {
 //
 
 pub struct HorizontalDefaultStyle {
+    rect: Rect,
     desired_size: RefCell<Vec<Size>>
 }
 
@@ -88,6 +80,8 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
     }
 
     fn set_rect(&mut self, properties: &mut HorizontalProperties, rect: Rect) {
+        self.rect = rect;
+
         let mut child_rect = rect;
         let desired_size = self.desired_size.borrow();
 
@@ -98,6 +92,10 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
             child.set_rect(child_rect);
             child_rect.x += child_rect.width;
         }
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.rect
     }
 
     fn to_primitives<'a>(&self, properties: &'a HorizontalProperties,
@@ -119,11 +117,13 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 
 impl ControlObject for Horizontal {
     fn set_rect(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = HorizontalProperties>).set_rect(rect)
+        let style = &mut self.style;
+        let properties = &mut self.properties;
+        style.set_rect(properties, rect);
     }
 
     fn get_rect(&self) -> Rect {
-        (self as &Control<Properties = HorizontalProperties>).get_rect()
+        self.get_style().get_rect()
     }
 
     fn is_hit_test_visible(&self) -> bool {
@@ -144,6 +144,6 @@ impl ControlObject for Horizontal {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(self.get_properties(),
-            drawing_context, (self as &Control<Properties = HorizontalProperties>).get_rect())
+            drawing_context, self.get_style().get_rect())
     }
 }

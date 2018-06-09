@@ -6,6 +6,7 @@ use events::*;
 pub trait Style<P> {
     fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, properties: &mut P, rect: Rect);
+    fn get_rect(&self) -> Rect;
     fn to_primitives<'a>(&self, properties: &'a P,
         drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>>;
 }
@@ -16,24 +17,20 @@ pub trait Control {
     fn get_properties(&self) -> &Self::Properties;
     fn get_style(&self) -> &Box<Style<Self::Properties>>;
 
-    fn set_rect(&mut self, rect: Rect);
-    fn get_rect(&self) -> Rect;
-
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
     fn is_hit_test_visible(&self) -> bool;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 }
 
 pub trait ControlObject {
-    fn set_rect(&mut self, rect: Rect);
-    fn get_rect(&self) -> Rect;
-
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
     fn is_hit_test_visible(&self) -> bool;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
+    fn set_rect(&mut self, rect: Rect);
+    fn get_rect(&self) -> Rect;
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 

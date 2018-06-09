@@ -13,16 +13,17 @@ pub struct TextProperties {
 pub struct Text {
     pub properties: TextProperties,
     style: Box<Style<TextProperties>>,
-
-    rect: Rect,
 }
 
 impl Text {
     pub fn new(text: String) -> Box<Self> {
         Box::new(Text {
             properties: TextProperties { text: Property::new(text) },
-            style: Box::new(TextDefaultStyle { font_name: "OpenSans-Regular.ttf", font_size: 20u8 }),
-            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            style: Box::new(TextDefaultStyle {
+                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+                font_name: "OpenSans-Regular.ttf",
+                font_size: 20u8
+            }),
         })
     }
 }
@@ -36,15 +37,6 @@ impl Control for Text {
 
     fn get_style(&self) -> &Box<Style<Self::Properties>> {
         &self.style
-    }
-
-    fn set_rect(&mut self, rect: Rect) {
-        self.rect = rect;
-        self.style.set_rect(&mut self.properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.rect
     }
 
     fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
@@ -66,6 +58,7 @@ impl Control for Text {
 //
 
 pub struct TextDefaultStyle {
+    rect: Rect,
     font_name: &'static str,
     font_size: u8,
 }
@@ -77,6 +70,11 @@ impl Style<TextProperties> for TextDefaultStyle {
     }
 
     fn set_rect(&mut self, properties: &mut TextProperties, rect: Rect) {    
+        self.rect = rect;
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.rect
     }
 
     fn to_primitives<'a>(&self, properties: &'a TextProperties,
@@ -109,11 +107,13 @@ impl Style<TextProperties> for TextDefaultStyle {
 
 impl ControlObject for Text {
     fn set_rect(&mut self, rect: Rect) {
-        (self as &mut Control<Properties = TextProperties>).set_rect(rect)
+        let style = &mut self.style;
+        let properties = &mut self.properties;
+        style.set_rect(properties, rect);
     }
 
     fn get_rect(&self) -> Rect {
-        (self as &Control<Properties = TextProperties>).get_rect()
+        self.get_style().get_rect()
     }
 
     fn is_hit_test_visible(&self) -> bool {
@@ -134,6 +134,6 @@ impl ControlObject for Text {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, (self as &Control<Properties = TextProperties>).get_rect())
+            drawing_context, self.get_style().get_rect())
     }
 }
