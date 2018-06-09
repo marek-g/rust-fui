@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
+use common::Point;
 use control::ControlObject;
 use view::RootView;
 use events::ControlEvent;
@@ -28,7 +29,7 @@ impl HoverDetector {
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 ::winit::WindowEvent::CursorMoved { position, .. } => {
-                    if let Some(ref hit_control) = root_view.hit_test(position.0 as f32, position.1 as f32) {
+                    if let Some(ref hit_control) = root_view.hit_test(Point::new(position.0 as f32, position.1 as f32)) {
                         if let Some(ref hover_control) = self.get_hover_control() {
                             if !Rc::ptr_eq(hover_control, hit_control) {
                                 hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);

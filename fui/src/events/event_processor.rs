@@ -1,5 +1,6 @@
 extern crate winit;
 
+use common::Point;
 use events::*;
 use RootView;
 
@@ -7,8 +8,8 @@ use RootView;
 pub enum ControlEvent {
     HoverEnter,
     HoverLeave,
-    TapDown { position: (f32, f32) },
-    TapUp { position: (f32, f32) }
+    TapDown { position: Point },
+    TapUp { position: Point }
 }
 
 pub struct EventProcessor {
@@ -35,8 +36,8 @@ impl EventProcessor {
         });
     }
 
-    fn dispatch_event_by_hit_target(&mut self, root_view: &RootView, hit_target: (f32, f32), event: ControlEvent) {
-        if let Some(ref destination) = root_view.hit_test(hit_target.0, hit_target.1) {
+    fn dispatch_event_by_hit_target(&mut self, root_view: &RootView, hit_target: Point, event: ControlEvent) {
+        if let Some(ref destination) = root_view.hit_test(hit_target) {
             destination.borrow_mut().handle_event(event);
         }
     }

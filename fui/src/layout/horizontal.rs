@@ -45,10 +45,6 @@ impl Control for Horizontal {
         self.properties.children.clone()
     }
 
-    fn is_hit_test_visible(&self) -> bool {
-        false
-    }
-
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         true
     }
@@ -100,6 +96,26 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         self.rect
     }
 
+    fn hit_test(&self, properties: &HorizontalProperties, point: Point) -> HitTestResult {
+        if point.is_inside(&self.rect) {
+            for child in properties.children.iter() {
+                let c = child.borrow();
+                let rect = c.get_rect();
+                if point.is_inside(&rect) {
+                    let child_hit_test = c.hit_test(point);
+                    match child_hit_test {
+                        HitTestResult::Current => return HitTestResult::Child(child.clone()),
+                        HitTestResult::Child(..) => return child_hit_test,
+                        HitTestResult::Nothing => (),
+                    }
+                }
+            }
+            HitTestResult::Nothing
+        } else {
+            HitTestResult::Nothing
+        }
+    }
+
     fn to_primitives(&self, properties: &HorizontalProperties,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
@@ -118,20 +134,6 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 //
 
 impl ControlObject for Horizontal {
-    fn set_rect(&mut self, rect: Rect) {
-        let style = &mut self.style;
-        let properties = &mut self.properties;
-        style.set_rect(properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.get_style().get_rect()
-    }
-
-    fn is_hit_test_visible(&self) -> bool {
-        (self as &Control<Properties = HorizontalProperties>).is_hit_test_visible()
-    }
-
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Properties = HorizontalProperties>).get_children()
     }
@@ -142,6 +144,20 @@ impl ControlObject for Horizontal {
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
         self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
+    }
+
+    fn set_rect(&mut self, rect: Rect) {
+        let style = &mut self.style;
+        let properties = &mut self.properties;
+        style.set_rect(properties, rect);
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.get_style().get_rect()
+    }
+
+    fn hit_test(&self, point: Point) -> HitTestResult {
+        self.get_style().hit_test(self.get_properties(), point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {

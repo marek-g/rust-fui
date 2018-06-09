@@ -46,10 +46,6 @@ impl Control for Text {
         Vec::new()
     }
 
-    fn is_hit_test_visible(&self) -> bool {
-        false
-    }
-
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         true
     }
@@ -78,6 +74,10 @@ impl Style<TextProperties> for TextDefaultStyle {
 
     fn get_rect(&self) -> Rect {
         self.rect
+    }
+
+    fn hit_test(&self, properties: &TextProperties, point: Point) -> HitTestResult {
+        if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 
     fn to_primitives(&self, properties: &TextProperties,
@@ -109,20 +109,6 @@ impl Style<TextProperties> for TextDefaultStyle {
 //
 
 impl ControlObject for Text {
-    fn set_rect(&mut self, rect: Rect) {
-        let style = &mut self.style;
-        let properties = &mut self.properties;
-        style.set_rect(properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.get_style().get_rect()
-    }
-
-    fn is_hit_test_visible(&self) -> bool {
-        (self as &Control<Properties = TextProperties>).is_hit_test_visible()
-    }
-
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Properties = TextProperties>).get_children()
     }
@@ -135,8 +121,22 @@ impl ControlObject for Text {
         self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
     }
 
+    fn set_rect(&mut self, rect: Rect) {
+        let style = &mut self.style;
+        let properties = &mut self.properties;
+        style.set_rect(properties, rect);
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.get_style().get_rect()
+    }
+
+    fn hit_test(&self, point: Point) -> HitTestResult {
+        self.get_style().hit_test(self.get_properties(), point)
+    }
+
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(&self.get_properties(),
+        self.get_style().to_primitives(self.get_properties(),
             drawing_context)
     }
 }

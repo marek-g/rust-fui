@@ -6,10 +6,19 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use events::*;
 
+pub enum HitTestResult {
+    Nothing,
+    Current,
+    Child(Rc<RefCell<ControlObject>>)
+}
+
 pub trait Style<P> {
     fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, properties: &mut P, rect: Rect);
     fn get_rect(&self) -> Rect;
+
+    fn hit_test(&self, properties: &P, point: Point) -> HitTestResult;
+
     fn to_primitives(&self, properties: &P,
         drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
@@ -21,19 +30,21 @@ pub trait Control {
     fn get_style(&self) -> &Box<Style<Self::Properties>>;
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-    fn is_hit_test_visible(&self) -> bool;
+
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 }
 
 pub trait ControlObject {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-    fn is_hit_test_visible(&self) -> bool;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, rect: Rect);
     fn get_rect(&self) -> Rect;
+
+    fn hit_test(&self, point: Point) -> HitTestResult;
+
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
