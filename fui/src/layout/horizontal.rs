@@ -99,7 +99,7 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
     }
 
     fn to_primitives<'a>(&self, properties: &'a HorizontalProperties,
-        drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>> {
+        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
         for child in &properties.children {
@@ -144,6 +144,6 @@ impl ControlObject for Horizontal {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(self.get_properties(),
-            drawing_context, self.get_style().get_rect())
+            drawing_context)
     }
 }

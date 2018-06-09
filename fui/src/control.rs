@@ -8,7 +8,7 @@ pub trait Style<P> {
     fn set_rect(&mut self, properties: &mut P, rect: Rect);
     fn get_rect(&self) -> Rect;
     fn to_primitives<'a>(&self, properties: &'a P,
-        drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>>;
+        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>>;
 }
 
 pub trait Control {

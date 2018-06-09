@@ -94,13 +94,13 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
     }
 
     fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
-        drawing_context: &mut DrawingContext, rect: Rect) -> Vec<Primitive<'a>> {
+        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
         let mut vec = Vec::new();
 
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+        let x = self.rect.x;
+        let y = self.rect.y;
+        let width = self.rect.width;
+        let height = self.rect.height;
 
         vec.push(Primitive::Rectangle {
             color: [0.1, 1.0, 0.0, 0.2],
@@ -174,7 +174,7 @@ impl ControlObject for Button {
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         self.get_style().to_primitives(&self.get_properties(),
-            drawing_context, self.get_style().get_rect())
+            drawing_context)
     }
 
 }
