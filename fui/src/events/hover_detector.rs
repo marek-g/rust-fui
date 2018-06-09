@@ -1,13 +1,26 @@
+use std::cell::RefCell;
+use std::rc::{ Rc, Weak };
+
+use control::ControlObject;
 use view::RootView;
+use events::ControlEvent;
 
 pub struct HoverDetector {
-    mouse_pos: (f32, f32),
+    hover_control: Option<Weak<RefCell<ControlObject>>>
 }
 
 impl HoverDetector {
     pub fn new() -> Self {
         HoverDetector {
-            mouse_pos: (0f32, 0f32),
+            hover_control: None,
+        }
+    }
+
+    pub fn get_hover_control(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        if let Some(ref hover_control) = self.hover_control {
+            hover_control.upgrade()
+        } else {
+            None
         }
     }
 
@@ -15,29 +28,33 @@ impl HoverDetector {
         if let ::winit::Event::WindowEvent { ref event, .. } = event {
             match event {
                 ::winit::WindowEvent::CursorMoved { position, .. } => {
-                    self.mouse_pos = (position.0 as f32, position.1 as f32);
-
-                    /*if self.is_pointer_inside() {
-                        if !self.is_hover {
-                            self.is_hover = true;
-
-                            return Some(Gesture::HoverEnter);
+                    if let Some(ref hit_control) = root_view.hit_test(position.0 as f32, position.1 as f32) {
+                        if let Some(ref hover_control) = self.get_hover_control() {
+                            if !Rc::ptr_eq(hover_control, hit_control) {
+                                hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                                self.hover_control = Some(Rc::downgrade(hit_control));
+                                hit_control.borrow_mut().handle_event(ControlEvent::HoverEnter);
+                            }
+                        }
+                        else {
+                            self.hover_control = Some(Rc::downgrade(hit_control));
+                            hit_control.borrow_mut().handle_event(ControlEvent::HoverEnter);
                         }
                     } else {
-                        if self.is_hover {
-                            self.is_hover = false;
-
-                            return Some(Gesture::HoverLeave);
+                        if let Some(ref hover_control) = self.get_hover_control() {
+                            hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                            self.hover_control = None;
                         }
-                    }*/
-                },
-                /*::winit::WindowEvent::CursorLeft { .. } => {
-                    if self.is_hover {
-                        self.is_hover = false;
-
-                        return Some(Gesture::HoverLeave);
                     }
-                },*/
+                },
+
+                ::winit::WindowEvent::CursorLeft { .. } => {
+                    if let Some(ref hover_control) = self.get_hover_control() {
+                        hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                        self.hover_control = None;
+                    }
+                },
+
                 _ => ()
             }
         }

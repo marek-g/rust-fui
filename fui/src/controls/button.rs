@@ -11,6 +11,7 @@ use events::*;
 
 pub struct ButtonProperties {
     pub content: Rc<RefCell<ControlObject>>,
+    pub is_hover: bool
 }
 
 pub struct ButtonEvents {
@@ -26,7 +27,7 @@ pub struct Button {
 impl Button {
     pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Button {
-            properties: ButtonProperties { content: content },
+            properties: ButtonProperties { content: content, is_hover: false },
             events: ButtonEvents { clicked: Callback::new() },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -64,6 +65,15 @@ impl Control for Button {
                 }
                 true
             },
+
+            ControlEvent::HoverEnter => {
+                self.properties.is_hover = true; true
+            },
+
+            ControlEvent::HoverLeave => {
+                self.properties.is_hover = false; true
+            },
+
             _ => false
         }
     }
@@ -105,8 +115,10 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
+        let background = if properties.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] };
+
         vec.push(Primitive::Rectangle {
-            color: [0.1, 1.0, 0.0, 0.2],
+            color: background,
             rect: UserPixelRect::new(UserPixelPoint::new(x + 1.0, y + 1.0),
                 UserPixelSize::new(width - 2.0, height - 2.0))
         });

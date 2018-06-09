@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
+use std::rc::Rc;
 use control::ControlObject;
 use Binding;
 
@@ -14,14 +14,12 @@ pub trait View {
 
 pub struct RootView {
     pub view_data: ViewData,
-    pub hover_control: Option<Weak<RefCell<ControlObject>>>
 }
 
 impl RootView {
     pub fn new(view_data: ViewData) -> Self {
         RootView {
             view_data: view_data,
-            hover_control: None
         }
     }
 
