@@ -4,7 +4,7 @@ use control::ControlObject;
 use Binding;
 
 pub struct ViewData {
-    pub root_control: Box<ControlObject>,
+    pub root_control: Rc<RefCell<ControlObject>>,
     pub bindings: Vec<Box<Binding>>
 }
 

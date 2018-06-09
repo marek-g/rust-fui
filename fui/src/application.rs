@@ -2,8 +2,8 @@ extern crate winit;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use drawing::units::{ PhysPixelSize };
 
+use drawing::units::{ PhysPixelSize };
 use drawing_context::DrawingContext;
 use common::*;
 use events::*;
@@ -75,8 +75,9 @@ impl Application {
                                 width = *w; height = *h;
                                 if let Some(ref mut root_view) = root_view {
                                     let size = Size::new(*w as f32, *h as f32);
-                                    let _ = root_view.root_control.get_preferred_size(drawing_context, size);
-                                    root_view.root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+                                    let mut root_control = root_view.root_control.borrow_mut();
+                                    let _ = root_control.get_preferred_size(drawing_context, size);
+                                    root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
                             },
@@ -85,7 +86,7 @@ impl Application {
                     };
 
                     if let Some(ref mut root_view) = root_view {
-                        event_processor.handle_event(&mut root_view.root_control, &event);
+                        event_processor.handle_event(&root_view, &event);
                     }
                 });
             }
@@ -103,11 +104,12 @@ impl Application {
             let dirty = true;
             if dirty {
                 let size = Size::new(width as f32, height as f32);
-                let _ = root_view.root_control.get_preferred_size(&mut self.drawing_context, size);
-                root_view.root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+                let _ = root_view.root_control.borrow().get_preferred_size(&mut self.drawing_context, size);
+                root_view.root_control.borrow_mut().set_rect(Rect::new(0f32, 0f32, size.width, size.height));
             }
-            let primitives = root_view.root_control.to_primitives(&mut self.drawing_context);
 
+            let mut root_control = root_view.root_control.borrow_mut();
+            let primitives = root_control.to_primitives(&mut self.drawing_context);
             self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                 primitives);
         }

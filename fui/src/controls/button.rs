@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use control::*;
 use common::*;
 use drawing_context::DrawingContext;
@@ -7,7 +10,7 @@ use callback::*;
 use events::*;
 
 pub struct ButtonProperties {
-    pub content: Box<ControlObject>,
+    pub content: Rc<RefCell<ControlObject>>,
 }
 
 pub struct ButtonEvents {
@@ -21,14 +24,14 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn new(content: Box<ControlObject>) -> Box<Self> {
-        Box::new(Button {
+    pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Button {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Callback::new() },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             }),
-        })
+        }))
     }
 }
 
@@ -43,7 +46,7 @@ impl Control for Button {
         &self.style
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
     }
 
@@ -78,7 +81,7 @@ pub struct ButtonDefaultStyle {
 impl Style<ButtonProperties> for ButtonDefaultStyle {
 
     fn get_preferred_size(&self, properties: &ButtonProperties, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        let content_size = properties.content.get_preferred_size(drawing_context, size);
+        let content_size = properties.content.borrow().get_preferred_size(drawing_context, size);
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
@@ -86,15 +89,15 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         self.rect = rect;
 
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
-        properties.content.set_rect(content_rect);
+        properties.content.borrow_mut().set_rect(content_rect);
     }
 
     fn get_rect(&self) -> Rect {
         self.rect
     }
 
-    fn to_primitives<'a>(&self, properties: &'a ButtonProperties,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
+    fn to_primitives(&self, properties: &ButtonProperties,
+        drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = self.rect.x;
@@ -133,7 +136,8 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        vec.append(&mut properties.content.to_primitives(drawing_context));
+        let mut vec2 = properties.content.borrow_mut().to_primitives(drawing_context);
+        vec.append(&mut vec2);
 
         vec
     }
@@ -160,7 +164,7 @@ impl ControlObject for Button {
         (self as &Control<Properties = ButtonProperties>).is_hit_test_visible()
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Properties = ButtonProperties>).get_children()
     }
 

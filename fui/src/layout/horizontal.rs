@@ -1,5 +1,7 @@
 use std::f32;
 use std::cell::RefCell;
+use std::rc::Rc;
+
 use control::*;
 use common::*;
 use drawing_context::DrawingContext;
@@ -8,7 +10,7 @@ use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPix
 use events::*;
 
 pub struct HorizontalProperties {
-    pub children: Vec<Box<ControlObject>>
+    pub children: Vec<Rc<RefCell<ControlObject>>>
 }
 
 pub struct Horizontal {
@@ -17,14 +19,14 @@ pub struct Horizontal {
 }
 
 impl Horizontal {
-    pub fn new(children: Vec<Box<ControlObject>>) -> Box<Self> {
-        Box::new(Horizontal {
+    pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Horizontal {
             properties: HorizontalProperties { children: children },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 desired_size: RefCell::new(Vec::new())
             }),
-        })
+        }))
     }
 }
 
@@ -39,8 +41,8 @@ impl Control for Horizontal {
         &self.style
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
-        self.properties.children.iter_mut().collect()
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
+        self.properties.children.clone()
     }
 
     fn is_hit_test_visible(&self) -> bool {
@@ -71,7 +73,7 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 
         desired_size.resize(properties.children.len(), Size::new(0f32, 0f32));
         for (i, child) in properties.children.iter().enumerate() {
-            let child_size = child.get_preferred_size(drawing_context, available_size);
+            let child_size = child.borrow().get_preferred_size(drawing_context, available_size);
             desired_size[i] = child_size;
             result.width += child_size.width;
             result.height = result.height.max(child_size.height);
@@ -89,7 +91,7 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
             let child_size = desired_size[i];
             child_rect.width = child_size.width;
             child_rect.height = child_size.height;
-            child.set_rect(child_rect);
+            child.borrow_mut().set_rect(child_rect);
             child_rect.x += child_rect.width;
         }
     }
@@ -98,12 +100,12 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         self.rect
     }
 
-    fn to_primitives<'a>(&self, properties: &'a HorizontalProperties,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
+    fn to_primitives(&self, properties: &HorizontalProperties,
+        drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         for child in &properties.children {
-            vec.append(&mut child.to_primitives(drawing_context));
+            vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 
         vec
@@ -130,7 +132,7 @@ impl ControlObject for Horizontal {
         (self as &Control<Properties = HorizontalProperties>).is_hit_test_visible()
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Properties = HorizontalProperties>).get_children()
     }
 

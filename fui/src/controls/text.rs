@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use control::*;
 use common::*;
 use drawing_context::DrawingContext;
@@ -16,15 +19,15 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(text: String) -> Box<Self> {
-        Box::new(Text {
+    pub fn new(text: String) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Text {
             properties: TextProperties { text: Property::new(text) },
             style: Box::new(TextDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 font_name: "OpenSans-Regular.ttf",
                 font_size: 20u8
             }),
-        })
+        }))
     }
 }
 
@@ -39,7 +42,7 @@ impl Control for Text {
         &self.style
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
     }
 
@@ -77,8 +80,8 @@ impl Style<TextProperties> for TextDefaultStyle {
         self.rect
     }
 
-    fn to_primitives<'a>(&self, properties: &'a TextProperties,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>> {
+    fn to_primitives(&self, properties: &TextProperties,
+        drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = self.rect.x;
@@ -89,7 +92,7 @@ impl Style<TextProperties> for TextDefaultStyle {
         let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text.get());
 
         vec.push(Primitive::Text {
-            resource_key: self.font_name,
+            resource_key: self.font_name.to_string(),
             color: [1.0, 1.0, 1.0, 1.0],
             position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
             size: self.font_size as u16,
@@ -120,7 +123,7 @@ impl ControlObject for Text {
         (self as &Control<Properties = TextProperties>).is_hit_test_visible()
     }
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>> {
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Properties = TextProperties>).get_children()
     }
 

@@ -1,3 +1,6 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
@@ -7,8 +10,8 @@ pub trait Style<P> {
     fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, properties: &mut P, rect: Rect);
     fn get_rect(&self) -> Rect;
-    fn to_primitives<'a>(&self, properties: &'a P,
-        drawing_context: &mut DrawingContext) -> Vec<Primitive<'a>>;
+    fn to_primitives(&self, properties: &P,
+        drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
 pub trait Control {
@@ -17,13 +20,13 @@ pub trait Control {
     fn get_properties(&self) -> &Self::Properties;
     fn get_style(&self) -> &Box<Style<Self::Properties>>;
 
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
     fn is_hit_test_visible(&self) -> bool;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 }
 
 pub trait ControlObject {
-    fn get_children(&mut self) -> Vec<&mut Box<ControlObject>>;
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
     fn is_hit_test_visible(&self) -> bool;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 
