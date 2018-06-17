@@ -11,7 +11,8 @@ use events::*;
 
 pub struct ButtonProperties {
     pub content: Rc<RefCell<ControlObject>>,
-    pub is_hover: bool
+    pub is_hover: bool,
+    pub is_pressed: bool,
 }
 
 pub struct ButtonEvents {
@@ -27,7 +28,7 @@ pub struct Button {
 impl Button {
     pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Button {
-            properties: ButtonProperties { content: content, is_hover: false },
+            properties: ButtonProperties { content: content, is_hover: false, is_pressed: false },
             events: ButtonEvents { clicked: Callback::new() },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -53,10 +54,23 @@ impl Control for Button {
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         match event {
+            ControlEvent::TapDown{ .. } => {
+                self.properties.is_pressed = true; true
+            },
+
             ControlEvent::TapUp{ ref position } => {
-                let rect = self.style.get_rect();
-                if position.is_inside(&rect) {
+                if let HitTestResult::Current = self.style.hit_test(&self.properties, *position) {
                     self.events.clicked.emit(&());
+                }
+                self.properties.is_pressed = false;
+                true
+            },
+
+            ControlEvent::TapMove{ ref position } => {
+                if let HitTestResult::Current = self.style.hit_test(&self.properties, *position) {
+                    self.properties.is_pressed = true;
+                } else {
+                    self.properties.is_pressed = false;
                 }
                 true
             },
@@ -114,7 +128,10 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let background = if properties.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] };
+        let background = if properties.is_pressed { [0.1, 0.5, 0.0, 0.2] }
+            else { if properties.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] } };
+        let line_color1 = if !properties.is_pressed { [1.0, 1.0, 1.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
+        let line_color2 = if !properties.is_pressed { [0.0, 0.0, 0.0, 1.0] } else { [1.0, 1.0, 1.0, 1.0] };
 
         vec.push(Primitive::Rectangle {
             color: background,
@@ -123,25 +140,25 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         });
 
         vec.push(Primitive::Line {
-            color: [1.0, 1.0, 1.0, 1.0],
+            color: line_color1,
             thickness: UserPixelThickness::new(1.0f32),
             start_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
             end_point: UserPixelPoint::new(x + 0.5, y + 0.5),
         });
         vec.push(Primitive::Line {
-            color: [1.0, 1.0, 1.0, 1.0],
+            color: line_color1,
             thickness: UserPixelThickness::new(1.0f32),
             start_point: UserPixelPoint::new(x + 0.5, y + 0.5),
             end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
         });
         vec.push(Primitive::Line {
-            color: [0.0, 0.0, 0.0, 1.0],
+            color: line_color2,
             thickness: UserPixelThickness::new(1.0f32),
             start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
             end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
         });
         vec.push(Primitive::Line {
-            color: [0.0, 0.0, 0.0, 1.0],
+            color: line_color2,
             thickness: UserPixelThickness::new(1.0f32),
             start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),

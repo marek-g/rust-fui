@@ -44,7 +44,6 @@ impl GestureDetector {
 
             Gesture::TapMove { position } => {
                 self.send_event_to_captured_control(ControlEvent::TapMove { position: position });
-                self.captured_control = None;
             },
 
             _ => ()
