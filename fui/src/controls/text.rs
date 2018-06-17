@@ -68,7 +68,7 @@ impl Style<TextProperties> for TextDefaultStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, properties: &mut TextProperties, rect: Rect) {    
+    fn set_rect(&mut self, _properties: &mut TextProperties, rect: Rect) {    
         self.rect = rect;
     }
 
@@ -76,7 +76,7 @@ impl Style<TextProperties> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, properties: &TextProperties, point: Point) -> HitTestResult {
+    fn hit_test(&self, _properties: &TextProperties, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 

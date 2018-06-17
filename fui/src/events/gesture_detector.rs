@@ -1,58 +1,47 @@
-use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
-
 use common::Point;
-use control::ControlObject;
-use view::RootView;
-use events::ControlEvent;
-use events::gesture_detector_core::*;
+
+pub enum Gesture {
+    TapDown { position: Point },
+    TapUp { position: Point },
+    TapMove { position: Point },
+}
 
 pub struct GestureDetector {
-    gesture_detector_core: GestureDetectorCore,
-    captured_control: Option<Weak<RefCell<ControlObject>>>
+    mouse_pos: Point,
 }
 
 impl GestureDetector {
     pub fn new() -> Self {
         GestureDetector {
-            gesture_detector_core: GestureDetectorCore::new(),
-            captured_control: None,
+            mouse_pos: Point::new(0f32, 0f32),
         }
     }
 
-    pub fn get_captured_control(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        if let Some(ref captured_control) = self.captured_control {
-            captured_control.upgrade()
-        } else {
-            None
+    pub fn handle_event(&mut self, event: &::winit::Event) -> Option<Gesture> {
+        if let ::winit::Event::WindowEvent { ref event, .. } = event {
+            match event {
+                ::winit::WindowEvent::CursorMoved { position, .. } => {
+                    self.mouse_pos = Point::new(position.0 as f32, position.1 as f32);
+                    return Some(Gesture::TapMove {
+                        position: self.mouse_pos,
+                    })
+                },
+
+                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Pressed, .. } => {
+                    return Some(Gesture::TapDown {
+                        position: self.mouse_pos,
+                    });
+                },
+
+                ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
+                    return Some(Gesture::TapUp {
+                        position: self.mouse_pos,
+                    });
+                },
+
+                _ => ()
+            }
         }
-    }
-
-    pub fn handle_event(&mut self, root_view: &mut RootView, event: &::winit::Event) {
-        self.gesture_detector_core.handle_event(event).map(|ev| match ev {
-            Gesture::TapDown { position } => {
-                if let Some(ref hit_control) = root_view.hit_test(position) {
-                    self.captured_control = Some(Rc::downgrade(hit_control));
-                    self.send_event_to_captured_control(ControlEvent::TapDown { position: position });
-                }
-            },
-
-            Gesture::TapUp { position } => {
-                self.send_event_to_captured_control(ControlEvent::TapUp { position: position });
-                self.captured_control = None;
-            },
-
-            Gesture::TapMove { position } => {
-                self.send_event_to_captured_control(ControlEvent::TapMove { position: position });
-            },
-
-            _ => ()
-        });
-    }
-
-    fn send_event_to_captured_control(&mut self, event: ControlEvent) {
-        if let Some(ref captured_control) = self.get_captured_control() {
-            captured_control.borrow_mut().handle_event(event);
-        }
+        None
     }
 }

@@ -115,7 +115,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, properties: &ButtonProperties, point: Point) -> HitTestResult {
+    fn hit_test(&self, _properties: &ButtonProperties, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 

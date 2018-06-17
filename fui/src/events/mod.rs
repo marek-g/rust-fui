@@ -1,9 +1,6 @@
 mod event_processor;
 pub use self::event_processor::*;
 
-mod gesture_detector_core;
-pub use self::gesture_detector_core::*;
-
 mod gesture_detector;
 pub use self::gesture_detector::*;
 
