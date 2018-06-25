@@ -16,6 +16,7 @@ pub struct HorizontalProperties {
 pub struct HorizontalData {
     pub properties: HorizontalProperties,
     pub parent: Option<Weak<RefCell<ControlObject>>>,
+    is_dirty: bool,
 }
 
 pub struct Horizontal {
@@ -29,6 +30,7 @@ impl Horizontal {
             data: HorizontalData {
                 properties: HorizontalProperties { children: children },
                 parent: None,
+                is_dirty: true,
             },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -56,8 +58,18 @@ impl Control for Horizontal {
         &self.style
     }
 
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool {
+        self.data.is_dirty
+    }
+    
+    fn set_is_dirty(&mut self, is_dirty: bool) {
+        self.data.is_dirty = is_dirty;
+        if is_dirty {
+            if let Some(ref parent) = (self as &mut Control<Data = HorizontalData>).get_parent() {
+                parent.borrow_mut().set_is_dirty(is_dirty)
+            }
+        }
+    }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
         if let Some(ref test) = self.data.parent {
@@ -164,8 +176,13 @@ impl Style<HorizontalData> for HorizontalDefaultStyle {
 //
 
 impl ControlObject for Horizontal {
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool {
+        (self as &Control<Data = HorizontalData>).is_dirty()
+    }
+
+    fn set_is_dirty(&mut self, is_dirty: bool) {
+        (self as &mut Control<Data = HorizontalData>).set_is_dirty(is_dirty);
+    }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
         (self as &Control<Data = HorizontalData>).get_parent()

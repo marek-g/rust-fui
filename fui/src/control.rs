@@ -29,8 +29,8 @@ pub trait Control {
     fn get_data(&self) -> &Self::Data;
     fn get_style(&self) -> &Box<Style<Self::Data>>;
 
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool;
+    fn set_is_dirty(&mut self, is_dirty: bool);
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
@@ -40,8 +40,8 @@ pub trait Control {
 }
 
 pub trait ControlObject {
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool;
+    fn set_is_dirty(&mut self, is_dirty: bool);
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);

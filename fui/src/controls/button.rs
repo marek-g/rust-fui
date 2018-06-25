@@ -27,6 +27,7 @@ pub struct ButtonData {
     pub events: ButtonEvents,
     pub state: ButtonState,
     pub parent: Option<Weak<RefCell<ControlObject>>>,
+    is_dirty: bool,
 }
 
 pub struct Button {
@@ -42,6 +43,7 @@ impl Button {
                 events: ButtonEvents { clicked: Callback::new() },
                 state: ButtonState { is_hover: false, is_pressed: false },
                 parent: None,
+                is_dirty: true,
             },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -61,8 +63,18 @@ impl Control for Button {
         &self.style
     }
 
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool {
+        self.data.is_dirty
+    }
+    
+    fn set_is_dirty(&mut self, is_dirty: bool) {
+        self.data.is_dirty = is_dirty;
+        if is_dirty {
+            if let Some(ref parent) = (self as &mut Control<Data = ButtonData>).get_parent() {
+                parent.borrow_mut().set_is_dirty(is_dirty)
+            }
+        }
+    }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
         if let Some(ref test) = self.data.parent {
@@ -207,8 +219,13 @@ impl Style<ButtonData> for ButtonDefaultStyle {
 //
 
 impl ControlObject for Button {
-    //fn is_dirty(&self) -> bool;
-    //fn set_is_dirty(&mut self, is_dirty: bool);
+    fn is_dirty(&self) -> bool {
+        (self as &Control<Data = ButtonData>).is_dirty()
+    }
+
+    fn set_is_dirty(&mut self, is_dirty: bool) {
+        (self as &mut Control<Data = ButtonData>).set_is_dirty(is_dirty);
+    }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
         (self as &Control<Data = ButtonData>).get_parent()
