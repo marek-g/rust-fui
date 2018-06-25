@@ -12,13 +12,15 @@ pub struct EventSubscription<A> {
 }
 
 pub struct Event<A> {
-    pub callbacks: RefCell<Vec<Weak<Callback<A>>>>
+    callbacks: RefCell<Vec<Weak<Callback<A>>>>,
+    subscriptions: Vec<EventSubscription<A>>,
 }
 
 impl<A> Event<A> {
     pub fn new() -> Self {
         Event {
-            callbacks: RefCell::new(Vec::new())
+            callbacks: RefCell::new(Vec::new()),
+            subscriptions: Vec::new(),
         }
     }
 
@@ -30,6 +32,11 @@ impl<A> Event<A> {
 
         self.callbacks.borrow_mut().push(weak_callback);
         EventSubscription { _callback: rc_callback }
+    }
+
+    pub fn subscribe_without_subscription<F: 'static + Fn(&A)>(&mut self, f: F) {
+        let subscription = self.subscribe(f);
+        self.subscriptions.push(subscription);
     }
 
     pub fn emit(&self, args: &A) {

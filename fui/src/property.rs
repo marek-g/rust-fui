@@ -59,6 +59,10 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn on_changed<F: 'static + Fn(&T)>(&mut self, f: F) -> EventSubscription<T> {
         self.data.changed.borrow_mut().subscribe(f)
     }
+
+    pub fn on_changed_without_subscription<F: 'static + Fn(&T)>(&mut self, f: F) {
+        self.data.changed.borrow_mut().subscribe_without_subscription(f);
+    }
 }
 
 pub struct PropertyData<T> {
