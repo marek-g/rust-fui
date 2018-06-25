@@ -12,22 +12,22 @@ pub enum HitTestResult {
     Child(Rc<RefCell<ControlObject>>)
 }
 
-pub trait Style<P> {
-    fn get_preferred_size(&self, properties: &P, drawing_context: &mut DrawingContext, size: Size) -> Size;
-    fn set_rect(&mut self, properties: &mut P, rect: Rect);
+pub trait Style<D> {
+    fn get_preferred_size(&self, data: &D, drawing_context: &mut DrawingContext, size: Size) -> Size;
+    fn set_rect(&mut self, data: &mut D, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, properties: &P, point: Point) -> HitTestResult;
+    fn hit_test(&self, data: &D, point: Point) -> HitTestResult;
 
-    fn to_primitives(&self, properties: &P,
+    fn to_primitives(&self, data: &D,
         drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
 pub trait Control {
-    type Properties;
+    type Data;
 
-    fn get_properties(&self) -> &Self::Properties;
-    fn get_style(&self) -> &Box<Style<Self::Properties>>;
+    fn get_data(&self) -> &Self::Data;
+    fn get_style(&self) -> &Box<Style<Self::Data>>;
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
 

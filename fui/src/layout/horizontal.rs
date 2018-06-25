@@ -14,14 +14,14 @@ pub struct HorizontalProperties {
 }
 
 pub struct Horizontal {
-    pub properties: HorizontalProperties,
+    pub data: HorizontalProperties,
     style: Box<Style<HorizontalProperties>>,
 }
 
 impl Horizontal {
     pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Horizontal {
-            properties: HorizontalProperties { children: children },
+            data: HorizontalProperties { children: children },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 desired_size: RefCell::new(Vec::new())
@@ -31,18 +31,18 @@ impl Horizontal {
 }
 
 impl Control for Horizontal {
-    type Properties = HorizontalProperties;
+    type Data = HorizontalProperties;
 
-    fn get_properties(&self) -> &Self::Properties {
-        &self.properties
+    fn get_data(&self) -> &Self::Data {
+        &self.data
     }
 
-    fn get_style(&self) -> &Box<Style<Self::Properties>> {
+    fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        self.properties.children.clone()
+        self.data.children.clone()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
@@ -135,21 +135,21 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 
 impl ControlObject for Horizontal {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Properties = HorizontalProperties>).get_children()
+        (self as &mut Control<Data = HorizontalProperties>).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Properties = HorizontalProperties>).handle_event(event)
+        (self as &mut Control<Data = HorizontalProperties>).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
+        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
         let style = &mut self.style;
-        let properties = &mut self.properties;
-        style.set_rect(properties, rect);
+        let data = &mut self.data;
+        style.set_rect(data, rect);
     }
 
     fn get_rect(&self) -> Rect {
@@ -157,11 +157,11 @@ impl ControlObject for Horizontal {
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_properties(), point)
+        self.get_style().hit_test(self.get_data(), point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_properties(),
+        self.get_style().to_primitives(self.get_data(),
             drawing_context)
     }
 }

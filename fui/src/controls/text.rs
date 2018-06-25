@@ -14,14 +14,14 @@ pub struct TextProperties {
 }
 
 pub struct Text {
-    pub properties: TextProperties,
+    pub data: TextProperties,
     style: Box<Style<TextProperties>>,
 }
 
 impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Text {
-            properties: TextProperties { text: Property::new(text) },
+            data: TextProperties { text: Property::new(text) },
             style: Box::new(TextDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 font_name: "OpenSans-Regular.ttf",
@@ -32,13 +32,13 @@ impl Text {
 }
 
 impl Control for Text {
-    type Properties = TextProperties;
+    type Data = TextProperties;
 
-    fn get_properties(&self) -> &Self::Properties {
-        &self.properties
+    fn get_data(&self) -> &Self::Data {
+        &self.data
     }
 
-    fn get_style(&self) -> &Box<Style<Self::Properties>> {
+    fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
     }
 
@@ -110,20 +110,20 @@ impl Style<TextProperties> for TextDefaultStyle {
 
 impl ControlObject for Text {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Properties = TextProperties>).get_children()
+        (self as &mut Control<Data = TextProperties>).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Properties = TextProperties>).handle_event(event)
+        (self as &mut Control<Data = TextProperties>).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
+        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
         let style = &mut self.style;
-        let properties = &mut self.properties;
+        let properties = &mut self.data;
         style.set_rect(properties, rect);
     }
 
@@ -132,11 +132,11 @@ impl ControlObject for Text {
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_properties(), point)
+        self.get_style().hit_test(self.get_data(), point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_properties(),
+        self.get_style().to_primitives(self.get_data(),
             drawing_context)
     }
 }

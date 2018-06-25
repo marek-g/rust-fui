@@ -40,14 +40,14 @@ impl View for MainViewModel {
         let mut text2 = Text::new("".to_string());
 
         // events
-        btn1.borrow_mut().events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
-        btn2.borrow_mut().events.clicked.set_vm(view_model, |vm, _| { vm.increase(); });
+        btn1.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
+        btn2.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.increase(); });
 
         // bindings
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
-            text1.borrow_mut().properties.text.bind_c(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
-            text2.borrow_mut().properties.text.bind_c(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
+            text1.borrow_mut().data.text.bind_c(&mut vm.counter, |counter| { format!("Counter {}", counter) } ),
+            text2.borrow_mut().data.text.bind_c(&mut vm.counter2, |counter| { format!("Counter2 {}", counter) } ),
 
             // test for two way binding            
             vm.counter2.bind(&mut vm.counter),

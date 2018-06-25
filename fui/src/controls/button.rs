@@ -11,25 +11,36 @@ use events::*;
 
 pub struct ButtonProperties {
     pub content: Rc<RefCell<ControlObject>>,
+}
+
+pub struct ButtonEvents {
+    pub clicked: Callback<()>,
+}
+
+pub struct ButtonState {
     pub is_hover: bool,
     pub is_pressed: bool,
 }
 
-pub struct ButtonEvents {
-    pub clicked: Callback<()>
+pub struct ButtonData {
+    pub properties: ButtonProperties,
+    pub events: ButtonEvents,
+    pub state: ButtonState,
 }
 
 pub struct Button {
-    pub properties: ButtonProperties,
-    pub events: ButtonEvents,
-    style: Box<Style<ButtonProperties>>,
+    pub data: ButtonData,
+    style: Box<Style<ButtonData>>,
 }
 
 impl Button {
     pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Button {
-            properties: ButtonProperties { content: content, is_hover: false, is_pressed: false },
-            events: ButtonEvents { clicked: Callback::new() },
+            data: ButtonData {
+                properties: ButtonProperties { content: content },
+                events: ButtonEvents { clicked: Callback::new() },
+                state: ButtonState { is_hover: false, is_pressed: false },
+            },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             }),
@@ -38,13 +49,13 @@ impl Button {
 }
 
 impl Control for Button {
-    type Properties = ButtonProperties;
+    type Data = ButtonData;
 
-    fn get_properties(&self) -> &Self::Properties {
-        &self.properties
+    fn get_data(&self) -> &Self::Data {
+        &self.data
     }
 
-    fn get_style(&self) -> &Box<Style<Self::Properties>> {
+    fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
     }
 
@@ -55,32 +66,32 @@ impl Control for Button {
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         match event {
             ControlEvent::TapDown{ .. } => {
-                self.properties.is_pressed = true; true
+                self.data.state.is_pressed = true; true
             },
 
             ControlEvent::TapUp{ ref position } => {
-                if let HitTestResult::Current = self.style.hit_test(&self.properties, *position) {
-                    self.events.clicked.emit(&());
+                if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
+                    self.data.events.clicked.emit(&());
                 }
-                self.properties.is_pressed = false;
+                self.data.state.is_pressed = false;
                 true
             },
 
             ControlEvent::TapMove{ ref position } => {
-                if let HitTestResult::Current = self.style.hit_test(&self.properties, *position) {
-                    self.properties.is_pressed = true;
+                if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
+                    self.data.state.is_pressed = true;
                 } else {
-                    self.properties.is_pressed = false;
+                    self.data.state.is_pressed = false;
                 }
                 true
             },
 
             ControlEvent::HoverEnter => {
-                self.properties.is_hover = true; true
+                self.data.state.is_hover = true; true
             },
 
             ControlEvent::HoverLeave => {
-                self.properties.is_hover = false; true
+                self.data.state.is_hover = false; true
             },
 
             _ => false
@@ -97,29 +108,30 @@ pub struct ButtonDefaultStyle {
     rect: Rect,
 }
 
-impl Style<ButtonProperties> for ButtonDefaultStyle {
+impl Style<ButtonData> for ButtonDefaultStyle {
 
-    fn get_preferred_size(&self, properties: &ButtonProperties, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        let content_size = properties.content.borrow().get_preferred_size(drawing_context, size);
+    fn get_preferred_size(&self, data: &ButtonData,
+        drawing_context: &mut DrawingContext, size: Size) -> Size {
+        let content_size = data.properties.content.borrow().get_preferred_size(drawing_context, size);
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
-    fn set_rect(&mut self, properties: &mut ButtonProperties, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ButtonData, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
-        properties.content.borrow_mut().set_rect(content_rect);
+        data.properties.content.borrow_mut().set_rect(content_rect);
     }
 
     fn get_rect(&self) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _properties: &ButtonProperties, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &ButtonData, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 
-    fn to_primitives(&self, properties: &ButtonProperties,
+    fn to_primitives(&self, data: &ButtonData,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
@@ -128,10 +140,10 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let background = if properties.is_pressed { [0.1, 0.5, 0.0, 0.2] }
-            else { if properties.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] } };
-        let line_color1 = if !properties.is_pressed { [1.0, 1.0, 1.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
-        let line_color2 = if !properties.is_pressed { [0.0, 0.0, 0.0, 1.0] } else { [1.0, 1.0, 1.0, 1.0] };
+        let background = if data.state.is_pressed { [0.1, 0.5, 0.0, 0.2] }
+            else { if data.state.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] } };
+        let line_color1 = if !data.state.is_pressed { [1.0, 1.0, 1.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
+        let line_color2 = if !data.state.is_pressed { [0.0, 0.0, 0.0, 1.0] } else { [1.0, 1.0, 1.0, 1.0] };
 
         vec.push(Primitive::Rectangle {
             color: background,
@@ -164,7 +176,7 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        let mut vec2 = properties.content.borrow_mut().to_primitives(drawing_context);
+        let mut vec2 = data.properties.content.borrow_mut().to_primitives(drawing_context);
         vec.append(&mut vec2);
 
         vec
@@ -179,21 +191,21 @@ impl Style<ButtonProperties> for ButtonDefaultStyle {
 
 impl ControlObject for Button {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Properties = ButtonProperties>).get_children()
+        (self as &mut Control<Data = ButtonData>).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Properties = ButtonProperties>).handle_event(event)
+        (self as &mut Control<Data = ButtonData>).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_properties(), drawing_context, size)
+        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
         let style = &mut self.style;
-        let properties = &mut self.properties;
-        style.set_rect(properties, rect);
+        let data = &mut self.data;
+        style.set_rect(data, rect);
     }
 
     fn get_rect(&self) -> Rect {
@@ -201,11 +213,11 @@ impl ControlObject for Button {
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_properties(), point)
+        self.get_style().hit_test(self.get_data(), point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_properties(),
+        self.get_style().to_primitives(self.get_data(),
             drawing_context)
     }
 
