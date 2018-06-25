@@ -95,7 +95,9 @@ impl Control for Button {
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         match event {
             ControlEvent::TapDown{ .. } => {
-                self.data.state.is_pressed = true; true
+                self.data.state.is_pressed = true;
+                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                true
             },
 
             ControlEvent::TapUp{ ref position } => {
@@ -103,24 +105,35 @@ impl Control for Button {
                     self.data.events.clicked.emit(&());
                 }
                 self.data.state.is_pressed = false;
+                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
                 true
             },
 
             ControlEvent::TapMove{ ref position } => {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
-                    self.data.state.is_pressed = true;
+                    if !self.data.state.is_pressed {
+                        self.data.state.is_pressed = true;
+                        (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                    }
                 } else {
-                    self.data.state.is_pressed = false;
+                    if self.data.state.is_pressed {
+                        self.data.state.is_pressed = false;
+                        (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                    }
                 }
                 true
             },
 
             ControlEvent::HoverEnter => {
-                self.data.state.is_hover = true; true
+                self.data.state.is_hover = true;
+                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                true
             },
 
             ControlEvent::HoverLeave => {
-                self.data.state.is_hover = false; true
+                self.data.state.is_hover = false;
+                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                true
             },
 
             _ => false

@@ -17,6 +17,7 @@ pub struct Application {
     event_processor: EventProcessor,
     drawing_context: DrawingContext,
     root_view: Option<RootView>,
+    frame_no: i32
 }
 
 impl Application {
@@ -34,6 +35,7 @@ impl Application {
             event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
             root_view: None,
+            frame_no: 0,
         }
     }
 
@@ -79,6 +81,8 @@ impl Application {
                                     let mut root_control = root_view.view_data.root_control.borrow_mut();
                                     let _ = root_control.get_preferred_size(drawing_context, size);
                                     root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+
+                                    root_control.set_is_dirty(true);
                                 }
                                 drawing_context.update_window_size(*w as u16, *h as u16)
                             },
@@ -102,17 +106,22 @@ impl Application {
 
     fn render(&mut self, width: u32, height: u32) {
         if let Some(ref mut root_view) = self.root_view {
-            let dirty = true;
-            if dirty {
-                let size = Size::new(width as f32, height as f32);
-                let _ = root_view.view_data.root_control.borrow().get_preferred_size(&mut self.drawing_context, size);
-                root_view.view_data.root_control.borrow_mut().set_rect(Rect::new(0f32, 0f32, size.width, size.height));
-            }
-
             let mut root_control = root_view.view_data.root_control.borrow_mut();
-            let primitives = root_control.to_primitives(&mut self.drawing_context);
-            self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
-                primitives);
+
+            if root_control.is_dirty() {
+                let size = Size::new(width as f32, height as f32);
+                let _ = root_control.get_preferred_size(&mut self.drawing_context, size);
+                root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+
+                let primitives = root_control.to_primitives(&mut self.drawing_context);
+                self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
+                    primitives);
+
+                self.frame_no += 1;
+                println!("Frame no: {}", self.frame_no);
+
+                root_control.set_is_dirty(false);
+            }
         }
     }
 }
