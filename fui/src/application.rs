@@ -68,7 +68,7 @@ impl Application {
         events_loop.run_forever(|event| {
             if let winit::Event::WindowEvent { ref event, .. } = event {
                 match event {
-                    winit::WindowEvent::Closed => {
+                    winit::WindowEvent::CloseRequested => {
                         running = false;
                     },
 
@@ -77,7 +77,7 @@ impl Application {
                             let mut root_control = root_view.view_data.root_control.borrow_mut();
                             root_control.set_is_dirty(true);
                         }
-                    }
+                    },
 
                     winit::WindowEvent::Resized(ref w, ref h) => {
                         width = *w; height = *h;

@@ -6,6 +6,6 @@ authors = ["Marek G <no@mail.com>"]
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gfx = { path = "../../rust-drawing/drawing_gfx", version = "*" }
-winit = "0.11.*"
+winit = "*"
 shared_library = "*"
 find_folder = "*"
