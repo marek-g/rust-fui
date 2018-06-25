@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{ Rc, Weak };
 
 use control::*;
 use common::*;
@@ -26,6 +26,7 @@ pub struct ButtonData {
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     pub state: ButtonState,
+    pub parent: Option<Weak<RefCell<ControlObject>>>,
 }
 
 pub struct Button {
@@ -40,6 +41,7 @@ impl Button {
                 properties: ButtonProperties { content: content },
                 events: ButtonEvents { clicked: Callback::new() },
                 state: ButtonState { is_hover: false, is_pressed: false },
+                parent: None,
             },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -57,6 +59,21 @@ impl Control for Button {
 
     fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
+    }
+
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        if let Some(ref test) = self.data.parent {
+            test.upgrade()
+        } else {
+            None
+        }
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        self.data.parent = Some(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
@@ -190,6 +207,17 @@ impl Style<ButtonData> for ButtonDefaultStyle {
 //
 
 impl ControlObject for Button {
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        (self as &Control<Data = ButtonData>).get_parent()
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        (self as &mut Control<Data = ButtonData>).set_parent(parent);
+    }
+
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         (self as &mut Control<Data = ButtonData>).get_children()
     }

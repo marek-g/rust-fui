@@ -1,6 +1,6 @@
 use std::f32;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{ Rc, Weak };
 
 use control::*;
 use common::*;
@@ -13,25 +13,40 @@ pub struct HorizontalProperties {
     pub children: Vec<Rc<RefCell<ControlObject>>>
 }
 
+pub struct HorizontalData {
+    pub properties: HorizontalProperties,
+    pub parent: Option<Weak<RefCell<ControlObject>>>,
+}
+
 pub struct Horizontal {
-    pub data: HorizontalProperties,
-    style: Box<Style<HorizontalProperties>>,
+    pub data: HorizontalData,
+    style: Box<Style<HorizontalData>>,
 }
 
 impl Horizontal {
     pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Horizontal {
-            data: HorizontalProperties { children: children },
+        let horizontal = Rc::new(RefCell::new(Horizontal {
+            data: HorizontalData {
+                properties: HorizontalProperties { children: children },
+                parent: None,
+            },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 desired_size: RefCell::new(Vec::new())
             }),
-        }))
+        }));
+
+        for child in horizontal.borrow_mut().data.properties.children.iter_mut() {
+            let horizontal_weak = Rc::downgrade(&horizontal);
+            child.borrow_mut().set_parent(horizontal_weak);
+        }
+
+        horizontal
     }
 }
 
 impl Control for Horizontal {
-    type Data = HorizontalProperties;
+    type Data = HorizontalData;
 
     fn get_data(&self) -> &Self::Data {
         &self.data
@@ -41,8 +56,23 @@ impl Control for Horizontal {
         &self.style
     }
 
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        if let Some(ref test) = self.data.parent {
+            test.upgrade()
+        } else {
+            None
+        }
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        self.data.parent = Some(parent);
+    }
+
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        self.data.children.clone()
+        self.data.properties.children.clone()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
@@ -60,15 +90,15 @@ pub struct HorizontalDefaultStyle {
     desired_size: RefCell<Vec<Size>>
 }
 
-impl Style<HorizontalProperties> for HorizontalDefaultStyle {
-    fn get_preferred_size(&self, properties: &HorizontalProperties, drawing_context: &mut DrawingContext, size: Size) -> Size {
+impl Style<HorizontalData> for HorizontalDefaultStyle {
+    fn get_preferred_size(&self, data: &HorizontalData, drawing_context: &mut DrawingContext, size: Size) -> Size {
         let mut result = Size::new(0f32, 0f32);
         let available_size = Size::new(f32::INFINITY, size.height);
 
         let mut desired_size = self.desired_size.borrow_mut();
 
-        desired_size.resize(properties.children.len(), Size::new(0f32, 0f32));
-        for (i, child) in properties.children.iter().enumerate() {
+        desired_size.resize(data.properties.children.len(), Size::new(0f32, 0f32));
+        for (i, child) in data.properties.children.iter().enumerate() {
             let child_size = child.borrow().get_preferred_size(drawing_context, available_size);
             desired_size[i] = child_size;
             result.width += child_size.width;
@@ -77,13 +107,13 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         result
     }
 
-    fn set_rect(&mut self, properties: &mut HorizontalProperties, rect: Rect) {
+    fn set_rect(&mut self, data: &mut HorizontalData, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
         let desired_size = self.desired_size.borrow();
 
-        for (i, child) in properties.children.iter_mut().enumerate() {
+        for (i, child) in data.properties.children.iter_mut().enumerate() {
             let child_size = desired_size[i];
             child_rect.width = child_size.width;
             child_rect.height = child_size.height;
@@ -96,9 +126,9 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, properties: &HorizontalProperties, point: Point) -> HitTestResult {
+    fn hit_test(&self, data: &HorizontalData, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            for child in properties.children.iter() {
+            for child in data.properties.children.iter() {
                 let c = child.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
@@ -116,11 +146,11 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
         }
     }
 
-    fn to_primitives(&self, properties: &HorizontalProperties,
+    fn to_primitives(&self, data: &HorizontalData,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in &properties.children {
+        for child in &data.properties.children {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 
@@ -134,12 +164,23 @@ impl Style<HorizontalProperties> for HorizontalDefaultStyle {
 //
 
 impl ControlObject for Horizontal {
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        (self as &Control<Data = HorizontalData>).get_parent()
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        (self as &mut Control<Data = HorizontalData>).set_parent(parent);
+    }
+
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Data = HorizontalProperties>).get_children()
+        (self as &mut Control<Data = HorizontalData>).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Data = HorizontalProperties>).handle_event(event)
+        (self as &mut Control<Data = HorizontalData>).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {

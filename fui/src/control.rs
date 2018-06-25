@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{ Rc, Weak };
 
 use common::*;
 use drawing_context::DrawingContext;
@@ -29,12 +29,22 @@ pub trait Control {
     fn get_data(&self) -> &Self::Data;
     fn get_style(&self) -> &Box<Style<Self::Data>>;
 
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
 
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 }
 
 pub trait ControlObject {
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 

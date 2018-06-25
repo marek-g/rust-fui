@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{ Rc, Weak };
 
 use control::*;
 use common::*;
@@ -13,15 +13,23 @@ pub struct TextProperties {
     pub text: Property<String>,
 }
 
+pub struct TextData {
+    pub properties: TextProperties,
+    pub parent: Option<Weak<RefCell<ControlObject>>>,
+}
+
 pub struct Text {
-    pub data: TextProperties,
-    style: Box<Style<TextProperties>>,
+    pub data: TextData,
+    style: Box<Style<TextData>>,
 }
 
 impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Text {
-            data: TextProperties { text: Property::new(text) },
+            data: TextData {
+                properties: TextProperties { text: Property::new(text) },
+                parent: None,
+            },
             style: Box::new(TextDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 font_name: "OpenSans-Regular.ttf",
@@ -32,7 +40,7 @@ impl Text {
 }
 
 impl Control for Text {
-    type Data = TextProperties;
+    type Data = TextData;
 
     fn get_data(&self) -> &Self::Data {
         &self.data
@@ -40,6 +48,21 @@ impl Control for Text {
 
     fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
+    }
+
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        if let Some(ref test) = self.data.parent {
+            test.upgrade()
+        } else {
+            None
+        }
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        self.data.parent = Some(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
@@ -62,13 +85,13 @@ pub struct TextDefaultStyle {
     font_size: u8,
 }
 
-impl Style<TextProperties> for TextDefaultStyle {
-    fn get_preferred_size(&self, properties: &TextProperties, drawing_context: &mut DrawingContext, _size: Size) -> Size {
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text.get());
+impl Style<TextData> for TextDefaultStyle {
+    fn get_preferred_size(&self, data: &TextData, drawing_context: &mut DrawingContext, _size: Size) -> Size {
+        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &data.properties.text.get());
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _properties: &mut TextProperties, rect: Rect) {    
+    fn set_rect(&mut self, _data: &mut TextData, rect: Rect) {    
         self.rect = rect;
     }
 
@@ -76,11 +99,11 @@ impl Style<TextProperties> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _properties: &TextProperties, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &TextData, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 
-    fn to_primitives(&self, properties: &TextProperties,
+    fn to_primitives(&self, data: &TextData,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
@@ -89,14 +112,14 @@ impl Style<TextProperties> for TextDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &properties.text.get());
+        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &data.properties.text.get());
 
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: [1.0, 1.0, 1.0, 1.0],
             position: UserPixelPoint::new(x + (width - text_width as f32) / 2.0, y + (height - text_height as f32) / 2.0),
             size: self.font_size as u16,
-            text: properties.text.get(),
+            text: data.properties.text.get(),
         });
 
         vec
@@ -109,12 +132,23 @@ impl Style<TextProperties> for TextDefaultStyle {
 //
 
 impl ControlObject for Text {
+    //fn is_dirty(&self) -> bool;
+    //fn set_is_dirty(&mut self, is_dirty: bool);
+
+    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+        (self as &Control<Data = TextData>).get_parent()
+    }
+
+    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+        (self as &mut Control<Data = TextData>).set_parent(parent);
+    }
+
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Data = TextProperties>).get_children()
+        (self as &mut Control<Data = TextData>).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Data = TextProperties>).handle_event(event)
+        (self as &mut Control<Data = TextData>).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
