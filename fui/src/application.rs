@@ -71,18 +71,26 @@ impl Application {
                     winit::WindowEvent::Closed => {
                         running = false;
                     },
+
+                    winit::WindowEvent::Refresh => {
+                        if let Some(ref mut root_view) = root_view {
+                            let mut root_control = root_view.view_data.root_control.borrow_mut();
+                            root_control.set_is_dirty(true);
+                        }
+                    }
+
                     winit::WindowEvent::Resized(ref w, ref h) => {
                         width = *w; height = *h;
+                        drawing_context.update_window_size(*w as u16, *h as u16);
+
                         if let Some(ref mut root_view) = root_view {
                             let size = Size::new(*w as f32, *h as f32);
                             let mut root_control = root_view.view_data.root_control.borrow_mut();
                             let _ = root_control.get_preferred_size(drawing_context, size);
                             root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
-
-                            root_control.set_is_dirty(true);
                         }
-                        drawing_context.update_window_size(*w as u16, *h as u16)
                     },
+                    
                     _ => ()
                 }
             };
