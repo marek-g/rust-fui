@@ -4,9 +4,10 @@ use std::cell::RefCell;
 use Binding;
 use BindingData;
 use Event;
+use EventSubscription;
 
 pub struct Property<T> {
-    pub data: Rc<PropertyData<T>>
+    data: Rc<PropertyData<T>>
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
@@ -54,11 +55,15 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         });
         Box::new(BindingData { subscription: event_subscription })
     }
+
+    pub fn on_changed<F: 'static + Fn(&T)>(&mut self, f: F) -> EventSubscription<T> {
+        self.data.changed.borrow_mut().subscribe(f)
+    }
 }
 
 pub struct PropertyData<T> {
-    pub value: RefCell<T>,
-    pub changed: RefCell<Event<T>>
+    value: RefCell<T>,
+    changed: RefCell<Event<T>>
 }
 
 impl<T: 'static + Clone + PartialEq> PropertyData<T> {
