@@ -17,7 +17,6 @@ pub struct Application {
     event_processor: EventProcessor,
     drawing_context: DrawingContext,
     root_view: Option<RootView>,
-    frame_no: i32
 }
 
 impl Application {
@@ -35,7 +34,6 @@ impl Application {
             event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
             root_view: None,
-            frame_no: 0,
         }
     }
 
@@ -60,65 +58,69 @@ impl Application {
         let mut height = 0;
 
         let mut running = true;
+        let mut frame_no = 0;
 
-        while running {
-            {
-                let events_loop = &mut self.events_loop;
-                let event_processor = &mut self.event_processor;
-                let drawing_context = &mut self.drawing_context;
-                let root_view = &mut self.root_view;
+        let events_loop = &mut self.events_loop;
+        let event_processor = &mut self.event_processor;
+        let drawing_context = &mut self.drawing_context;
+        let root_view = &mut self.root_view;
 
-                events_loop.poll_events(|event| {
-                    if let winit::Event::WindowEvent { ref event, .. } = event {
-                        match event {
-                            winit::WindowEvent::Closed => {
-                                running = false;
-                            },
-                            winit::WindowEvent::Resized(ref w, ref h) => {
-                                width = *w; height = *h;
-                                if let Some(ref mut root_view) = root_view {
-                                    let size = Size::new(*w as f32, *h as f32);
-                                    let mut root_control = root_view.view_data.root_control.borrow_mut();
-                                    let _ = root_control.get_preferred_size(drawing_context, size);
-                                    root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+        events_loop.run_forever(|event| {
+            if let winit::Event::WindowEvent { ref event, .. } = event {
+                match event {
+                    winit::WindowEvent::Closed => {
+                        running = false;
+                    },
+                    winit::WindowEvent::Resized(ref w, ref h) => {
+                        width = *w; height = *h;
+                        if let Some(ref mut root_view) = root_view {
+                            let size = Size::new(*w as f32, *h as f32);
+                            let mut root_control = root_view.view_data.root_control.borrow_mut();
+                            let _ = root_control.get_preferred_size(drawing_context, size);
+                            root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
-                                    root_control.set_is_dirty(true);
-                                }
-                                drawing_context.update_window_size(*w as u16, *h as u16)
-                            },
-                            _ => ()
+                            root_control.set_is_dirty(true);
                         }
-                    };
+                        drawing_context.update_window_size(*w as u16, *h as u16)
+                    },
+                    _ => ()
+                }
+            };
 
-                    if let Some(ref mut root_view) = root_view {
-                        event_processor.handle_event(root_view, &event);
-                    }
-                });
+            if let Some(ref mut root_view) = root_view {
+                event_processor.handle_event(root_view, &event);
             }
 
-            if !running { return }
+            if running && width > 0 && height > 0 {
+                if let Some(ref mut root_view) = root_view {
+                    let root_control = root_view.view_data.root_control.borrow();
+                    if root_control.is_dirty() {
+                        frame_no += 1;
+                        println!("Frame no: {}", frame_no);
+                    }
+                }
 
-            if width <= 0 || height <= 0 { continue }
+                Application::render(root_view, drawing_context, width, height);
+            }
 
-            self.render(width, height);
-        }
+            if running { winit::ControlFlow::Continue } else { winit::ControlFlow::Break }
+        });
     }
 
-    fn render(&mut self, width: u32, height: u32) {
-        if let Some(ref mut root_view) = self.root_view {
+    fn render(root_view: &mut Option<RootView>,
+        drawing_context: &mut DrawingContext,
+        width: u32, height: u32) {
+        if let Some(ref mut root_view) = root_view {
             let mut root_control = root_view.view_data.root_control.borrow_mut();
 
             if root_control.is_dirty() {
                 let size = Size::new(width as f32, height as f32);
-                let _ = root_control.get_preferred_size(&mut self.drawing_context, size);
+                let _ = root_control.get_preferred_size(drawing_context, size);
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
-                let primitives = root_control.to_primitives(&mut self.drawing_context);
-                self.drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
+                let primitives = root_control.to_primitives(drawing_context);
+                drawing_context.draw(PhysPixelSize::new(width as f32, height as f32),
                     primitives);
-
-                self.frame_no += 1;
-                println!("Frame no: {}", self.frame_no);
 
                 root_control.set_is_dirty(false);
             }
