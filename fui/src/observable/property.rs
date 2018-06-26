@@ -71,21 +71,21 @@ struct PropertyData<T> {
 }
 
 impl<T: 'static + Clone + PartialEq> PropertyData<T> {
-    pub fn new(val: T) -> Self {
+    fn new(val: T) -> Self {
         PropertyData {
             value: RefCell::new(val),
             changed: RefCell::new(Event::new())
         }
     }
 
-    pub fn set(&self, val: T) {
+    fn set(&self, val: T) {
         let old_value = self.value.replace(val.clone());
         if old_value != val {
             self.changed.borrow().emit(val);
         }
     }
 
-    pub fn get(&self) -> T {
+    fn get(&self) -> T {
         (*self.value.borrow()).clone()
     }
 }
