@@ -7,7 +7,9 @@ thread_local! {
 }
 
 ///
-/// Callback can hold one listener that can be called any time with emit() method.
+/// Callback can hold one listener that can be queued to execute with emit() method.
+/// The real execution will be done later on the same thread.
+/// Callbacks are queued because this prevents mutability problems with callback called from callbacks.
 ///
 /// Callback is the owner of the listener clousure.
 ///
@@ -46,11 +48,13 @@ impl<A: 'static + Clone> Callback<A> {
             THREAD_CALLBACKS.with(|coll| {
                 coll.borrow_mut().push_back(Box::new(e));
             });
-            //f(args)
         }
     }
 }
 
+///
+/// Allows direct execution of callbacks stored in the thread local queue.
+///
 pub struct CallbackExecutor;
 
 impl CallbackExecutor {
