@@ -65,7 +65,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 }
 
-pub struct PropertyData<T> {
+struct PropertyData<T> {
     value: RefCell<T>,
     changed: RefCell<Event<T>>
 }

@@ -6,7 +6,7 @@ use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
-use callback::*;
+use observable::*;
 use events::*;
 
 pub struct ButtonProperties {
