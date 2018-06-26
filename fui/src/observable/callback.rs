@@ -8,8 +8,9 @@ thread_local! {
 
 ///
 /// Callback can hold one listener that can be queued to execute with emit() method.
-/// The real execution will be done later on the same thread.
-/// Callbacks are queued because this prevents mutability problems with callback called from callbacks.
+/// The real execution will be done later on the same thread
+/// (you must explicitly call CallbackExecutor::execute_all_in_queue() to do it).
+/// Callbacks are queued because this prevents mutability problems when callbacks are called from callbacks.
 ///
 /// Callback is the owner of the listener clousure.
 ///
