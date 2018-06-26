@@ -5,6 +5,7 @@ use control::*;
 use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
+use drawing::primitive_extensions::PrimitiveTransformations;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use observable::*;
 use events::*;
@@ -151,7 +152,6 @@ pub struct ButtonDefaultStyle {
 }
 
 impl Style<ButtonData> for ButtonDefaultStyle {
-
     fn get_preferred_size(&self, data: &ButtonData,
         drawing_context: &mut DrawingContext, size: Size) -> Size {
         let content_size = data.properties.content.borrow().get_preferred_size(drawing_context, size);
@@ -219,11 +219,11 @@ impl Style<ButtonData> for ButtonDefaultStyle {
         });
 
         let mut vec2 = data.properties.content.borrow_mut().to_primitives(drawing_context);
+        if data.state.is_pressed { vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32)); }
         vec.append(&mut vec2);
 
         vec
     }
-
 }
 
 
