@@ -92,7 +92,7 @@ impl Control for Horizontal {
         self.data.properties.children.clone()
     }
 
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
+    fn handle_event(&mut self, _event: ControlEvent) -> bool {
         true
     }
 }

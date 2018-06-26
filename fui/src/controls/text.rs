@@ -93,7 +93,7 @@ impl Control for Text {
         Vec::new()
     }
 
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
+    fn handle_event(&mut self, _event: ControlEvent) -> bool {
         true
     }
 }

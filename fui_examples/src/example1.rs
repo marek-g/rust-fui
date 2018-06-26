@@ -34,10 +34,10 @@ impl MainViewModel {
 impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         // controls
-        let mut btn1 = Button::new(Text::new("Decrease".to_string()));
-        let mut btn2 = Button::new(Text::new("Increase".to_string()));
-        let mut text1 = Text::new("".to_string());
-        let mut text2 = Text::new("".to_string());
+        let btn1 = Button::new(Text::new("Decrease".to_string()));
+        let btn2 = Button::new(Text::new("Increase".to_string()));
+        let text1 = Text::new("".to_string());
+        let text2 = Text::new("".to_string());
 
         // events
         btn1.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
