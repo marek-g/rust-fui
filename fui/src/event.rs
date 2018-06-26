@@ -16,7 +16,7 @@ pub struct Event<A> {
     subscriptions: Vec<EventSubscription<A>>,
 }
 
-impl<A> Event<A> {
+impl<A: 'static + Clone> Event<A> {
     pub fn new() -> Self {
         Event {
             callbacks: RefCell::new(Vec::new()),
@@ -24,7 +24,7 @@ impl<A> Event<A> {
         }
     }
 
-    pub fn subscribe<F: 'static + Fn(&A)>(&mut self, f: F) -> EventSubscription<A> {
+    pub fn subscribe<F: 'static + Fn(A)>(&mut self, f: F) -> EventSubscription<A> {
         let mut callback = Callback::<A>::new();
         callback.set(f);
         let rc_callback = Rc::new(callback);
@@ -34,17 +34,17 @@ impl<A> Event<A> {
         EventSubscription { _callback: rc_callback }
     }
 
-    pub fn subscribe_without_subscription<F: 'static + Fn(&A)>(&mut self, f: F) {
+    pub fn subscribe_without_subscription<F: 'static + Fn(A)>(&mut self, f: F) {
         let subscription = self.subscribe(f);
         self.subscriptions.push(subscription);
     }
 
-    pub fn emit(&self, args: &A) {
+    pub fn emit(&self, args: A) {
         let mut cleanup = false;
 
         for weak_callback in self.callbacks.borrow().iter() {
             if let Some(callback) = weak_callback.upgrade() {
-                callback.emit(args);
+                callback.emit(args.clone());
             } else {
                 cleanup = true;
             }

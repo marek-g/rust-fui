@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{ RefCell, RefMut };
 use std::rc::{ Rc, Weak };
 
 use control::*;
@@ -26,7 +26,7 @@ pub struct Text {
 
 impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Text {
+        let text = Rc::new(RefCell::new(Text {
             data: TextData {
                 properties: TextProperties { text: Property::new(text) },
                 parent: None,
@@ -37,7 +37,14 @@ impl Text {
                 font_name: "OpenSans-Regular.ttf",
                 font_size: 20u8
             }),
-        }))
+        }));
+
+        let weak_text = Rc::downgrade(&text);
+        text.borrow_mut().data.properties.text.on_changed_without_subscription(move |_| {
+            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<ControlObject>).set_is_dirty(true));
+        });
+
+        text
     }
 }
 

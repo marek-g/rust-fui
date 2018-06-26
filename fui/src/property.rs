@@ -42,9 +42,9 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         Box::new(BindingData { subscription: event_subscription })
     }
 
-    pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(&TSrc) -> T>(&mut self,
+    pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(&mut self,
         src_property: &mut Property<TSrc>, f: F) -> Box<Binding> {
-        self.set(f(&src_property.get()));
+        self.set(f(src_property.get()));
 
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
@@ -56,11 +56,11 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         Box::new(BindingData { subscription: event_subscription })
     }
 
-    pub fn on_changed<F: 'static + Fn(&T)>(&mut self, f: F) -> EventSubscription<T> {
+    pub fn on_changed<F: 'static + Fn(T)>(&mut self, f: F) -> EventSubscription<T> {
         self.data.changed.borrow_mut().subscribe(f)
     }
 
-    pub fn on_changed_without_subscription<F: 'static + Fn(&T)>(&mut self, f: F) {
+    pub fn on_changed_without_subscription<F: 'static + Fn(T)>(&mut self, f: F) {
         self.data.changed.borrow_mut().subscribe_without_subscription(f);
     }
 }
@@ -81,7 +81,7 @@ impl<T: 'static + Clone + PartialEq> PropertyData<T> {
     pub fn set(&self, val: T) {
         let old_value = self.value.replace(val.clone());
         if old_value != val {
-            self.changed.borrow().emit(&val);
+            self.changed.borrow().emit(val);
         }
     }
 

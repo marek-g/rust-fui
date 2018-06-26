@@ -102,7 +102,7 @@ impl Control for Button {
 
             ControlEvent::TapUp{ ref position } => {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
-                    self.data.events.clicked.emit(&());
+                    self.data.events.clicked.emit(());
                 }
                 self.data.state.is_pressed = false;
                 (self as &mut Control<Data = ButtonData>).set_is_dirty(true);

@@ -10,6 +10,7 @@ use events::*;
 use View;
 use ViewData;
 use RootView;
+use CallbackExecutor;
 
 pub struct Application {
     title: &'static str,
@@ -98,6 +99,8 @@ impl Application {
             if let Some(ref mut root_view) = root_view {
                 event_processor.handle_event(root_view, &event);
             }
+
+            CallbackExecutor::execute_all_in_queue();
 
             if running && width > 0 && height > 0 {
                 if let Some(ref mut root_view) = root_view {
