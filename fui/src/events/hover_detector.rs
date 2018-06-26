@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
 use common::Point;
-use control::ControlObject;
+use control_object::*;
 use view::RootView;
 use events::ControlEvent;
 

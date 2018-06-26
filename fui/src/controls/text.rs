@@ -2,6 +2,7 @@ use std::cell::{ RefCell, RefMut };
 use std::rc::{ Rc, Weak };
 
 use control::*;
+use control_object::*;
 use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
@@ -41,7 +42,7 @@ impl Text {
 
         let weak_text = Rc::downgrade(&text);
         text.borrow_mut().data.properties.text.on_changed_without_subscription(move |_| {
-            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<ControlObject>).set_is_dirty(true));
+            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<Control<Data = TextData>>).set_is_dirty(true));
         });
 
         text
@@ -57,6 +58,10 @@ impl Control for Text {
 
     fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
+    }
+
+    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
+        (&mut self.style, &mut self.data)
     }
 
     fn is_dirty(&self) -> bool {
@@ -110,7 +115,7 @@ impl Style<TextData> for TextDefaultStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut TextData, rect: Rect) {    
+    fn set_rect(&mut self, _data: &TextData, rect: Rect) {    
         self.rect = rect;
     }
 
@@ -142,59 +147,5 @@ impl Style<TextData> for TextDefaultStyle {
         });
 
         vec
-    }
-}
-
-
-//
-// object safe trait
-//
-
-impl ControlObject for Text {
-    fn is_dirty(&self) -> bool {
-        (self as &Control<Data = TextData>).is_dirty()
-    }
-
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        (self as &mut Control<Data = TextData>).set_is_dirty(is_dirty);
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        (self as &Control<Data = TextData>).get_parent()
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        (self as &mut Control<Data = TextData>).set_parent(parent);
-    }
-
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Data = TextData>).get_children()
-    }
-
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Data = TextData>).handle_event(event)
-    }
-
-    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
-    }
-
-    fn set_rect(&mut self, rect: Rect) {
-        let style = &mut self.style;
-        let properties = &mut self.data;
-        style.set_rect(properties, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.get_style().get_rect()
-    }
-
-    fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_data(), point)
-    }
-
-    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_data(),
-            drawing_context)
     }
 }

@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
 use control::*;
+use control_object::*;
 use common::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
@@ -62,6 +63,10 @@ impl Control for Button {
 
     fn get_style(&self) -> &Box<Style<Self::Data>> {
         &self.style
+    }
+
+    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
+        (&mut self.style, &mut self.data)
     }
 
     fn is_dirty(&self) -> bool {
@@ -158,7 +163,7 @@ impl Style<ButtonData> for ButtonDefaultStyle {
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
-    fn set_rect(&mut self, data: &mut ButtonData, rect: Rect) {
+    fn set_rect(&mut self, data: &ButtonData, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
@@ -224,59 +229,4 @@ impl Style<ButtonData> for ButtonDefaultStyle {
 
         vec
     }
-}
-
-
-//
-// object safe trait
-//
-
-impl ControlObject for Button {
-    fn is_dirty(&self) -> bool {
-        (self as &Control<Data = ButtonData>).is_dirty()
-    }
-
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        (self as &mut Control<Data = ButtonData>).set_is_dirty(is_dirty);
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        (self as &Control<Data = ButtonData>).get_parent()
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        (self as &mut Control<Data = ButtonData>).set_parent(parent);
-    }
-
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Data = ButtonData>).get_children()
-    }
-
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Data = ButtonData>).handle_event(event)
-    }
-
-    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
-    }
-
-    fn set_rect(&mut self, rect: Rect) {
-        let style = &mut self.style;
-        let data = &mut self.data;
-        style.set_rect(data, rect);
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.get_style().get_rect()
-    }
-
-    fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_data(), point)
-    }
-
-    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_data(),
-            drawing_context)
-    }
-
 }

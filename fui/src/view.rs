@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use common::Point;
 use control::HitTestResult;
-use control::ControlObject;
+use control_object::ControlObject;
 use Binding;
 
 pub struct ViewData {

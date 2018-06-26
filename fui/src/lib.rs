@@ -6,7 +6,13 @@ extern crate find_folder;
 pub mod application;
 
 pub mod common;
-pub mod control;
+
+mod control;
+pub use control::*;
+
+mod control_object;
+pub use control_object::*;
+
 pub mod controls;
 pub mod drawing_context;
 

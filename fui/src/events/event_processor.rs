@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
 use common::Point;
-use control::ControlObject;
+use control_object::*;
 use events::*;
 use RootView;
 
