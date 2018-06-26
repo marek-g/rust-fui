@@ -1,3 +1,6 @@
+mod binding;
+pub use self::binding::*;
+
 mod callback;
 pub use self::callback::*;
 

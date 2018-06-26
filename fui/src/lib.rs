@@ -5,9 +5,6 @@ extern crate find_folder;
 
 pub mod application;
 
-mod binding;
-pub use binding::*;
-
 pub mod common;
 pub mod control;
 pub mod controls;
