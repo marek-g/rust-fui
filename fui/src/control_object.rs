@@ -26,50 +26,48 @@ pub trait ControlObject {
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
-impl<C: Control<Data = D>, D> ControlObject for C {
+impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour {
     fn is_dirty(&self) -> bool {
-        (self as &Control<Data = D>).get_control_common().is_dirty()
+        self.is_dirty()
     }
 
     fn set_is_dirty(&mut self, is_dirty: bool) {
-        (self as &mut Control<Data = D>).get_control_common_mut().set_is_dirty(is_dirty);
+        self.set_is_dirty(is_dirty)
     }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        (self as &Control<Data = D>).get_control_common().get_parent()
+        self.get_parent()
     }
 
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        (self as &mut Control<Data = D>).get_control_common_mut().set_parent(parent);
+        self.set_parent(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut Control<Data = D>).get_children()
+        (self as &mut ControlBehaviour).get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) -> bool {
-        (self as &mut Control<Data = D>).handle_event(event)
+        (self as &mut ControlBehaviour).handle_event(event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.get_style().get_preferred_size(self.get_data(), drawing_context, size)
+        self.style.get_preferred_size(&self.data, drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
-        let (style, data) = self.get_style_and_data_mut();
-        style.set_rect(data, rect);
+        self.style.set_rect(&self.data, rect);
     }
 
     fn get_rect(&self) -> Rect {
-        self.get_style().get_rect()
+        self.style.get_rect()
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.get_style().hit_test(self.get_data(), point)
+        self.style.hit_test(&self.data, point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.get_style().to_primitives(self.get_data(),
-            drawing_context)
+        self.style.to_primitives(&self.data, drawing_context)
     }
 }

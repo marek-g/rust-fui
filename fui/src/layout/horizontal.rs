@@ -14,61 +14,19 @@ pub struct HorizontalProperties {
     pub children: Vec<Rc<RefCell<ControlObject>>>
 }
 
-pub struct HorizontalData {
+pub struct Horizontal {
     pub properties: HorizontalProperties,
 }
 
-pub struct Horizontal {
-    pub data: HorizontalData,
-    style: Box<Style<HorizontalData>>,
-    common: ControlCommon,
-}
-
 impl Horizontal {
-    pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
-        let horizontal = Rc::new(RefCell::new(Horizontal {
-            data: HorizontalData {
-                properties: HorizontalProperties { children: children },
-            },
-            style: Box::new(HorizontalDefaultStyle {
-                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-                desired_size: RefCell::new(Vec::new())
-            }),
-            common: ControlCommon::new(),
-        }));
-
-        for child in horizontal.borrow_mut().data.properties.children.iter_mut() {
-            let horizontal_weak = Rc::downgrade(&horizontal);
-            child.borrow_mut().set_parent(horizontal_weak);
+    pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Self {
+        Horizontal {
+            properties: HorizontalProperties { children: children },
         }
-
-        horizontal
     }
 }
 
-impl Control for Horizontal {
-    type Data = HorizontalData;
-
-    fn get_control_common(&self) -> &ControlCommon {
-        &self.common
-    }
-
-    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.common
-    }
-
-    fn get_data(&self) -> &Self::Data {
-        &self.data
-    }
-
-    fn get_style(&self) -> &Box<Style<Self::Data>> {
-        &self.style
-    }
-
-    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
-        (&mut self.style, &mut self.data)
-    }
-
+impl ControlBehaviour for Control<Horizontal> {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         self.data.properties.children.clone()
     }
@@ -88,8 +46,17 @@ pub struct HorizontalDefaultStyle {
     desired_size: RefCell<Vec<Size>>
 }
 
-impl Style<HorizontalData> for HorizontalDefaultStyle {
-    fn get_preferred_size(&self, data: &HorizontalData, drawing_context: &mut DrawingContext, size: Size) -> Size {
+impl HorizontalDefaultStyle {
+    pub fn new() -> Self {
+        HorizontalDefaultStyle {
+            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            desired_size: RefCell::new(Vec::new())
+        }
+    }
+}
+
+impl Style<Horizontal> for HorizontalDefaultStyle {
+    fn get_preferred_size(&self, data: &Horizontal, drawing_context: &mut DrawingContext, size: Size) -> Size {
         let mut result = Size::new(0f32, 0f32);
         let available_size = Size::new(f32::INFINITY, size.height);
 
@@ -105,7 +72,7 @@ impl Style<HorizontalData> for HorizontalDefaultStyle {
         result
     }
 
-    fn set_rect(&mut self, data: &HorizontalData, rect: Rect) {
+    fn set_rect(&mut self, data: &Horizontal, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
@@ -124,7 +91,7 @@ impl Style<HorizontalData> for HorizontalDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, data: &HorizontalData, point: Point) -> HitTestResult {
+    fn hit_test(&self, data: &Horizontal, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             for child in data.properties.children.iter() {
                 let c = child.borrow();
@@ -144,7 +111,7 @@ impl Style<HorizontalData> for HorizontalDefaultStyle {
         }
     }
 
-    fn to_primitives(&self, data: &HorizontalData,
+    fn to_primitives(&self, data: &Horizontal,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 

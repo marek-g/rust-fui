@@ -24,57 +24,23 @@ pub struct ButtonState {
     pub is_pressed: bool,
 }
 
-pub struct ButtonData {
+pub struct Button {
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     pub state: ButtonState,
 }
 
-pub struct Button {
-    pub data: ButtonData,
-    style: Box<Style<ButtonData>>,
-    common: ControlCommon,
-}
-
 impl Button {
-    pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Button {
-            data: ButtonData {
-                properties: ButtonProperties { content: content },
-                events: ButtonEvents { clicked: Callback::new() },
-                state: ButtonState { is_hover: false, is_pressed: false },
-            },
-            style: Box::new(ButtonDefaultStyle {
-                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-            }),
-            common: ControlCommon::new(),
-        }))
+    pub fn new(content: Rc<RefCell<ControlObject>>) -> Self {
+        Button {
+            properties: ButtonProperties { content: content },
+            events: ButtonEvents { clicked: Callback::new() },
+            state: ButtonState { is_hover: false, is_pressed: false },
+        }
     }
 }
 
-impl Control for Button {
-    type Data = ButtonData;
-
-    fn get_control_common(&self) -> &ControlCommon {
-        &self.common
-    }
-
-    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.common
-    }
-
-    fn get_data(&self) -> &Self::Data {
-        &self.data
-    }
-
-    fn get_style(&self) -> &Box<Style<Self::Data>> {
-        &self.style
-    }
-
-    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
-        (&mut self.style, &mut self.data)
-    }
-
+impl ControlBehaviour for Control<Button> {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
     }
@@ -83,7 +49,7 @@ impl Control for Button {
         match event {
             ControlEvent::TapDown{ .. } => {
                 self.data.state.is_pressed = true;
-                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                self.set_is_dirty(true);
                 true
             },
 
@@ -92,7 +58,7 @@ impl Control for Button {
                     self.data.events.clicked.emit(());
                 }
                 self.data.state.is_pressed = false;
-                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                self.set_is_dirty(true);
                 true
             },
 
@@ -100,12 +66,12 @@ impl Control for Button {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
                     if !self.data.state.is_pressed {
                         self.data.state.is_pressed = true;
-                        (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                        self.set_is_dirty(true);
                     }
                 } else {
                     if self.data.state.is_pressed {
                         self.data.state.is_pressed = false;
-                        (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                        self.set_is_dirty(true);
                     }
                 }
                 true
@@ -113,13 +79,13 @@ impl Control for Button {
 
             ControlEvent::HoverEnter => {
                 self.data.state.is_hover = true;
-                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                self.set_is_dirty(true);
                 true
             },
 
             ControlEvent::HoverLeave => {
                 self.data.state.is_hover = false;
-                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
+                self.set_is_dirty(true);
                 true
             },
 
@@ -137,14 +103,22 @@ pub struct ButtonDefaultStyle {
     rect: Rect,
 }
 
-impl Style<ButtonData> for ButtonDefaultStyle {
-    fn get_preferred_size(&self, data: &ButtonData,
+impl ButtonDefaultStyle {
+    pub fn new() -> Self {
+        ButtonDefaultStyle {
+            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+        }
+    }
+}
+
+impl Style<Button> for ButtonDefaultStyle {
+    fn get_preferred_size(&self, data: &Button,
         drawing_context: &mut DrawingContext, size: Size) -> Size {
         let content_size = data.properties.content.borrow().get_preferred_size(drawing_context, size);
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
-    fn set_rect(&mut self, data: &ButtonData, rect: Rect) {
+    fn set_rect(&mut self, data: &Button, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(rect.x + 10.0f32, rect.y + 10.0f32, rect.width - 20.0f32, rect.height - 20.0f32);
@@ -155,11 +129,11 @@ impl Style<ButtonData> for ButtonDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &ButtonData, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Button, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 
-    fn to_primitives(&self, data: &ButtonData,
+    fn to_primitives(&self, data: &Button,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 

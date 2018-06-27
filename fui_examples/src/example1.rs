@@ -34,10 +34,12 @@ impl MainViewModel {
 impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         // controls
-        let btn1 = Button::new(Text::new("Decrease".to_string()));
-        let btn2 = Button::new(Text::new("Increase".to_string()));
-        let text1 = Text::new("".to_string());
-        let text2 = Text::new("".to_string());
+        let btn1 = Control::new(ButtonDefaultStyle::new(), Button::new(
+            Control::new(TextDefaultStyle::new(), Text::new("Decrease".to_string()))));
+        let btn2 = Control::new(ButtonDefaultStyle::new(), Button::new(
+            Control::new(TextDefaultStyle::new(), Text::new("Increase".to_string()))));
+        let text1 = Control::new(TextDefaultStyle::new(), Text::new("".to_string()));
+        let text2 = Control::new(TextDefaultStyle::new(), Text::new("".to_string()));
 
         // events
         btn1.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
@@ -55,9 +57,9 @@ impl View for MainViewModel {
         ];
 
         // layout
-        let root_control = Horizontal::new(vec![
+        let root_control = Control::new(HorizontalDefaultStyle::new(), Horizontal::new(vec![
             text1, btn1, btn2, text2
-        ]);
+        ]));
 
         ViewData {
             root_control: root_control,

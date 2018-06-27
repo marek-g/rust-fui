@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{ RefCell, RefMut };
 use std::rc::{ Rc, Weak };
 
 use common::*;
@@ -24,32 +24,34 @@ pub trait Style<D> {
         drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
-pub trait Control {
-    type Data;
-
-    fn get_control_common(&self) -> &ControlCommon;
-    fn get_control_common_mut(&mut self) -> &mut ControlCommon;
-
-    fn get_data(&self) -> &Self::Data;
-    fn get_style(&self) -> &Box<Style<Self::Data>>;
-    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data);
-
+pub trait ControlBehaviour {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-
     fn handle_event(&mut self, event: ControlEvent) -> bool;
 }
 
-pub struct ControlCommon {
+pub struct Control<D> {
+    pub data: D,
+    pub style: Box<Style<D>>,
+
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,
 }
 
-impl ControlCommon {
-    pub fn new() -> Self {
-        ControlCommon {
+impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
+    pub fn new<S: 'static + Style<D>>(style: S, data: D) -> Rc<RefCell<Self>> {
+        let control = Rc::new(RefCell::new(Control {
+            data: data,
+            style: Box::new(style),
             parent: None,
             is_dirty: true,
+        }));
+
+        for child in (control.borrow_mut() as RefMut<ControlBehaviour>).get_children().iter() {
+            let control_weak = Rc::downgrade(&control) as Weak<RefCell<ControlObject>>;
+            child.borrow_mut().set_parent(control_weak);
         }
+
+        control
     }
 
     pub fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {

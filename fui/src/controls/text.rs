@@ -14,17 +14,19 @@ pub struct TextProperties {
     pub text: Property<String>,
 }
 
-pub struct TextData {
+pub struct Text {
     pub properties: TextProperties,
 }
 
-pub struct Text {
-    pub data: TextData,
-    style: Box<Style<TextData>>,
-    common: ControlCommon,
+impl Text {
+    pub fn new(text: String) -> Self {
+        Text {
+            properties: TextProperties { text: Property::new(text) },
+        }
+    }
 }
 
-impl Text {
+/*impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
         let text = Rc::new(RefCell::new(Text {
             data: TextData {
@@ -35,41 +37,19 @@ impl Text {
                 font_name: "OpenSans-Regular.ttf",
                 font_size: 20u8
             }),
-            common: ControlCommon::new(),
+            common: Control::new(),
         }));
 
         let weak_text = Rc::downgrade(&text);
         text.borrow_mut().data.properties.text.on_changed_without_subscription(move |_| {
-            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<Control<Data = TextData>>).get_control_common_mut().set_is_dirty(true));
+            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<ControlBehaviour<Data = TextData>>).get_control_common_mut().set_is_dirty(true));
         });
 
         text
     }
-}
+}*/
 
-impl Control for Text {
-    type Data = TextData;
-
-    fn get_control_common(&self) -> &ControlCommon {
-        &self.common
-    }
-
-    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.common
-    }
-
-    fn get_data(&self) -> &Self::Data {
-        &self.data
-    }
-
-    fn get_style(&self) -> &Box<Style<Self::Data>> {
-        &self.style
-    }
-
-    fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
-        (&mut self.style, &mut self.data)
-    }
-
+impl ControlBehaviour for Control<Text> {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
     }
@@ -90,13 +70,23 @@ pub struct TextDefaultStyle {
     font_size: u8,
 }
 
-impl Style<TextData> for TextDefaultStyle {
-    fn get_preferred_size(&self, data: &TextData, drawing_context: &mut DrawingContext, _size: Size) -> Size {
+impl TextDefaultStyle {
+    pub fn new() -> TextDefaultStyle {
+        TextDefaultStyle {
+            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            font_name: "OpenSans-Regular.ttf",
+            font_size: 20u8
+        }
+    }
+}
+
+impl Style<Text> for TextDefaultStyle {
+    fn get_preferred_size(&self, data: &Text, drawing_context: &mut DrawingContext, _size: Size) -> Size {
         let (text_width, text_height) = drawing_context.get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get());
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &TextData, rect: Rect) {    
+    fn set_rect(&mut self, _data: &Text, rect: Rect) {    
         self.rect = rect;
     }
 
@@ -104,11 +94,11 @@ impl Style<TextData> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &TextData, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Text, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
     }
 
-    fn to_primitives(&self, data: &TextData,
+    fn to_primitives(&self, data: &Text,
         drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
