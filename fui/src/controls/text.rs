@@ -92,7 +92,7 @@ pub struct TextDefaultStyle {
 
 impl Style<TextData> for TextDefaultStyle {
     fn get_preferred_size(&self, data: &TextData, drawing_context: &mut DrawingContext, _size: Size) -> Size {
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &data.properties.text.get());
+        let (text_width, text_height) = drawing_context.get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get());
         Size::new(text_width as f32, text_height as f32)
     }
 
@@ -117,7 +117,7 @@ impl Style<TextData> for TextDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = drawing_context.get_font_dmensions(self.font_name, self.font_size, &data.properties.text.get());
+        let (text_width, text_height) = drawing_context.get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get());
 
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),

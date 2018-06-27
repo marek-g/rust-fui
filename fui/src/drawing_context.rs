@@ -42,7 +42,7 @@ impl DrawingContext {
         self.resources.fonts_mut().get_mut(&font_name.to_string())
     }
 
-    pub fn get_font_dmensions(&mut self, font_name: &'static str, size: u8, text: &str) -> (u16, u16) {
+    pub fn get_font_dimensions(&mut self, font_name: &'static str, size: u8, text: &str) -> (u16, u16) {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
             let font_path = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap().join(font_name).into_os_string().into_string().unwrap();
             let mut file = File::open(font_path).unwrap();
