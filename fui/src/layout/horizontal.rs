@@ -15,9 +15,8 @@ pub struct HorizontalProperties {
 }
 
 pub struct HorizontalData {
+    common: ControlCommon,
     pub properties: HorizontalProperties,
-    pub parent: Option<Weak<RefCell<ControlObject>>>,
-    is_dirty: bool,
 }
 
 pub struct Horizontal {
@@ -29,9 +28,8 @@ impl Horizontal {
     pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
         let horizontal = Rc::new(RefCell::new(Horizontal {
             data: HorizontalData {
+                common: ControlCommon::new(),
                 properties: HorizontalProperties { children: children },
-                parent: None,
-                is_dirty: true,
             },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -51,6 +49,14 @@ impl Horizontal {
 impl Control for Horizontal {
     type Data = HorizontalData;
 
+    fn get_control_common(&self) -> &ControlCommon {
+        &self.data.common
+    }
+
+    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
+        &mut self.data.common
+    }
+
     fn get_data(&self) -> &Self::Data {
         &self.data
     }
@@ -61,31 +67,6 @@ impl Control for Horizontal {
 
     fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
         (&mut self.style, &mut self.data)
-    }
-
-    fn is_dirty(&self) -> bool {
-        self.data.is_dirty
-    }
-    
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        self.data.is_dirty = is_dirty;
-        if is_dirty {
-            if let Some(ref parent) = (self as &mut Control<Data = HorizontalData>).get_parent() {
-                parent.borrow_mut().set_is_dirty(is_dirty)
-            }
-        }
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        if let Some(ref test) = self.data.parent {
-            test.upgrade()
-        } else {
-            None
-        }
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        self.data.parent = Some(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {

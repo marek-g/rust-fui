@@ -15,9 +15,8 @@ pub struct TextProperties {
 }
 
 pub struct TextData {
+    common: ControlCommon,
     pub properties: TextProperties,
-    pub parent: Option<Weak<RefCell<ControlObject>>>,
-    is_dirty: bool,
 }
 
 pub struct Text {
@@ -29,9 +28,8 @@ impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
         let text = Rc::new(RefCell::new(Text {
             data: TextData {
+                common: ControlCommon::new(),
                 properties: TextProperties { text: Property::new(text) },
-                parent: None,
-                is_dirty: true,
             },
             style: Box::new(TextDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -42,7 +40,7 @@ impl Text {
 
         let weak_text = Rc::downgrade(&text);
         text.borrow_mut().data.properties.text.on_changed_without_subscription(move |_| {
-            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<Control<Data = TextData>>).set_is_dirty(true));
+            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<Control<Data = TextData>>).get_control_common_mut().set_is_dirty(true));
         });
 
         text
@@ -51,6 +49,14 @@ impl Text {
 
 impl Control for Text {
     type Data = TextData;
+
+    fn get_control_common(&self) -> &ControlCommon {
+        &self.data.common
+    }
+
+    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
+        &mut self.data.common
+    }
 
     fn get_data(&self) -> &Self::Data {
         &self.data
@@ -62,31 +68,6 @@ impl Control for Text {
 
     fn get_style_and_data_mut(&mut self) -> (&mut Box<Style<Self::Data>>, &Self::Data) {
         (&mut self.style, &mut self.data)
-    }
-
-    fn is_dirty(&self) -> bool {
-        self.data.is_dirty
-    }
-    
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        self.data.is_dirty = is_dirty;
-        if is_dirty {
-            if let Some(ref parent) = (self as &mut Control<Data = TextData>).get_parent() {
-                parent.borrow_mut().set_is_dirty(is_dirty)
-            }
-        }
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        if let Some(ref test) = self.data.parent {
-            test.upgrade()
-        } else {
-            None
-        }
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        self.data.parent = Some(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {

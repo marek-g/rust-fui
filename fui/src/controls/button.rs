@@ -25,11 +25,10 @@ pub struct ButtonState {
 }
 
 pub struct ButtonData {
+    common: ControlCommon,
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     pub state: ButtonState,
-    pub parent: Option<Weak<RefCell<ControlObject>>>,
-    is_dirty: bool,
 }
 
 pub struct Button {
@@ -41,11 +40,10 @@ impl Button {
     pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Button {
             data: ButtonData {
+                common: ControlCommon::new(),
                 properties: ButtonProperties { content: content },
                 events: ButtonEvents { clicked: Callback::new() },
                 state: ButtonState { is_hover: false, is_pressed: false },
-                parent: None,
-                is_dirty: true,
             },
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
@@ -56,6 +54,14 @@ impl Button {
 
 impl Control for Button {
     type Data = ButtonData;
+
+    fn get_control_common(&self) -> &ControlCommon {
+        &self.data.common
+    }
+
+    fn get_control_common_mut(&mut self) -> &mut ControlCommon {
+        &mut self.data.common
+    }
 
     fn get_data(&self) -> &Self::Data {
         &self.data
@@ -69,31 +75,6 @@ impl Control for Button {
         (&mut self.style, &mut self.data)
     }
 
-    fn is_dirty(&self) -> bool {
-        self.data.is_dirty
-    }
-    
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        self.data.is_dirty = is_dirty;
-        if is_dirty {
-            if let Some(ref parent) = (self as &mut Control<Data = ButtonData>).get_parent() {
-                parent.borrow_mut().set_is_dirty(is_dirty)
-            }
-        }
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        if let Some(ref test) = self.data.parent {
-            test.upgrade()
-        } else {
-            None
-        }
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        self.data.parent = Some(parent);
-    }
-
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
     }
@@ -102,7 +83,7 @@ impl Control for Button {
         match event {
             ControlEvent::TapDown{ .. } => {
                 self.data.state.is_pressed = true;
-                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                 true
             },
 
@@ -111,7 +92,7 @@ impl Control for Button {
                     self.data.events.clicked.emit(());
                 }
                 self.data.state.is_pressed = false;
-                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                 true
             },
 
@@ -119,12 +100,12 @@ impl Control for Button {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
                     if !self.data.state.is_pressed {
                         self.data.state.is_pressed = true;
-                        (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                        (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                     }
                 } else {
                     if self.data.state.is_pressed {
                         self.data.state.is_pressed = false;
-                        (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                        (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                     }
                 }
                 true
@@ -132,13 +113,13 @@ impl Control for Button {
 
             ControlEvent::HoverEnter => {
                 self.data.state.is_hover = true;
-                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                 true
             },
 
             ControlEvent::HoverLeave => {
                 self.data.state.is_hover = false;
-                (self as &mut Control<Data = ButtonData>).set_is_dirty(true);
+                (self as &mut Control<Data = ButtonData>).get_control_common_mut().set_is_dirty(true);
                 true
             },
 

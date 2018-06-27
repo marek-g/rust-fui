@@ -28,19 +28,19 @@ pub trait ControlObject {
 
 impl<C: Control<Data = D>, D> ControlObject for C {
     fn is_dirty(&self) -> bool {
-        (self as &Control<Data = D>).is_dirty()
+        (self as &Control<Data = D>).get_control_common().is_dirty()
     }
 
     fn set_is_dirty(&mut self, is_dirty: bool) {
-        (self as &mut Control<Data = D>).set_is_dirty(is_dirty);
+        (self as &mut Control<Data = D>).get_control_common_mut().set_is_dirty(is_dirty);
     }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
-        (self as &Control<Data = D>).get_parent()
+        (self as &Control<Data = D>).get_control_common().get_parent()
     }
 
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
-        (self as &mut Control<Data = D>).set_parent(parent);
+        (self as &mut Control<Data = D>).get_control_common_mut().set_parent(parent);
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
