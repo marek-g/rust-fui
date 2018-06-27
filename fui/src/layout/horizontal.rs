@@ -15,26 +15,26 @@ pub struct HorizontalProperties {
 }
 
 pub struct HorizontalData {
-    common: ControlCommon,
     pub properties: HorizontalProperties,
 }
 
 pub struct Horizontal {
     pub data: HorizontalData,
     style: Box<Style<HorizontalData>>,
+    common: ControlCommon,
 }
 
 impl Horizontal {
     pub fn new(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
         let horizontal = Rc::new(RefCell::new(Horizontal {
             data: HorizontalData {
-                common: ControlCommon::new(),
                 properties: HorizontalProperties { children: children },
             },
             style: Box::new(HorizontalDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
                 desired_size: RefCell::new(Vec::new())
             }),
+            common: ControlCommon::new(),
         }));
 
         for child in horizontal.borrow_mut().data.properties.children.iter_mut() {
@@ -50,11 +50,11 @@ impl Control for Horizontal {
     type Data = HorizontalData;
 
     fn get_control_common(&self) -> &ControlCommon {
-        &self.data.common
+        &self.common
     }
 
     fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.data.common
+        &mut self.common
     }
 
     fn get_data(&self) -> &Self::Data {

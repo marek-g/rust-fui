@@ -15,20 +15,19 @@ pub struct TextProperties {
 }
 
 pub struct TextData {
-    common: ControlCommon,
     pub properties: TextProperties,
 }
 
 pub struct Text {
     pub data: TextData,
-    style: Box<Style<TextData>>,   
+    style: Box<Style<TextData>>,
+    common: ControlCommon,
 }
 
 impl Text {
     pub fn new(text: String) -> Rc<RefCell<Self>> {
         let text = Rc::new(RefCell::new(Text {
             data: TextData {
-                common: ControlCommon::new(),
                 properties: TextProperties { text: Property::new(text) },
             },
             style: Box::new(TextDefaultStyle {
@@ -36,6 +35,7 @@ impl Text {
                 font_name: "OpenSans-Regular.ttf",
                 font_size: 20u8
             }),
+            common: ControlCommon::new(),
         }));
 
         let weak_text = Rc::downgrade(&text);
@@ -51,11 +51,11 @@ impl Control for Text {
     type Data = TextData;
 
     fn get_control_common(&self) -> &ControlCommon {
-        &self.data.common
+        &self.common
     }
 
     fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.data.common
+        &mut self.common
     }
 
     fn get_data(&self) -> &Self::Data {

@@ -25,7 +25,6 @@ pub struct ButtonState {
 }
 
 pub struct ButtonData {
-    common: ControlCommon,
     pub properties: ButtonProperties,
     pub events: ButtonEvents,
     pub state: ButtonState,
@@ -34,13 +33,13 @@ pub struct ButtonData {
 pub struct Button {
     pub data: ButtonData,
     style: Box<Style<ButtonData>>,
+    common: ControlCommon,
 }
 
 impl Button {
     pub fn new(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Button {
             data: ButtonData {
-                common: ControlCommon::new(),
                 properties: ButtonProperties { content: content },
                 events: ButtonEvents { clicked: Callback::new() },
                 state: ButtonState { is_hover: false, is_pressed: false },
@@ -48,6 +47,7 @@ impl Button {
             style: Box::new(ButtonDefaultStyle {
                 rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
             }),
+            common: ControlCommon::new(),
         }))
     }
 }
@@ -56,11 +56,11 @@ impl Control for Button {
     type Data = ButtonData;
 
     fn get_control_common(&self) -> &ControlCommon {
-        &self.data.common
+        &self.common
     }
 
     fn get_control_common_mut(&mut self) -> &mut ControlCommon {
-        &mut self.data.common
+        &mut self.common
     }
 
     fn get_data(&self) -> &Self::Data {
