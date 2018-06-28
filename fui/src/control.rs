@@ -6,6 +6,7 @@ use control_object::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use events::*;
+use observable::Property;
 
 pub enum HitTestResult {
     Nothing,
@@ -89,5 +90,20 @@ impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
 
     fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<Style<D>>) {
         (&mut self.data, &mut self.style)
+    }
+}
+
+pub trait PropertyDirtyExtension<D> {
+    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>);
+}
+
+impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
+    where Control<D>: ControlBehaviour,
+    T: 'static + Clone + PartialEq {
+    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) {
+        let weak_control = Rc::downgrade(control);
+        self.on_changed_without_subscription(move |_| {
+            weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<D>>).set_is_dirty(true));
+        });
     }
 }

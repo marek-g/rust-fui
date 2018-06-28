@@ -59,10 +59,7 @@ impl TextDefaultStyle {
 
 impl Style<Text> for TextDefaultStyle {
     fn setup_dirty_watching(&self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
-        let weak_control = Rc::downgrade(control);
-        data.properties.text.on_changed_without_subscription(move |_| {
-            weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<Text>>).set_is_dirty(true));
-        });
+        data.properties.text.dirty_watching(control);
     }
 
     fn get_preferred_size(&self, data: &Text, drawing_context: &mut DrawingContext, _size: Size) -> Size {
