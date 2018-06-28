@@ -56,6 +56,9 @@ impl HorizontalDefaultStyle {
 }
 
 impl Style<Horizontal> for HorizontalDefaultStyle {
+    fn setup_dirty_watching(&self, _data: &mut Horizontal, _control: &Rc<RefCell<Control<Horizontal>>>) {
+    }
+
     fn get_preferred_size(&self, data: &Horizontal, drawing_context: &mut DrawingContext, size: Size) -> Size {
         let mut result = Size::new(0f32, 0f32);
         let available_size = Size::new(f32::INFINITY, size.height);

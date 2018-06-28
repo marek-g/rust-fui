@@ -26,29 +26,6 @@ impl Text {
     }
 }
 
-/*impl Text {
-    pub fn new(text: String) -> Rc<RefCell<Self>> {
-        let text = Rc::new(RefCell::new(Text {
-            data: TextData {
-                properties: TextProperties { text: Property::new(text) },
-            },
-            style: Box::new(TextDefaultStyle {
-                rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
-                font_name: "OpenSans-Regular.ttf",
-                font_size: 20u8
-            }),
-            common: Control::new(),
-        }));
-
-        let weak_text = Rc::downgrade(&text);
-        text.borrow_mut().data.properties.text.on_changed_without_subscription(move |_| {
-            weak_text.upgrade().map(|text| (text.borrow_mut() as RefMut<ControlBehaviour<Data = TextData>>).get_control_common_mut().set_is_dirty(true));
-        });
-
-        text
-    }
-}*/
-
 impl ControlBehaviour for Control<Text> {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
         Vec::new()
@@ -81,6 +58,13 @@ impl TextDefaultStyle {
 }
 
 impl Style<Text> for TextDefaultStyle {
+    fn setup_dirty_watching(&self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
+        let weak_control = Rc::downgrade(control);
+        data.properties.text.on_changed_without_subscription(move |_| {
+            weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<Text>>).set_is_dirty(true));
+        });
+    }
+
     fn get_preferred_size(&self, data: &Text, drawing_context: &mut DrawingContext, _size: Size) -> Size {
         let (text_width, text_height) = drawing_context.get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get());
         Size::new(text_width as f32, text_height as f32)

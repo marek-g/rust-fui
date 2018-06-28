@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{ RefCell, RefMut };
 use std::rc::{ Rc, Weak };
 
 use control::*;
@@ -20,8 +20,8 @@ pub struct ButtonEvents {
 }
 
 pub struct ButtonState {
-    pub is_hover: bool,
-    pub is_pressed: bool,
+    pub is_hover: Property<bool>,
+    pub is_pressed: Property<bool>,
 }
 
 pub struct Button {
@@ -35,7 +35,7 @@ impl Button {
         Button {
             properties: ButtonProperties { content: content },
             events: ButtonEvents { clicked: Callback::new() },
-            state: ButtonState { is_hover: false, is_pressed: false },
+            state: ButtonState { is_hover: Property::new(false), is_pressed: Property::new(false) },
         }
     }
 }
@@ -48,8 +48,7 @@ impl ControlBehaviour for Control<Button> {
     fn handle_event(&mut self, event: ControlEvent) -> bool {
         match event {
             ControlEvent::TapDown{ .. } => {
-                self.data.state.is_pressed = true;
-                self.set_is_dirty(true);
+                self.data.state.is_pressed.set(true);
                 true
             },
 
@@ -57,35 +56,26 @@ impl ControlBehaviour for Control<Button> {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
                     self.data.events.clicked.emit(());
                 }
-                self.data.state.is_pressed = false;
-                self.set_is_dirty(true);
+                self.data.state.is_pressed.set(false);
                 true
             },
 
             ControlEvent::TapMove{ ref position } => {
                 if let HitTestResult::Current = self.style.hit_test(&self.data, *position) {
-                    if !self.data.state.is_pressed {
-                        self.data.state.is_pressed = true;
-                        self.set_is_dirty(true);
-                    }
+                    self.data.state.is_pressed.set(true);
                 } else {
-                    if self.data.state.is_pressed {
-                        self.data.state.is_pressed = false;
-                        self.set_is_dirty(true);
-                    }
+                    self.data.state.is_pressed.set(false);
                 }
                 true
             },
 
             ControlEvent::HoverEnter => {
-                self.data.state.is_hover = true;
-                self.set_is_dirty(true);
+                self.data.state.is_hover.set(true);
                 true
             },
 
             ControlEvent::HoverLeave => {
-                self.data.state.is_hover = false;
-                self.set_is_dirty(true);
+                self.data.state.is_hover.set(false);
                 true
             },
 
@@ -112,6 +102,17 @@ impl ButtonDefaultStyle {
 }
 
 impl Style<Button> for ButtonDefaultStyle {
+    fn setup_dirty_watching(&self, data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
+        let weak_control = Rc::downgrade(control);
+        data.state.is_hover.on_changed_without_subscription(move |_| {
+            weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<Button>>).set_is_dirty(true));
+        });
+        let weak_control = Rc::downgrade(control);
+        data.state.is_pressed.on_changed_without_subscription(move |_| {
+            weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<Button>>).set_is_dirty(true));
+        });
+    }
+
     fn get_preferred_size(&self, data: &Button,
         drawing_context: &mut DrawingContext, size: Size) -> Size {
         let content_size = data.properties.content.borrow().get_preferred_size(drawing_context, size);
@@ -142,10 +143,10 @@ impl Style<Button> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let background = if data.state.is_pressed { [0.1, 0.5, 0.0, 0.2] }
-            else { if data.state.is_hover { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] } };
-        let line_color1 = if !data.state.is_pressed { [1.0, 1.0, 1.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
-        let line_color2 = if !data.state.is_pressed { [0.0, 0.0, 0.0, 1.0] } else { [1.0, 1.0, 1.0, 1.0] };
+        let background = if data.state.is_pressed.get() { [0.1, 0.5, 0.0, 0.2] }
+            else { if data.state.is_hover.get() { [0.1, 1.0, 0.0, 0.4] } else { [0.1, 1.0, 0.0, 0.2] } };
+        let line_color1 = if !data.state.is_pressed.get() { [1.0, 1.0, 1.0, 1.0] } else { [0.0, 0.0, 0.0, 1.0] };
+        let line_color2 = if !data.state.is_pressed.get() { [0.0, 0.0, 0.0, 1.0] } else { [1.0, 1.0, 1.0, 1.0] };
 
         vec.push(Primitive::Rectangle {
             color: background,
@@ -179,7 +180,7 @@ impl Style<Button> for ButtonDefaultStyle {
         });
 
         let mut vec2 = data.properties.content.borrow_mut().to_primitives(drawing_context);
-        if data.state.is_pressed { vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32)); }
+        if data.state.is_pressed.get() { vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32)); }
         vec.append(&mut vec2);
 
         vec

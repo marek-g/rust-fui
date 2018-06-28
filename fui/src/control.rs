@@ -14,6 +14,8 @@ pub enum HitTestResult {
 }
 
 pub trait Style<D> {
+    fn setup_dirty_watching(&self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
+
     fn get_preferred_size(&self, data: &D, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, data: &D, rect: Rect);
     fn get_rect(&self) -> Rect;
@@ -51,6 +53,12 @@ impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
             child.borrow_mut().set_parent(control_weak);
         }
 
+        {
+            let mut control_mut = control.borrow_mut();
+            let (data, style) = control_mut.get_data_and_style_mut();
+            style.setup_dirty_watching(data, &control);
+        }
+
         control
     }
 
@@ -77,5 +85,9 @@ impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
                 parent.borrow_mut().set_is_dirty(is_dirty)
             }
         }
+    }
+
+    fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<Style<D>>) {
+        (&mut self.data, &mut self.style)
     }
 }
