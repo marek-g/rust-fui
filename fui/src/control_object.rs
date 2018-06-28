@@ -14,7 +14,7 @@ pub trait ControlObject {
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-    fn handle_event(&mut self, event: ControlEvent) -> bool;
+    fn handle_event(&mut self, event: ControlEvent);
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
@@ -47,7 +47,7 @@ impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour
         (self as &mut ControlBehaviour).get_children()
     }
 
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
+    fn handle_event(&mut self, event: ControlEvent) {
         (self as &mut ControlBehaviour).handle_event(event)
     }
 

@@ -29,7 +29,7 @@ pub trait Style<D> {
 
 pub trait ControlBehaviour {
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-    fn handle_event(&mut self, event: ControlEvent) -> bool;
+    fn handle_event(&mut self, event: ControlEvent);
 }
 
 pub struct Control<D> {

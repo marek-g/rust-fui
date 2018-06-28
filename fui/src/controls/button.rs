@@ -45,11 +45,10 @@ impl ControlBehaviour for Control<Button> {
         Vec::new()
     }
 
-    fn handle_event(&mut self, event: ControlEvent) -> bool {
+    fn handle_event(&mut self, event: ControlEvent) {
         match event {
             ControlEvent::TapDown{ .. } => {
                 self.data.state.is_pressed.set(true);
-                true
             },
 
             ControlEvent::TapUp{ ref position } => {
@@ -57,7 +56,6 @@ impl ControlBehaviour for Control<Button> {
                     self.data.events.clicked.emit(());
                 }
                 self.data.state.is_pressed.set(false);
-                true
             },
 
             ControlEvent::TapMove{ ref position } => {
@@ -66,20 +64,17 @@ impl ControlBehaviour for Control<Button> {
                 } else {
                     self.data.state.is_pressed.set(false);
                 }
-                true
             },
 
             ControlEvent::HoverEnter => {
                 self.data.state.is_hover.set(true);
-                true
             },
 
             ControlEvent::HoverLeave => {
                 self.data.state.is_hover.set(false);
-                true
             },
 
-            _ => false
+            _ => ()
         }
     }
 }

@@ -31,8 +31,7 @@ impl ControlBehaviour for Control<Text> {
         Vec::new()
     }
 
-    fn handle_event(&mut self, _event: ControlEvent) -> bool {
-        true
+    fn handle_event(&mut self, _event: ControlEvent) {
     }
 }
 

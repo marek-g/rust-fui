@@ -31,8 +31,7 @@ impl ControlBehaviour for Control<Horizontal> {
         self.data.properties.children.clone()
     }
 
-    fn handle_event(&mut self, _event: ControlEvent) -> bool {
-        true
+    fn handle_event(&mut self, _event: ControlEvent) {
     }
 }
 
