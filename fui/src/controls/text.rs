@@ -20,10 +20,17 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn new(text: String) -> Self {
+    pub fn new(text: &str) -> Self {
         Text {
-            properties: TextProperties { text: Property::new(text) },
+            properties: TextProperties { text: Property::new(text.to_string()) },
         }
+    }
+
+    pub fn control(text: &str) -> Rc<RefCell<Control<Self>>> {
+        Control::new(
+            TextDefaultStyle::new(),
+            Self::new(text),
+        )
     }
 }
 

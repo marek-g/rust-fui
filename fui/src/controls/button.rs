@@ -38,6 +38,13 @@ impl Button {
             state: ButtonState { is_hover: Property::new(false), is_pressed: Property::new(false) },
         }
     }
+
+    pub fn control(content: Rc<RefCell<ControlObject>>) -> Rc<RefCell<Control<Self>>> {
+        Control::new(
+            ButtonDefaultStyle::new(),
+            Self::new(content),
+        )
+    }
 }
 
 impl ControlBehaviour for Control<Button> {

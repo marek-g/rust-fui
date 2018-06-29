@@ -24,6 +24,13 @@ impl Horizontal {
             properties: HorizontalProperties { children: children },
         }
     }
+
+    pub fn control(children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Control<Self>>> {
+        Control::new(
+            HorizontalDefaultStyle::new(),
+            Self::new(children),
+        )
+    }
 }
 
 impl ControlBehaviour for Control<Horizontal> {
