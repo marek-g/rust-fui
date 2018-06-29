@@ -86,20 +86,22 @@ impl ControlBehaviour for Control<Button> {
 
 pub struct ButtonDefaultStyle {
     rect: Rect,
+    event_subscriptions: Vec<EventSubscription>,
 }
 
 impl ButtonDefaultStyle {
     pub fn new() -> Self {
         ButtonDefaultStyle {
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            event_subscriptions: Vec::new(),
         }
     }
 }
 
 impl Style<Button> for ButtonDefaultStyle {
-    fn setup_dirty_watching(&self, data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
-        data.state.is_hover.dirty_watching(control);
-        data.state.is_pressed.dirty_watching(control);
+    fn setup_dirty_watching(&mut self, data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
+        self.event_subscriptions.push(data.state.is_hover.dirty_watching(control));
+        self.event_subscriptions.push(data.state.is_pressed.dirty_watching(control));
     }
 
     fn get_preferred_size(&self, data: &Button,

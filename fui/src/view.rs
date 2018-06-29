@@ -4,11 +4,11 @@ use std::rc::Rc;
 use common::Point;
 use control::HitTestResult;
 use control_object::ControlObject;
-use Binding;
+use observable::EventSubscription;
 
 pub struct ViewData {
     pub root_control: Rc<RefCell<ControlObject>>,
-    pub bindings: Vec<Box<Binding>>
+    pub bindings: Vec<EventSubscription>
 }
 
 pub trait View {

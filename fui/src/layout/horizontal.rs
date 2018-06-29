@@ -31,8 +31,7 @@ impl ControlBehaviour for Control<Horizontal> {
         self.data.properties.children.clone()
     }
 
-    fn handle_event(&mut self, _event: ControlEvent) {
-    }
+    fn handle_event(&mut self, _event: ControlEvent) { }
 }
 
 
@@ -55,8 +54,7 @@ impl HorizontalDefaultStyle {
 }
 
 impl Style<Horizontal> for HorizontalDefaultStyle {
-    fn setup_dirty_watching(&self, _data: &mut Horizontal, _control: &Rc<RefCell<Control<Horizontal>>>) {
-    }
+    fn setup_dirty_watching(&mut self, _data: &mut Horizontal, _control: &Rc<RefCell<Control<Horizontal>>>) { }
 
     fn get_preferred_size(&self, data: &Horizontal, drawing_context: &mut DrawingContext, size: Size) -> Size {
         let mut result = Size::new(0f32, 0f32);

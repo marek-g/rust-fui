@@ -1,8 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use Binding;
-use BindingData;
 use Event;
 use EventSubscription;
 
@@ -30,33 +28,31 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         self.data.get()
     }
 
-    pub fn bind(&mut self, src_property: &mut Property<T>) -> Box<Binding> {
+    pub fn bind(&mut self, src_property: &mut Property<T>) -> EventSubscription {
         self.set(src_property.get());
 
         let weak_data = Rc::downgrade(&self.data);
-        let event_subscription = src_property.data.changed.borrow_mut().subscribe(move |src_val| {
+        src_property.data.changed.borrow_mut().subscribe(move |src_val| {
             if let Some(dest_property_data) = weak_data.upgrade() {
                 dest_property_data.set(src_val.clone());
             }
-        });
-        Box::new(BindingData { subscription: event_subscription })
+        })
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(&mut self,
-        src_property: &mut Property<TSrc>, f: F) -> Box<Binding> {
+        src_property: &mut Property<TSrc>, f: F) -> EventSubscription {
         self.set(f(src_property.get()));
 
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
-        let event_subscription = src_property.data.changed.borrow_mut().subscribe(move |src_val| {
+        src_property.data.changed.borrow_mut().subscribe(move |src_val| {
             if let Some(dest_property_data) = weak_data.upgrade() {
                 dest_property_data.set(boxed_f(src_val));
             }
-        });
-        Box::new(BindingData { subscription: event_subscription })
+        })
     }
 
-    pub fn on_changed<F: 'static + Fn(T)>(&mut self, f: F) -> EventSubscription<T> {
+    pub fn on_changed<F: 'static + Fn(T)>(&mut self, f: F) -> EventSubscription {
         self.data.changed.borrow_mut().subscribe(f)
     }
 

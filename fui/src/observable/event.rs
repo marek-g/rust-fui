@@ -7,13 +7,16 @@ use Callback;
 /// EventSubscription is an owner of the callback.
 /// Calling the callback stops when EventSubscription is dropped.
 ///
-pub struct EventSubscription<A> {
-    _callback: Rc<Callback<A>>
+pub struct EventSubscription {
+    _callback: Rc<CallbackObject>
 }
+
+pub trait CallbackObject { }
+impl<A> CallbackObject for Callback<A> { }
 
 pub struct Event<A> {
     callbacks: RefCell<Vec<Weak<Callback<A>>>>,
-    subscriptions: Vec<EventSubscription<A>>,
+    subscriptions: Vec<EventSubscription>,
 }
 
 impl<A: 'static + Clone> Event<A> {
@@ -24,13 +27,13 @@ impl<A: 'static + Clone> Event<A> {
         }
     }
 
-    pub fn subscribe<F: 'static + Fn(A)>(&mut self, f: F) -> EventSubscription<A> {
+    pub fn subscribe<F: 'static + Fn(A)>(&mut self, f: F) -> EventSubscription {
         let mut callback = Callback::<A>::new();
         callback.set(f);
         let rc_callback = Rc::new(callback);
         let weak_callback = Rc::downgrade(&rc_callback);
-
         self.callbacks.borrow_mut().push(weak_callback);
+
         EventSubscription { _callback: rc_callback }
     }
 

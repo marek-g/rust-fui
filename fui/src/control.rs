@@ -6,7 +6,7 @@ use control_object::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use events::*;
-use observable::Property;
+use observable::*;
 
 pub enum HitTestResult {
     Nothing,
@@ -15,7 +15,7 @@ pub enum HitTestResult {
 }
 
 pub trait Style<D> {
-    fn setup_dirty_watching(&self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
+    fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
 
     fn get_preferred_size(&self, data: &D, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, data: &D, rect: Rect);
@@ -94,16 +94,16 @@ impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
 }
 
 pub trait PropertyDirtyExtension<D> {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>);
+    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription;
 }
 
 impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
     where Control<D>: ControlBehaviour,
     T: 'static + Clone + PartialEq {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) {
+    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
-        self.on_changed_without_subscription(move |_| {
+        self.on_changed(move |_| {
             weak_control.upgrade().map(|control| (control.borrow_mut() as RefMut<Control<D>>).set_is_dirty(true));
-        });
+        })
     }
 }

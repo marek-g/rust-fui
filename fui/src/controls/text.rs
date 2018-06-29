@@ -8,6 +8,7 @@ use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
 use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
 use events::*;
+use observable::*;
 use Property;
 
 pub struct TextProperties {
@@ -31,8 +32,7 @@ impl ControlBehaviour for Control<Text> {
         Vec::new()
     }
 
-    fn handle_event(&mut self, _event: ControlEvent) {
-    }
+    fn handle_event(&mut self, _event: ControlEvent) { }
 }
 
 
@@ -42,6 +42,7 @@ impl ControlBehaviour for Control<Text> {
 
 pub struct TextDefaultStyle {
     rect: Rect,
+    event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
     font_size: u8,
 }
@@ -50,6 +51,7 @@ impl TextDefaultStyle {
     pub fn new() -> TextDefaultStyle {
         TextDefaultStyle {
             rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
             font_size: 20u8
         }
@@ -57,8 +59,8 @@ impl TextDefaultStyle {
 }
 
 impl Style<Text> for TextDefaultStyle {
-    fn setup_dirty_watching(&self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
-        data.properties.text.dirty_watching(control);
+    fn setup_dirty_watching(&mut self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
+        self.event_subscriptions.push(data.properties.text.dirty_watching(control));
     }
 
     fn get_preferred_size(&self, data: &Text, drawing_context: &mut DrawingContext, _size: Size) -> Size {
