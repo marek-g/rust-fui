@@ -1,6 +1,8 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate gstreamer as gst;
+use gst::prelude::*;
 
 use fui::application::*;
 use fui::controls::*;
@@ -72,5 +74,29 @@ fn main() {
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
     app.set_root_view_model(&main_view_model);
 
+    gst::init().unwrap();
+
+    // Create the elements
+    let source = gst::ElementFactory::make("gltestsrc", "source").expect("Could not create source element.");
+    let sink = gst::ElementFactory::make("glimagesink", "sink").expect("Could not create sink element");
+
+    // Create the empty pipeline
+    let pipeline = gst::Pipeline::new("test-pipeline");
+
+    // Build the pipeline
+    pipeline.add_many(&[&source, &sink]).unwrap();
+    source.link(&sink).expect("Elements could not be linked.");
+
+    // Modify the source's properties
+    source.set_property_from_str("pattern", "smpte");
+
+    // Start playing
+    let ret = pipeline.set_state(gst::State::Playing);
+    assert_ne!(ret, gst::StateChangeReturn::Failure);
+
     app.run();
+
+    // Shutdown pipeline
+    let ret = pipeline.set_state(gst::State::Null);
+    assert_ne!(ret, gst::StateChangeReturn::Failure);
 }
