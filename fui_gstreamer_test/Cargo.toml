@@ -1,0 +1,11 @@
+[package]
+name = "fui_gstreamer_test"
+version = "0.1.0"
+authors = ["Marek G <no@mail.com>"]
+
+[dependencies]
+fui = { path = "../../rust-fui/fui", version = "*" }
+
+[[bin]]
+name = "fui_gstreamer_test"
+path = "src/fui_gstreamer_test.rs"
