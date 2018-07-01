@@ -6,6 +6,7 @@ authors = ["Marek G <no@mail.com>"]
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
 gstreamer = "*"
+gstreamer-app = "*"
 
 [[bin]]
 name = "fui_gstreamer_test"

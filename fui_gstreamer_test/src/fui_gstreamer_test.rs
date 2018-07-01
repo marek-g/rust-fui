@@ -2,6 +2,7 @@
 
 extern crate fui;
 extern crate gstreamer as gst;
+extern crate gstreamer_app as gst_app;
 use gst::prelude::*;
 
 use fui::application::*;
@@ -77,15 +78,45 @@ fn main() {
     gst::init().unwrap();
 
     // Create the elements
-    let source = gst::ElementFactory::make("gltestsrc", "source").expect("Could not create source element.");
-    let sink = gst::ElementFactory::make("glimagesink", "sink").expect("Could not create sink element");
+    let source = gst::ElementFactory::make("videotestsrc", "source").expect("Could not create source element.");
+    //let sink = gst::ElementFactory::make("glimagesink", "sink").expect("Could not create sink element");
+    let video_sink = gst::ElementFactory::make("appsink", "sink").expect("Could not create sink element");
+    let video_app_sink = video_sink.dynamic_cast::<gst_app::AppSink>().unwrap();
+    video_app_sink.set_caps(&gst::Caps::new_simple(
+        "video/x-raw",
+        &[
+            ("format", &"BGRA"),
+            ("pixel-aspect-ratio", &gst::Fraction::from((1, 1))),
+        ],
+    ));
+    video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
+        .new_sample(|app_sink| {
+            let sample = match app_sink.pull_sample() {
+                None => return gst::FlowReturn::Eos,
+                Some(sample) => sample,
+            };
+
+            let caps = sample.get_caps().unwrap();
+            let s = caps.get_structure(0).unwrap();
+            let width: i32 = s.get("width").unwrap();
+            let height: i32 = s.get("height").unwrap();
+            let buffer = sample.get_buffer().unwrap();
+            let map = buffer.map_readable().unwrap();
+            let data = map.as_slice();
+
+            print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
+
+            gst::FlowReturn::Ok
+        })
+        .build());
+    let video_sink = video_app_sink.dynamic_cast::<gst::Element>().unwrap();
 
     // Create the empty pipeline
     let pipeline = gst::Pipeline::new("test-pipeline");
 
     // Build the pipeline
-    pipeline.add_many(&[&source, &sink]).unwrap();
-    source.link(&sink).expect("Elements could not be linked.");
+    pipeline.add_many(&[&source, &video_sink]).unwrap();
+    source.link(&video_sink).expect("Elements could not be linked.");
 
     // Modify the source's properties
     source.set_property_from_str("pattern", "smpte");
