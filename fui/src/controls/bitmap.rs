@@ -13,7 +13,7 @@ use observable::*;
 use Property;
 
 pub struct Bitmap {
-    texture_id: Property<i32>,
+    pub texture_id: Property<i32>,
 }
 
 impl Bitmap {
