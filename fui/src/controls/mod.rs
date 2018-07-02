@@ -1,3 +1,6 @@
+mod bitmap;
+pub use self::bitmap::*;
+
 mod button;
 pub use self::button::*;
 

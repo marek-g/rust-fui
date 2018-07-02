@@ -61,6 +61,14 @@ impl DrawingContext {
         }
     }
 
+    pub fn get_resources(&self) -> &Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>> {
+        &self.resources
+    }
+
+    pub fn get_resources_mut(&mut self) -> &mut Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>> {
+        &mut self.resources
+    }
+
     pub fn update_window_size(&mut self, width: u16, height: u16) {
 		self.renderer.update_window_size(width, height)
 	}
