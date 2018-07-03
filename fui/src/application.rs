@@ -11,6 +11,7 @@ use View;
 use ViewData;
 use RootView;
 use CallbackExecutor;
+use Dispatcher;
 
 pub struct Application {
     title: &'static str,
@@ -101,6 +102,7 @@ impl Application {
             }
 
             CallbackExecutor::execute_all_in_queue();
+            Dispatcher::execute_all_in_queue();
 
             if running && width > 0 && height > 0 {
                 if let Some(ref mut root_view) = root_view {

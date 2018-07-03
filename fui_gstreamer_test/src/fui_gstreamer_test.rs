@@ -12,6 +12,7 @@ use fui::*;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::{ Arc, Mutex };
 
 use Property;
 
@@ -31,6 +32,7 @@ impl MainViewModel {
     pub fn play(&mut self) {
         self.player.open();
         self.player.play();
+        self.texture_id.set(self.player.get_texture_id());
     }
 
     pub fn stop(&mut self) {
@@ -69,6 +71,8 @@ impl View for MainViewModel {
 
 struct Player {
     pipeline: Option<gst::Pipeline>,
+    texture_id: i32,
+    dispatcher: Arc<Mutex<Dispatcher>>,
 }
 
 impl Player {
@@ -77,10 +81,14 @@ impl Player {
 
         Player {
             pipeline: None,
+            texture_id: -1,
+            dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
         }
     }
 
     pub fn open(&mut self) {
+        println!("Main thread id: {:?}", std::thread::current().id());
+
         // Create the elements
         let source = gst::ElementFactory::make("videotestsrc", "source").expect("Could not create source element.");
         //let sink = gst::ElementFactory::make("glimagesink", "sink").expect("Could not create sink element");
@@ -93,8 +101,12 @@ impl Player {
                 ("pixel-aspect-ratio", &gst::Fraction::from((1, 1))),
             ],
         ));
+
+        let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
-            .new_sample(|app_sink| {
+            .new_sample(move |app_sink| {
+                println!("New sample thread id: {:?}", std::thread::current().id());
+
                 let sample = match app_sink.pull_sample() {
                     None => return gst::FlowReturn::Eos,
                     Some(sample) => sample,
@@ -110,10 +122,15 @@ impl Player {
 
                 print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
 
+                dispatcher_clone.lock().unwrap().send_async(|| {
+                    println!("Dispatcher, thread id: {:?}", std::thread::current().id());
+                });
+
                 gst::FlowReturn::Ok
             })
             .build()
         );
+
         let video_sink = video_app_sink.dynamic_cast::<gst::Element>().unwrap();
 
         // Create the empty pipeline
@@ -135,6 +152,10 @@ impl Player {
             let ret = pipeline.set_state(gst::State::Playing);
             assert_ne!(ret, gst::StateChangeReturn::Failure);
         }
+    }
+
+    pub fn get_texture_id(&self) -> i32 {
+        self.texture_id
     }
 
     pub fn stop(&mut self) {

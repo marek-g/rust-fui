@@ -23,5 +23,8 @@ pub mod layout;
 mod observable;
 pub use observable::*;
 
+mod threading;
+pub use threading::*;
+
 mod view;
 pub use view::*;
