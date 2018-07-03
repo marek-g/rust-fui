@@ -30,6 +30,8 @@ impl Application {
         let events_loop = winit::EventsLoop::new();
         let drawing_context = DrawingContext::create(window_builder, &events_loop);
 
+        Dispatcher::setup_events_loop_proxy(events_loop.create_proxy());
+
         Application {
             title: title,
             events_loop: events_loop,
