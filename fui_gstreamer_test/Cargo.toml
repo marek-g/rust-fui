@@ -7,6 +7,7 @@ authors = ["Marek G <no@mail.com>"]
 fui = { path = "../../rust-fui/fui", version = "*" }
 gstreamer = "*"
 gstreamer-app = "*"
+time = "*"
 
 [[bin]]
 name = "fui_gstreamer_test"

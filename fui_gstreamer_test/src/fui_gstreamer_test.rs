@@ -1,5 +1,6 @@
 #![windows_subsystem = "windows"]
 
+extern crate time;
 extern crate fui;
 extern crate gstreamer as gst;
 extern crate gstreamer_app as gst_app;
@@ -105,7 +106,9 @@ impl Player {
         let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
             .new_sample(move |app_sink| {
-                println!("New sample thread id: {:?}", std::thread::current().id());
+                let timespec = time::get_time();
+                let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                println!("New sample thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
                 let sample = match app_sink.pull_sample() {
                     None => return gst::FlowReturn::Eos,
@@ -120,10 +123,12 @@ impl Player {
                 let map = buffer.map_readable().unwrap();
                 let data = map.as_slice();
 
-                print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
+                //print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
 
                 dispatcher_clone.lock().unwrap().send_async(|| {
-                    println!("Dispatcher, thread id: {:?}", std::thread::current().id());
+                    let timespec = time::get_time();
+                    let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                    println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
                 });
 
                 gst::FlowReturn::Ok
