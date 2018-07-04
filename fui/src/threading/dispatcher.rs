@@ -1,7 +1,7 @@
 extern crate winit;
 
 use std::cell::RefCell;
-use std::sync::{ Arc, Mutex, mpsc::{ Sender, Receiver, channel } };
+use std::sync::{ mpsc::{ Sender, Receiver, channel } };
 
 thread_local! {
     static CURRENT_THREAD_DISPATCHER: RefCell<Option<DispatcherSource>> = RefCell::new(None);
@@ -32,21 +32,6 @@ pub struct Dispatcher {
 }
 
 impl Dispatcher {
-    pub fn for_current_thread() -> Dispatcher {
-        CURRENT_THREAD_DISPATCHER.with(|x| {
-            let mut borrowed = x.borrow_mut();
-            if let Some(ref dispatcher_source) = *borrowed {
-                let tx = dispatcher_source.tx.clone();
-                return Dispatcher { tx, loop_proxy: dispatcher_source.loop_proxy.clone() };
-            }
-            let (tx, rx) = channel();
-            let tx_clone = tx.clone();
-            let dispatcher_source = DispatcherSource { tx, rx, loop_proxy: None };
-            *borrowed = Some(dispatcher_source);
-            Dispatcher { tx: tx_clone, loop_proxy: None }
-        })
-    }
-
     pub fn setup_events_loop_proxy(loop_proxy: winit::EventsLoopProxy) {
         CURRENT_THREAD_DISPATCHER.with(|x| {
             let mut borrowed = x.borrow_mut();
@@ -57,6 +42,17 @@ impl Dispatcher {
             let (tx, rx) = channel();
             let dispatcher_source = DispatcherSource { tx, rx, loop_proxy: Some(loop_proxy) };
             *borrowed = Some(dispatcher_source);
+        })
+    }
+
+    pub fn for_current_thread() -> Dispatcher {
+        CURRENT_THREAD_DISPATCHER.with(|x| {
+            let borrowed = x.borrow();
+            if let Some(ref dispatcher_source) = *borrowed {
+                let tx = dispatcher_source.tx.clone();
+                return Dispatcher { tx, loop_proxy: dispatcher_source.loop_proxy.clone() };
+            }
+            panic!("Call Dispatcher::setup_events_loop_proxy() before first Dispatcher::for_current_thread()!");
         })
     }
 
