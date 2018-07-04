@@ -18,14 +18,12 @@ use std::sync::{ Arc, Mutex };
 use Property;
 
 struct MainViewModel {
-    pub texture_id: Property<i32>,
-    player: Player,
+    pub player: Player,
 }
 
 impl MainViewModel {
     pub fn new() -> Self {
         MainViewModel {
-            texture_id: Property::new(-1),
             player: Player::new(),
         }
     }
@@ -33,7 +31,6 @@ impl MainViewModel {
     pub fn play(&mut self) {
         self.player.open();
         self.player.play();
-        self.texture_id.set(self.player.get_texture_id());
     }
 
     pub fn stop(&mut self) {
@@ -51,16 +48,22 @@ impl View for MainViewModel {
         // events
         btn_play.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.play(); });
         btn_stop.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.stop(); });
+        {
+            let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+            vm.player.texture.lock().unwrap().updated.set_vm(&bitmap, |bitmap, texture_id| {
+                bitmap.data.texture_id.set(texture_id);
+                bitmap.set_is_dirty(true);
+            });
+        }
 
         // bindings
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         let bindings = vec![
-            bitmap.borrow_mut().data.texture_id.bind(&mut vm.texture_id),
         ];
 
         // layout
         let root_control = Horizontal::control(vec![
-            btn_play, btn_stop,
+            btn_play, btn_stop, bitmap,
         ]);
 
         ViewData {
@@ -71,8 +74,8 @@ impl View for MainViewModel {
 }
 
 struct Player {
+    pub texture: Arc<Mutex<PlayerTexture>>,
     pipeline: Option<gst::Pipeline>,
-    texture_id: i32,
     dispatcher: Arc<Mutex<Dispatcher>>,
 }
 
@@ -81,8 +84,8 @@ impl Player {
         gst::init().unwrap();
 
         Player {
+            texture: Arc::new(Mutex::new(PlayerTexture::new())),
             pipeline: None,
-            texture_id: -1,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
         }
     }
@@ -104,6 +107,7 @@ impl Player {
         ));
 
         let dispatcher_clone = self.dispatcher.clone();
+        let texture_clone = self.texture.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
             .new_sample(move |app_sink| {
                 let timespec = time::get_time();
@@ -126,9 +130,7 @@ impl Player {
                 //print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
 
                 dispatcher_clone.lock().unwrap().send_async(|| {
-                    let timespec = time::get_time();
-                    let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
-                    println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
+                    //texture_clone.lock().unwrap().update_texture();
                 });
 
                 gst::FlowReturn::Ok
@@ -159,16 +161,32 @@ impl Player {
         }
     }
 
-    pub fn get_texture_id(&self) -> i32 {
-        self.texture_id
-    }
-
     pub fn stop(&mut self) {
         // Shutdown pipeline
         if let Some(ref pipeline) = self.pipeline {
             let ret = pipeline.set_state(gst::State::Null);
             assert_ne!(ret, gst::StateChangeReturn::Failure);
         }
+    }
+}
+
+pub struct PlayerTexture {
+    pub updated: Callback<i32>,
+    texture_id: i32,
+}
+
+impl PlayerTexture {
+    pub fn new() -> Self {
+        PlayerTexture {
+            updated: Callback::new(),
+            texture_id: -1,
+        }
+    }
+
+    fn update_texture(&mut self) {
+        let timespec = time::get_time();
+        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+        println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
     }
 }
 
