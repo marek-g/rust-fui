@@ -1,5 +1,6 @@
 extern crate winit;
 
+use observable::Event;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -16,8 +17,9 @@ use Dispatcher;
 pub struct Application {
     title: &'static str,
     events_loop: winit::EventsLoop,
+    events_loop_interation: Event<()>,
     event_processor: EventProcessor,
-    drawing_context: DrawingContext,
+    drawing_context: Rc<RefCell<DrawingContext>>,
     root_view: Option<RootView>,
 }
 
@@ -28,13 +30,14 @@ impl Application {
         let window_builder = winit::WindowBuilder::new()
             .with_title(title);
         let events_loop = winit::EventsLoop::new();
-        let drawing_context = DrawingContext::create(window_builder, &events_loop);
+        let drawing_context = Rc::new(RefCell::new(DrawingContext::create(window_builder, &events_loop)));
 
         Dispatcher::setup_events_loop_proxy(events_loop.create_proxy());
 
         Application {
             title: title,
             events_loop: events_loop,
+            events_loop_interation: Event::new(),
             event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
             root_view: None,
@@ -43,6 +46,10 @@ impl Application {
 
     pub fn get_title(&self) -> &'static str {
         self.title
+    }
+
+    pub fn get_drawing_context(&self) -> Rc<RefCell<DrawingContext>> {
+        self.drawing_context.clone()
     }
 
     pub fn set_root_view(&mut self, view_data: ViewData) {
@@ -57,6 +64,14 @@ impl Application {
         self.root_view = None;
     }
 
+    pub fn create_loop_proxy(&self) -> winit::EventsLoopProxy {
+        self.events_loop.create_proxy()
+    }
+
+    pub fn get_events_loop_interation(&mut self) -> &mut Event<()> {
+        &mut self.events_loop_interation
+    }
+
     pub fn run(&mut self) {
         let mut width = 0;
         let mut height = 0;
@@ -65,8 +80,9 @@ impl Application {
         let mut frame_no = 0;
 
         let events_loop = &mut self.events_loop;
+        let events_loop_interation = &mut self.events_loop_interation;
         let event_processor = &mut self.event_processor;
-        let drawing_context = &mut self.drawing_context;
+        let drawing_context = self.drawing_context.clone();
         let root_view = &mut self.root_view;
 
         events_loop.run_forever(|event| {
@@ -85,6 +101,7 @@ impl Application {
 
                     winit::WindowEvent::Resized(ref w, ref h) => {
                         width = *w; height = *h;
+                        let drawing_context = &mut drawing_context.borrow_mut();
                         drawing_context.update_window_size(*w as u16, *h as u16);
 
                         if let Some(ref mut root_view) = root_view {
@@ -103,6 +120,7 @@ impl Application {
                 event_processor.handle_event(root_view, &event);
             }
 
+            events_loop_interation.emit(());
             CallbackExecutor::execute_all_in_queue();
             Dispatcher::execute_all_in_queue();
 
@@ -115,7 +133,7 @@ impl Application {
                     }
                 }
 
-                Application::render(root_view, drawing_context, width, height);
+                Application::render(root_view, &mut drawing_context.borrow_mut(), width, height);
             }
 
             if running { winit::ControlFlow::Continue } else { winit::ControlFlow::Break }

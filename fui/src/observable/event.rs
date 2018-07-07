@@ -37,7 +37,7 @@ impl<A: 'static + Clone> Event<A> {
         EventSubscription { _callback: rc_callback }
     }
 
-    pub fn subscribe_without_subscription<F: 'static + Fn(A)>(&mut self, f: F) {
+    pub fn subscribe_long<F: 'static + Fn(A)>(&mut self, f: F) {
         let subscription = self.subscribe(f);
         self.subscriptions.push(subscription);
     }

@@ -57,7 +57,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn on_changed_without_subscription<F: 'static + Fn(T)>(&mut self, f: F) {
-        self.data.changed.borrow_mut().subscribe_without_subscription(f);
+        self.data.changed.borrow_mut().subscribe_long(f);
     }
 }
 

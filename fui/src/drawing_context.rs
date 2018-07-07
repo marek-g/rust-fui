@@ -1,6 +1,8 @@
-use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory };
+use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory, GfxBackendExt };
 use drawing_gfx::font_gfx_text::*;
 use drawing::backend::WindowBackend;
+use drawing::backend::Backend;
+use drawing::backend::Texture;
 use drawing::font::*;
 use drawing::renderer::Renderer;
 use drawing::resources::Resources;
@@ -67,6 +69,19 @@ impl DrawingContext {
 
     pub fn get_resources_mut(&mut self) -> &mut Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>> {
         &mut self.resources
+    }
+
+    pub fn create_texture(&mut self, memory: &[u8], width: u16, height: u16, updatable: bool) -> i32 {
+        let texture_id = self.resources.get_next_texture_id();
+        let texture = self.renderer.backend().create_texture(memory, width, height, updatable);
+        self.resources.textures_mut().insert(texture_id, texture);
+        texture_id
+    }
+
+    pub fn update_texture(&mut self, texture_id: i32, memory: &[u8], offset_x: u16, offset_y: u16, width: u16, height: u16) {
+        if let Some(texture) = self.resources.textures_mut().get_mut(&texture_id) {
+            texture.update(self.renderer.backend().get_encoder(), memory, offset_x, offset_y, width, height).unwrap();
+        }
     }
 
     pub fn update_window_size(&mut self, width: u16, height: u16) {

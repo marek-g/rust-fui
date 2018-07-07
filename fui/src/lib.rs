@@ -14,7 +14,9 @@ mod control_object;
 pub use control_object::*;
 
 pub mod controls;
-pub mod drawing_context;
+
+mod drawing_context;
+pub use drawing_context::*;
 
 pub mod events;
 pub mod high_dpi;

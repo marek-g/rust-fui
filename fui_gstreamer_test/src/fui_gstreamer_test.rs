@@ -14,27 +14,39 @@ use fui::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{ Arc, Mutex };
+use std::sync::mpsc::*;
 
 use Property;
 
 struct MainViewModel {
-    pub player: Player,
+    pub player: Rc<RefCell<Player>>,
+    player_loop_subscription: EventSubscription,
 }
 
 impl MainViewModel {
-    pub fn new() -> Self {
+    pub fn new(app: &mut Application) -> Self {
+        let player = Rc::new(RefCell::new(Player::new(app.get_drawing_context())));
+
+        let player_copy = Rc::downgrade(&player);
+        let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {
+            if let Some(player) = player_copy.upgrade() {
+                player.borrow_mut().on_loop_interation();
+            }
+        });
+
         MainViewModel {
-            player: Player::new(),
+            player,
+            player_loop_subscription,
         }
     }
 
     pub fn play(&mut self) {
-        self.player.open();
-        self.player.play();
+        self.player.borrow_mut().open();
+        self.player.borrow_mut().play();
     }
 
     pub fn stop(&mut self) {
-        self.player.stop();
+        self.player.borrow_mut().stop();
     }
 }
 
@@ -50,7 +62,8 @@ impl View for MainViewModel {
         btn_stop.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.stop(); });
         {
             let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-            vm.player.texture.lock().unwrap().updated.set_vm(&bitmap, |bitmap, texture_id| {
+            let player = &mut vm.player.borrow_mut();
+            player.texture.updated.set_vm(&bitmap, |bitmap, texture_id| {
                 bitmap.data.texture_id.set(texture_id);
                 bitmap.set_is_dirty(true);
             });
@@ -74,24 +87,30 @@ impl View for MainViewModel {
 }
 
 struct Player {
-    pub texture: Arc<Mutex<PlayerTexture>>,
+    pub texture: PlayerTexture,
     pipeline: Option<gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
+    receiver: Option<Receiver<Vec<u8>>>,
 }
 
 impl Player {
-    pub fn new() -> Self {
+    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         gst::init().unwrap();
 
         Player {
-            texture: Arc::new(Mutex::new(PlayerTexture::new())),
+            texture: PlayerTexture::new(drawing_context),
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
+            receiver: None,
         }
     }
 
     pub fn open(&mut self) {
         println!("Main thread id: {:?}", std::thread::current().id());
+
+        let (sender, receiver) = channel();
+        self.receiver = Some(receiver);
+        let sender = Arc::new(Mutex::new(sender));
 
         // Create the elements
         let source = gst::ElementFactory::make("videotestsrc", "source").expect("Could not create source element.");
@@ -107,7 +126,6 @@ impl Player {
         ));
 
         let dispatcher_clone = self.dispatcher.clone();
-        let texture_clone = self.texture.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
             .new_sample(move |app_sink| {
                 let timespec = time::get_time();
@@ -128,6 +146,8 @@ impl Player {
                 let data = map.as_slice();
 
                 //print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
+
+                sender.lock().unwrap().send(Vec::from(data)).unwrap();
 
                 dispatcher_clone.lock().unwrap().send_async(|| {
                     //texture_clone.lock().unwrap().update_texture();
@@ -161,6 +181,17 @@ impl Player {
         }
     }
 
+    pub fn on_loop_interation(&mut self) {
+        if let Some(ref receiver) = self.receiver {
+            while let Ok(buffer) = receiver.try_recv() {
+                let timespec = time::get_time();
+                let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
+                self.texture.update_texture(buffer)
+            }
+        }
+    }
+
     pub fn stop(&mut self) {
         // Shutdown pipeline
         if let Some(ref pipeline) = self.pipeline {
@@ -173,27 +204,40 @@ impl Player {
 pub struct PlayerTexture {
     pub updated: Callback<i32>,
     texture_id: i32,
+    drawing_context: Rc<RefCell<DrawingContext>>,
 }
 
 impl PlayerTexture {
-    pub fn new() -> Self {
+    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::new(),
             texture_id: -1,
+            drawing_context
         }
     }
 
-    fn update_texture(&mut self) {
+    fn update_texture(&mut self, buffer: Vec<u8>) {
         let timespec = time::get_time();
         let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
         println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
+
+        if self.texture_id == -1 {
+            let drawing_context = &mut self.drawing_context.borrow_mut();
+            self.texture_id = drawing_context.create_texture(&buffer, 320, 240, true);
+        }
+        else {
+            let drawing_context = &mut self.drawing_context.borrow_mut();
+            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, 320, 240);
+        }
+
+        self.updated.emit(self.texture_id);
     }
 }
 
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
-    let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
+    let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app)));
     app.set_root_view_model(&main_view_model);
  
     app.run();  
