@@ -41,8 +41,8 @@ impl Player {
         // Create the elements
         //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
         //self.texture.set_size(320, 240);
-        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_url("https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm");
-        self.texture.set_size(854, 480);
+        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_url("http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv");
+        self.texture.set_size(1280, 544);
 
         let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
@@ -135,14 +135,23 @@ impl PlayerTexture {
         let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
         println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
-        if self.texture_id == -1 {
+        // I don't understand why creating new texture is so much faster than updating existing one.
+        // There is no such difference in SDL app.
+        let prev_texture_id = self.texture_id;
+        let drawing_context = &mut self.drawing_context.borrow_mut();
+        if self.texture_id != -1 {
+            drawing_context.get_resources_mut().textures_mut().remove(&self.texture_id);
+        }
+        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, false);
+
+        /*if self.texture_id == -1 {
             let drawing_context = &mut self.drawing_context.borrow_mut();
             self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, true);
         }
         else {
             let drawing_context = &mut self.drawing_context.borrow_mut();
             drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height);
-        }
+        }*/
 
         self.updated.emit(self.texture_id);
     }
