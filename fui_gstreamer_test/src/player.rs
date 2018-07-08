@@ -39,7 +39,10 @@ impl Player {
         let sender = Arc::new(Mutex::new(sender));
 
         // Create the elements
-        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
+        //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
+        //self.texture.set_size(320, 240);
+        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_url("https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm");
+        self.texture.set_size(854, 480);
 
         let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
@@ -108,6 +111,8 @@ impl Player {
 pub struct PlayerTexture {
     pub updated: Callback<i32>,
     texture_id: i32,
+    width: u16,
+    height: u16,
     drawing_context: Rc<RefCell<DrawingContext>>,
 }
 
@@ -115,9 +120,14 @@ impl PlayerTexture {
     pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::new(),
-            texture_id: -1,
+            texture_id: -1, width: 0, height: 0,
             drawing_context
         }
+    }
+
+    pub fn set_size(&mut self, width: u16, height: u16) {
+        self.width = width;
+        self.height = height;
     }
 
     fn update_texture(&mut self, buffer: Vec<u8>) {
@@ -127,11 +137,11 @@ impl PlayerTexture {
 
         if self.texture_id == -1 {
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            self.texture_id = drawing_context.create_texture(&buffer, 320, 240, true);
+            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, true);
         }
         else {
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, 320, 240);
+            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height);
         }
 
         self.updated.emit(self.texture_id);
