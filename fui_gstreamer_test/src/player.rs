@@ -10,6 +10,7 @@ use std::sync::{ Arc, Mutex };
 use std::sync::mpsc::*;
 use self::gst::prelude::*;
 use fui::*;
+use pipeline_factory;
 
 pub struct Player {
     pub texture: PlayerTexture,
@@ -38,17 +39,7 @@ impl Player {
         let sender = Arc::new(Mutex::new(sender));
 
         // Create the elements
-        let source = gst::ElementFactory::make("videotestsrc", "source").expect("Could not create source element.");
-        //let sink = gst::ElementFactory::make("glimagesink", "sink").expect("Could not create sink element");
-        let video_sink = gst::ElementFactory::make("appsink", "sink").expect("Could not create sink element");
-        let video_app_sink = video_sink.dynamic_cast::<gst_app::AppSink>().unwrap();
-        video_app_sink.set_caps(&gst::Caps::new_simple(
-            "video/x-raw",
-            &[
-                ("format", &"BGRA"),
-                ("pixel-aspect-ratio", &gst::Fraction::from((1, 1))),
-            ],
-        ));
+        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
 
         let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
@@ -82,18 +73,6 @@ impl Player {
             })
             .build()
         );
-
-        let video_sink = video_app_sink.dynamic_cast::<gst::Element>().unwrap();
-
-        // Create the empty pipeline
-        let pipeline = gst::Pipeline::new("test-pipeline");
-
-        // Build the pipeline
-        pipeline.add_many(&[&source, &video_sink]).unwrap();
-        source.link(&video_sink).expect("Elements could not be linked.");
-
-        // Modify the source's properties
-        source.set_property_from_str("pattern", "smpte");
 
         self.pipeline = Some(pipeline);
     }

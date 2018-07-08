@@ -3,6 +3,7 @@
 extern crate fui;
 
 mod player;
+mod pipeline_factory;
 
 use fui::application::*;
 use fui::controls::*;
