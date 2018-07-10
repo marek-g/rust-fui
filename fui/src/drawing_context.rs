@@ -4,6 +4,7 @@ use drawing_gl::*;
 use drawing::backend::WindowBackend;
 use drawing::backend::Backend;
 use drawing::backend::Texture;
+use drawing::TextureFont;
 use drawing::font::*;
 use drawing::renderer::Renderer;
 use drawing::resources::Resources;
@@ -16,9 +17,9 @@ use find_folder;
 use std::fs::File;
 use std::io::Read;
 
-type DrawingTexture = GlTexture;
-type DrawingFont = GlFont;
 type DrawingBackend = GlWindowBackend;
+type DrawingTexture = GlTexture;
+type DrawingFont = TextureFont<DrawingBackend>;
 
 pub struct DrawingContext {
     resources: Resources<DrawingTexture, DrawingFont>,
