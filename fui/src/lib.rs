@@ -1,6 +1,6 @@
 extern crate winit;
 extern crate drawing;
-extern crate drawing_gfx;
+extern crate drawing_gl;
 extern crate find_folder;
 
 pub mod application;

@@ -1,5 +1,4 @@
-use drawing_gfx::backend::{ GfxWindowBackend, GfxTexture, GfxResources, GfxFactory, GfxBackendExt };
-use drawing_gfx::font_gfx_text::*;
+use drawing_gl::*;
 use drawing::backend::WindowBackend;
 use drawing::backend::Backend;
 use drawing::backend::Texture;
@@ -15,28 +14,32 @@ use find_folder;
 use std::fs::File;
 use std::io::Read;
 
+type DrawingTexture = GlTexture;
+type DrawingFont = GlFont;
+type DrawingBackend = GlWindowBackend;
+
 pub struct DrawingContext {
-    resources: Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>>,
-    renderer: Renderer<GfxWindowBackend>
+    resources: Resources<DrawingTexture, DrawingFont>,
+    renderer: Renderer<DrawingBackend>
 }
 
 impl DrawingContext {
     pub fn create(window_builder: WindowBuilder, events_loop: &EventsLoop) -> Self {
-        let backend = GfxWindowBackend::create_window_backend(window_builder, &events_loop);
+        let backend = DrawingBackend::create_window_backend(window_builder, &events_loop);
         DrawingContext {
             resources: Resources::new(),
             renderer: Renderer::new(backend)
         }
     }
 
-    pub fn get_font(&mut self, font_name: &'static str) -> Option<&mut GfxTextFont<GfxResources, GfxFactory>> {
+    pub fn get_font(&mut self, font_name: &'static str) -> Option<&mut DrawingFont> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
             let font_path = find_folder::Search::ParentsThenKids(3, 3).for_folder("assets").unwrap().join(font_name).into_os_string().into_string().unwrap();
             let mut file = File::open(font_path).unwrap();
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer);
 
-            let font = GfxTextFont::create(self.renderer.backend(), buffer);
+            let font = DrawingFont::create(self.renderer.backend(), buffer);
 
             self.resources.fonts_mut().insert(font_name.to_string(), font);
         }
@@ -51,7 +54,7 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer);
 
-            let font = GfxTextFont::create(self.renderer.backend(), buffer);
+            let font = DrawingFont::create(self.renderer.backend(), buffer);
 
             self.resources.fonts_mut().insert(font_name.to_string(), font);
         }
@@ -63,11 +66,11 @@ impl DrawingContext {
         }
     }
 
-    pub fn get_resources(&self) -> &Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>> {
+    pub fn get_resources(&self) -> &Resources<DrawingTexture, DrawingFont> {
         &self.resources
     }
 
-    pub fn get_resources_mut(&mut self) -> &mut Resources<GfxTexture, GfxTextFont<GfxResources, GfxFactory>> {
+    pub fn get_resources_mut(&mut self) -> &mut Resources<DrawingTexture, DrawingFont> {
         &mut self.resources
     }
 
@@ -80,7 +83,7 @@ impl DrawingContext {
 
     pub fn update_texture(&mut self, texture_id: i32, memory: &[u8], offset_x: u16, offset_y: u16, width: u16, height: u16) {
         if let Some(texture) = self.resources.textures_mut().get_mut(&texture_id) {
-            texture.update(self.renderer.backend().get_encoder(), memory, offset_x, offset_y, width, height).unwrap();
+            texture.update(&mut () /*self.renderer.backend().get_encoder()*/, memory, offset_x, offset_y, width, height).unwrap();
         }
     }
 
