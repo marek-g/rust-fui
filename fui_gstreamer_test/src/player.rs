@@ -142,7 +142,7 @@ impl PlayerTexture {
         if self.texture_id != -1 {
             drawing_context.get_resources_mut().textures_mut().remove(&self.texture_id);
         }
-        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, false);
+        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, false);
 
         /*if self.texture_id == -1 {
             let drawing_context = &mut self.drawing_context.borrow_mut();

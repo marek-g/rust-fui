@@ -1,3 +1,5 @@
+pub use drawing::color::ColorFormat;
+
 use drawing_gl::*;
 use drawing::backend::WindowBackend;
 use drawing::backend::Backend;
@@ -74,9 +76,9 @@ impl DrawingContext {
         &mut self.resources
     }
 
-    pub fn create_texture(&mut self, memory: &[u8], width: u16, height: u16, updatable: bool) -> i32 {
+    pub fn create_texture(&mut self, memory: &[u8], width: u16, height: u16, format: ColorFormat, updatable: bool) -> i32 {
         let texture_id = self.resources.get_next_texture_id();
-        let texture = self.renderer.backend().create_texture(memory, width, height, updatable);
+        let texture = self.renderer.backend().create_texture(memory, width, height, format, updatable);
         self.resources.textures_mut().insert(texture_id, texture);
         texture_id
     }
