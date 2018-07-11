@@ -47,7 +47,7 @@ pub fn create_pipeline_url(url: &str) -> (gst::Pipeline, gst_app::AppSink) {
     video_app_sink.set_caps(&gst::Caps::new_simple(
         "video/x-raw",
         &[
-            ("format", &"RGBA"),
+            ("format", &"BGRA"),
             ("pixel-aspect-ratio", &gst::Fraction::from((1, 1))),
         ],
     ));

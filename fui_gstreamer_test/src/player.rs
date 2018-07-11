@@ -137,21 +137,21 @@ impl PlayerTexture {
 
         // I don't understand why creating new texture is so much faster than updating existing one.
         // There is no such difference in SDL app.
-        let prev_texture_id = self.texture_id;
+        /*let prev_texture_id = self.texture_id;
         let drawing_context = &mut self.drawing_context.borrow_mut();
         if self.texture_id != -1 {
             drawing_context.get_resources_mut().textures_mut().remove(&self.texture_id);
         }
-        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, false);
+        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, false);*/
 
-        /*if self.texture_id == -1 {
+        if self.texture_id == -1 {
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, true);
+            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, true);
         }
         else {
             let drawing_context = &mut self.drawing_context.borrow_mut();
             drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height);
-        }*/
+        }
 
         self.updated.emit(self.texture_id);
     }
