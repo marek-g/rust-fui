@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate winit;
 
 mod player;
 mod pipeline_factory;
@@ -88,8 +89,9 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
+    let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app)));
-    app.set_root_view_model(&main_view_model);
+    app.add_window_view_model(window_builder, &main_view_model);
  
     app.run();  
 }

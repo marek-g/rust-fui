@@ -32,12 +32,12 @@ impl EventProcessor {
         }
     }
 
-    pub fn handle_event(&mut self, root_view: &mut RootView, event: &winit::Event) {
+    pub fn handle_event(&mut self, root_view: &mut RootView, event: &winit::WindowEvent) {
         self.hover_detector.handle_event(root_view, event);
         self.handle_gesture_event(root_view, event);
     }
 
-    pub fn handle_gesture_event(&mut self, root_view: &mut RootView, event: &::winit::Event) {
+    pub fn handle_gesture_event(&mut self, root_view: &mut RootView, event: &winit::WindowEvent) {
         self.gesture_detector.handle_event(event).map(|ev| match ev {
             Gesture::TapDown { position } => {
                 if let Some(ref hit_control) = root_view.hit_test(position) {

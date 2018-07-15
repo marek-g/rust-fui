@@ -1,8 +1,10 @@
+extern crate winit;
+
 pub use drawing::color::ColorFormat;
 
 use drawing_gl::*;
-use drawing::backend::WindowBackend;
-use drawing::backend::Backend;
+use drawing::backend::Device;
+use drawing::backend::WindowTarget;
 use drawing::backend::Texture;
 use drawing::TextureFont;
 use drawing::font::*;
@@ -17,22 +19,28 @@ use find_folder;
 use std::fs::File;
 use std::io::Read;
 
-type DrawingBackend = GlWindowBackend;
-type DrawingTexture = GlTexture;
-type DrawingFont = TextureFont<DrawingBackend>;
+pub type DrawingDevice = GlDevice;
+pub type DrawingTexture = GlTexture;
+pub type DrawingWindowTarget = GlWindowTarget;
+pub type DrawingFont = TextureFont<DrawingDevice>;
 
 pub struct DrawingContext {
     resources: Resources<DrawingTexture, DrawingFont>,
-    renderer: Renderer<DrawingBackend>
+    device: DrawingDevice,
+    renderer: Renderer,
 }
 
 impl DrawingContext {
-    pub fn create(window_builder: WindowBuilder, events_loop: &EventsLoop) -> Self {
-        let backend = DrawingBackend::create_window_backend(window_builder, &events_loop);
+    pub fn new() -> Self {
         DrawingContext {
             resources: Resources::new(),
-            renderer: Renderer::new(backend)
+            device: DrawingDevice::new(),
+            renderer: Renderer::new(),
         }
+    }
+
+    pub fn create_window(&mut self, window_builder: WindowBuilder, events_loop: &EventsLoop) -> DrawingWindowTarget {
+        self.device.create_window_target(window_builder, &events_loop)
     }
 
     pub fn get_font(&mut self, font_name: &'static str) -> Option<&mut DrawingFont> {
@@ -42,7 +50,7 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer);
 
-            let font = DrawingFont::create(self.renderer.backend(), buffer);
+            let font = DrawingFont::create(&mut self.device, buffer);
 
             self.resources.fonts_mut().insert(font_name.to_string(), font);
         }
@@ -57,13 +65,13 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer);
 
-            let font = DrawingFont::create(self.renderer.backend(), buffer);
+            let font = DrawingFont::create(&mut self.device, buffer);
 
             self.resources.fonts_mut().insert(font_name.to_string(), font);
         }
 
         if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            font.get_dimensions(self.renderer.backend(), FontParams { size: size }, &text)
+            font.get_dimensions(&mut self.device, FontParams { size: size }, &text)
         } else {
             (0, size as u16)
         }
@@ -79,23 +87,24 @@ impl DrawingContext {
 
     pub fn create_texture(&mut self, memory: &[u8], width: u16, height: u16, format: ColorFormat, updatable: bool) -> i32 {
         let texture_id = self.resources.get_next_texture_id();
-        let texture = self.renderer.backend().create_texture(Some(memory), width, height, format, updatable);
+        let texture = self.device.create_texture(Some(memory), width, height, format, updatable).unwrap();
         self.resources.textures_mut().insert(texture_id, texture);
         texture_id
     }
 
     pub fn update_texture(&mut self, texture_id: i32, memory: &[u8], offset_x: u16, offset_y: u16, width: u16, height: u16) {
         if let Some(texture) = self.resources.textures_mut().get_mut(&texture_id) {
-            texture.update(&mut () /*self.renderer.backend().get_encoder()*/, memory, offset_x, offset_y, width, height).unwrap();
+            texture.update(memory, offset_x, offset_y, width, height).unwrap();
         }
     }
 
-    pub fn update_window_size(&mut self, width: u16, height: u16) {
-		self.renderer.update_window_size(width, height)
+    pub fn update_window_size(&mut self, window: &mut DrawingWindowTarget, width: u16, height: u16) {
+		window.update_window_size(width, height)
 	}
 
-    pub fn draw(&mut self, size: PhysPixelSize,
+    pub fn draw(&mut self, window: &DrawingWindowTarget,
+        size: PhysPixelSize,
 		primitives: Vec<Primitive>) {
-        self.renderer.draw(size, primitives, &mut self.resources);
+        self.renderer.draw(&mut self.device, &window.get_render_target(), size, primitives, &mut self.resources);
     }
 }

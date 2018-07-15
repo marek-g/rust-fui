@@ -30,3 +30,6 @@ pub use threading::*;
 
 mod view;
 pub use view::*;
+
+mod window;
+pub use window::*;

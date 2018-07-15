@@ -247,6 +247,7 @@ name = "fui_examples"
 version = "0.1.0"
 dependencies = [
  "fui 0.1.0",
+ "winit 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

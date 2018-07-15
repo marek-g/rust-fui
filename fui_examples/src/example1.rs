@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate winit;
 
 use fui::application::*;
 use fui::controls::*;
@@ -69,8 +70,13 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek");
 
+    let window_builder1 = winit::WindowBuilder::new().with_title("Window 1");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
-    app.set_root_view_model(&main_view_model);
+    app.add_window_view_model(window_builder1, &main_view_model);
+
+    /*let window_builder2 = winit::WindowBuilder::new().with_title("Window 2");
+    let main_view_model2 = Rc::new(RefCell::new(MainViewModel::new()));
+    app.add_window_view_model(window_builder2, &main_view_model2);*/
 
     app.run();
 }
