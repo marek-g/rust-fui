@@ -98,13 +98,13 @@ impl DrawingContext {
         }
     }
 
-    pub fn update_window_size(&mut self, window: &mut DrawingWindowTarget, width: u16, height: u16) {
-		window.update_window_size(width, height)
+    pub fn update_size(&mut self, window_target: &mut DrawingWindowTarget, width: u16, height: u16) {
+		window_target.update_size(width, height)
 	}
 
-    pub fn draw(&mut self, window: &DrawingWindowTarget,
+    pub fn draw(&mut self, render_target: &<DrawingDevice as Device>::RenderTarget,
         size: PhysPixelSize,
 		primitives: Vec<Primitive>) {
-        self.renderer.draw(&mut self.device, &window.get_render_target(), size, primitives, &mut self.resources);
+        self.renderer.draw(&mut self.device, render_target, size, primitives, &mut self.resources);
     }
 }

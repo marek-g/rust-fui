@@ -52,7 +52,7 @@ impl Application {
         let window_size = window_target.get_window().get_inner_size().unwrap_or((0, 0));
         let window_id = window_target.get_window().id();
 
-        window_target.update_window_size(window_size.0 as u16, window_size.1 as u16);
+        window_target.update_size(window_size.0 as u16, window_size.1 as u16);
         
         let mut window = Window::new(window_target);
         window.set_root_view(view_data);
@@ -108,7 +108,8 @@ impl Application {
 
                         winit::WindowEvent::Resized(ref w, ref h) => {
                             let drawing_context = &mut drawing_context.borrow_mut();
-                            drawing_context.update_window_size(window.get_drawing_target_mut(), *w as u16, *h as u16);
+                            drawing_context.update_size(window.get_drawing_target_mut(),
+                                *w as u16, *h as u16);
 
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
                                 let size = Size::new(*w as f32, *h as f32);
@@ -164,7 +165,7 @@ impl Application {
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
                 let primitives = root_control.to_primitives(drawing_context);
-                drawing_context.draw(drawing_target,
+                drawing_context.draw(drawing_target.get_render_target(),
                     PhysPixelSize::new(width as f32, height as f32),
                     primitives);
 
