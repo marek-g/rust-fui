@@ -1,5 +1,7 @@
 extern crate winit;
 
+use ::Result;
+
 use observable::Event;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -12,7 +14,6 @@ use common::*;
 use events::*;
 use View;
 use ViewData;
-use RootView;
 use CallbackExecutor;
 use Dispatcher;
 use Window;
@@ -27,28 +28,28 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(title: &'static str) -> Self {
+    pub fn new(title: &'static str) -> Result<Self> {
         ::high_dpi::set_process_high_dpi_aware();
 
         let events_loop = winit::EventsLoop::new();
 
-        let drawing_context = Rc::new(RefCell::new(DrawingContext::new()));
+        let drawing_context = Rc::new(RefCell::new(DrawingContext::new()?));
 
         Dispatcher::setup_events_loop_proxy(events_loop.create_proxy());
 
-        Application {
+        Ok(Application {
             title: title,
             events_loop: events_loop,
             events_loop_interation: Event::new(),
             event_processor: EventProcessor::new(),
             drawing_context: drawing_context,
             windows: HashMap::new(),
-        }
+        })
     }
 
-    pub fn add_window(&mut self, window_builder: winit::WindowBuilder, view_data: ViewData) -> winit::WindowId
+    pub fn add_window(&mut self, window_builder: winit::WindowBuilder, view_data: ViewData) -> Result<winit::WindowId>
     {
-        let mut window_target = self.drawing_context.borrow_mut().create_window(window_builder, &self.events_loop);
+        let mut window_target = self.drawing_context.borrow_mut().create_window(window_builder, &self.events_loop)?;
         let window_size = window_target.get_window().get_inner_size().unwrap_or((0, 0));
         let window_id = window_target.get_window().id();
 
@@ -57,11 +58,12 @@ impl Application {
         let mut window = Window::new(window_target);
         window.set_root_view(view_data);
         self.windows.insert(window_id, window);
-        window_id
+
+        Ok(window_id)
     }
 
     pub fn add_window_view_model<V: View>(&mut self,
-        window_builder: winit::WindowBuilder, view_model: &Rc<RefCell<V>>) -> winit::WindowId {
+        window_builder: winit::WindowBuilder, view_model: &Rc<RefCell<V>>) -> Result<winit::WindowId> {
         self.add_window(window_builder, V::create_view(view_model))
     }
 
@@ -133,7 +135,6 @@ impl Application {
             Dispatcher::execute_all_in_queue();
 
             for window in windows.values_mut() {
-                let window_id = window.get_drawing_target_mut().get_window().id();
                 let (width, height) = window.get_drawing_target_mut().get_window().get_inner_size().unwrap_or((0, 0));
                 if running && width > 0 && height > 0 {
                     if let Some(ref mut root_view) = window.get_root_view_mut() {
@@ -165,9 +166,12 @@ impl Application {
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
                 let primitives = root_control.to_primitives(drawing_context);
-                drawing_context.draw(drawing_target.get_render_target(),
+                let res = drawing_context.draw(drawing_target.get_render_target(),
                     PhysPixelSize::new(width as f32, height as f32),
                     primitives);
+                if let Err(err) = res {
+                    eprintln!("Render error: {}", err);
+                }
 
                 drawing_target.swap_buffers();
 

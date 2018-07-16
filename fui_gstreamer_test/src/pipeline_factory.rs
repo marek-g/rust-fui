@@ -91,7 +91,7 @@ pub fn create_pipeline_url(url: &str) -> (gst::Pipeline, gst_app::AppSink) {
         let is_audio = new_pad_type.starts_with("audio/x-raw");
         let is_video = new_pad_type.starts_with("video/x-raw");
 
-        if (is_video) {
+        if is_video {
             let sink_pad = video_sink.get_static_pad("sink")
                 .expect("Failed to get static sink pad from convert");
             if sink_pad.is_linked() {
@@ -107,7 +107,7 @@ pub fn create_pipeline_url(url: &str) -> (gst::Pipeline, gst_app::AppSink) {
             }
         }
 
-        if (is_audio) {
+        if is_audio {
             let sink_pad = audio_sink.get_static_pad("sink")
                 .expect("Failed to get static sink pad from convert");
             if sink_pad.is_linked() {

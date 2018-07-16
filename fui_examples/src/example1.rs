@@ -68,15 +68,15 @@ impl View for MainViewModel {
 }
 
 fn main() {
-    let mut app = Application::new("Marek Ogarek");
+    let mut app = Application::new("Marek Ogarek").unwrap();
 
     let window_builder1 = winit::WindowBuilder::new().with_title("Window 1");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
-    app.add_window_view_model(window_builder1, &main_view_model);
+    app.add_window_view_model(window_builder1, &main_view_model).unwrap();
 
     /*let window_builder2 = winit::WindowBuilder::new().with_title("Window 2");
     let main_view_model2 = Rc::new(RefCell::new(MainViewModel::new()));
-    app.add_window_view_model(window_builder2, &main_view_model2);*/
+    app.add_window_view_model(window_builder2, &main_view_model2).unwrap();*/
 
     app.run();
 }

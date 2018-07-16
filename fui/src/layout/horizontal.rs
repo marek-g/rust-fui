@@ -1,6 +1,6 @@
 use std::f32;
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
+use std::rc::Rc;
 
 use control::*;
 use control_object::*;

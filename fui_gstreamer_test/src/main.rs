@@ -13,9 +13,7 @@ use fui::*;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::{ Arc, Mutex };
 
-use fui::Property;
 use player::Player;
 
 struct MainViewModel {
@@ -30,7 +28,10 @@ impl MainViewModel {
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {
             if let Some(player) = player_copy.upgrade() {
-                player.borrow_mut().on_loop_interation();
+                let res = player.borrow_mut().on_loop_interation();
+                if let Err(err) = res {
+                    eprintln!("Player error: {}", err);
+                }
             }
         });
 
@@ -87,11 +88,11 @@ impl View for MainViewModel {
 }
 
 fn main() {
-    let mut app = Application::new("Marek Ogarek");
+    let mut app = Application::new("Marek Ogarek").unwrap();
 
     let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app)));
-    app.add_window_view_model(window_builder, &main_view_model);
+    app.add_window_view_model(window_builder, &main_view_model).unwrap();
  
     app.run();  
 }

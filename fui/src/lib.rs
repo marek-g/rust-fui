@@ -2,6 +2,9 @@ extern crate winit;
 extern crate drawing;
 extern crate drawing_gl;
 extern crate find_folder;
+extern crate failure;
+
+pub type Result<T> = std::result::Result<T, failure::Error>;
 
 pub mod application;
 

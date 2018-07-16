@@ -1,8 +1,11 @@
+extern crate failure;
 extern crate time;
 extern crate gstreamer as gst;
 extern crate gstreamer_app as gst_app;
 extern crate fui;
 extern crate std;
+
+pub type Result<T> = std::result::Result<T, failure::Error>;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -88,15 +91,16 @@ impl Player {
         }
     }
 
-    pub fn on_loop_interation(&mut self) {
+    pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
             while let Ok(buffer) = receiver.try_recv() {
                 let timespec = time::get_time();
                 let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
                 println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
-                self.texture.update_texture(buffer)
+                self.texture.update_texture(buffer)?
             }
         }
+        Ok(())
     }
 
     pub fn stop(&mut self) {
@@ -130,29 +134,22 @@ impl PlayerTexture {
         self.height = height;
     }
 
-    fn update_texture(&mut self, buffer: Vec<u8>) {
+    fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
         let timespec = time::get_time();
         let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
         println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
-        // I don't understand why creating new texture is so much faster than updating existing one.
-        // There is no such difference in SDL app.
-        /*let prev_texture_id = self.texture_id;
-        let drawing_context = &mut self.drawing_context.borrow_mut();
-        if self.texture_id != -1 {
-            drawing_context.get_resources_mut().textures_mut().remove(&self.texture_id);
-        }
-        self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, false);*/
-
         if self.texture_id == -1 {
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, true);
+            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, true)?;
         }
         else {
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height);
+            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height)?;
         }
 
         self.updated.emit(self.texture_id);
+
+        Ok(())
     }
 }

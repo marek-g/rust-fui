@@ -1,5 +1,5 @@
-use std::cell::{ RefCell, RefMut };
-use std::rc::{ Rc, Weak };
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use control::*;
 use control_object::*;
