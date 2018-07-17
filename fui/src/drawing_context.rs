@@ -8,6 +8,7 @@ use drawing_gl::*;
 use drawing::backend::Device;
 use drawing::backend::WindowTarget;
 use drawing::backend::Texture;
+use drawing::color::*;
 use drawing::TextureFont;
 use drawing::font::*;
 use drawing::renderer::Renderer;
@@ -107,9 +108,21 @@ impl DrawingContext {
 		window_target.update_size(width, height);
 	}
 
+    pub fn begin(&mut self, window_target: &DrawingWindowTarget) -> Result<()> {
+        self.device.begin(window_target)
+    }
+
+    pub fn clear(&mut self, render_target: &<DrawingDevice as Device>::RenderTarget, color: &Color) {
+        self.device.clear(render_target, color)
+    }
+
     pub fn draw(&mut self, render_target: &<DrawingDevice as Device>::RenderTarget,
         size: PhysPixelSize,
 		primitives: Vec<Primitive>) -> Result<()> {
         self.renderer.draw(&mut self.device, render_target, size, primitives, &mut self.resources)
+    }
+
+    pub fn end(&mut self, window_target: &DrawingWindowTarget) {
+        self.device.end(window_target);
     }
 }

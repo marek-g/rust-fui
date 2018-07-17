@@ -173,11 +173,19 @@ impl Application {
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
                 let primitives = root_control.to_primitives(drawing_context);
-                let res = drawing_context.draw(drawing_target.get_render_target(),
-                    PhysPixelSize::new(width as f32, height as f32),
-                    primitives);
+
+                let res = drawing_context.begin(drawing_target);
                 if let Err(err) = res {
-                    eprintln!("Render error: {}", err);
+                    eprintln!("Render error on begin drawing: {}", err);
+                } else {
+                    drawing_context.clear(drawing_target.get_render_target(), &[0.5f32, 0.4f32, 0.3f32, 1.0f32]);
+                    let res = drawing_context.draw(drawing_target.get_render_target(),
+                        PhysPixelSize::new(width as f32, height as f32),
+                        primitives);
+                    if let Err(err) = res {
+                        eprintln!("Render error: {}", err);
+                    }
+                    drawing_context.end(drawing_target);
                 }
 
                 root_control.set_is_dirty(false);
