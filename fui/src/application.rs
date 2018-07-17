@@ -145,7 +145,14 @@ impl Application {
                         }
                     }
 
-                    Application::render(window, &mut drawing_context.borrow_mut(), width, height);
+                    let need_swap_buffers = Application::render(window, &mut drawing_context.borrow_mut(), width, height);
+                    window.set_need_swap_buffers(need_swap_buffers);
+                }
+            }
+
+            for window in windows.values_mut() {
+                if window.get_need_swap_buffers() {
+                    window.get_drawing_target_mut().swap_buffers();
                 }
             }
 
@@ -155,7 +162,7 @@ impl Application {
 
     fn render(window: &mut Window,
         drawing_context: &mut DrawingContext,
-        width: u32, height: u32) {
+        width: u32, height: u32) -> bool {
         let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
         if let Some(ref mut root_view) = root_view {
             let mut root_control = root_view.view_data.root_control.borrow_mut();
@@ -173,10 +180,12 @@ impl Application {
                     eprintln!("Render error: {}", err);
                 }
 
-                drawing_target.swap_buffers();
-
                 root_control.set_is_dirty(false);
+
+                return true;
             }
         }
+
+        false
     }
 }
