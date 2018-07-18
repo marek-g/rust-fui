@@ -197,3 +197,11 @@ impl Application {
         false
     }
 }
+
+impl Drop for Application {
+    fn drop(&mut self) {
+        // It is important to drop windows before drawing_context!
+        // Windows cleanup graphics resources and drawing context drops graphics device.
+        self.windows.clear();
+    }
+}
