@@ -1,10 +1,11 @@
 use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
+use drawing::backend::WindowTarget;
 use common::Point;
 use control_object::*;
-use view::RootView;
 use events::ControlEvent;
+use Window;
 
 pub struct HoverDetector {
     hover_control: Option<Weak<RefCell<ControlObject>>>,
@@ -33,33 +34,36 @@ impl HoverDetector {
         }
     }
 
-    pub fn handle_event(&mut self, root_view: &mut RootView, event: &::winit::WindowEvent) {
+    pub fn handle_event(&mut self, window: &mut Window, event: &::winit::WindowEvent) {
         match event {
             ::winit::WindowEvent::CursorMoved { position, .. } => {
-                if let Some(ref hit_control) = root_view.hit_test(Point::new(position.0 as f32, position.1 as f32)) {
-                    if let Some(ref hover_control) = self.get_hover_control() {
-                        if !Rc::ptr_eq(hover_control, hit_control) {
-                            if self.is_running {
-                                hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                let physical_pos = position.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+                if let Some(ref mut root_view) = window.get_root_view_mut() {
+                    if let Some(ref hit_control) = root_view.hit_test(Point::new(physical_pos.x as f32, physical_pos.y as f32)) {
+                        if let Some(ref hover_control) = self.get_hover_control() {
+                            if !Rc::ptr_eq(hover_control, hit_control) {
+                                if self.is_running {
+                                    hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                                }
+                                self.hover_control = Some(Rc::downgrade(hit_control));
+                                if self.is_running {
+                                    hit_control.borrow_mut().handle_event(ControlEvent::HoverEnter);
+                                }
                             }
+                        }
+                        else {
                             self.hover_control = Some(Rc::downgrade(hit_control));
                             if self.is_running {
                                 hit_control.borrow_mut().handle_event(ControlEvent::HoverEnter);
                             }
                         }
-                    }
-                    else {
-                        self.hover_control = Some(Rc::downgrade(hit_control));
-                        if self.is_running {
-                            hit_control.borrow_mut().handle_event(ControlEvent::HoverEnter);
+                    } else {
+                        if let Some(ref hover_control) = self.get_hover_control() {
+                            if self.is_running {
+                                hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
+                            }
+                            self.hover_control = None;
                         }
-                    }
-                } else {
-                    if let Some(ref hover_control) = self.get_hover_control() {
-                        if self.is_running {
-                            hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);
-                        }
-                        self.hover_control = None;
                     }
                 }
             },

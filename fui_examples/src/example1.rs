@@ -74,9 +74,9 @@ fn main() {
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
     app.add_window_view_model(window_builder1, &main_view_model).unwrap();
 
-    /*let window_builder2 = winit::WindowBuilder::new().with_title("Window 2");
+    let window_builder2 = winit::WindowBuilder::new().with_title("Window 2");
     let main_view_model2 = Rc::new(RefCell::new(MainViewModel::new()));
-    app.add_window_view_model(window_builder2, &main_view_model2).unwrap();*/
+    app.add_window_view_model(window_builder2, &main_view_model2).unwrap();
 
     app.run();
 }

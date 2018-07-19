@@ -7,6 +7,7 @@ use common::Point;
 use control_object::*;
 use events::*;
 use RootView;
+use Window;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ControlEvent {
@@ -32,18 +33,20 @@ impl EventProcessor {
         }
     }
 
-    pub fn handle_event(&mut self, root_view: &mut RootView, event: &winit::WindowEvent) {
-        self.hover_detector.handle_event(root_view, event);
-        self.handle_gesture_event(root_view, event);
+    pub fn handle_event(&mut self, window: &mut Window, event: &winit::WindowEvent) {
+        self.hover_detector.handle_event(window, event);
+        self.handle_gesture_event(window, event);
     }
 
-    pub fn handle_gesture_event(&mut self, root_view: &mut RootView, event: &winit::WindowEvent) {
-        self.gesture_detector.handle_event(event).map(|ev| match ev {
+    pub fn handle_gesture_event(&mut self, window: &mut Window, event: &winit::WindowEvent) {
+        self.gesture_detector.handle_event(window, event).map(|ev| match ev {
             Gesture::TapDown { position } => {
-                if let Some(ref hit_control) = root_view.hit_test(position) {
-                    self.captured_control = Some(Rc::downgrade(hit_control));
-                    self.hover_detector.stop();
-                    self.send_event_to_captured_control(ControlEvent::TapDown { position: position });
+                if let Some(ref mut root_view) = window.get_root_view_mut() {
+                    if let Some(ref hit_control) = root_view.hit_test(position) {
+                        self.captured_control = Some(Rc::downgrade(hit_control));
+                        self.hover_detector.stop();
+                        self.send_event_to_captured_control(ControlEvent::TapDown { position: position });
+                    }
                 }
             },
 

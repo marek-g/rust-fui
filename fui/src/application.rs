@@ -2,7 +2,7 @@ extern crate winit;
 
 use ::Result;
 
-use observable::Event;
+use winit::dpi::LogicalSize;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -12,6 +12,7 @@ use drawing::backend::WindowTarget;
 use drawing_context::DrawingContext;
 use common::*;
 use events::*;
+use observable::Event;
 use View;
 use ViewData;
 use CallbackExecutor;
@@ -50,10 +51,11 @@ impl Application {
     pub fn add_window(&mut self, window_builder: winit::WindowBuilder, view_data: ViewData) -> Result<winit::WindowId>
     {
         let mut window_target = self.drawing_context.borrow_mut().create_window(window_builder, &self.events_loop)?;
-        let window_size = window_target.get_window().get_inner_size().unwrap_or((0, 0));
+        let logical_size = window_target.get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
         let window_id = window_target.get_window().id();
 
-        window_target.update_size(window_size.0 as u16, window_size.1 as u16);
+        let physical_size = logical_size.to_physical(window_target.get_window().get_hidpi_factor());
+        window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         
         let mut window = Window::new(window_target);
         window.set_root_view(view_data);
@@ -108,13 +110,15 @@ impl Application {
                             }
                         },
 
-                        winit::WindowEvent::Resized(ref w, ref h) => {
+                        winit::WindowEvent::Resized(logical_size) => {
+                            let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+
                             let drawing_context = &mut drawing_context.borrow_mut();
                             drawing_context.update_size(window.get_drawing_target_mut(),
-                                *w as u16, *h as u16);
+                                physical_size.width as u16, physical_size.height as u16);
 
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
-                                let size = Size::new(*w as f32, *h as f32);
+                                let size = Size::new(physical_size.width as f32, physical_size.height as f32);
                                 let mut root_control = root_view.view_data.root_control.borrow_mut();
                                 let _ = root_control.get_preferred_size(drawing_context, size);
                                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
@@ -124,9 +128,7 @@ impl Application {
                         _ => ()
                     }
 
-                    if let Some(ref mut root_view) = window.get_root_view_mut() {
-                        event_processor.handle_event(root_view, event);
-                    }
+                    event_processor.handle_event(window, event);
                 }
             };
 
@@ -135,8 +137,9 @@ impl Application {
             Dispatcher::execute_all_in_queue();
 
             for window in windows.values_mut() {
-                let (width, height) = window.get_drawing_target_mut().get_window().get_inner_size().unwrap_or((0, 0));
-                if running && width > 0 && height > 0 {
+                let logical_size = window.get_drawing_target().get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
+                let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+                if running && physical_size.width > 0.0 && physical_size.height > 0.0 {
                     if let Some(ref mut root_view) = window.get_root_view_mut() {
                         let root_control = root_view.view_data.root_control.borrow();
                         if root_control.is_dirty() {
@@ -145,7 +148,8 @@ impl Application {
                         }
                     }
 
-                    let need_swap_buffers = Application::render(window, &mut drawing_context.borrow_mut(), width, height);
+                    let need_swap_buffers = Application::render(window, &mut drawing_context.borrow_mut(),
+                        physical_size.width as u32, physical_size.height as u32);
                     window.set_need_swap_buffers(need_swap_buffers);
                 }
             }
