@@ -13,7 +13,7 @@ use std::sync::{ Arc, Mutex };
 use std::sync::mpsc::*;
 use self::gst::prelude::*;
 use fui::*;
-use pipeline_factory;
+use gstreamer_media;
 
 pub struct Player {
     pub texture: PlayerTexture,
@@ -44,7 +44,7 @@ impl Player {
         // Create the elements
         //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
         //self.texture.set_size(320, 240);
-        let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_url("http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv");
+        let (pipeline, video_app_sink) = gstreamer_media::create_pipeline_url("http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv");
         self.texture.set_size(1280, 544);
 
         let dispatcher_clone = self.dispatcher.clone();

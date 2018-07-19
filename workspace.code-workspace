@@ -7,7 +7,7 @@
 			"path": "fui_examples"
 		},
 		{
-			"path": "fui_gstreamer_test"
+			"path": "fui_video"
 		}
 	],
 	"settings": {}

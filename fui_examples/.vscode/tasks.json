@@ -4,9 +4,19 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build",
+            "taskName": "build_example1",
             "type": "shell",
-            "command": "cargo build"
+            "command": "cargo build --bin example1_button"
+        },
+        {
+            "taskName": "build_example2",
+            "type": "shell",
+            "command": "cargo build --bin example2_multiwindow"
+        },
+        {
+            "taskName": "build_example3",
+            "type": "shell",
+            "command": "cargo build --bin example3_video --features video"
         },
         {
             "taskName": "format",

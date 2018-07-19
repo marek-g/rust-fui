@@ -2,15 +2,37 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
+            "name": "ex1 button",
             "request": "launch",
             "type": "lldb",
             "sourceLanguages": ["rust"],
-            "program": "${workspaceRoot}/target/debug/example1",
+            "program": "${workspaceRoot}/target/debug/example1_button",
             //"type": "gdb",
             //"target": "${workspaceRoot}/target/debug/example1.exe",
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build"
-        }
+            "preLaunchTask": "build_example1"
+        },
+        {
+            "name": "ex2 multiwindow",
+            "request": "launch",
+            "type": "lldb",
+            "sourceLanguages": ["rust"],
+            "program": "${workspaceRoot}/target/debug/example2_multiwindow",
+            //"type": "gdb",
+            //"target": "${workspaceRoot}/target/debug/example1.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build_example2"
+        },
+        {
+            "name": "ex3 video",
+            "request": "launch",
+            "type": "lldb",
+            "sourceLanguages": ["rust"],
+            "program": "${workspaceRoot}/target/debug/example3_video",
+            //"type": "gdb",
+            //"target": "${workspaceRoot}/target/debug/example1.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build_example3"
+        },
     ]
 }

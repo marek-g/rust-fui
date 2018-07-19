@@ -1,10 +1,8 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate fui_video;
 extern crate winit;
-
-mod player;
-mod pipeline_factory;
 
 use fui::application::*;
 use fui::controls::*;
@@ -14,7 +12,7 @@ use fui::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use player::Player;
+use fui_video::Player;
 
 struct MainViewModel {
     pub player: Rc<RefCell<Player>>,

@@ -1,12 +1,12 @@
 [package]
-name = "fui_gstreamer_test"
+name = "fui_video"
 version = "0.1.0"
 authors = ["Marek G <no@mail.com>"]
 
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
+gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
 failure = "*"
-winit = "*"
 gstreamer = "*"
 gstreamer-app = "*"
 time = "*"

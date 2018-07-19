@@ -6,7 +6,23 @@ authors = ["Marek G <no@mail.com>"]
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
 winit = "*"
+failure = "*"
+time = "*"
+
+fui_video = { path = "../../rust-fui/fui_video", version = "*", optional = true }
+
+[features]
+video = ["fui_video"]
 
 [[bin]]
-name = "example1"
-path = "src/example1.rs"
+name = "example1_button"
+path = "src/example1_button.rs"
+
+[[bin]]
+name = "example2_multiwindow"
+path = "src/example2_multiwindow.rs"
+
+[[bin]]
+name = "example3_video"
+path = "src/example3_video.rs"
+required-features = ["video"]
