@@ -15,18 +15,18 @@ use self::gst::prelude::*;
 use fui::*;
 use gstreamer_media;
 
-pub struct Player {
+pub struct PlayerGl {
     pub texture: PlayerTexture,
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<Vec<u8>>>,
 }
 
-impl Player {
+impl PlayerGl {
     pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         gst::init().unwrap();
 
-        Player {
+        PlayerGl {
             texture: PlayerTexture::new(drawing_context),
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
@@ -44,12 +44,12 @@ impl Player {
         // Create the elements
         //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
         //self.texture.set_size(320, 240);
-        let (pipeline, video_app_sink) = gstreamer_media::create_appsink_pipeline_url(
+        let (pipeline, video_sink) = gstreamer_media::create_opengl_pipeline_url(
             "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv");
         self.texture.set_size(1280, 544);
 
         let dispatcher_clone = self.dispatcher.clone();
-        video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
+        /*video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
             .new_sample(move |app_sink| {
                 let timespec = time::get_time();
                 let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
@@ -79,7 +79,7 @@ impl Player {
                 gst::FlowReturn::Ok
             })
             .build()
-        );
+        );*/
 
         self.pipeline = Some(pipeline);
     }

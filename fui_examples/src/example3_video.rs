@@ -12,16 +12,16 @@ use fui::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use fui_video::Player;
+use fui_video::PlayerGl;
 
 struct MainViewModel {
-    pub player: Rc<RefCell<Player>>,
+    pub player: Rc<RefCell<PlayerGl>>,
     player_loop_subscription: EventSubscription,
 }
 
 impl MainViewModel {
     pub fn new(app: &mut Application) -> Self {
-        let player = Rc::new(RefCell::new(Player::new(app.get_drawing_context())));
+        let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context())));
 
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {
