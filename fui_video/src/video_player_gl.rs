@@ -4,6 +4,8 @@ extern crate gstreamer as gst;
 extern crate gstreamer_app as gst_app;
 extern crate fui;
 extern crate std;
+extern crate drawing;
+extern crate glutin;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -14,76 +16,95 @@ use std::sync::mpsc::*;
 use self::gst::prelude::*;
 use fui::*;
 use gstreamer_media;
+use self::drawing::backend::WindowTargetExt;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
     drawing_context: Rc<RefCell<DrawingContext>>,
+    window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<Vec<u8>>>,
 }
 
 impl PlayerGl {
-    pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>,
+        window_manager: &Rc<RefCell<WindowManager>>) -> Self {
         gst::init().unwrap();
 
         PlayerGl {
             texture: PlayerTexture::new(drawing_context.clone()),
             drawing_context: drawing_context.clone(),
+            window_manager: window_manager.clone(),
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
         }
     }
 
-    pub fn open(&mut self) {
+    pub fn open(&mut self) -> Result<()> {
         println!("Main thread id: {:?}", std::thread::current().id());
 
         let (sender, receiver) = channel();
         self.receiver = Some(receiver);
         let sender = Arc::new(Mutex::new(sender));
 
-        // Create the elements
-        //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
-        //self.texture.set_size(320, 240);
-        let (pipeline, video_sink) = gstreamer_media::create_opengl_pipeline_url(
-            "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv");
-        self.texture.set_size(1280, 544);
+        let main_window_id = self.window_manager.borrow().get_main_window_id();
+        if let Some(main_window_id) = main_window_id {
+            if let Some(main_window) = self.window_manager.borrow_mut().get_windows_mut().get(&main_window_id) {
+                let window_drawing_target = main_window.get_drawing_target();
+                let context = window_drawing_target.get_context();
 
-        let dispatcher_clone = self.dispatcher.clone();
-        /*video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
-            .new_sample(move |app_sink| {
-                let timespec = time::get_time();
-                let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
-                println!("New sample thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
+                // Create the elements
+                //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
+                //self.texture.set_size(320, 240);
+                let (pipeline, video_sink) = gstreamer_media::create_opengl_pipeline_url(
+                    "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv",
+                    &context);
+                self.texture.set_size(1280, 544);
 
-                let sample = match app_sink.pull_sample() {
-                    None => return gst::FlowReturn::Eos,
-                    Some(sample) => sample,
-                };
+                let dispatcher_clone = self.dispatcher.clone();
+                /*video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
+                    .new_sample(move |app_sink| {
+                        let timespec = time::get_time();
+                        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                        println!("New sample thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
-                let caps = sample.get_caps().unwrap();
-                let s = caps.get_structure(0).unwrap();
-                let width: i32 = s.get("width").unwrap();
-                let height: i32 = s.get("height").unwrap();
-                let buffer = sample.get_buffer().unwrap();
-                let map = buffer.map_readable().unwrap();
-                let data = map.as_slice();
+                        let sample = match app_sink.pull_sample() {
+                            None => return gst::FlowReturn::Eos,
+                            Some(sample) => sample,
+                        };
 
-                //print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
+                        let caps = sample.get_caps().unwrap();
+                        let s = caps.get_structure(0).unwrap();
+                        let width: i32 = s.get("width").unwrap();
+                        let height: i32 = s.get("height").unwrap();
+                        let buffer = sample.get_buffer().unwrap();
+                        let map = buffer.map_readable().unwrap();
+                        let data = map.as_slice();
 
-                sender.lock().unwrap().send(Vec::from(data)).unwrap();
+                        //print!("AppSink: New sample ({}x{}, size: {})\n", width, height, data.len());
 
-                dispatcher_clone.lock().unwrap().send_async(|| {
-                    //texture_clone.lock().unwrap().update_texture();
-                });
+                        sender.lock().unwrap().send(Vec::from(data)).unwrap();
 
-                gst::FlowReturn::Ok
-            })
-            .build()
-        );*/
+                        dispatcher_clone.lock().unwrap().send_async(|| {
+                            //texture_clone.lock().unwrap().update_texture();
+                        });
 
-        self.pipeline = Some(pipeline);
+                        gst::FlowReturn::Ok
+                    })
+                    .build()
+                );*/
+
+                self.pipeline = Some(pipeline);
+
+                Ok(())
+            } else {
+                Err(::failure::err_msg("Cannot find GL Context for the main window!"))
+            }
+        } else {
+            Err(::failure::err_msg("Cannot find GL Context. There is no window!"))
+        }
     }
 
     pub fn play(&mut self) {

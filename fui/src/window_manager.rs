@@ -15,7 +15,7 @@ use ::Result;
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
-    main_window: Option<winit::WindowId>,
+    main_window_id: Option<winit::WindowId>,
     windows: HashMap<winit::WindowId, Window>,
 }
 
@@ -23,7 +23,7 @@ impl WindowManager {
     pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         WindowManager {
             drawing_context: drawing_context,
-            main_window: None,
+            main_window_id: None,
             windows: HashMap::new()
         }
     }
@@ -44,6 +44,10 @@ impl WindowManager {
         window.set_root_view(view_data);
         self.windows.insert(window_id, window);
 
+        if let None = self.main_window_id {
+            self.main_window_id = Some(window_id);
+        }
+
         Ok(window_id)
     }
 
@@ -54,13 +58,17 @@ impl WindowManager {
         self.add_window(window_builder, &events_loop, V::create_view(view_model))
     }
 
+    pub fn get_main_window_id(&self) -> Option<winit::WindowId> {
+        self.main_window_id
+    }
+
     pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::WindowId, Window> {
         &mut self.windows
     }
 
     pub fn clear(&mut self) {
         self.windows.clear();
-        self.main_window = None;
+        self.main_window_id = None;
     }
 }
 

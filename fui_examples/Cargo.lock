@@ -308,8 +308,10 @@ dependencies = [
 name = "fui_video"
 version = "0.1.0"
 dependencies = [
+ "drawing 0.1.0",
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "fui 0.1.0",
+ "glutin 0.17.0 (git+https://github.com/marek-g/glutin)",
  "gstreamer 0.11.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "gstreamer-app 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gstreamer_media 0.1.0",
@@ -508,6 +510,7 @@ version = "0.1.0"
 dependencies = [
  "failure 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "glib 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glutin 0.17.0 (git+https://github.com/marek-g/glutin)",
  "gstreamer 0.11.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "gstreamer-app 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gstreamer-gl-sys 0.1.0",

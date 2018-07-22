@@ -21,7 +21,7 @@ struct MainViewModel {
 
 impl MainViewModel {
     pub fn new(app: &mut Application) -> Self {
-        let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context())));
+        let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context(), app.get_window_manager())));
 
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {
