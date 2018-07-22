@@ -5,7 +5,6 @@ use ::Result;
 use winit::dpi::LogicalSize;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::collections::HashMap;
 
 use drawing::units::{ PhysPixelSize };
 use drawing::backend::WindowTarget;
@@ -13,11 +12,10 @@ use drawing_context::DrawingContext;
 use common::*;
 use events::*;
 use observable::Event;
-use View;
-use ViewData;
 use CallbackExecutor;
 use Dispatcher;
 use Window;
+use WindowManager;
 
 pub struct Application {
     title: &'static str,
@@ -25,7 +23,7 @@ pub struct Application {
     events_loop_interation: Event<()>,
     event_processor: EventProcessor,
     drawing_context: Rc<RefCell<DrawingContext>>,
-    windows: HashMap<winit::WindowId, Window>,
+    window_manager: Rc<RefCell<WindowManager>>,
 }
 
 impl Application {
@@ -43,38 +41,25 @@ impl Application {
             events_loop: events_loop,
             events_loop_interation: Event::new(),
             event_processor: EventProcessor::new(),
-            drawing_context: drawing_context,
-            windows: HashMap::new(),
+            drawing_context: drawing_context.clone(),
+            window_manager: Rc::new(RefCell::new(WindowManager::new(drawing_context))),
         })
-    }
-
-    pub fn add_window(&mut self, window_builder: winit::WindowBuilder, view_data: ViewData) -> Result<winit::WindowId>
-    {
-        let mut window_target = self.drawing_context.borrow_mut().create_window(window_builder, &self.events_loop)?;
-        let logical_size = window_target.get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
-        let window_id = window_target.get_window().id();
-
-        let physical_size = logical_size.to_physical(window_target.get_window().get_hidpi_factor());
-        window_target.update_size(physical_size.width as u16, physical_size.height as u16);
-        
-        let mut window = Window::new(window_target);
-        window.set_root_view(view_data);
-        self.windows.insert(window_id, window);
-
-        Ok(window_id)
-    }
-
-    pub fn add_window_view_model<V: View>(&mut self,
-        window_builder: winit::WindowBuilder, view_model: &Rc<RefCell<V>>) -> Result<winit::WindowId> {
-        self.add_window(window_builder, V::create_view(view_model))
     }
 
     pub fn get_title(&self) -> &'static str {
         self.title
     }
 
-    pub fn get_drawing_context(&self) -> Rc<RefCell<DrawingContext>> {
-        self.drawing_context.clone()
+    pub fn get_events_loop(&self) -> &winit::EventsLoop {
+        &self.events_loop
+    }
+
+    pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
+        &self.drawing_context
+    }
+
+    pub fn get_window_manager(&self) -> &Rc<RefCell<WindowManager>> {
+        &self.window_manager
     }
 
     pub fn create_loop_proxy(&self) -> winit::EventsLoopProxy {
@@ -93,11 +78,11 @@ impl Application {
         let events_loop_interation = &mut self.events_loop_interation;
         let event_processor = &mut self.event_processor;
         let drawing_context = self.drawing_context.clone();
-        let windows = &mut self.windows;
+        let window_manager = self.window_manager.clone();
 
         events_loop.run_forever(|event| {
             if let winit::Event::WindowEvent { ref window_id, ref event } = event {
-                if let Some(window) = windows.get_mut(window_id) {
+                if let Some(window) = window_manager.borrow_mut().get_windows_mut().get_mut(window_id) {
                     match event {
                         winit::WindowEvent::CloseRequested => {
                             running = false;
@@ -136,7 +121,7 @@ impl Application {
             CallbackExecutor::execute_all_in_queue();
             Dispatcher::execute_all_in_queue();
 
-            for window in windows.values_mut() {
+            for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                 let logical_size = window.get_drawing_target().get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
                 let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
                 if running && physical_size.width > 0.0 && physical_size.height > 0.0 {
@@ -154,7 +139,7 @@ impl Application {
                 }
             }
 
-            for window in windows.values_mut() {
+            for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                 if window.get_need_swap_buffers() {
                     window.get_drawing_target_mut().swap_buffers();
                 }
@@ -199,13 +184,5 @@ impl Application {
         }
 
         false
-    }
-}
-
-impl Drop for Application {
-    fn drop(&mut self) {
-        // It is important to drop windows before drawing_context!
-        // Windows cleanup graphics resources and drawing context drops graphics device.
-        self.windows.clear();
     }
 }

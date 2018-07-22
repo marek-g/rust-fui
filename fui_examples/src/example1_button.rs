@@ -70,9 +70,13 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek").unwrap();
 
-    let window_builder1 = winit::WindowBuilder::new().with_title("Window 1");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
-    app.add_window_view_model(window_builder1, &main_view_model).unwrap();
+
+    {
+        let mut window_manager = app.get_window_manager().borrow_mut();
+        let window_builder = winit::WindowBuilder::new().with_title("Window 1");
+        window_manager.add_window_view_model(window_builder, app.get_events_loop(), &main_view_model).unwrap();
+    }
 
     app.run();
 }

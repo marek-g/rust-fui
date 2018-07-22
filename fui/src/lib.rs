@@ -36,3 +36,6 @@ pub use view::*;
 
 mod window;
 pub use window::*;
+
+mod window_manager;
+pub use window_manager::*;

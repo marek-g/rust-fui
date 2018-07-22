@@ -17,17 +17,19 @@ use gstreamer_media;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
+    drawing_context: Rc<RefCell<DrawingContext>>,
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<Vec<u8>>>,
 }
 
 impl PlayerGl {
-    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>) -> Self {
         gst::init().unwrap();
 
         PlayerGl {
-            texture: PlayerTexture::new(drawing_context),
+            texture: PlayerTexture::new(drawing_context.clone()),
+            drawing_context: drawing_context.clone(),
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,

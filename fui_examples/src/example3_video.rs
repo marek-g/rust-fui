@@ -88,9 +88,13 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek").unwrap();
 
-    let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
     let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app)));
-    app.add_window_view_model(window_builder, &main_view_model).unwrap();
+
+    {
+        let mut window_manager = app.get_window_manager().borrow_mut();
+        let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
+        window_manager.add_window_view_model(window_builder, app.get_events_loop(), &main_view_model).unwrap();
+    }
  
-    app.run();  
+    app.run();
 }
