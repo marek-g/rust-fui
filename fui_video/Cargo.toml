@@ -11,4 +11,5 @@ failure = "*"
 gstreamer = "*"
 gstreamer-app = "*"
 glutin = { git = "https://github.com/marek-g/glutin" }
+winit = "*"
 time = "*"

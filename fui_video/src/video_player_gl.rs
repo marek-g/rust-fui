@@ -6,6 +6,7 @@ extern crate fui;
 extern crate std;
 extern crate drawing;
 extern crate glutin;
+extern crate winit;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -17,9 +18,15 @@ use self::gst::prelude::*;
 use fui::*;
 use gstreamer_media;
 use self::drawing::backend::WindowTargetExt;
+use self::glutin::os::GlContextExt;
+use self::glutin::os::unix::RawHandle::Glx;
+use self::glutin::api::glx::Context;
+use self::winit::os::unix::EventsLoopExt;
+use self::winit::os::unix::x11::XConnection;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
+    xconnection: Arc<XConnection>,
     drawing_context: Rc<RefCell<DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<self::gst::Pipeline>,
@@ -29,17 +36,24 @@ pub struct PlayerGl {
 
 impl PlayerGl {
     pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>,
-        window_manager: &Rc<RefCell<WindowManager>>) -> Self {
-        gst::init().unwrap();
+        window_manager: &Rc<RefCell<WindowManager>>,
+        events_loop: &winit::EventsLoop) -> Result<Self> {
+        gst::init()?;
 
-        PlayerGl {
+        let xconnection = match events_loop.get_xlib_xconnection() {
+            Some(xconnection) => xconnection,
+            None => return Err(::failure::err_msg("Cannot find X11 Connection (Display)!")),
+        };
+
+        Ok(PlayerGl {
             texture: PlayerTexture::new(drawing_context.clone()),
+            xconnection: xconnection,
             drawing_context: drawing_context.clone(),
             window_manager: window_manager.clone(),
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
-        }
+        })
     }
 
     pub fn open(&mut self) -> Result<()> {
@@ -60,7 +74,7 @@ impl PlayerGl {
                 //self.texture.set_size(320, 240);
                 let (pipeline, video_sink) = gstreamer_media::create_opengl_pipeline_url(
                     "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv",
-                    &context);
+                    &context, &self.xconnection);
                 self.texture.set_size(1280, 544);
 
                 let dispatcher_clone = self.dispatcher.clone();

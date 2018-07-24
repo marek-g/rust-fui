@@ -20,8 +20,10 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(app: &mut Application) -> Self {
-        let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context(), app.get_window_manager())));
+    pub fn new(app: &mut Application) -> Result<Self> {
+        let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context(),
+            app.get_window_manager(),
+            app.get_events_loop())?));
 
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {
@@ -33,10 +35,10 @@ impl MainViewModel {
             }
         });
 
-        MainViewModel {
+        Ok(MainViewModel {
             player,
             player_loop_subscription,
-        }
+        })
     }
 
     pub fn play(&mut self) {
@@ -88,7 +90,7 @@ impl View for MainViewModel {
 fn main() {
     let mut app = Application::new("Marek Ogarek").unwrap();
 
-    let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app)));
+    let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app).unwrap()));
 
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
