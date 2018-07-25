@@ -13,9 +13,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_video::PlayerGl;
+//use fui_video::Player;
 
 struct MainViewModel {
     pub player: Rc<RefCell<PlayerGl>>,
+    //pub player: Rc<RefCell<Player>>,
     player_loop_subscription: EventSubscription,
 }
 
@@ -24,6 +26,7 @@ impl MainViewModel {
         let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context(),
             app.get_window_manager(),
             app.get_events_loop())?));
+        //let player = Rc::new(RefCell::new(Player::new(app.get_drawing_context().clone())));
 
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription = app.get_events_loop_interation().subscribe(move |_| {

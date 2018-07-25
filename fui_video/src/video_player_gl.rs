@@ -40,6 +40,7 @@ pub struct PlayerGl {
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<GLuint>>,
+    events_loop_proxy: winit::EventsLoopProxy,
 }
 
 impl PlayerGl {
@@ -61,6 +62,7 @@ impl PlayerGl {
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
+            events_loop_proxy: events_loop.create_proxy(),
         })
     }
 
@@ -86,6 +88,8 @@ impl PlayerGl {
                 self.texture.set_size(1280, 544);
 
                 let dispatcher_clone = self.dispatcher.clone();
+                let events_loop_proxy_clone = self.events_loop_proxy.clone();
+
                 video_sink.connect("client-reshape", false, move |args| {
                     println!("client-reshape! {:?}", args);
                     Some(Value::from(&true))
@@ -127,8 +131,11 @@ impl PlayerGl {
 
                             if let Ok(texture_id) = texture_id {
                                 println!("texture_id: {}", texture_id);
-                                dispatcher_clone.lock().unwrap().send_async(|| {});
+                               
                                 sender.lock().unwrap().send(texture_id).unwrap();
+
+                                events_loop_proxy_clone.wakeup().unwrap();;
+                                //dispatcher_clone.lock().unwrap().send_async(|| {});
                             }
                         }
                         /*let map = buffer.into_mapped_buffer_readable().unwrap();
