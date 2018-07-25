@@ -5,11 +5,18 @@ authors = ["Marek G <no@mail.com>"]
 
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
+drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
 fui = { path = "../../rust-fui/fui", version = "*" }
 gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
 failure = "*"
 gstreamer = "*"
+gstreamer-sys = "*"
 gstreamer-app = "*"
+gstreamer-video = "*"
+gstreamer-video-sys = "*"
+glib = "*"
 glutin = { git = "https://github.com/marek-g/glutin" }
+gl = "*"
 winit = "*"
 time = "*"
+

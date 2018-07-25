@@ -1,12 +1,18 @@
 extern crate failure;
 extern crate time;
 extern crate gstreamer as gst;
+extern crate gstreamer_sys as gst_ffi;
 extern crate gstreamer_app as gst_app;
+extern crate gstreamer_video as gst_video;
+extern crate gstreamer_video_sys as gst_video_ffi;
 extern crate fui;
 extern crate std;
 extern crate drawing;
+extern crate drawing_gl;
 extern crate glutin;
 extern crate winit;
+extern crate glib;
+extern crate gl;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -23,6 +29,8 @@ use self::glutin::os::unix::RawHandle::Glx;
 use self::glutin::api::glx::Context;
 use self::winit::os::unix::EventsLoopExt;
 use self::winit::os::unix::x11::XConnection;
+use self::glib::Value;
+use self::gl::types::*;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
@@ -31,7 +39,7 @@ pub struct PlayerGl {
     window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
-    receiver: Option<Receiver<Vec<u8>>>,
+    receiver: Option<Receiver<GLuint>>,
 }
 
 impl PlayerGl {
@@ -78,6 +86,60 @@ impl PlayerGl {
                 self.texture.set_size(1280, 544);
 
                 let dispatcher_clone = self.dispatcher.clone();
+                video_sink.connect("client-reshape", false, move |args| {
+                    println!("client-reshape! {:?}", args);
+                    Some(Value::from(&true))
+                }).unwrap();
+
+                video_sink.connect("client-draw", false, move |args| {
+                    println!("client-draw! {:?}", args);
+                    let sample = args[2].get::<gst::Sample>().expect("Invalid argument - GstSample expected.");
+                    if let (Some(buffer), Some(caps)) = (sample.get_buffer(), sample.get_caps()) {
+                        println!("caps: {}", caps.to_string());
+                        if let Some(video_info) = gst_video::VideoInfo::from_caps(&caps) {
+                            println!("video_info: {:?}", video_info);
+
+                            let texture_id = unsafe {
+                                use video_player_gl::glib::translate::ToGlibPtr;
+                                use std::mem;
+                                use self::glib::translate::from_glib;
+                                const GST_MAP_GL: u32 = 131072u32;
+
+                                let mut frame: gst_video_ffi::GstVideoFrame = mem::zeroed();
+                                let res: bool = from_glib(gst_video_ffi::gst_video_frame_map(
+                                    &mut frame,
+                                    video_info.to_glib_none().0 as *mut _,
+                                    buffer.to_glib_none().0,
+                                    mem::transmute(
+                                        gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF.bits() | gst_ffi::GST_MAP_READ.bits() |
+                                            GST_MAP_GL,
+                                    ),
+                                ));
+
+                                if !res {
+                                    Err(buffer)
+                                } else {
+                                    let texture_id = *(frame.data[0] as *const GLuint);
+                                    gst_video_ffi::gst_video_frame_unmap(&mut frame);
+                                    Ok(texture_id)
+                                }
+                            };
+
+                            if let Ok(texture_id) = texture_id {
+                                println!("texture_id: {}", texture_id);
+                                dispatcher_clone.lock().unwrap().send_async(|| {});
+                                sender.lock().unwrap().send(texture_id).unwrap();
+                            }
+                        }
+                        /*let map = buffer.into_mapped_buffer_readable().unwrap();
+                        let data = map.as_slice();
+                        //println!("data {:?}", data);
+                        let texture_id = unsafe { *(data.as_ptr() as *const i64) };
+                        println!("texture_id {}", texture_id);*/
+                    }
+                    Some(Value::from(&true))
+                }).unwrap();
+
                 /*video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
                     .new_sample(move |app_sink| {
                         let timespec = time::get_time();
@@ -131,11 +193,11 @@ impl PlayerGl {
 
     pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
-            while let Ok(buffer) = receiver.try_recv() {
+            while let Ok(texture_id) = receiver.try_recv() {
                 let timespec = time::get_time();
                 let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
-                println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
-                self.texture.update_texture(buffer)?
+                //println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
+                self.texture.update_texture(texture_id)?
             }
         }
         Ok(())
@@ -172,20 +234,23 @@ impl PlayerTexture {
         self.height = height;
     }
 
-    fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
+    fn update_texture(&mut self, texture_id: GLuint) -> Result<()> {
         let timespec = time::get_time();
         let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
         println!("Dispatcher, thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
-        if self.texture_id == -1 {
+        {
+            let texture = drawing_gl::GlTexture::from_external(texture_id, self.width, self.height, ColorFormat::RGBA);
             let drawing_context = &mut self.drawing_context.borrow_mut();
-            self.texture_id = drawing_context.create_texture(&buffer, self.width, self.height, ColorFormat::RGBA, true)?;
-        }
-        else {
-            let drawing_context = &mut self.drawing_context.borrow_mut();
-            drawing_context.update_texture(self.texture_id, &buffer, 0, 0, self.width, self.height)?;
-        }
+            let resources = drawing_context.get_resources_mut();
+        
+            if self.texture_id == -1 {
+                self.texture_id = resources.get_next_texture_id();
+            }
 
+            resources.textures_mut().insert(self.texture_id, texture);
+        }
+    
         self.updated.emit(self.texture_id);
 
         Ok(())
