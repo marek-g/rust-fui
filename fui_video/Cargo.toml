@@ -17,6 +17,7 @@ gstreamer-video-sys = "*"
 glib = "*"
 glutin = { git = "https://github.com/marek-g/glutin" }
 gl = "*"
-winit = "*"
+#winit = "*"
+winit = { git = "https://github.com/marek-g/winit" }
 time = "*"
 
