@@ -241,7 +241,8 @@ impl PlayerGl {
 
                 video_sink.connect("client-reshape", false, move |args| {
                     println!("client-reshape! {:?}", args);
-                    Some(Value::from(&true))
+                    //Some(Value::from(&true))
+                    Some(Value::from(&false))
                 }).unwrap();
 
                 video_sink.connect("client-draw", false, move |args| {
@@ -293,7 +294,8 @@ impl PlayerGl {
                         let texture_id = unsafe { *(data.as_ptr() as *const i64) };
                         println!("texture_id {}", texture_id);*/
                     }
-                    Some(Value::from(&true))
+                    //Some(Value::from(&true))
+                    Some(Value::from(&false))
                 }).unwrap();
 
                 /*video_app_sink.set_callbacks(gst_app::AppSinkCallbacks::new()
