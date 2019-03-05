@@ -265,7 +265,7 @@ impl PlayerGl {
                                     video_info.to_glib_none().0 as *mut _,
                                     buffer.to_glib_none().0,
                                     mem::transmute(
-                                        gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF.bits() | gst_ffi::GST_MAP_READ.bits() |
+                                        gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF | gst_ffi::GST_MAP_READ |
                                             GST_MAP_GL,
                                     ),
                                 ));
@@ -345,7 +345,7 @@ impl PlayerGl {
         // Start playing
         if let Some(ref pipeline) = self.pipeline {
             let ret = pipeline.set_state(gst::State::Playing);
-            assert_ne!(ret, gst::StateChangeReturn::Failure);
+            assert_ne!(ret, Err(gst::StateChangeError));
         }
     }
 
@@ -365,7 +365,7 @@ impl PlayerGl {
         // Shutdown pipeline
         if let Some(ref pipeline) = self.pipeline {
             let ret = pipeline.set_state(gst::State::Null);
-            assert_ne!(ret, gst::StateChangeReturn::Failure);
+            assert_ne!(ret, Err(gst::StateChangeError));
         }
     }
 }

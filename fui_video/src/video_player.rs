@@ -56,7 +56,7 @@ impl Player {
                 println!("New sample thread id: {:?}, time: {:?}", std::thread::current().id(), mills);
 
                 let sample = match app_sink.pull_sample() {
-                    None => return gst::FlowReturn::Eos,
+                    None => return Err(gst::FlowError::Eos),
                     Some(sample) => sample,
                 };
 
@@ -76,7 +76,7 @@ impl Player {
                     //texture_clone.lock().unwrap().update_texture();
                 });
 
-                gst::FlowReturn::Ok
+                Ok(gst::FlowSuccess::Ok)
             })
             .build()
         );
@@ -88,7 +88,7 @@ impl Player {
         // Start playing
         if let Some(ref pipeline) = self.pipeline {
             let ret = pipeline.set_state(gst::State::Playing);
-            assert_ne!(ret, gst::StateChangeReturn::Failure);
+            assert_ne!(ret, Err(gst::StateChangeError));
         }
     }
 
@@ -108,7 +108,7 @@ impl Player {
         // Shutdown pipeline
         if let Some(ref pipeline) = self.pipeline {
             let ret = pipeline.set_state(gst::State::Null);
-            assert_ne!(ret, gst::StateChangeReturn::Failure);
+            assert_ne!(ret, Err(gst::StateChangeError));
         }
     }
 }
