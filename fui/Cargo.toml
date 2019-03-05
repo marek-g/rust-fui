@@ -7,7 +7,7 @@ authors = ["Marek G <no@mail.com>"]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
 failure = "*"
-#winit = "*"
-winit = { git = "https://github.com/marek-g/winit" }
+winit = "*"
+#winit = { git = "https://github.com/marek-g/winit" }
 shared_library = "*"
 find_folder = "*"

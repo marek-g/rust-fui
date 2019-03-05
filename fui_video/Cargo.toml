@@ -15,9 +15,9 @@ gstreamer-app = "*"
 gstreamer-video = "*"
 gstreamer-video-sys = "*"
 glib = "*"
-glutin = { git = "https://github.com/marek-g/glutin" }
+glutin = "*"
+#glutin = { git = "https://github.com/marek-g/glutin" }
 gl = "*"
-#winit = "*"
-winit = { git = "https://github.com/marek-g/winit" }
+winit = "*"
+#winit = { git = "https://github.com/marek-g/winit" }
 time = "*"
-
