@@ -24,14 +24,11 @@ use self::gst::prelude::*;
 use fui::*;
 use gstreamer_media;
 use self::drawing::backend::WindowTargetExt;
-use self::glutin::os::GlContextExt;
 use self::glib::Value;
 use self::gl::types::*;
 
 #[cfg(target_os = "linux")]
 use self::glutin::os::unix::RawHandle::Glx;
-#[cfg(target_os = "linux")]
-use self::glutin::api::glx::Context;
 #[cfg(target_os = "linux")]
 use self::winit::os::unix::EventsLoopExt;
 #[cfg(target_os = "linux")]
@@ -139,7 +136,7 @@ impl PlayerGl {
                                     video_info.to_glib_none().0 as *mut _,
                                     buffer.to_glib_none().0,
                                     mem::transmute(
-                                        gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF.bits() | gst_ffi::GST_MAP_READ.bits() |
+                                        gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF | gst_ffi::GST_MAP_READ |
                                             GST_MAP_GL,
                                     ),
                                 ));

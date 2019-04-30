@@ -8,9 +8,20 @@
             //"sourceLanguages": ["rust"],
             //"program": "${workspaceRoot}/target/debug/example1_button",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example1_button.exe",
+            "target": "${workspaceRoot}/target/debug/example1_button",
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build_example1"
+        },
+        {
+            "name": "ex1 button (win32)",
+            "request": "launch",
+            //"type": "lldb",
+            //"sourceLanguages": ["rust"],
+            //"program": "${workspaceRoot}/target/debug/example1_button",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example1_button.exe",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build_example1_win32"
         },
         {
             "name": "ex2 multiwindow",
@@ -19,7 +30,7 @@
             //"sourceLanguages": ["rust"],
             //"program": "${workspaceRoot}/target/debug/example2_multiwindow",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example2_multiwindow.exe",
+            "target": "${workspaceRoot}/target/debug/example2_multiwindow",
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build_example2"
         },
@@ -30,7 +41,7 @@
             //"sourceLanguages": ["rust"],
             //"program": "${workspaceRoot}/target/debug/example3_video",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example3_video.exe",
+            "target": "${workspaceRoot}/target/debug/example3_video",
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build_example3"
         },

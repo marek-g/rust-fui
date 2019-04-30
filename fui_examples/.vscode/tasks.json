@@ -9,6 +9,11 @@
             "command": "cargo build --bin example1_button"
         },
         {
+            "taskName": "build_example1_win32",
+            "type": "shell",
+            "command": "cargo build --bin example1_button --target i686-pc-windows-gnu"
+        },
+        {
             "taskName": "build_example2",
             "type": "shell",
             "command": "cargo build --bin example2_multiwindow"
