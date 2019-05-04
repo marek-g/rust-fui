@@ -35,14 +35,21 @@ impl MainViewModel {
 impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         // controls
-        let btn1 = Button::control(Text::control("Decrease"));
-        let btn2 = Button::control(Text::control("Increase"));
         let text1 = Text::control("");
         let text2 = Text::control("");
 
-        // events
-        btn1.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.decrease(); });
-        btn2.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.increase(); });
+        // layout
+        let root_control = Horizontal::control(vec![
+            text1.clone(),
+
+            Button::control(Text::control("Decrease"))
+                .with_vm(view_model, |vm, btn| btn.data.events.clicked.set_vm(vm, |vm, _| { vm.decrease(); })),
+
+            Button::control(Text::control("Increase"))
+                .with_vm(view_model, |vm, btn| btn.data.events.clicked.set_vm(vm, |vm, _| { vm.increase(); })),
+
+            text2.clone()
+        ]);
 
         // bindings
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
@@ -54,11 +61,6 @@ impl View for MainViewModel {
             vm.counter2.bind(&mut vm.counter),
             vm.counter.bind(&mut vm.counter2),
         ];
-
-        // layout
-        let root_control = Horizontal::control(vec![
-            text1, btn1, btn2, text2
-        ]);
 
         ViewData {
             root_control: root_control,
