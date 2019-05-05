@@ -110,6 +110,9 @@ impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
 
 pub trait ControlExtensions<D> {
     fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(mut self, vm: &Rc<RefCell<V>>, f: F) -> Self;
+
+    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(mut self,
+        bindings: &mut Vec<EventSubscription>, vm: &Rc<RefCell<V>>, f: F) -> Rc<RefCell<Control<D>>>;
 }
 
 impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> where Control<D>: ControlBehaviour {
@@ -118,6 +121,17 @@ impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> where Control<
         {
             let mut control = self.borrow_mut();
             f(&vm, &mut control);
+        }
+        self
+    }
+
+    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(mut self,
+        bindings: &mut Vec<EventSubscription>, vm: &Rc<RefCell<V>>, f: F) -> Rc<RefCell<Control<D>>> {
+        {
+            let mut vm = vm.borrow_mut();
+            let mut control = self.borrow_mut();
+            let binding = f(&mut vm, &mut control);
+            bindings.push(binding);
         }
         self
     }
