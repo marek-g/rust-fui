@@ -39,30 +39,31 @@ impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         let mut bindings = Vec::<fui::EventSubscription>::new();
 
-        let root_control = Horizontal::control(vec![
-            Text::control("").with_binding(&mut bindings, view_model, |vm, btn| {
+        let root_control = Horizontal::control(HorizontalProperties { children: vec![
+            Text::control(TextProperties { text: Property::new("".to_string()) })
+            .with_binding(&mut bindings, view_model, |vm, btn| {
                 btn.data
                     .properties
                     .text
                     .bind_c(&mut vm.counter, |counter| format!("Counter {}", counter))
             }),
-            Button::control(Text::control("Decrease")).with_vm(view_model, |vm, btn| {
+            Button::control(ButtonProperties { content: Text::control(TextProperties { text: Property::new("Decrease".to_string()) }) }).with_vm(view_model, |vm, btn| {
                 btn.data.events.clicked.set_vm(vm, |vm, _| {
                     vm.decrease();
                 })
             }),
-            Button::control(Text::control("Increase")).with_vm(view_model, |vm, btn| {
+            Button::control(ButtonProperties { content: Text::control(TextProperties { text: Property::new("Increase".to_string()) }) }).with_vm(view_model, |vm, btn| {
                 btn.data.events.clicked.set_vm(vm, |vm, _| {
                     vm.increase();
                 })
             }),
-            Text::control("").with_binding(&mut bindings, view_model, |vm, btn| {
+            Text::control(TextProperties { text: Property::new("".to_string()) }).with_binding(&mut bindings, view_model, |vm, btn| {
                 btn.data
                     .properties
                     .text
                     .bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter))
             }),
-        ]);
+        ] });
 
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         bindings.push(vm.counter2.bind(&mut vm.counter));

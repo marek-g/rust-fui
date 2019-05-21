@@ -1,33 +1,34 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use common::*;
 use control::*;
 use control_object::*;
-use common::*;
-use drawing_context::DrawingContext;
 use drawing::backend::Texture;
 use drawing::primitive::Primitive;
-use drawing::units::{ UserPixelRect, UserPixelPoint, UserPixelThickness, UserPixelSize };
+use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
 use Property;
 
-pub struct Bitmap {
+pub struct BitmapProperties {
     pub texture_id: Property<i32>,
 }
 
+pub struct Bitmap {
+    pub properties: BitmapProperties,
+}
+
 impl Bitmap {
-    pub fn new(texture_id: i32) -> Self {
+    pub fn new(properties: BitmapProperties) -> Self {
         Bitmap {
-            texture_id: Property::new(texture_id),
+            properties: properties,
         }
     }
 
-    pub fn control(texture_id: i32) -> Rc<RefCell<Control<Self>>> {
-        Control::new(
-            BitmapDefaultStyle::new(),
-            Self::new(texture_id),
-        )
+    pub fn control(properties: BitmapProperties) -> Rc<RefCell<Control<Self>>> {
+        Control::new(BitmapDefaultStyle::new(), Self::new(properties))
     }
 }
 
@@ -36,9 +37,8 @@ impl ControlBehaviour for Control<Bitmap> {
         Vec::new()
     }
 
-    fn handle_event(&mut self, _event: ControlEvent) { }
+    fn handle_event(&mut self, _event: ControlEvent) {}
 }
-
 
 //
 // Bitmap Default Style
@@ -52,7 +52,12 @@ pub struct BitmapDefaultStyle {
 impl BitmapDefaultStyle {
     pub fn new() -> BitmapDefaultStyle {
         BitmapDefaultStyle {
-            rect: Rect { x: 0f32, y: 0f32, width: 0f32, height: 0f32 },
+            rect: Rect {
+                x: 0f32,
+                y: 0f32,
+                width: 0f32,
+                height: 0f32,
+            },
             event_subscriptions: Vec::new(),
         }
     }
@@ -60,11 +65,21 @@ impl BitmapDefaultStyle {
 
 impl Style<Bitmap> for BitmapDefaultStyle {
     fn setup_dirty_watching(&mut self, data: &mut Bitmap, control: &Rc<RefCell<Control<Bitmap>>>) {
-        self.event_subscriptions.push(data.texture_id.dirty_watching(control));
+        self.event_subscriptions
+            .push(data.properties.texture_id.dirty_watching(control));
     }
 
-    fn get_preferred_size(&self, data: &Bitmap, drawing_context: &mut DrawingContext, _size: Size) -> Size {
-        if let Some(texture) = drawing_context.get_resources().textures().get(&data.texture_id.get()) {
+    fn get_preferred_size(
+        &self,
+        data: &Bitmap,
+        drawing_context: &mut DrawingContext,
+        _size: Size,
+    ) -> Size {
+        if let Some(texture) = drawing_context
+            .get_resources()
+            .textures()
+            .get(&data.properties.texture_id.get())
+        {
             let size = texture.get_size();
             Size::new(size.0 as f32, size.1 as f32)
         } else {
@@ -72,7 +87,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &Bitmap, rect: Rect) {    
+    fn set_rect(&mut self, _data: &Bitmap, rect: Rect) {
         self.rect = rect;
     }
 
@@ -81,19 +96,27 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     }
 
     fn hit_test(&self, _data: &Bitmap, point: Point) -> HitTestResult {
-        if point.is_inside(&self.rect) { HitTestResult::Current } else { HitTestResult::Nothing }
+        if point.is_inside(&self.rect) {
+            HitTestResult::Current
+        } else {
+            HitTestResult::Nothing
+        }
     }
 
-    fn to_primitives(&self, data: &Bitmap,
-        _drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives(
+        &self,
+        data: &Bitmap,
+        _drawing_context: &mut DrawingContext,
+    ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         if self.rect.width > 0.0f32 && self.rect.height > 0.0f32 {
             vec.push(Primitive::Image {
-                resource_key: data.texture_id.get(),
+                resource_key: data.properties.texture_id.get(),
                 rect: UserPixelRect::new(
                     UserPixelPoint::new(self.rect.x, self.rect.y),
-                    UserPixelSize::new(self.rect.width, self.rect.height))
+                    UserPixelSize::new(self.rect.width, self.rect.height),
+                ),
             });
         }
 
