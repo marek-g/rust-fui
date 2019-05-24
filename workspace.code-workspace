@@ -8,6 +8,12 @@
 		},
 		{
 			"path": "fui_video"
+		},
+		{
+			"path": "fui_macros"
+		},
+		{
+			"path": "fui_macros_impl"
 		}
 	],
 	"settings": {}

@@ -1,0 +1,9 @@
+[package]
+name = "fui_macros"
+version = "0.1.0"
+authors = ["Marek G <marek@nomail.com>"]
+edition = "2018"
+
+[dependencies]
+fui_macros_impl = { path = "../fui_macros_impl" }
+proc-macro-hack = "0.5"

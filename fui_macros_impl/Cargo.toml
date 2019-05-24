@@ -1,0 +1,13 @@
+[package]
+name = "fui_macros_impl"
+version = "0.1.0"
+authors = ["Marek G <marek@nomail.com>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "0.15"
+quote = "0.6"
+proc-macro-hack = "0.5"

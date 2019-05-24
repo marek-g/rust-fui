@@ -1,8 +1,8 @@
-extern crate winit;
 extern crate drawing;
 extern crate drawing_gl;
-extern crate find_folder;
 extern crate failure;
+extern crate find_folder;
+extern crate winit;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
