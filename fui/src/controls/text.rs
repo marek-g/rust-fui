@@ -10,7 +10,9 @@ use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
 use Property;
+use typed_builder::TypedBuilder;
 
+#[derive(TypedBuilder)]
 pub struct TextProperties {
     pub text: Property<String>,
 }
@@ -25,17 +27,9 @@ impl Text {
             properties: properties,
         }
     }
-
-    pub fn control(properties: TextProperties) -> Rc<RefCell<Control<Self>>> {
-        Control::new(TextDefaultStyle::new(), Self::new(properties))
-    }
 }
 
 impl ControlBehaviour for Control<Text> {
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        Vec::new()
-    }
-
     fn handle_event(&mut self, _event: ControlEvent) {}
 }
 
@@ -75,6 +69,7 @@ impl Style<Text> for TextDefaultStyle {
     fn get_preferred_size(
         &self,
         data: &Text,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         _size: Size,
     ) -> Size {
@@ -84,7 +79,7 @@ impl Style<Text> for TextDefaultStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &Text, rect: Rect) {
+    fn set_rect(&mut self, _data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
     }
 
@@ -92,7 +87,7 @@ impl Style<Text> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Text, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -100,7 +95,7 @@ impl Style<Text> for TextDefaultStyle {
         }
     }
 
-    fn to_primitives(&self, data: &Text, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives(&self, data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = self.rect.x;

@@ -11,3 +11,4 @@ winit = "*"
 #winit = { git = "https://github.com/marek-g/winit" }
 shared_library = "*"
 find_folder = "*"
+typed-builder = "0.3"

@@ -1,12 +1,14 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate fui_macros;
 extern crate winit;
 
 use fui::application::*;
 use fui::controls::*;
 use fui::layout::*;
 use fui::*;
+use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -39,7 +41,46 @@ impl View for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
         let mut bindings = Vec::<fui::EventSubscription>::new();
 
-        let root_control = Horizontal::control(HorizontalProperties {
+        let root_control = ui!(
+            Horizontal {
+                Text { text: {
+                    let mut prop = Property::new("".to_string());
+                    let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+                    let binding = prop.bind_c(&mut vm.counter, |counter| format!("Counter {}", counter));
+                    bindings.push(binding);
+                    prop
+                 } },
+                Button {
+                    clicked: {
+                        let mut callback = Callback::new();
+                        callback.set_vm(view_model, |vm, _| {
+                            vm.decrease();
+                        });
+                        callback
+                    },
+                    Text { text: Property::new("Decrease".to_string()) }
+                },
+                Button {
+                    clicked: {
+                        let mut callback = Callback::new();
+                        callback.set_vm(view_model, |vm, _| {
+                            vm.increase();
+                        });
+                        callback
+                    },
+                    Text { text: Property::new("Increase".to_string()) }
+                },
+                Text { text: {
+                    let mut prop = Property::new("".to_string());
+                    let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+                    let binding = prop.bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter));
+                    bindings.push(binding);
+                    prop
+                 } },
+            }
+        );
+
+        /*let root_control = Horizontal::control(HorizontalProperties {
             children: vec![
                 Text::control(TextProperties {
                     text: Property::new("".to_string()),
@@ -80,7 +121,7 @@ impl View for MainViewModel {
                         .bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter))
                 }),
             ],
-        });
+        });*/
 
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
         bindings.push(vm.counter2.bind(&mut vm.counter));

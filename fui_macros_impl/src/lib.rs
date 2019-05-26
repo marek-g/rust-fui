@@ -1,21 +1,56 @@
 extern crate proc_macro;
 
-
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 
-use proc_macro2::Span;
 
 use quote::quote;
 use syn::punctuated::Punctuated;
-use syn::{ parse_macro_input, Expr, FieldValue, Ident, Member, Token };
+use syn::{parse_macro_input, Expr, Ident, Token};
 
 mod parser;
 use crate::parser::Ctrl;
 use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
 
-
+// ui!(
+//     Horizontal {
+//         spacing: 4,
+//         Button { Text { text: "Button".to_string() } },
+//         Text { text: "Label".to_string() }
+//     }
+// )
+//
+// translates to:
+//
+// Control::new(
+//     <Horizontal>::new(<HorizontalProperties>::builder().spacing(4).build()),
+//     <HorizontalDefaultStyle>::new(),
+//     vec![
+//         Control::new(
+//             <Button>::new(<ButtonProperties>::builder().build()),
+//             <ButtonDefaultStyle>::new(),
+//             vec![Control::new(
+//                 <Text>::new(
+//                     <TextProperties>::builder()
+//                         .text("Button".to_string())
+//                         .build(),
+//                 ),
+//                 <TextDefaultStyle>::new(),
+//                 Vec::<Rc<RefCell<ControlObject>>>::new(),
+//             )],
+//         ),
+//         Control::new(
+//             <Text>::new(
+//                 <TextProperties>::builder()
+//                     .text("Label".to_string())
+//                     .build(),
+//             ),
+//             <TextDefaultStyle>::new(),
+//             Vec::<Rc<RefCell<ControlObject>>>::new(),
+//         ),
+//     ],
+// )
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
     let ctrl = parse_macro_input!(input as Ctrl);
@@ -28,42 +63,53 @@ pub fn ui(input: TokenStream) -> TokenStream {
 }
 
 fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
-    let Ctrl { name: control_name, params } = ctrl;
+    let Ctrl {
+        name: control_name,
+        params,
+    } = ctrl;
     let (properties, controls) = decouple_params(params);
 
     let properties_name = Ident::new(&format!("{}Properties", control_name), control_name.span());
-    let property_list = get_property_list(properties);
-    let control_list = get_control_list(controls);
+    let properties_builder = get_properties_builder(properties_name, properties);
 
-    let children = if control_list.len() > 0 {
-        quote!(vec![#control_list])
-    } else {
-        quote!(Vec::<Rc<RefCell<ControlObject>>>::new())
-    };
+    let control_style = Ident::new(
+        &format!("{}DefaultStyle", control_name),
+        control_name.span(),
+    );
 
-    quote!((#properties_name { #property_list }, #children))
+    let children = get_control_children(controls);
+
+    quote! {
+        Control::new(<#control_name>::new(#properties_builder),
+            <#control_style>::new(),
+            #children)
+    }
 }
 
-fn get_property_list(properties: Vec<CtrlProperty>) -> Punctuated::<FieldValue, Token![,]> {
-    let mut punctated_properties = Punctuated::<FieldValue, Token![,]>::new();
-
+fn get_properties_builder(
+    struct_name: Ident,
+    properties: Vec<CtrlProperty>,
+) -> proc_macro2::TokenStream {
+    let mut method_calls = Vec::new();
     for property in properties {
         let name = property.name;
         let expr = property.expr;
+        method_calls.push(quote!(.#name(#expr)))
+    }
+    quote!(<#struct_name>::builder()#(#method_calls)*.build())
+}
 
-        let field_value = FieldValue {
-            attrs: Vec::new(),
-            member: Member::Named(name),
-            colon_token: Some(syn::token::Colon {
-                spans: [Span::call_site()],
-            }),
-            expr: expr,
-        };
-
-        punctated_properties.push(field_value);
+fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
+    let mut children = Vec::new();
+    for control in controls {
+        children.push(quote_control(control));
     }
 
-    punctated_properties
+    if children.len() > 0 {
+        quote!(vec![#(#children,)*])
+    } else {
+        quote!(Vec::<Rc<RefCell<ControlObject>>>::new())
+    }
 }
 
 fn get_control_list(controls: Vec<Ctrl>) -> Punctuated<Expr, Token![,]> {

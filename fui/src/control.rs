@@ -17,39 +17,43 @@ pub enum HitTestResult {
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
 
-    fn get_preferred_size(&self, data: &D, drawing_context: &mut DrawingContext, size: Size) -> Size;
-    fn set_rect(&mut self, data: &D, rect: Rect);
+    fn get_preferred_size(&self, data: &D, children: &Vec<Rc<RefCell<ControlObject>>>,
+        drawing_context: &mut DrawingContext, size: Size) -> Size;
+    fn set_rect(&mut self, data: &D, children: &Vec<Rc<RefCell<ControlObject>>>,
+        rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, data: &D, point: Point) -> HitTestResult;
+    fn hit_test(&self, data: &D, children: &Vec<Rc<RefCell<ControlObject>>>,
+        point: Point) -> HitTestResult;
 
-    fn to_primitives(&self, data: &D,
+    fn to_primitives(&self, data: &D, children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
 pub trait ControlBehaviour {
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
     fn handle_event(&mut self, event: ControlEvent);
 }
 
 pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
+    pub children: Vec<Rc<RefCell<ControlObject>>>,
 
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,
 }
 
 impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
-    pub fn new<S: 'static + Style<D>>(style: S, data: D) -> Rc<RefCell<Self>> {
+    pub fn new<S: 'static + Style<D>>(data: D, style: S, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
         let control = Rc::new(RefCell::new(Control {
             data: data,
             style: Box::new(style),
+            children: children,
             parent: None,
             is_dirty: true,
         }));
 
-        for child in (control.borrow_mut() as RefMut<ControlBehaviour>).get_children().iter() {
+        for child in control.borrow_mut().get_children().iter() {
             let control_weak = Rc::downgrade(&control) as Weak<RefCell<ControlObject>>;
             child.borrow_mut().set_parent(control_weak);
         }
@@ -61,6 +65,10 @@ impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
         }
 
         control
+    }
+
+    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
+        self.children.clone()
     }
 
     pub fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {

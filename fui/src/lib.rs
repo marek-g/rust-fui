@@ -3,6 +3,7 @@ extern crate drawing_gl;
 extern crate failure;
 extern crate find_folder;
 extern crate winit;
+extern crate typed_builder;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 

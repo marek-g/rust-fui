@@ -11,7 +11,9 @@ use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
 use Property;
+use typed_builder::TypedBuilder;
 
+#[derive(TypedBuilder)]
 pub struct BitmapProperties {
     pub texture_id: Property<i32>,
 }
@@ -26,17 +28,9 @@ impl Bitmap {
             properties: properties,
         }
     }
-
-    pub fn control(properties: BitmapProperties) -> Rc<RefCell<Control<Self>>> {
-        Control::new(BitmapDefaultStyle::new(), Self::new(properties))
-    }
 }
 
 impl ControlBehaviour for Control<Bitmap> {
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        Vec::new()
-    }
-
     fn handle_event(&mut self, _event: ControlEvent) {}
 }
 
@@ -72,6 +66,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn get_preferred_size(
         &self,
         data: &Bitmap,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         _size: Size,
     ) -> Size {
@@ -87,7 +82,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &Bitmap, rect: Rect) {
+    fn set_rect(&mut self, _data: &Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
     }
 
@@ -95,7 +90,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Bitmap, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -106,6 +101,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn to_primitives(
         &self,
         data: &Bitmap,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         _drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();

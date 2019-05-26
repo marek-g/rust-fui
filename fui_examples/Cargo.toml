@@ -5,6 +5,7 @@ authors = ["Marek G <no@mail.com>"]
 
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
+fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
 winit = "*"
 #winit = { git = "https://github.com/marek-g/winit" }
 failure = "*"

@@ -77,10 +77,11 @@ impl Parse for CtrlProperty {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use crate::parser::{Ctrl, CtrlParam, CtrlProperty};
     use proc_macro2::Span;
-    use syn::{parse_quote, Expr, Ident, Token, Type, Visibility};
+    use syn::{parse_quote, Ident};
 
     #[test]
     fn test_property() {

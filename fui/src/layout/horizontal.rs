@@ -9,9 +9,10 @@ use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use drawing_context::DrawingContext;
 use events::*;
+use typed_builder::TypedBuilder;
 
+#[derive(TypedBuilder)]
 pub struct HorizontalProperties {
-    pub children: Vec<Rc<RefCell<ControlObject>>>,
 }
 
 pub struct Horizontal {
@@ -24,17 +25,9 @@ impl Horizontal {
             properties: properties,
         }
     }
-
-    pub fn control(properties: HorizontalProperties) -> Rc<RefCell<Control<Self>>> {
-        Control::new(HorizontalDefaultStyle::new(), Self::new(properties))
-    }
 }
 
 impl ControlBehaviour for Control<Horizontal> {
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        self.data.properties.children.clone()
-    }
-
     fn handle_event(&mut self, _event: ControlEvent) {}
 }
 
@@ -72,6 +65,7 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
     fn get_preferred_size(
         &self,
         data: &Horizontal,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         size: Size,
     ) -> Size {
@@ -80,8 +74,8 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 
         let mut desired_size = self.desired_size.borrow_mut();
 
-        desired_size.resize(data.properties.children.len(), Size::new(0f32, 0f32));
-        for (i, child) in data.properties.children.iter().enumerate() {
+        desired_size.resize(children.len(), Size::new(0f32, 0f32));
+        for (i, child) in children.iter().enumerate() {
             let child_size = child
                 .borrow()
                 .get_preferred_size(drawing_context, available_size);
@@ -92,13 +86,13 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         result
     }
 
-    fn set_rect(&mut self, data: &Horizontal, rect: Rect) {
+    fn set_rect(&mut self, data: &Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
         let desired_size = self.desired_size.borrow();
 
-        for (i, child) in data.properties.children.iter().enumerate() {
+        for (i, child) in children.iter().enumerate() {
             let child_size = desired_size[i];
             child_rect.width = child_size.width;
             child_rect.height = child_size.height;
@@ -111,9 +105,9 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, data: &Horizontal, point: Point) -> HitTestResult {
+    fn hit_test(&self, data: &Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            for child in data.properties.children.iter() {
+            for child in children.iter() {
                 let c = child.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
@@ -134,11 +128,12 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
     fn to_primitives(
         &self,
         data: &Horizontal,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in &data.properties.children {
+        for child in children {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 

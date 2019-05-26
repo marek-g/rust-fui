@@ -44,7 +44,7 @@ impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour
     }
 
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        (self as &mut ControlBehaviour).get_children()
+        self.get_children()
     }
 
     fn handle_event(&mut self, event: ControlEvent) {
@@ -52,11 +52,11 @@ impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.style.get_preferred_size(&self.data, drawing_context, size)
+        self.style.get_preferred_size(&self.data, &self.children, drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
-        self.style.set_rect(&self.data, rect);
+        self.style.set_rect(&self.data, &self.children, rect);
     }
 
     fn get_rect(&self) -> Rect {
@@ -64,10 +64,10 @@ impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.style.hit_test(&self.data, point)
+        self.style.hit_test(&self.data, &self.children, point)
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.style.to_primitives(&self.data, drawing_context)
+        self.style.to_primitives(&self.data, &self.children, drawing_context)
     }
 }
