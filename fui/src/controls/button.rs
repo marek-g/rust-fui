@@ -14,7 +14,7 @@ use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
 pub struct ButtonProperties {
-    #[builder(default_code = "Callback::new()")]
+    #[builder(default_code = "Callback::empty()")]
     pub clicked: Callback<()>,
 }
 

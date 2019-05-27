@@ -28,7 +28,7 @@ impl<A: 'static + Clone> Event<A> {
     }
 
     pub fn subscribe<F: 'static + Fn(A)>(&mut self, f: F) -> EventSubscription {
-        let mut callback = Callback::<A>::new();
+        let mut callback = Callback::<A>::empty();
         callback.set(f);
         let rc_callback = Rc::new(callback);
         let weak_callback = Rc::downgrade(&rc_callback);

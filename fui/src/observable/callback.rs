@@ -19,8 +19,17 @@ pub struct Callback<A> {
 }
 
 impl<A: 'static + Clone> Callback<A> {
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         Callback { callback: None }
+    }
+
+    pub fn new<T: 'static, F: 'static + Fn(&mut T, A)>(vm: &Rc<RefCell<T>>, f: F) -> Self {
+        let vm_clone = vm.clone();
+        let f2 = move |args: A| {
+            let mut vm = vm_clone.borrow_mut();
+            f(&mut vm, args);
+        };
+        Callback { callback: Some(Rc::new(f2)) }
     }
 
     pub fn set<F: 'static + Fn(A)>(&mut self, f: F) {

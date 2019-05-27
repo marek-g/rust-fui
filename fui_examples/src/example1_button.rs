@@ -51,23 +51,11 @@ impl View for MainViewModel {
                     prop
                  } },
                 Button {
-                    clicked: {
-                        let mut callback = Callback::new();
-                        callback.set_vm(view_model, |vm, _| {
-                            vm.decrease();
-                        });
-                        callback
-                    },
+                    clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: Property::new("Decrease".to_string()) }
                 },
                 Button {
-                    clicked: {
-                        let mut callback = Callback::new();
-                        callback.set_vm(view_model, |vm, _| {
-                            vm.increase();
-                        });
-                        callback
-                    },
+                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
                     Text { text: Property::new("Increase".to_string()) }
                 },
                 Text { text: {
