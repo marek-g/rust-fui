@@ -10,6 +10,7 @@ use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThic
 use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
+use style::*;
 use Property;
 use typed_builder::TypedBuilder;
 

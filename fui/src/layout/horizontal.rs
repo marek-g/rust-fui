@@ -9,6 +9,7 @@ use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use drawing_context::DrawingContext;
 use events::*;
+use style::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]

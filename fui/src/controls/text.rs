@@ -10,6 +10,7 @@ use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
 use Property;
+use style::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
