@@ -347,6 +347,7 @@ dependencies = [
  "fui_macros 0.1.0",
  "fui_video 0.1.0",
  "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
+ "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.19.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

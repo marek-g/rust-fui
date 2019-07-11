@@ -3,6 +3,7 @@
 extern crate fui;
 extern crate fui_macros;
 extern crate winit;
+extern crate typed_builder;
 
 use fui::application::*;
 use fui::controls::*;
@@ -12,6 +13,8 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+
+use typed_builder::TypedBuilder;
 
 use Property;
 
@@ -40,6 +43,24 @@ impl MainViewModel {
     }
 }
 
+#[derive(TypedBuilder)]
+pub struct ButtonText {
+    pub text: Property<String>,
+    #[builder(default_code = "Callback::empty()")]
+    pub clicked: Callback<()>,
+}
+
+impl View for ButtonText {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        ui! {
+            Button {
+                clicked: self.clicked,
+                Text { text: self.text }
+            }
+        }
+    }
+}
+
 impl View for MainViewModel {
     fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
         let mut bindings = Vec::<fui::EventSubscription>::new();
@@ -59,9 +80,9 @@ impl View for MainViewModel {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: Property::new("Decrease".to_string()) }
                 },
-                Button {
+                ButtonText {
                     clicked: Callback::new(view_model, |vm, _| vm.increase()),
-                    Text { text: Property::new("Increase".to_string()) }
+                    text: Property::new("Increase".to_string()),
                 },
                 Text { text: {
                     let mut prop = Property::new("".to_string());
