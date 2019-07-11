@@ -41,41 +41,6 @@ impl Button {
     }
 }
 
-impl ControlBehaviour for Control<Button> {
-    fn handle_event(&mut self, event: ControlEvent) {
-        match event {
-            ControlEvent::TapDown { .. } => {
-                self.data.state.is_pressed.set(true);
-            }
-
-            ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.style.hit_test(&self.data, &self.children, *position) {
-                    self.data.properties.clicked.emit(());
-                }
-                self.data.state.is_pressed.set(false);
-            }
-
-            ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.style.hit_test(&self.data, &self.children, *position) {
-                    self.data.state.is_pressed.set(true);
-                } else {
-                    self.data.state.is_pressed.set(false);
-                }
-            }
-
-            ControlEvent::HoverEnter => {
-                self.data.state.is_hover.set(true);
-            }
-
-            ControlEvent::HoverLeave => {
-                self.data.state.is_hover.set(false);
-            }
-
-            _ => (),
-        }
-    }
-}
-
 //
 // Button Default Style
 //
@@ -105,6 +70,39 @@ impl Style<Button> for ButtonDefaultStyle {
             .push(data.state.is_hover.dirty_watching(control));
         self.event_subscriptions
             .push(data.state.is_pressed.dirty_watching(control));
+    }
+
+    fn handle_event(&mut self, data: &mut Button, children: &Vec<Rc<RefCell<ControlObject>>>, event: ControlEvent) {
+        match event {
+            ControlEvent::TapDown { .. } => {
+                data.state.is_pressed.set(true);
+            }
+
+            ControlEvent::TapUp { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
+                    data.properties.clicked.emit(());
+                }
+                data.state.is_pressed.set(false);
+            }
+
+            ControlEvent::TapMove { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
+                    data.state.is_pressed.set(true);
+                } else {
+                    data.state.is_pressed.set(false);
+                }
+            }
+
+            ControlEvent::HoverEnter => {
+                data.state.is_hover.set(true);
+            }
+
+            ControlEvent::HoverLeave => {
+                data.state.is_hover.set(false);
+            }
+
+            _ => (),
+        }
     }
 
     fn get_preferred_size(

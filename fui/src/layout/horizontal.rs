@@ -28,10 +28,6 @@ impl Horizontal {
     }
 }
 
-impl ControlBehaviour for Control<Horizontal> {
-    fn handle_event(&mut self, _event: ControlEvent) {}
-}
-
 //
 // Horizontal Default Style
 //
@@ -62,6 +58,8 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         _control: &Rc<RefCell<Control<Horizontal>>>,
     ) {
     }
+
+    fn handle_event(&mut self, data: &mut Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
 
     fn get_preferred_size(
         &self,

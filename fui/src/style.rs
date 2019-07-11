@@ -6,10 +6,13 @@ use control::*;
 use control_object::*;
 use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
+use events::ControlEvent;
 use observable::*;
 
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
+
+    fn handle_event(&mut self, data: &mut D, children: &Vec<Rc<RefCell<ControlObject>>>, event: ControlEvent);
 
     fn get_preferred_size(&self, data: &D, children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext, size: Size) -> Size;
@@ -29,8 +32,7 @@ pub trait PropertyDirtyExtension<D> {
 }
 
 impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
-    where Control<D>: ControlBehaviour,
-    T: 'static + Clone + PartialEq {
+    where T: 'static + Clone + PartialEq {
     fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {

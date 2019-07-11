@@ -30,10 +30,6 @@ impl Text {
     }
 }
 
-impl ControlBehaviour for Control<Text> {
-    fn handle_event(&mut self, _event: ControlEvent) {}
-}
-
 //
 // Text Default Style
 //
@@ -66,6 +62,8 @@ impl Style<Text> for TextDefaultStyle {
         self.event_subscriptions
             .push(data.properties.text.dirty_watching(control));
     }
+
+    fn handle_event(&mut self, _data: &mut Text, _children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
 
     fn get_preferred_size(
         &self,

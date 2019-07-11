@@ -31,10 +31,6 @@ impl Bitmap {
     }
 }
 
-impl ControlBehaviour for Control<Bitmap> {
-    fn handle_event(&mut self, _event: ControlEvent) {}
-}
-
 //
 // Bitmap Default Style
 //
@@ -63,6 +59,8 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         self.event_subscriptions
             .push(data.properties.texture_id.dirty_watching(control));
     }
+
+    fn handle_event(&mut self, data: &mut Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
 
     fn get_preferred_size(
         &self,

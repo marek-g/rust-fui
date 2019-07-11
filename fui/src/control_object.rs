@@ -26,7 +26,7 @@ pub trait ControlObject {
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
 }
 
-impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour {
+impl<D: 'static> ControlObject for Control<D> {
     fn is_dirty(&self) -> bool {
         self.is_dirty()
     }
@@ -48,7 +48,7 @@ impl<D: 'static> ControlObject for Control<D> where Control<D>: ControlBehaviour
     }
 
     fn handle_event(&mut self, event: ControlEvent) {
-        (self as &mut ControlBehaviour).handle_event(event)
+        self.style.handle_event(&mut self.data, &self.children, event)
     }
 
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {

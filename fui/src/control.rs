@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
 use control_object::*;
-use events::*;
 use observable::*;
 use style::*;
 
@@ -10,10 +9,6 @@ pub enum HitTestResult {
     Nothing,
     Current,
     Child(Rc<RefCell<ControlObject>>)
-}
-
-pub trait ControlBehaviour {
-    fn handle_event(&mut self, event: ControlEvent);
 }
 
 pub struct Control<D> {
@@ -25,7 +20,7 @@ pub struct Control<D> {
     is_dirty: bool,
 }
 
-impl<D: 'static> Control<D> where Control<D>: ControlBehaviour {
+impl<D: 'static> Control<D> {
     pub fn new<S: 'static + Style<D>>(data: D, style: S, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
         let control = Rc::new(RefCell::new(Control {
             data: data,
@@ -90,7 +85,7 @@ pub trait ControlExtensions<D> {
         bindings: &mut Vec<EventSubscription>, vm: &Rc<RefCell<V>>, f: F) -> Rc<RefCell<Control<D>>>;
 }
 
-impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> where Control<D>: ControlBehaviour {
+impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> {
     fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(self, vm: &Rc<RefCell<V>>, f: F)
         -> Rc<RefCell<Control<D>>> {
         {

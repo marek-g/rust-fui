@@ -49,7 +49,7 @@ impl View for MainViewModel {
                     let binding = prop.bind_c(&mut vm.counter, |counter| format!("Counter {}", counter));
                     bindings.push(binding);
                     prop
-                 } },
+                } },
                 Button {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: Property::new("Decrease".to_string()) }

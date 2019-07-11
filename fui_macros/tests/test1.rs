@@ -4,14 +4,12 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
 pub trait ControlObject {
-    fn draw(&self) -> String;
+    fn draw(&mut self) -> String;
 }
 
-pub trait ControlBehaviour {
-    fn draw(&self) -> String;
+pub trait Style<D> {
+    fn draw(&self, data: &mut D) -> String;
 }
-
-pub trait Style<D> {}
 
 pub struct Control<D> {
     pub data: D,
@@ -34,13 +32,11 @@ impl<D: 'static> Control<D> {
 }
 
 impl<D: 'static> ControlObject for Control<D>
-where
-    Control<D>: ControlBehaviour,
 {
-    fn draw(&self) -> String {
-        let name = (self as &ControlBehaviour).draw();
+    fn draw(&mut self) -> String {
+        let name = self.style.draw(&mut self.data);
         let children = if self.children.len() > 0 {
-            let vec: Vec<String> = self.children.iter().map(|c| c.borrow().draw()).collect();
+            let vec: Vec<String> = self.children.iter().map(|c| c.borrow_mut().draw()).collect();
             vec.join(",")
         } else {
             "".to_string()
@@ -69,12 +65,6 @@ impl Horizontal {
     }
 }
 
-impl ControlBehaviour for Control<Horizontal> {
-    fn draw(&self) -> String {
-        format!("Horizontal({})", self.data.properties.spacing)
-    }
-}
-
 pub struct HorizontalDefaultStyle {}
 
 impl HorizontalDefaultStyle {
@@ -83,7 +73,11 @@ impl HorizontalDefaultStyle {
     }
 }
 
-impl Style<Horizontal> for HorizontalDefaultStyle {}
+impl Style<Horizontal> for HorizontalDefaultStyle {
+    fn draw(&self, data: &mut Horizontal) -> String {
+        format!("Horizontal({})", data.properties.spacing)
+    }
+}
 
 #[derive(Debug, TypedBuilder)]
 pub struct ButtonProperties {}
@@ -101,12 +95,6 @@ impl Button {
     }
 }
 
-impl ControlBehaviour for Control<Button> {
-    fn draw(&self) -> String {
-        "Button".to_string()
-    }
-}
-
 pub struct ButtonDefaultStyle {}
 
 impl ButtonDefaultStyle {
@@ -115,7 +103,11 @@ impl ButtonDefaultStyle {
     }
 }
 
-impl Style<Button> for ButtonDefaultStyle {}
+impl Style<Button> for ButtonDefaultStyle {
+    fn draw(&self, _data: &mut Button) -> String {
+        "Button".to_string()
+    }
+}
 
 #[derive(Debug, TypedBuilder)]
 pub struct TextProperties {
@@ -135,12 +127,6 @@ impl Text {
     }
 }
 
-impl ControlBehaviour for Control<Text> {
-    fn draw(&self) -> String {
-        format!("Text(\"{}\")", self.data.properties.text)
-    }
-}
-
 pub struct TextDefaultStyle {}
 
 impl TextDefaultStyle {
@@ -149,7 +135,11 @@ impl TextDefaultStyle {
     }
 }
 
-impl Style<Text> for TextDefaultStyle {}
+impl Style<Text> for TextDefaultStyle {
+    fn draw(&self, data: &mut Text) -> String {
+        format!("Text(\"{}\")", data.properties.text)
+    }
+}
 
 #[test]
 fn test1() {
@@ -161,7 +151,7 @@ fn test1() {
         }
     );
 
-    let control: std::cell::Ref<ControlObject> = control.borrow();
+    let mut control: std::cell::RefMut<ControlObject> = control.borrow_mut();
     assert_eq!("Horizontal(4){Button{Text(\"Button\"){}},Text(\"Label\"){}}", control.draw());
 
     //println!("{}", control.draw());
