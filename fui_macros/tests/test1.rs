@@ -47,22 +47,9 @@ impl<D: 'static> ControlObject for Control<D>
 }
 
 #[derive(Debug, TypedBuilder)]
-pub struct HorizontalProperties {
+pub struct Horizontal {
     #[builder(default = 0)]
     pub spacing: i32,
-}
-
-#[derive(Debug)]
-pub struct Horizontal {
-    pub properties: HorizontalProperties,
-}
-
-impl Horizontal {
-    pub fn new(properties: HorizontalProperties) -> Self {
-        Horizontal {
-            properties: properties,
-        }
-    }
 }
 
 pub struct HorizontalDefaultStyle {}
@@ -75,25 +62,12 @@ impl HorizontalDefaultStyle {
 
 impl Style<Horizontal> for HorizontalDefaultStyle {
     fn draw(&self, data: &mut Horizontal) -> String {
-        format!("Horizontal({})", data.properties.spacing)
+        format!("Horizontal({})", data.spacing)
     }
 }
 
 #[derive(Debug, TypedBuilder)]
-pub struct ButtonProperties {}
-
-#[derive(Debug)]
-pub struct Button {
-    pub properties: ButtonProperties,
-}
-
-impl Button {
-    pub fn new(properties: ButtonProperties) -> Self {
-        Button {
-            properties: properties,
-        }
-    }
-}
+pub struct Button {}
 
 pub struct ButtonDefaultStyle {}
 
@@ -110,21 +84,8 @@ impl Style<Button> for ButtonDefaultStyle {
 }
 
 #[derive(Debug, TypedBuilder)]
-pub struct TextProperties {
-    pub text: String,
-}
-
-#[derive(Debug)]
 pub struct Text {
-    pub properties: TextProperties,
-}
-
-impl Text {
-    pub fn new(properties: TextProperties) -> Self {
-        Text {
-            properties: properties,
-        }
-    }
+    pub text: String,
 }
 
 pub struct TextDefaultStyle {}
@@ -137,7 +98,7 @@ impl TextDefaultStyle {
 
 impl Style<Text> for TextDefaultStyle {
     fn draw(&self, data: &mut Text) -> String {
-        format!("Text(\"{}\")", data.properties.text)
+        format!("Text(\"{}\")", data.text)
     }
 }
 

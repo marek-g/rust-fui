@@ -14,20 +14,8 @@ use style::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
-pub struct TextProperties {
-    pub text: Property<String>,
-}
-
 pub struct Text {
-    pub properties: TextProperties,
-}
-
-impl Text {
-    pub fn new(properties: TextProperties) -> Self {
-        Text {
-            properties: properties,
-        }
-    }
+    pub text: Property<String>,
 }
 
 //
@@ -60,7 +48,7 @@ impl TextDefaultStyle {
 impl Style<Text> for TextDefaultStyle {
     fn setup_dirty_watching(&mut self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
         self.event_subscriptions
-            .push(data.properties.text.dirty_watching(control));
+            .push(data.text.dirty_watching(control));
     }
 
     fn handle_event(&mut self, _data: &mut Text, _children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
@@ -73,7 +61,7 @@ impl Style<Text> for TextDefaultStyle {
         _size: Size,
     ) -> Size {
         let (text_width, text_height) = drawing_context
-            .get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get())
+            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
         Size::new(text_width as f32, text_height as f32)
     }
@@ -103,7 +91,7 @@ impl Style<Text> for TextDefaultStyle {
         let height = self.rect.height;
 
         let (text_width, text_height) = drawing_context
-            .get_font_dimensions(self.font_name, self.font_size, &data.properties.text.get())
+            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
         vec.push(Primitive::Text {
@@ -114,7 +102,7 @@ impl Style<Text> for TextDefaultStyle {
                 y + (height - text_height as f32) / 2.0,
             ),
             size: self.font_size as u16,
-            text: data.properties.text.get(),
+            text: data.text.get(),
         });
 
         vec

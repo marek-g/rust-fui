@@ -15,20 +15,8 @@ use Property;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
-pub struct BitmapProperties {
-    pub texture_id: Property<i32>,
-}
-
 pub struct Bitmap {
-    pub properties: BitmapProperties,
-}
-
-impl Bitmap {
-    pub fn new(properties: BitmapProperties) -> Self {
-        Bitmap {
-            properties: properties,
-        }
-    }
+    pub texture_id: Property<i32>,
 }
 
 //
@@ -57,7 +45,7 @@ impl BitmapDefaultStyle {
 impl Style<Bitmap> for BitmapDefaultStyle {
     fn setup_dirty_watching(&mut self, data: &mut Bitmap, control: &Rc<RefCell<Control<Bitmap>>>) {
         self.event_subscriptions
-            .push(data.properties.texture_id.dirty_watching(control));
+            .push(data.texture_id.dirty_watching(control));
     }
 
     fn handle_event(&mut self, data: &mut Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
@@ -72,7 +60,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         if let Some(texture) = drawing_context
             .get_resources()
             .textures()
-            .get(&data.properties.texture_id.get())
+            .get(&data.texture_id.get())
         {
             let size = texture.get_size();
             Size::new(size.0 as f32, size.1 as f32)
@@ -107,7 +95,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
 
         if self.rect.width > 0.0f32 && self.rect.height > 0.0f32 {
             vec.push(Primitive::Image {
-                resource_key: data.properties.texture_id.get(),
+                resource_key: data.texture_id.get(),
                 rect: UserPixelRect::new(
                     UserPixelPoint::new(self.rect.x, self.rect.y),
                     UserPixelSize::new(self.rect.width, self.rect.height),

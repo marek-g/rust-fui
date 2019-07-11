@@ -6,7 +6,7 @@ use proc_macro_hack::proc_macro_hack;
 
 use quote::quote;
 use syn::punctuated::Punctuated;
-use syn::{parse_macro_input, Expr, Ident, Token};
+use syn::{parse_macro_input, Ident, Token};
 
 mod parser;
 use crate::parser::Ctrl;
@@ -24,28 +24,24 @@ use crate::parser::CtrlProperty;
 // translates to:
 //
 // Control::new(
-//     <Horizontal>::new(<HorizontalProperties>::builder().spacing(4).build()),
+//     <Horizontal>::builder().spacing(4).build(),
 //     <HorizontalDefaultStyle>::new(),
 //     vec![
 //         Control::new(
-//             <Button>::new(<ButtonProperties>::builder().build()),
+//             <Button>::builder().build(),
 //             <ButtonDefaultStyle>::new(),
 //             vec![Control::new(
-//                 <Text>::new(
-//                     <TextProperties>::builder()
-//                         .text("Button".to_string())
-//                         .build(),
-//                 ),
+//                 <Text::builder()
+//                     .text("Button".to_string())
+//                     .build(),
 //                 <TextDefaultStyle>::new(),
 //                 Vec::<Rc<RefCell<ControlObject>>>::new(),
 //             )],
 //         ),
 //         Control::new(
-//             <Text>::new(
-//                 <TextProperties>::builder()
-//                     .text("Label".to_string())
-//                     .build(),
-//             ),
+//             <Text>::builder()
+//                 .text("Label".to_string())
+//                 .build(),
 //             <TextDefaultStyle>::new(),
 //             Vec::<Rc<RefCell<ControlObject>>>::new(),
 //         ),
@@ -69,8 +65,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
     } = ctrl;
     let (properties, controls) = decouple_params(params);
 
-    let properties_name = Ident::new(&format!("{}Properties", control_name), control_name.span());
-    let properties_builder = get_properties_builder(properties_name, properties);
+    let properties_builder = get_properties_builder(control_name.clone(), properties);
 
     let control_style = Ident::new(
         &format!("{}DefaultStyle", control_name),
@@ -80,7 +75,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
     let children = get_control_children(controls);
 
     quote! {
-        Control::new(<#control_name>::new(#properties_builder),
+        Control::new(#properties_builder,
             <#control_style>::new(),
             #children)
     }
@@ -110,18 +105,6 @@ fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
     } else {
         quote!(Vec::<Rc<RefCell<ControlObject>>>::new())
     }
-}
-
-fn get_control_list(controls: Vec<Ctrl>) -> Punctuated<Expr, Token![,]> {
-    let mut punctated_controls = Punctuated::<Expr, Token![,]>::new();
-
-    for control in controls {
-        let control_tokens = quote_control(control);
-        let ctrl_expr: Expr = syn::parse2(control_tokens).unwrap();
-        punctated_controls.push(ctrl_expr);
-    }
-
-    punctated_controls
 }
 
 fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<Ctrl>) {

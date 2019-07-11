@@ -185,7 +185,7 @@ pub trait View {
     fn to_view(self, children: Vec<ViewData>) -> Rc<RefCell<ControlObject>>;
 }
 
-impl View for ButtonProperties {
+impl View for Button {
   fn to_view(self, _children: Vec<ViewData>) -> Rc<RefCell<ControlObject> {
     Control::new(self, <ButtonDefaultStyle>::new(), _children)
   }

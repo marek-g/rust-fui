@@ -13,20 +13,7 @@ use style::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
-pub struct HorizontalProperties {
-}
-
-pub struct Horizontal {
-    pub properties: HorizontalProperties,
-}
-
-impl Horizontal {
-    pub fn new(properties: HorizontalProperties) -> Self {
-        Horizontal {
-            properties: properties,
-        }
-    }
-}
+pub struct Horizontal {}
 
 //
 // Horizontal Default Style
