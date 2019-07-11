@@ -4,9 +4,9 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 
 use common::Point;
+use control::HitTestResult;
 use control_object::*;
 use events::*;
-use RootView;
 use Window;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -42,7 +42,14 @@ impl EventProcessor {
         self.gesture_detector.handle_event(window, event).map(|ev| match ev {
             Gesture::TapDown { position } => {
                 if let Some(ref mut root_view) = window.get_root_view_mut() {
-                    if let Some(ref hit_control) = root_view.hit_test(position) {
+                    let hit_test_result = root_view.borrow().hit_test(position);
+                    let hit_control = match hit_test_result {
+                        HitTestResult::Current => Some(root_view.clone()),
+                        HitTestResult::Child(control) => Some(control),
+                        HitTestResult::Nothing => None,
+                    };
+
+                    if let Some(ref hit_control) = hit_control {
                         self.captured_control = Some(Rc::downgrade(hit_control));
                         self.hover_detector.stop();
                         self.send_event_to_captured_control(ControlEvent::TapDown { position: position });

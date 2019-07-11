@@ -18,6 +18,8 @@ use Property;
 struct MainViewModel {
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
+
+    pub bindings: Vec::<fui::EventSubscription>,
 }
 
 impl MainViewModel {
@@ -25,6 +27,7 @@ impl MainViewModel {
         MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
+            bindings: Vec::new(),
         }
     }
 
@@ -38,8 +41,10 @@ impl MainViewModel {
 }
 
 impl View for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
         let mut bindings = Vec::<fui::EventSubscription>::new();
+
+        let mut view_model = &Rc::new(RefCell::new(self));
 
         let root_control = ui!(
             Horizontal {
@@ -72,23 +77,22 @@ impl View for MainViewModel {
         bindings.push(vm.counter2.bind(&mut vm.counter));
         bindings.push(vm.counter.bind(&mut vm.counter2));
 
-        ViewData {
-            root_control: root_control,
-            bindings: bindings,
-        }
+        vm.bindings = bindings;
+
+        root_control
     }
 }
 
 fn main() {
     let mut app = Application::new("Marek Ogarek").unwrap();
 
-    let main_view_model = Rc::new(RefCell::new(MainViewModel::new()));
+    let main_view_model = MainViewModel::new();
 
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::WindowBuilder::new().with_title("Window 1");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop(), &main_view_model)
+            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model)
             .unwrap();
     }
 

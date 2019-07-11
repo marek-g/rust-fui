@@ -23,27 +23,17 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// Control::new(
-//     <Horizontal>::builder().spacing(4).build(),
-//     <HorizontalDefaultStyle>::new(),
+// <Horizontal>::builder().spacing(4).build().to_view(
 //     vec![
-//         Control::new(
-//             <Button>::builder().build(),
-//             <ButtonDefaultStyle>::new(),
-//             vec![Control::new(
-//                 <Text::builder()
+//         <Button>::builder().build().to_view(
+//             vec![<Text::builder()
 //                     .text("Button".to_string())
-//                     .build(),
-//                 <TextDefaultStyle>::new(),
-//                 Vec::<Rc<RefCell<ControlObject>>>::new(),
+//                     .build().to_view(Vec::<Rc<RefCell<ControlObject>>>::new()),
 //             )],
 //         ),
-//         Control::new(
-//             <Text>::builder()
+//         <Text>::builder()
 //                 .text("Label".to_string())
-//                 .build(),
-//             <TextDefaultStyle>::new(),
-//             Vec::<Rc<RefCell<ControlObject>>>::new(),
+//                 .build().to_view(Vec::<Rc<RefCell<ControlObject>>>::new()),
 //         ),
 //     ],
 // )
@@ -67,18 +57,9 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
 
-    let control_style = Ident::new(
-        &format!("{}DefaultStyle", control_name),
-        control_name.span(),
-    );
-
     let children = get_control_children(controls);
 
-    quote! {
-        Control::new(#properties_builder,
-            <#control_style>::new(),
-            #children)
-    }
+    quote! { #properties_builder.to_view(#children) }
 }
 
 fn get_properties_builder(

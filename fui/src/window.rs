@@ -1,14 +1,13 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use RootView;
-use View;
-use ViewData;
+use control_object::ControlObject;
 use drawing_context::DrawingWindowTarget;
+use View;
 
 pub struct Window {
     drawing_window_target: DrawingWindowTarget,
-    root_view: Option<RootView>,
+    root_view: Option<Rc<RefCell<ControlObject>>>,
     need_swap_buffers: bool,
 }
 
@@ -25,20 +24,20 @@ impl Window {
         &mut self.drawing_window_target
     }
 
-    pub fn get_drawing_target_and_root_view_mut(&mut self) -> (&mut DrawingWindowTarget, &mut Option<RootView>) {
+    pub fn get_drawing_target_and_root_view_mut(&mut self) -> (&mut DrawingWindowTarget, &mut Option<Rc<RefCell<ControlObject>>>) {
         (&mut self.drawing_window_target, &mut self.root_view)
     }
 
-    pub fn get_root_view_mut(&mut self) -> &mut Option<RootView> {
+    pub fn get_root_view_mut(&mut self) -> &mut Option<Rc<RefCell<ControlObject>>> {
         &mut self.root_view
     }
 
-    pub fn set_root_view(&mut self, view_data: ViewData) {
-        self.root_view = Some(RootView::new(view_data));
+    pub fn set_root_view(&mut self, root_view: Rc<RefCell<ControlObject>>) {
+        self.root_view = Some(root_view);
     }
 
-    pub fn set_root_view_model<V: View>(&mut self, view_model: &Rc<RefCell<V>>) {
-        self.set_root_view(V::create_view(view_model));
+    pub fn set_root_view_model<V: View>(&mut self, view_model: V) {
+        self.set_root_view(view_model.to_view(Vec::new()));
     }
 
     pub fn clear_root(&mut self) {

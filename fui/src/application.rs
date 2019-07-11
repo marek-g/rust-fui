@@ -90,7 +90,7 @@ impl Application {
 
                         winit::WindowEvent::Refresh => {
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
-                                let mut root_control = root_view.view_data.root_control.borrow_mut();
+                                let mut root_control = root_view.borrow_mut();
                                 root_control.set_is_dirty(true);
                             }
                         },
@@ -104,7 +104,7 @@ impl Application {
 
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
                                 let size = Size::new(physical_size.width as f32, physical_size.height as f32);
-                                let mut root_control = root_view.view_data.root_control.borrow_mut();
+                                let mut root_control = root_view.borrow_mut();
                                 let _ = root_control.get_preferred_size(drawing_context, size);
                                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
                             }
@@ -126,7 +126,7 @@ impl Application {
                 let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
                 if running && physical_size.width > 0.0 && physical_size.height > 0.0 {
                     if let Some(ref mut root_view) = window.get_root_view_mut() {
-                        let root_control = root_view.view_data.root_control.borrow();
+                        let root_control = root_view.borrow();
                         if root_control.is_dirty() {
                             frame_no += 1;
                             println!("Frame no: {}", frame_no);
@@ -154,7 +154,7 @@ impl Application {
         width: u32, height: u32) -> bool {
         let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
         if let Some(ref mut root_view) = root_view {
-            let mut root_control = root_view.view_data.root_control.borrow_mut();
+            let mut root_control = root_view.borrow_mut();
 
             if root_control.is_dirty() {
                 let size = Size::new(width as f32, height as f32);

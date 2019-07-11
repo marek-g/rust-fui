@@ -12,11 +12,18 @@ use events::*;
 use observable::*;
 use style::*;
 use typed_builder::TypedBuilder;
+use view::View;
 
 #[derive(TypedBuilder)]
 pub struct Button {
     #[builder(default_code = "Callback::empty()")]
     pub clicked: Callback<()>,
+}
+
+impl View for Button {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, ButtonDefaultStyle::new(), children)
+    }
 }
 
 //

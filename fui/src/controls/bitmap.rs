@@ -13,10 +13,17 @@ use observable::*;
 use style::*;
 use Property;
 use typed_builder::TypedBuilder;
+use view::View;
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
     pub texture_id: Property<i32>,
+}
+
+impl View for Bitmap {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, BitmapDefaultStyle::new(), children)
+    }
 }
 
 //

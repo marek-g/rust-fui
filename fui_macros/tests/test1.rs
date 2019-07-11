@@ -7,6 +7,10 @@ pub trait ControlObject {
     fn draw(&mut self) -> String;
 }
 
+pub trait View {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>>;
+}
+
 pub trait Style<D> {
     fn draw(&self, data: &mut D) -> String;
 }
@@ -52,6 +56,12 @@ pub struct Horizontal {
     pub spacing: i32,
 }
 
+impl View for Horizontal {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, HorizontalDefaultStyle::new(), children)
+    }
+}
+
 pub struct HorizontalDefaultStyle {}
 
 impl HorizontalDefaultStyle {
@@ -68,6 +78,12 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 
 #[derive(Debug, TypedBuilder)]
 pub struct Button {}
+
+impl View for Button {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, ButtonDefaultStyle::new(), children)
+    }
+}
 
 pub struct ButtonDefaultStyle {}
 
@@ -86,6 +102,12 @@ impl Style<Button> for ButtonDefaultStyle {
 #[derive(Debug, TypedBuilder)]
 pub struct Text {
     pub text: String,
+}
+
+impl View for Text {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, TextDefaultStyle::new(), children)
+    }
 }
 
 pub struct TextDefaultStyle {}

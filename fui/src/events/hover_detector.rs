@@ -3,6 +3,7 @@ use std::rc::{ Rc, Weak };
 
 use drawing::backend::WindowTarget;
 use common::Point;
+use control::HitTestResult;
 use control_object::*;
 use events::ControlEvent;
 use Window;
@@ -39,7 +40,14 @@ impl HoverDetector {
             ::winit::WindowEvent::CursorMoved { position, .. } => {
                 let physical_pos = position.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
                 if let Some(ref mut root_view) = window.get_root_view_mut() {
-                    if let Some(ref hit_control) = root_view.hit_test(Point::new(physical_pos.x as f32, physical_pos.y as f32)) {
+                    let hit_test_result = root_view.borrow().hit_test(Point::new(physical_pos.x as f32, physical_pos.y as f32));
+                    let hit_control = match hit_test_result {
+                        HitTestResult::Current => Some(root_view.clone()),
+                        HitTestResult::Child(control) => Some(control),
+                        HitTestResult::Nothing => None,
+                    };
+
+                    if let Some(ref hit_control) = hit_control {
                         if let Some(ref hover_control) = self.get_hover_control() {
                             if !Rc::ptr_eq(hover_control, hit_control) {
                                 if self.is_running {

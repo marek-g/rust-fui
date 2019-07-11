@@ -6,10 +6,10 @@ use std::rc::Rc;
 use winit::dpi::LogicalSize;
 use drawing::backend::WindowTarget;
 
+use control_object::ControlObject;
 use DrawingContext;
 use Window;
 use View;
-use ViewData;
 
 use ::Result;
 
@@ -31,7 +31,7 @@ impl WindowManager {
     pub fn add_window(&mut self,
         window_builder: winit::WindowBuilder,
         events_loop: &winit::EventsLoop,
-        view_data: ViewData) -> Result<winit::WindowId>
+        view: Rc<RefCell<ControlObject>>) -> Result<winit::WindowId>
     {
         let mut window_target = self.drawing_context.borrow_mut().create_window(window_builder, &events_loop)?;
         let logical_size = window_target.get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
@@ -41,7 +41,7 @@ impl WindowManager {
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         
         let mut window = Window::new(window_target);
-        window.set_root_view(view_data);
+        window.set_root_view(view);
         self.windows.insert(window_id, window);
 
         if let None = self.main_window_id {
@@ -54,8 +54,8 @@ impl WindowManager {
     pub fn add_window_view_model<V: View>(&mut self,
         window_builder: winit::WindowBuilder,
         events_loop: &winit::EventsLoop,
-        view_model: &Rc<RefCell<V>>) -> Result<winit::WindowId> {
-        self.add_window(window_builder, &events_loop, V::create_view(view_model))
+        view_model: V) -> Result<winit::WindowId> {
+        self.add_window(window_builder, &events_loop, view_model.to_view(Vec::new()))
     }
 
     pub fn get_main_window_id(&self) -> Option<winit::WindowId> {

@@ -11,9 +11,16 @@ use drawing_context::DrawingContext;
 use events::*;
 use style::*;
 use typed_builder::TypedBuilder;
+use view::View;
 
 #[derive(TypedBuilder)]
 pub struct Horizontal {}
+
+impl View for Horizontal {
+    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, HorizontalDefaultStyle::new(), children)
+    }
+}
 
 //
 // Horizontal Default Style
