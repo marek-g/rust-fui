@@ -5,13 +5,15 @@ use Event;
 use EventSubscription;
 
 pub struct Property<T> {
-    data: Rc<PropertyData<T>>
+    data: Rc<PropertyData<T>>,
+    binding_subscription: Option<EventSubscription>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new(val: T) -> Self {
         Property {
-            data: Rc::new(PropertyData::new(val))
+            data: Rc::new(PropertyData::new(val)),
+            binding_subscription: None,
         }
     }
 
@@ -28,36 +30,32 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         self.data.get()
     }
 
-    pub fn bind(&mut self, src_property: &mut Property<T>) -> EventSubscription {
+    pub fn bind(&mut self, src_property: &mut Property<T>) {
         self.set(src_property.get());
 
         let weak_data = Rc::downgrade(&self.data);
-        src_property.data.changed.borrow_mut().subscribe(move |src_val| {
+        self.binding_subscription = Some(src_property.data.changed.borrow_mut().subscribe(move |src_val| {
             if let Some(dest_property_data) = weak_data.upgrade() {
                 dest_property_data.set(src_val.clone());
             }
-        })
+        }))
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(&mut self,
-        src_property: &mut Property<TSrc>, f: F) -> EventSubscription {
+        src_property: &mut Property<TSrc>, f: F) {
         self.set(f(src_property.get()));
 
         let weak_data = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
-        src_property.data.changed.borrow_mut().subscribe(move |src_val| {
+        self.binding_subscription = Some(src_property.data.changed.borrow_mut().subscribe(move |src_val| {
             if let Some(dest_property_data) = weak_data.upgrade() {
                 dest_property_data.set(boxed_f(src_val));
             }
-        })
+        }))
     }
 
     pub fn on_changed<F: 'static + Fn(T)>(&mut self, f: F) -> EventSubscription {
         self.data.changed.borrow_mut().subscribe(f)
-    }
-
-    pub fn on_changed_without_subscription<F: 'static + Fn(T)>(&mut self, f: F) {
-        self.data.changed.borrow_mut().subscribe_long(f);
     }
 }
 

@@ -34,8 +34,6 @@ pub struct Control<D> {
     pub style: Box<Style<D>>,
     pub children: Vec<Rc<RefCell<ControlObject>>>,
 
-    pub bindings: Vec<EventSubscription>,
-
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,
 }

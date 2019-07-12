@@ -19,8 +19,6 @@ use typed_builder::TypedBuilder;
 struct MainViewModel {
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
-
-    pub bindings: Vec::<fui::EventSubscription>,
 }
 
 impl MainViewModel {
@@ -28,7 +26,6 @@ impl MainViewModel {
         MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
-            bindings: Vec::new(),
         }
     }
 
@@ -62,17 +59,14 @@ impl View for ButtonText {
 
 impl View for MainViewModel {
     fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        let mut bindings = Vec::<fui::EventSubscription>::new();
-
         let mut view_model = &Rc::new(RefCell::new(self));
+        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         let root_control = ui!(
             Horizontal {
                 Text { text: {
                     let mut prop = Property::new("".to_string());
-                    let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-                    let binding = prop.bind_c(&mut vm.counter, |counter| format!("Counter {}", counter));
-                    bindings.push(binding);
+                    prop.bind_c(&mut vm.counter, |counter| format!("Counter {}", counter));
                     prop
                 } },
                 Button {
@@ -85,19 +79,14 @@ impl View for MainViewModel {
                 },
                 Text { text: {
                     let mut prop = Property::new("".to_string());
-                    let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-                    let binding = prop.bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter));
-                    bindings.push(binding);
+                    prop.bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter));
                     prop
                  } },
             }
         );
 
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-        bindings.push(vm.counter2.bind(&mut vm.counter));
-        bindings.push(vm.counter.bind(&mut vm.counter2));
-
-        vm.bindings = bindings;
+        vm.counter2.bind(&mut vm.counter);
+        vm.counter.bind(&mut vm.counter2);
 
         root_control
     }

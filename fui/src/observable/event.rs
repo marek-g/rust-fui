@@ -16,14 +16,12 @@ impl<A> CallbackObject for Callback<A> { }
 
 pub struct Event<A> {
     callbacks: RefCell<Vec<Weak<Callback<A>>>>,
-    subscriptions: Vec<EventSubscription>,
 }
 
 impl<A: 'static + Clone> Event<A> {
     pub fn new() -> Self {
         Event {
             callbacks: RefCell::new(Vec::new()),
-            subscriptions: Vec::new(),
         }
     }
 
@@ -35,11 +33,6 @@ impl<A: 'static + Clone> Event<A> {
         self.callbacks.borrow_mut().push(weak_callback);
 
         EventSubscription { _callback: rc_callback }
-    }
-
-    pub fn subscribe_long<F: 'static + Fn(A)>(&mut self, f: F) {
-        let subscription = self.subscribe(f);
-        self.subscriptions.push(subscription);
     }
 
     pub fn emit(&self, args: A) {
