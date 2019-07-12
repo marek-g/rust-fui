@@ -16,8 +16,6 @@ use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
 
-use Property;
-
 struct MainViewModel {
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
@@ -45,6 +43,7 @@ impl MainViewModel {
 
 #[derive(TypedBuilder)]
 pub struct ButtonText {
+    #[builder(default_code = "Property::new(\"\".to_string())")]
     pub text: Property<String>,
     #[builder(default_code = "Callback::empty()")]
     pub clicked: Callback<()>,
@@ -78,11 +77,11 @@ impl View for MainViewModel {
                 } },
                 Button {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
-                    Text { text: Property::new("Decrease".to_string()) }
+                    Text { text: "Decrease" }
                 },
                 ButtonText {
                     clicked: Callback::new(view_model, |vm, _| vm.increase()),
-                    text: Property::new("Increase".to_string()),
+                    text: "Increase"
                 },
                 Text { text: {
                     let mut prop = Property::new("".to_string());

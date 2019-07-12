@@ -85,3 +85,15 @@ impl<T: 'static + Clone + PartialEq> PropertyData<T> {
         (*self.value.borrow()).clone()
     }
 }
+
+impl<T> From<T> for Property<T> where T: 'static + Clone + PartialEq {
+    fn from(value: T) -> Property<T> {
+        Property::new(value)
+    }
+}
+
+impl From<&str> for Property<String> {
+    fn from(value: &str) -> Property<String> {
+        Property::new(value.to_string())
+    }
+}
