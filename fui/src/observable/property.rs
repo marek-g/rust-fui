@@ -1,97 +1,226 @@
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use Event;
 use EventSubscription;
 
 pub struct Property<T> {
-    data: Rc<PropertyData<T>>,
+    data: Rc<RefCell<PropertyData<T>>>,
     binding_subscription: Option<EventSubscription>,
 }
 
-impl<T: 'static + Clone + PartialEq> Property<T> {
-    pub fn new(val: T) -> Self {
+impl<T: 'static + Clone + PartialEq + Default> Property<T> {
+    pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
-            data: Rc::new(PropertyData::new(val)),
+            data: Rc::new(RefCell::new(PropertyData::new(val.into()))),
             binding_subscription: None,
         }
     }
 
+    pub fn binded(src_property: &Property<T>) -> Self {
+        let mut property = Property::new(T::default());
+        property.bind(src_property);
+        property
+    }
+
+    pub fn binded_c<TSrc: 'static + Clone + PartialEq + Default, F: 'static + Fn(TSrc) -> T>(
+        src_property: &Property<TSrc>,
+        f: F,
+    ) -> Self {
+        let mut property = Property::new(T::default());
+        property.bind_c(src_property, f);
+        property
+    }
+
     pub fn set(&mut self, val: T) {
-        self.data.set(val);
+        self.data.borrow_mut().set(val);
     }
 
     pub fn change<F: 'static + Fn(T) -> T>(&mut self, f: F) {
-        let val = self.data.get();
-        self.data.set(f(val));
+        let val = self.data.borrow().get();
+        self.data.borrow_mut().set(f(val));
     }
 
     pub fn get(&self) -> T {
-        self.data.get()
+        self.data.borrow().get()
     }
 
-    pub fn bind(&mut self, src_property: &mut Property<T>) {
+    pub fn bind(&mut self, src_property: &Property<T>) {
         self.set(src_property.get());
 
-        let weak_data = Rc::downgrade(&self.data);
-        self.binding_subscription = Some(src_property.data.changed.borrow_mut().subscribe(move |src_val| {
-            if let Some(dest_property_data) = weak_data.upgrade() {
-                dest_property_data.set(src_val.clone());
-            }
-        }))
+        let weak_data_dest = Rc::downgrade(&self.data);
+        self.binding_subscription = Some(src_property.data.borrow_mut().changed.subscribe(
+            move |src_val| {
+                if let Some(dest_property_data) = weak_data_dest.upgrade() {
+                    dest_property_data.borrow_mut().set(src_val.clone());
+                }
+            },
+        ))
     }
 
-    pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(&mut self,
-        src_property: &mut Property<TSrc>, f: F) {
+    pub fn bind_c<TSrc: 'static + Clone + PartialEq + Default, F: 'static + Fn(TSrc) -> T>(
+        &mut self,
+        src_property: &Property<TSrc>,
+        f: F,
+    ) {
         self.set(f(src_property.get()));
 
-        let weak_data = Rc::downgrade(&self.data);
+        let weak_data_dest = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
-        self.binding_subscription = Some(src_property.data.changed.borrow_mut().subscribe(move |src_val| {
-            if let Some(dest_property_data) = weak_data.upgrade() {
-                dest_property_data.set(boxed_f(src_val));
-            }
-        }))
+        self.binding_subscription = Some(src_property.data.borrow_mut().changed.subscribe(
+            move |src_val| {
+                if let Some(dest_property_data) = weak_data_dest.upgrade() {
+                    dest_property_data.borrow_mut().set(boxed_f(src_val));
+                }
+            },
+        ))
     }
 
     pub fn on_changed<F: 'static + Fn(T)>(&mut self, f: F) -> EventSubscription {
-        self.data.changed.borrow_mut().subscribe(f)
+        self.data.borrow_mut().changed.subscribe(f)
     }
 }
 
 struct PropertyData<T> {
-    value: RefCell<T>,
-    changed: RefCell<Event<T>>
+    value: T,
+    changed: Event<T>,
 }
 
-impl<T: 'static + Clone + PartialEq> PropertyData<T> {
+impl<T: 'static + Clone + PartialEq + Default> PropertyData<T> {
     fn new(val: T) -> Self {
         PropertyData {
-            value: RefCell::new(val),
-            changed: RefCell::new(Event::new())
+            value: val,
+            changed: Event::new(),
         }
     }
 
-    fn set(&self, val: T) {
-        let old_value = self.value.replace(val.clone());
-        if old_value != val {
-            self.changed.borrow().emit(val);
+    fn set(&mut self, val: T) {
+        if self.value != val {
+            self.value = val.clone();
+            self.changed.emit(val);
         }
     }
 
     fn get(&self) -> T {
-        (*self.value.borrow()).clone()
+        self.value.clone()
     }
 }
 
-impl<T> From<T> for Property<T> where T: 'static + Clone + PartialEq {
-    fn from(value: T) -> Property<T> {
-        Property::new(value)
+///
+/// Used to attribute types that can be
+/// automatically converted to Property<T>.
+///
+pub trait IntoProperty {}
+
+impl IntoProperty for String {}
+impl IntoProperty for &str {}
+impl IntoProperty for bool {}
+impl IntoProperty for char {}
+impl IntoProperty for i8 {}
+impl IntoProperty for i16 {}
+impl IntoProperty for i32 {}
+impl IntoProperty for i64 {}
+impl IntoProperty for i128 {}
+impl IntoProperty for isize {}
+impl IntoProperty for u8 {}
+impl IntoProperty for u16 {}
+impl IntoProperty for u32 {}
+impl IntoProperty for u64 {}
+impl IntoProperty for u128 {}
+impl IntoProperty for usize {}
+impl IntoProperty for f32 {}
+impl IntoProperty for f64 {}
+
+///
+/// Allows to convert types attributed with IntoProperty to Property<T>.
+///
+/// Cannot do it for all types at once, because then there is a conflict
+/// with binding conversions (tuples and properties used as source).
+///
+/// Example:
+///
+/// ui! { Control { int_property: 10, text_property: "My Text" }}
+///
+impl<T, U> From<U> for Property<T>
+where
+    T: 'static + Clone + PartialEq + Default,
+    U: Into<T> + IntoProperty,
+{
+    fn from(value: U) -> Property<T> {
+        Property::new(value.into())
     }
 }
 
-impl From<&str> for Property<String> {
-    fn from(value: &str) -> Property<String> {
-        Property::new(value.to_string())
+///
+/// Allows to easily write one-way binding.
+///
+/// Example:
+///
+/// ui! { Control { text_property: &vm.text }}
+///
+impl<T> From<&Property<T>> for Property<T>
+where
+    T: 'static + Clone + PartialEq + Default,
+{
+    fn from(value: &Property<T>) -> Property<T> {
+        Property::binded(value)
+    }
+}
+
+///
+/// Allows to easily write two-way bindings.
+///
+/// Example:
+///
+/// ui! { Control { text_property: &mut vm.text }}
+///
+impl<T> From<&mut Property<T>> for Property<T>
+where
+    T: 'static + Clone + PartialEq + Default,
+{
+    fn from(value: &mut Property<T>) -> Property<T> {
+        let mut new_property = Property::binded(value);
+        value.bind(&mut new_property);
+        new_property
+    }
+}
+
+///
+/// Allows to easily write one-way binding with converter.
+///
+/// Example:
+///
+/// ui! { Control { text_property: (&vm.count, |c| c.to_string()) }}
+///
+impl<TSrc, TDest, F> From<(&Property<TSrc>, F)> for Property<TDest>
+where
+    TSrc: 'static + Clone + PartialEq + Default,
+    TDest: 'static + Clone + PartialEq + Default,
+    F: 'static + Fn(TSrc) -> TDest,
+{
+    fn from(value: (&Property<TSrc>, F)) -> Property<TDest> {
+        Property::binded_c(value.0, value.1)
+    }
+}
+
+///
+/// Allows to easily write two-way binding with converter.
+///
+/// Example:
+///
+/// ui! { Control { text_property: (&mut vm.count,
+///     |c| c.to_string(), |c| c.parse().unwrap()) }}
+///
+impl<TSrc, TDest, F1, F2> From<(&mut Property<TSrc>, F1, F2)> for Property<TDest>
+where
+    TSrc: 'static + Clone + PartialEq + Default,
+    TDest: 'static + Clone + PartialEq + Default,
+    F1: 'static + Fn(TSrc) -> TDest,
+    F2: 'static + Fn(TDest) -> TSrc,
+{
+    fn from(value: (&mut Property<TSrc>, F1, F2)) -> Property<TDest> {
+        let mut new_property = Property::binded_c(value.0, value.1);
+        value.0.bind_c(&mut new_property, value.2);
+        new_property
     }
 }

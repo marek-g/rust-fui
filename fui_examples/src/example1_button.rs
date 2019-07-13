@@ -47,7 +47,7 @@ pub struct ButtonText {
 }
 
 impl View for ButtonText {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
         ui! {
             Button {
                 clicked: self.clicked,
@@ -58,17 +58,13 @@ impl View for ButtonText {
 }
 
 impl View for MainViewModel {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        let mut view_model = &Rc::new(RefCell::new(self));
+    fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        let view_model = &Rc::new(RefCell::new(self));
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         let root_control = ui!(
             Horizontal {
-                Text { text: {
-                    let mut prop = Property::new("".to_string());
-                    prop.bind_c(&mut vm.counter, |counter| format!("Counter {}", counter));
-                    prop
-                } },
+                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: "Decrease" }
@@ -77,11 +73,7 @@ impl View for MainViewModel {
                     clicked: Callback::new(view_model, |vm, _| vm.increase()),
                     text: "Increase"
                 },
-                Text { text: {
-                    let mut prop = Property::new("".to_string());
-                    prop.bind_c(&mut vm.counter2, |counter| format!("Counter2 {}", counter));
-                    prop
-                 } },
+                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
             }
         );
 

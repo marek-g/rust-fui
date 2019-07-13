@@ -53,11 +53,17 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
     ) {
     }
 
-    fn handle_event(&mut self, data: &mut Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
+    fn handle_event(
+        &mut self,
+        _data: &mut Horizontal,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _event: ControlEvent,
+    ) {
+    }
 
     fn get_preferred_size(
         &self,
-        data: &Horizontal,
+        _data: &Horizontal,
         children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         size: Size,
@@ -79,7 +85,12 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         result
     }
 
-    fn set_rect(&mut self, data: &Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &Horizontal,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
+        rect: Rect,
+    ) {
         self.rect = rect;
 
         let mut child_rect = rect;
@@ -98,7 +109,12 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, data: &Horizontal, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Horizontal,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             for child in children.iter() {
                 let c = child.borrow();
@@ -120,7 +136,7 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 
     fn to_primitives(
         &self,
-        data: &Horizontal,
+        _data: &Horizontal,
         children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {

@@ -1,11 +1,20 @@
 HLists
-=============================
+-----------------------------
 
 TODO:
 Use HLists to represent children. Get rid of ControlObject :)
 
+One way / two way bindings
+-----------------------------
+
+```rust
+Text { text: &vm.counter }, // one way binding
+Text { text: &mut vm.counter }, // two way binding
+Text { text: (&vm.counter, |c| format!("C={}", c) }, // binding with converter
+```
+
 Data templates / Lists:
-=============================
+-----------------------------
 
 Just use the same View trait for defining data templates. The List control will call its create_view method for every item.
 

@@ -32,7 +32,7 @@ pub trait PropertyDirtyExtension<D> {
 }
 
 impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
-    where T: 'static + Clone + PartialEq {
+    where T: 'static + Clone + PartialEq + Default {
     fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {
