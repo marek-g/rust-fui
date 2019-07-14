@@ -4,14 +4,62 @@ HLists
 TODO:
 Use HLists to represent children. Get rid of ControlObject :)
 
-One way / two way bindings
+[DONE] One way / two way bindings
 -----------------------------
 
 ```rust
 Text { text: &vm.counter }, // one way binding
 Text { text: &mut vm.counter }, // two way binding
-Text { text: (&vm.counter, |c| format!("C={}", c) }, // binding with converter
+Text { text: (&vm.counter, |c| format!("C={}", c) }, // one way binding with converter
+Text { text: (&vm.c, |c| c.to_string(), |s| s.parse().unwrap()) }, // two way binding with converter
 ```
+
+Attached value
+-----------------------------
+
+Use TypeMap crate.
+
+Syntax: Attached values starts with upper case or contains namespace (`::` inside).
+
+```rust
+Text {
+  Row: 5,
+  grid::Column: 5,
+  text: "Ala",
+}
+```
+
+Alternative - use cells:
+
+```rust
+RowCell {
+  row: 5,
+  column: 5,
+  Text {
+    text: "Ala",
+  }
+}
+```
+
+Question: what about syntax for dependency properties then?
+
+I'm not sure we need to have dependency properties for value inheritance.
+Maybe the better idea is some kind of style system. E.g.:
+
+```rust
+Text # textStyle1, buttonStyle2 {
+  Row: 5,
+  Column: 5,
+  text: "Ala",
+}
+```
+
+Where `textStyle1` points to `TextDefaultStyle::new(font_size: 10, font_nam="Arial")`.
+Style can be inherited down. So maybe it should be a list of styles (not necessairly related with
+the current view type).
+
+Maybe style should be something more complex to allow inserting tree nodes like Margin {}. Probably can reuse views as templates for this purpose.
+
 
 Data templates / Lists:
 -----------------------------
