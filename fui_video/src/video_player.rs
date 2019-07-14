@@ -124,7 +124,7 @@ pub struct PlayerTexture {
 impl PlayerTexture {
     pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
         PlayerTexture {
-            updated: Callback::new(),
+            updated: Callback::empty(),
             texture_id: -1, width: 0, height: 0,
             drawing_context
         }

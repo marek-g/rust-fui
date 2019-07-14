@@ -3,11 +3,13 @@
 extern crate fui;
 extern crate fui_video;
 extern crate winit;
+extern crate fui_macros;
 
 use fui::application::*;
 use fui::controls::*;
 use fui::layout::*;
 use fui::*;
+use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -17,6 +19,7 @@ use fui_video::PlayerGl;
 
 struct MainViewModel {
     pub player: Rc<RefCell<PlayerGl>>,
+    pub texture_id: Property<i32>,
     //pub player: Rc<RefCell<Player>>,
     player_loop_subscription: EventSubscription,
 }
@@ -40,6 +43,7 @@ impl MainViewModel {
 
         Ok(MainViewModel {
             player,
+            texture_id: Property::new(-1),
             player_loop_subscription,
         })
     }
@@ -55,50 +59,44 @@ impl MainViewModel {
 }
 
 impl View for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<MainViewModel>>) -> ViewData {
-        // controls
-        let btn_play = Button::control(Text::control("Play"));
-        let btn_stop = Button::control(Text::control("Stop"));
-        let bitmap = Bitmap::control(-1);
-
-        // events
-        btn_play.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.play(); });
-        btn_stop.borrow_mut().data.events.clicked.set_vm(view_model, |vm, _| { vm.stop(); });
-        {
-            let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-            let player = &mut vm.player.borrow_mut();
-            player.texture.updated.set_vm(&bitmap, |bitmap, texture_id| {
-                bitmap.data.texture_id.set(texture_id);
-                bitmap.set_is_dirty(true);
-            });
-        }
-
-        // bindings
+    fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+        let view_model = &Rc::new(RefCell::new(self));
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-        let bindings = vec![
-        ];
 
-        // layout
-        let root_control = Horizontal::control(vec![
-            btn_play, btn_stop, bitmap,
-        ]);
+        let root_control = ui!(
+            Horizontal {
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.play()),
+                    Text { text: "Play" }
+                },
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.stop()),
+                    Text { text: "Stop" }
+                },
+                Bitmap { texture_id: &vm.texture_id },
+            }
+        );
 
-        ViewData {
-            root_control: root_control,
-            bindings: bindings,
-        }
+        let root_control_copy = root_control.clone();
+        vm.player.borrow_mut().texture.updated.set_vm(&view_model, move |vm, texture_id| {
+            vm.texture_id.set(texture_id);
+            // TODO: do it on bitmap control instead
+            root_control_copy.borrow_mut().set_is_dirty(true);
+        });
+
+        root_control
     }
 }
 
 fn main() {
     let mut app = Application::new("Marek Ogarek").unwrap();
 
-    let main_view_model = Rc::new(RefCell::new(MainViewModel::new(&mut app).unwrap()));
+    let main_view_model = MainViewModel::new(&mut app).unwrap();
 
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
-        window_manager.add_window_view_model(window_builder, app.get_events_loop(), &main_view_model).unwrap();
+        window_manager.add_window_view_model(window_builder, app.get_events_loop(), main_view_model).unwrap();
     }
  
     app.run();
