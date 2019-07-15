@@ -13,7 +13,7 @@ use observable::*;
 use style::*;
 use Property;
 use typed_builder::TypedBuilder;
-use view::View;
+use view::*;
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
@@ -21,8 +21,8 @@ pub struct Bitmap {
 }
 
 impl View for Bitmap {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, BitmapDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, BitmapDefaultStyle::new(), context.children)
     }
 }
 

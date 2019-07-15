@@ -12,7 +12,7 @@ use events::*;
 use observable::*;
 use style::*;
 use typed_builder::TypedBuilder;
-use view::View;
+use view::*;
 
 #[derive(TypedBuilder)]
 pub struct Button {
@@ -21,8 +21,8 @@ pub struct Button {
 }
 
 impl View for Button {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, ButtonDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, ButtonDefaultStyle::new(), context.children)
     }
 }
 

@@ -11,7 +11,7 @@ Use HLists to represent children. Get rid of ControlObject :)
 Text { text: &vm.counter }, // one way binding
 Text { text: &mut vm.counter }, // two way binding
 Text { text: (&vm.counter, |c| format!("C={}", c) }, // one way binding with converter
-Text { text: (&vm.c, |c| c.to_string(), |s| s.parse().unwrap()) }, // two way binding with converter
+Text { text: (&vm.counter, |c| c.to_string(), |s| s.parse().unwrap()) }, // two way binding with converter
 ```
 
 Attached value

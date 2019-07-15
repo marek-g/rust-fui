@@ -12,7 +12,7 @@ use observable::*;
 use Property;
 use style::*;
 use typed_builder::TypedBuilder;
-use view::View;
+use view::*;
 
 #[derive(TypedBuilder)]
 pub struct Text {
@@ -20,8 +20,8 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, TextDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, TextDefaultStyle::new(), context.children)
     }
 }
 

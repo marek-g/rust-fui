@@ -7,8 +7,12 @@ pub trait ControlObject {
     fn draw(&mut self) -> String;
 }
 
+pub struct ViewContext {
+    children: Vec<Rc<RefCell<ControlObject>>>,
+}
+
 pub trait View {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>>;
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>>;
 }
 
 pub trait Style<D> {
@@ -57,8 +61,8 @@ pub struct Horizontal {
 }
 
 impl View for Horizontal {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, HorizontalDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, HorizontalDefaultStyle::new(), context.children)
     }
 }
 
@@ -80,8 +84,8 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 pub struct Button {}
 
 impl View for Button {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, ButtonDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, ButtonDefaultStyle::new(), context.children)
     }
 }
 
@@ -105,8 +109,8 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, TextDefaultStyle::new(), children)
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        Control::new(self, TextDefaultStyle::new(), context.children)
     }
 }
 

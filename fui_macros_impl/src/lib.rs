@@ -23,20 +23,29 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Horizontal>::builder().spacing(4).build().to_view(
-//     vec![
-//         <Button>::builder().build().to_view(
-//             vec![<Text::builder()
+// <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
+//     children: vec![
+//
+//         <Button>::builder().build().to_view(ViewContext {
+//             children: vec![
+//
+//                 <Text::builder()
 //                     .text("Button".to_string())
-//                     .build().to_view(Vec::<Rc<RefCell<ControlObject>>>::new()),
+//                     .build().to_view(ViewContext {
+//                         children: Vec::<Rc<RefCell<ControlObject>>>::new()
+//                     }),
+//
 //             )],
-//         ),
+//         }),
+//
 //         <Text>::builder()
-//                 .text("Label".to_string())
-//                 .build().to_view(Vec::<Rc<RefCell<ControlObject>>>::new()),
+//             .text("Label".to_string())
+//             .build().to_view(ViewContext {
+//                 children: Vec::<Rc<RefCell<ControlObject>>>::new()
+//             }),
 //         ),
 //     ],
-// )
+// })
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
     let ctrl = parse_macro_input!(input as Ctrl);
@@ -59,7 +68,9 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
 
     let children = get_control_children(controls);
 
-    quote! { #properties_builder.to_view(#children) }
+    quote! { #properties_builder.to_view(ViewContext {
+        children: #children
+    }) }
 }
 
 fn get_properties_builder(

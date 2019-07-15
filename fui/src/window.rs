@@ -4,6 +4,7 @@ use std::rc::Rc;
 use control_object::ControlObject;
 use drawing_context::DrawingWindowTarget;
 use View;
+use ViewContext;
 
 pub struct Window {
     drawing_window_target: DrawingWindowTarget,
@@ -37,7 +38,7 @@ impl Window {
     }
 
     pub fn set_root_view_model<V: View>(&mut self, view_model: V) {
-        self.set_root_view(view_model.to_view(Vec::new()));
+        self.set_root_view(view_model.to_view(ViewContext { children: Vec::new() }));
     }
 
     pub fn clear_root(&mut self) {

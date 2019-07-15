@@ -47,7 +47,7 @@ pub struct ButtonText {
 }
 
 impl View for ButtonText {
-    fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
         ui! {
             Button {
                 clicked: self.clicked,
@@ -58,7 +58,7 @@ impl View for ButtonText {
 }
 
 impl View for MainViewModel {
-    fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
         let view_model = &Rc::new(RefCell::new(self));
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 

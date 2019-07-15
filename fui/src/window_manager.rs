@@ -10,6 +10,7 @@ use control_object::ControlObject;
 use DrawingContext;
 use Window;
 use View;
+use ViewContext;
 
 use ::Result;
 
@@ -55,7 +56,7 @@ impl WindowManager {
         window_builder: winit::WindowBuilder,
         events_loop: &winit::EventsLoop,
         view_model: V) -> Result<winit::WindowId> {
-        self.add_window(window_builder, &events_loop, view_model.to_view(Vec::new()))
+        self.add_window(window_builder, &events_loop, view_model.to_view(ViewContext { children: Vec::new() }))
     }
 
     pub fn get_main_window_id(&self) -> Option<winit::WindowId> {
