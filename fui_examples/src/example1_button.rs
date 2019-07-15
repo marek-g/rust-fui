@@ -4,6 +4,7 @@ extern crate fui;
 extern crate fui_macros;
 extern crate winit;
 extern crate typed_builder;
+extern crate typemap;
 
 use fui::application::*;
 use fui::controls::*;
@@ -15,6 +16,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
+use typemap::TypeMap;
 
 struct MainViewModel {
     pub counter: Property<i32>,

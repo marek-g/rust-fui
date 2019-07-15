@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
+use typemap::TypeMap;
 
 use common::*;
 use control::*;
@@ -11,12 +12,14 @@ pub trait ControlObject {
     fn is_dirty(&self) -> bool;
     fn set_is_dirty(&mut self, is_dirty: bool);
 
+    fn get_attached_values(&mut self) -> &TypeMap;
+
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
     fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
-    fn handle_event(&mut self, event: ControlEvent);
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
+    fn handle_event(&mut self, event: ControlEvent);
     fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
     fn set_rect(&mut self, rect: Rect);
     fn get_rect(&self) -> Rect;
@@ -33,6 +36,10 @@ impl<D: 'static> ControlObject for Control<D> {
 
     fn set_is_dirty(&mut self, is_dirty: bool) {
         self.set_is_dirty(is_dirty)
+    }
+
+    fn get_attached_values(&mut self) -> &TypeMap {
+        self.get_attached_values()
     }
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {

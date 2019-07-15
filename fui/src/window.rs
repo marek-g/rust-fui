@@ -38,7 +38,7 @@ impl Window {
     }
 
     pub fn set_root_view_model<V: View>(&mut self, view_model: V) {
-        self.set_root_view(view_model.to_view(ViewContext { children: Vec::new() }));
+        self.set_root_view(view_model.to_view(ViewContext::empty()));
     }
 
     pub fn clear_root(&mut self) {

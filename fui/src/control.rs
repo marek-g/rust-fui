@@ -1,19 +1,22 @@
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
+use std::rc::{Rc, Weak};
+use typemap::TypeMap;
 
 use control_object::*;
 use observable::*;
 use style::*;
+use view::ViewContext;
 
 pub enum HitTestResult {
     Nothing,
     Current,
-    Child(Rc<RefCell<ControlObject>>)
+    Child(Rc<RefCell<ControlObject>>),
 }
 
 pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
+    attached_values: TypeMap,
     pub children: Vec<Rc<RefCell<ControlObject>>>,
 
     parent: Option<Weak<RefCell<ControlObject>>>,
@@ -21,11 +24,16 @@ pub struct Control<D> {
 }
 
 impl<D: 'static> Control<D> {
-    pub fn new<S: 'static + Style<D>>(data: D, style: S, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<Self>> {
+    pub fn new<S: 'static + Style<D>>(
+        data: D,
+        style: S,
+        view_context: ViewContext,
+    ) -> Rc<RefCell<Self>> {
         let control = Rc::new(RefCell::new(Control {
             data: data,
             style: Box::new(style),
-            children: children,
+            attached_values: view_context.attached_values,
+            children: view_context.children,
             parent: None,
             is_dirty: true,
         }));
@@ -42,6 +50,10 @@ impl<D: 'static> Control<D> {
         }
 
         control
+    }
+
+    pub fn get_attached_values(&mut self) -> &TypeMap {
+        &self.attached_values
     }
 
     pub fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
@@ -63,7 +75,6 @@ impl<D: 'static> Control<D> {
     pub fn is_dirty(&self) -> bool {
         self.is_dirty
     }
-    
     pub fn set_is_dirty(&mut self, is_dirty: bool) {
         self.is_dirty = is_dirty;
         if is_dirty {
@@ -79,15 +90,26 @@ impl<D: 'static> Control<D> {
 }
 
 pub trait ControlExtensions<D> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(self, vm: &Rc<RefCell<V>>, f: F) -> Self;
+    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(
+        self,
+        vm: &Rc<RefCell<V>>,
+        f: F,
+    ) -> Self;
 
-    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(self,
-        bindings: &mut Vec<EventSubscription>, vm: &Rc<RefCell<V>>, f: F) -> Rc<RefCell<Control<D>>>;
+    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(
+        self,
+        bindings: &mut Vec<EventSubscription>,
+        vm: &Rc<RefCell<V>>,
+        f: F,
+    ) -> Rc<RefCell<Control<D>>>;
 }
 
 impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(self, vm: &Rc<RefCell<V>>, f: F)
-        -> Rc<RefCell<Control<D>>> {
+    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(
+        self,
+        vm: &Rc<RefCell<V>>,
+        f: F,
+    ) -> Rc<RefCell<Control<D>>> {
         {
             let mut control = self.borrow_mut();
             f(&vm, &mut control);
@@ -95,8 +117,12 @@ impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> {
         self
     }
 
-    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(self,
-        bindings: &mut Vec<EventSubscription>, vm: &Rc<RefCell<V>>, f: F) -> Rc<RefCell<Control<D>>> {
+    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(
+        self,
+        bindings: &mut Vec<EventSubscription>,
+        vm: &Rc<RefCell<V>>,
+        f: F,
+    ) -> Rc<RefCell<Control<D>>> {
         {
             let mut vm = vm.borrow_mut();
             let mut control = self.borrow_mut();

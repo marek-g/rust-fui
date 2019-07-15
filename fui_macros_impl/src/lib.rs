@@ -15,6 +15,7 @@ use crate::parser::CtrlProperty;
 
 // ui!(
 //     Horizontal {
+//         Row: 1,
 //         spacing: 4,
 //         Button { Text { text: "Button".to_string() } },
 //         Text { text: "Label".to_string() }
@@ -27,11 +28,13 @@ use crate::parser::CtrlProperty;
 //     children: vec![
 //
 //         <Button>::builder().build().to_view(ViewContext {
+//             attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
 //             children: vec![
 //
 //                 <Text::builder()
 //                     .text("Button".to_string())
 //                     .build().to_view(ViewContext {
+//                         attached_values: TypeMap::new(),
 //                         children: Vec::<Rc<RefCell<ControlObject>>>::new()
 //                     }),
 //
@@ -41,6 +44,7 @@ use crate::parser::CtrlProperty;
 //         <Text>::builder()
 //             .text("Label".to_string())
 //             .build().to_view(ViewContext {
+//                 attached_values: TypeMap::new(),
 //                 children: Vec::<Rc<RefCell<ControlObject>>>::new()
 //             }),
 //         ),
@@ -62,14 +66,16 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         name: control_name,
         params,
     } = ctrl;
-    let (properties, controls) = decouple_params(params);
+    let (properties, attached_values, controls) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
+    let attached_values_typemap = get_attached_values_typemap(attached_values);
 
     let children = get_control_children(controls);
 
     quote! { #properties_builder.to_view(ViewContext {
-        children: #children
+        attached_values: #attached_values_typemap,
+        children: #children,
     }) }
 }
 
@@ -86,6 +92,16 @@ fn get_properties_builder(
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
 }
 
+fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro2::TokenStream {
+    let mut insert_statements = Vec::new();
+    for attached_value in attached_values {
+        let name = attached_value.name;
+        let expr = attached_value.expr;
+        insert_statements.push(quote!(map.insert::<#name>(#expr);))
+    }
+    quote!({ let mut map = TypeMap::new(); #(#insert_statements)* map })
+}
+
 fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
     let mut children = Vec::new();
     for control in controls {
@@ -99,19 +115,27 @@ fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
     }
 }
 
-fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<Ctrl>) {
+fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<Ctrl>) {
     let mut properties = Vec::new();
+    let mut attached_values = Vec::new();
     let mut controls = Vec::new();
 
     for el in params.into_pairs() {
         let el = el.into_value();
 
         if let CtrlParam::Property(property) = el {
-            properties.push(property);
+            if let Some(first_char) = property.name.to_string().chars().next() {
+                if first_char.is_uppercase() {
+                    attached_values.push(property)
+                }
+                else {
+                    properties.push(property);
+                }
+            }
         } else if let CtrlParam::Ctrl(control) = el {
             controls.push(control)
         }
     }
 
-    (properties, controls)
+    (properties, attached_values, controls)
 }

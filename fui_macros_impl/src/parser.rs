@@ -126,15 +126,23 @@ mod tests {
     #[test]
     fn test_control_with_properties2() {
         let ctrl: Ctrl = parse_quote!(Horizontal {
+            Row: 1,
             spacing: 5,
             Button { Text { text: "Button".to_string() } },
             Text { text: "Label".to_string() },
         });
 
         assert_eq!(ctrl.name, Ident::new("Horizontal", Span::call_site()));
-        assert_eq!(ctrl.params.len(), 3);
+        assert_eq!(ctrl.params.len(), 4);
 
         let mut params = ctrl.params.into_iter();
+
+        let param = params.next().unwrap();
+        if let CtrlParam::Property(param) = param {
+            assert_eq!(param.name, Ident::new("Row", Span::call_site()));
+        } else {
+            panic!("Expected Row CtrlParam::Property");
+        }
 
         let param = params.next().unwrap();
         if let CtrlParam::Property(param) = param {

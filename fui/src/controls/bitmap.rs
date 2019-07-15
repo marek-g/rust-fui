@@ -22,7 +22,7 @@ pub struct Bitmap {
 
 impl View for Bitmap {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, BitmapDefaultStyle::new(), context.children)
+        Control::new(self, BitmapDefaultStyle::new(), context)
     }
 }
 

@@ -4,6 +4,7 @@ extern crate fui;
 extern crate fui_video;
 extern crate winit;
 extern crate fui_macros;
+extern crate typemap;
 
 use fui::application::*;
 use fui::controls::*;
@@ -13,6 +14,7 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use typemap::TypeMap;
 
 use fui_video::PlayerGl;
 //use fui_video::Player;

@@ -2,12 +2,17 @@ use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
+use typemap::{ Key, TypeMap };
+
+// attached value Row of type i32
+struct Row; impl Key for Row { type Value = i32; }
 
 pub trait ControlObject {
     fn draw(&mut self) -> String;
 }
 
 pub struct ViewContext {
+    attached_values: TypeMap,
     children: Vec<Rc<RefCell<ControlObject>>>,
 }
 
@@ -22,6 +27,7 @@ pub trait Style<D> {
 pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
+    pub attached_values: TypeMap,
     pub children: Vec<Rc<RefCell<ControlObject>>>,
 }
 
@@ -29,10 +35,12 @@ impl<D: 'static> Control<D> {
     pub fn new<S: 'static + Style<D>>(
         data: D,
         style: S,
+        attached_values: TypeMap,
         children: Vec<Rc<RefCell<ControlObject>>>,
     ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Control {
             data: data,
+            attached_values: attached_values,
             style: Box::new(style),
             children: children,
         }))
@@ -43,6 +51,12 @@ impl<D: 'static> ControlObject for Control<D>
 {
     fn draw(&mut self) -> String {
         let name = self.style.draw(&mut self.data);
+        
+        let mut attached_values = "".to_string();
+        if let Some(row_attached_value) = self.attached_values.get::<Row>() {
+            attached_values += &format!(".Row({})", row_attached_value);
+        }
+
         let children = if self.children.len() > 0 {
             let vec: Vec<String> = self.children.iter().map(|c| c.borrow_mut().draw()).collect();
             vec.join(",")
@@ -50,7 +64,7 @@ impl<D: 'static> ControlObject for Control<D>
             "".to_string()
         };
 
-        name + "{" + &children + "}"
+        name + &attached_values + "{" + &children + "}"
     }
 }
 
@@ -62,7 +76,7 @@ pub struct Horizontal {
 
 impl View for Horizontal {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, HorizontalDefaultStyle::new(), context.children)
+        Control::new(self, HorizontalDefaultStyle::new(), context.attached_values, context.children)
     }
 }
 
@@ -85,7 +99,7 @@ pub struct Button {}
 
 impl View for Button {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, ButtonDefaultStyle::new(), context.children)
+        Control::new(self, ButtonDefaultStyle::new(), context.attached_values, context.children)
     }
 }
 
@@ -110,7 +124,7 @@ pub struct Text {
 
 impl View for Text {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, TextDefaultStyle::new(), context.children)
+        Control::new(self, TextDefaultStyle::new(), context.attached_values, context.children)
     }
 }
 
@@ -132,6 +146,7 @@ impl Style<Text> for TextDefaultStyle {
 fn test1() {
     let control = ui!(
         Horizontal {
+            Row: 1,
             spacing: 4,
             Button { Text { text: "Button".to_string() } },
             Text { text: "Label".to_string() }
@@ -139,7 +154,7 @@ fn test1() {
     );
 
     let mut control: std::cell::RefMut<ControlObject> = control.borrow_mut();
-    assert_eq!("Horizontal(4){Button{Text(\"Button\"){}},Text(\"Label\"){}}", control.draw());
+    assert_eq!("Horizontal(4).Row(1){Button{Text(\"Button\"){}},Text(\"Label\"){}}", control.draw());
 
     //println!("{}", control.draw());
     //println!("{:?}", control);

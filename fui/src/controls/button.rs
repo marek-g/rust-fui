@@ -22,7 +22,7 @@ pub struct Button {
 
 impl View for Button {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, ButtonDefaultStyle::new(), context.children)
+        Control::new(self, ButtonDefaultStyle::new(), context)
     }
 }
 

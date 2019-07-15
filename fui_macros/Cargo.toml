@@ -8,3 +8,4 @@ edition = "2018"
 fui_macros_impl = { path = "../fui_macros_impl" }
 proc-macro-hack = "0.5"
 typed-builder = "0.3"
+typemap = "0.3"

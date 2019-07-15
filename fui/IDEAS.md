@@ -14,34 +14,23 @@ Text { text: (&vm.counter, |c| format!("C={}", c) }, // one way binding with con
 Text { text: (&vm.counter, |c| c.to_string(), |s| s.parse().unwrap()) }, // two way binding with converter
 ```
 
-Attached value
+[DONE] Attached values
 -----------------------------
 
-Use TypeMap crate.
+Using TypeMap crate.
 
-Syntax: Attached values starts with upper case or contains namespace (`::` inside).
+Syntax: Attached values starts with upper case.
 
 ```rust
 Text {
-  Row: 5,
+  Row: 5, // attached value
   grid::Column: 5,
   text: "Ala",
 }
 ```
 
-Alternative - use cells:
-
-```rust
-RowCell {
-  row: 5,
-  column: 5,
-  Text {
-    text: "Ala",
-  }
-}
-```
-
-Question: what about syntax for dependency properties then?
+Styles / dependency properties
+-----------------------------
 
 I'm not sure we need to have dependency properties for value inheritance.
 Maybe the better idea is some kind of style system. E.g.:

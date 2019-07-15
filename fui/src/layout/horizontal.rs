@@ -18,7 +18,7 @@ pub struct Horizontal {}
 
 impl View for Horizontal {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        Control::new(self, HorizontalDefaultStyle::new(), context.children)
+        Control::new(self, HorizontalDefaultStyle::new(), context)
     }
 }
 

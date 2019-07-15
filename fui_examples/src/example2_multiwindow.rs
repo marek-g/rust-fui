@@ -3,6 +3,7 @@
 extern crate fui;
 extern crate winit;
 extern crate fui_macros;
+extern crate typemap;
 
 use fui::controls::*;
 use fui::layout::*;
@@ -12,6 +13,7 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use typemap::TypeMap;
 
 use Property;
 

@@ -4,6 +4,7 @@ extern crate failure;
 extern crate find_folder;
 extern crate winit;
 extern crate typed_builder;
+extern crate typemap;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 

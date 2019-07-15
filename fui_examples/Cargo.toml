@@ -11,6 +11,7 @@ winit = "*"
 failure = "*"
 time = "*"
 typed-builder = "0.3"
+typemap = "0.3"
 
 fui_video = { path = "../../rust-fui/fui_video", version = "*", optional = true }
 
