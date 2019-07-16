@@ -29,6 +29,43 @@ Text {
 }
 ```
 
+Layout
+-----------------------------
+
+Flutter: https://medium.com/saugo360/flutters-rendering-engine-a-tutorial-part-1-e9eff68b825d
+Flutter Row src: https://github.com/flutter/flutter/blob/b712a172f9/packages/flutter/lib/src/widgets/basic.dart#L4015
+Flutter containers: https://flutter.dev/docs/development/ui/widgets/layout
+layout(): https://github.com/flutter/flutter/blob/b712a172f9/packages/flutter/lib/src/rendering/object.dart#L1534
+
+WPF MSDN: https://docs.microsoft.com/en-us/dotnet/api/system.windows.frameworkelement.measureoverride?redirectedfrom=MSDN&view=netframework-4.8#System_Windows_FrameworkElement_MeasureOverride_System_Windows_Size_
+WPF src: https://github.com/dotnet/wpf/tree/master/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/Controls
+
+MeasureCore() / ArrangeCore(): https://github.com/dotnet/wpf/blob/master/src/Microsoft.DotNet.Wpf/src/PresentationFramework/System/Windows/FrameworkElement.cs
+
+Flutter's child.layout(BoxConstraints) == WPF's MeasureOverride(Size).
+
+Flutter:
+performLayout() {
+  child.layout(..); <- MeasureOverride <- GetDesiredSize()
+  child.parentData.offset = ...; <- ArrangeOverride <- SetSize()
+}
+
+
+measure(size) {
+  child.measure(...);
+  child.set_offset(...)
+}
+
+measure(size) {
+  self.preffered_size = self.get_preffered_size(size)
+}
+
+set_rect() {
+  
+}
+
+
+
 Styles / dependency properties
 -----------------------------
 

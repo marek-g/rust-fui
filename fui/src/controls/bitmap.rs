@@ -11,9 +11,9 @@ use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
 use style::*;
-use Property;
 use typed_builder::TypedBuilder;
 use view::*;
+use Property;
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
@@ -55,28 +55,39 @@ impl Style<Bitmap> for BitmapDefaultStyle {
             .push(data.texture_id.dirty_watching(control));
     }
 
-    fn handle_event(&mut self, data: &mut Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
+    fn handle_event(
+        &mut self,
+        _data: &mut Bitmap,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _event: ControlEvent,
+    ) {
+    }
 
-    fn get_preferred_size(
-        &self,
+    fn measure(
+        &mut self,
         data: &Bitmap,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         _size: Size,
-    ) -> Size {
-        if let Some(texture) = drawing_context
+    ) {
+        self.rect = if let Some(texture) = drawing_context
             .get_resources()
             .textures()
             .get(&data.texture_id.get())
         {
             let size = texture.get_size();
-            Size::new(size.0 as f32, size.1 as f32)
+            Rect::new(0.0f32, 0.0f32, size.0 as f32, size.1 as f32)
         } else {
-            Size::new(0.0f32, 0.0f32)
+            Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
         }
     }
 
-    fn set_rect(&mut self, _data: &Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &Bitmap,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        rect: Rect,
+    ) {
         self.rect = rect;
     }
 
@@ -84,7 +95,12 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Bitmap, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Bitmap,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -95,7 +111,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn to_primitives(
         &self,
         data: &Bitmap,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
         _drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();

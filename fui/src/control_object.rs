@@ -20,7 +20,7 @@ pub trait ControlObject {
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn handle_event(&mut self, event: ControlEvent);
-    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size;
+    fn measure(&mut self, drawing_context: &mut DrawingContext, size: Size);
     fn set_rect(&mut self, rect: Rect);
     fn get_rect(&self) -> Rect;
 
@@ -58,8 +58,8 @@ impl<D: 'static> ControlObject for Control<D> {
         self.style.handle_event(&mut self.data, &self.children, event)
     }
 
-    fn get_preferred_size(&self, drawing_context: &mut DrawingContext, size: Size) -> Size {
-        self.style.get_preferred_size(&self.data, &self.children, drawing_context, size)
+    fn measure(&mut self, drawing_context: &mut DrawingContext, size: Size) {
+        self.style.measure(&mut self.data, &self.children, drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {

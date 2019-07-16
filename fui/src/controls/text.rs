@@ -9,10 +9,10 @@ use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThic
 use drawing_context::DrawingContext;
 use events::*;
 use observable::*;
-use Property;
 use style::*;
 use typed_builder::TypedBuilder;
 use view::*;
+use Property;
 
 #[derive(TypedBuilder)]
 pub struct Text {
@@ -58,22 +58,28 @@ impl Style<Text> for TextDefaultStyle {
             .push(data.text.dirty_watching(control));
     }
 
-    fn handle_event(&mut self, _data: &mut Text, _children: &Vec<Rc<RefCell<ControlObject>>>, _event: ControlEvent) {}
+    fn handle_event(
+        &mut self,
+        _data: &mut Text,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _event: ControlEvent,
+    ) {
+    }
 
-    fn get_preferred_size(
-        &self,
+    fn measure(
+        &mut self,
         data: &Text,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         _size: Size,
-    ) -> Size {
+    ) {
         let (text_width, text_height) = drawing_context
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
-        Size::new(text_width as f32, text_height as f32)
+        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Text, _children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
     }
 
@@ -81,7 +87,12 @@ impl Style<Text> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Text,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -89,7 +100,12 @@ impl Style<Text> for TextDefaultStyle {
         }
     }
 
-    fn to_primitives(&self, data: &Text, children: &Vec<Rc<RefCell<ControlObject>>>, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives(
+        &self,
+        data: &Text,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        drawing_context: &mut DrawingContext,
+    ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = self.rect.x;

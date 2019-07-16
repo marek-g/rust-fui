@@ -105,7 +105,7 @@ impl Application {
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
                                 let size = Size::new(physical_size.width as f32, physical_size.height as f32);
                                 let mut root_control = root_view.borrow_mut();
-                                let _ = root_control.get_preferred_size(drawing_context, size);
+                                root_control.measure(drawing_context, size);
                                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
                             }
                         },
@@ -158,7 +158,7 @@ impl Application {
 
             if root_control.is_dirty() {
                 let size = Size::new(width as f32, height as f32);
-                let _ = root_control.get_preferred_size(drawing_context, size);
+                root_control.measure(drawing_context, size);
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
                 let primitives = root_control.to_primitives(drawing_context);

@@ -54,14 +54,19 @@ impl ButtonDefaultStyle {
 }
 
 impl Style<Button> for ButtonDefaultStyle {
-    fn setup_dirty_watching(&mut self, data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
+    fn setup_dirty_watching(&mut self, _data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
         self.event_subscriptions
             .push(self.is_hover.dirty_watching(control));
         self.event_subscriptions
             .push(self.is_pressed.dirty_watching(control));
     }
 
-    fn handle_event(&mut self, data: &mut Button, children: &Vec<Rc<RefCell<ControlObject>>>, event: ControlEvent) {
+    fn handle_event(
+        &mut self,
+        data: &mut Button,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
+        event: ControlEvent,
+    ) {
         match event {
             ControlEvent::TapDown { .. } => {
                 self.is_pressed.set(true);
@@ -94,22 +99,29 @@ impl Style<Button> for ButtonDefaultStyle {
         }
     }
 
-    fn get_preferred_size(
-        &self,
-        data: &Button,
+    fn measure(
+        &mut self,
+        _data: &Button,
         children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         size: Size,
-    ) -> Size {
+    ) {
         let content_size = if let Some(ref content) = children.first() {
-            content.borrow().get_preferred_size(drawing_context, size)
+            content.borrow_mut().measure(drawing_context, size);
+            let rect = content.borrow().get_rect();
+            Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
         };
-        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
+        self.rect = Rect::new(
+            0.0f32,
+            0.0f32,
+            content_size.width + 20.0f32,
+            content_size.height + 20.0f32,
+        )
     }
 
-    fn set_rect(&mut self, data: &Button, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Button, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -128,7 +140,12 @@ impl Style<Button> for ButtonDefaultStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Button, children: &Vec<Rc<RefCell<ControlObject>>>, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Button,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -136,7 +153,12 @@ impl Style<Button> for ButtonDefaultStyle {
         }
     }
 
-    fn to_primitives(&self, data: &Button, children: &Vec<Rc<RefCell<ControlObject>>>, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives(
+        &self,
+        _data: &Button,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
+        drawing_context: &mut DrawingContext,
+    ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         let x = self.rect.x;
@@ -198,14 +220,12 @@ impl Style<Button> for ButtonDefaultStyle {
         });
 
         if let Some(ref content) = children.first() {
-            let mut vec2 = content
-                .borrow_mut()
-                .to_primitives(drawing_context);
+            let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
                 vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
-        }    
+        }
 
         vec
     }

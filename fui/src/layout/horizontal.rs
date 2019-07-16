@@ -28,7 +28,6 @@ impl View for Horizontal {
 
 pub struct HorizontalDefaultStyle {
     rect: Rect,
-    desired_size: RefCell<Vec<Size>>,
 }
 
 impl HorizontalDefaultStyle {
@@ -40,7 +39,6 @@ impl HorizontalDefaultStyle {
                 width: 0f32,
                 height: 0f32,
             },
-            desired_size: RefCell::new(Vec::new()),
         }
     }
 }
@@ -61,28 +59,23 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
     ) {
     }
 
-    fn get_preferred_size(
-        &self,
+    fn measure(
+        &mut self,
         _data: &Horizontal,
         children: &Vec<Rc<RefCell<ControlObject>>>,
         drawing_context: &mut DrawingContext,
         size: Size,
-    ) -> Size {
-        let mut result = Size::new(0f32, 0f32);
+    ) {
+        let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
         let available_size = Size::new(f32::INFINITY, size.height);
 
-        let mut desired_size = self.desired_size.borrow_mut();
-
-        desired_size.resize(children.len(), Size::new(0f32, 0f32));
-        for (i, child) in children.iter().enumerate() {
-            let child_size = child
-                .borrow()
-                .get_preferred_size(drawing_context, available_size);
-            desired_size[i] = child_size;
+        for child in children {
+            child.borrow_mut().measure(drawing_context, available_size);
+            let child_size = child.borrow().get_rect();
             result.width += child_size.width;
             result.height = result.height.max(child_size.height);
         }
-        result
+        self.rect = result
     }
 
     fn set_rect(
@@ -94,10 +87,9 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
         self.rect = rect;
 
         let mut child_rect = rect;
-        let desired_size = self.desired_size.borrow();
 
-        for (i, child) in children.iter().enumerate() {
-            let child_size = desired_size[i];
+        for child in children {
+            let child_size = child.borrow_mut().get_rect();
             child_rect.width = child_size.width;
             child_rect.height = child_size.height;
             child.borrow_mut().set_rect(child_rect);
