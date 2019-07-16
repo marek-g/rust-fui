@@ -21,7 +21,12 @@
         {
             "taskName": "build_example3",
             "type": "shell",
-            "command": "cargo build --bin example3_video --features video"
+            "command": "cargo build --bin example3_layout"
+        },
+        {
+            "taskName": "build_example4",
+            "type": "shell",
+            "command": "cargo build --bin example4_video --features video"
         },
         {
             "taskName": "format",

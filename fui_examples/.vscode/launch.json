@@ -35,15 +35,26 @@
             "preLaunchTask": "build_example2"
         },
         {
-            "name": "ex3 video",
+            "name": "ex3 layout",
             "request": "launch",
             //"type": "lldb",
             //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example3_video",
+            //"program": "${workspaceRoot}/target/debug/example3_layout",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example3_video",
+            "target": "${workspaceRoot}/target/debug/example3_layout",
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build_example3"
+        },
+        {
+            "name": "ex4 video",
+            "request": "launch",
+            //"type": "lldb",
+            //"sourceLanguages": ["rust"],
+            //"program": "${workspaceRoot}/target/debug/example4_video",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/debug/example4_video",
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build_example4"
         },
     ]
 }
