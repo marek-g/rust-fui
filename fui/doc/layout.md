@@ -69,7 +69,7 @@ There is a `Length` value assigned to every row and every column. `Length` is an
 
 * `Length::Auto` - the size of the column/row is the minimum size that fits all the children,
 * `Length::Exact(value)` - user specified size
-* `Length::Fill(value)` - fill the available space with a specified flex factor (flex factor definies how the available space is divided betweed expanded cells)
+* `Length::Fill(value)` - fill the available space with a specified flex factor (flex factor express a weighted proportion of available space)
 
 Default width and height of the cell is `Length::Auto` but you can change this by specifing `default_width` and `default_height` attributes. Additionally you have control of width and height of individual columns and rows by specyfing `widths` and `heights` attributes.
 

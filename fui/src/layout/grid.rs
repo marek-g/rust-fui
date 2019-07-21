@@ -42,18 +42,18 @@ use typed_builder::TypedBuilder;
 use view::*;
 
 //
-// GridLength.
+// Length.
 //
 
-pub enum GridLength {
-    // The value indicates that content should be calculated without constraints.
+pub enum Length {
+    /// Minimum size that fits all the children.
     Auto,
 
-    // The value is expressed in size units.
-    Size(f32),
+    /// User specified size.
+    Exact(f32),
 
-    // The value is expressed as a weighted proportion of available space.
-    Star(f32),
+    /// The value is expressed as a weighted proportion of available space.
+    Fill(f32),
 }
 
 //
@@ -61,12 +61,12 @@ pub enum GridLength {
 //
 
 struct DefinitionBase {
-    pub user_size: GridLength,
-    pub size_type: GridLength,
+    pub user_size: Length,
+    pub size_type: Length,
     pub user_min_size: f32,
     pub user_max_size: f32,
 
-    //  used during measure to accumulate size for "Auto" and "Star" DefinitionBase's
+    //  used during measure to accumulate size for "Auto" and "Fill" DefinitionBase's
     pub min_size: f32,
 
     //  size, calculated to be the input contstraint size for child measure
@@ -81,29 +81,29 @@ struct DefinitionBase {
 
 impl DefinitionBase {
     pub fn new(
-        user_size: GridLength,
+        user_size: Length,
         user_min_size: f32,
         user_max_size: f32,
-        treat_star_as_auto: bool,
+        treat_fill_as_auto: bool,
     ) -> DefinitionBase {
         let mut user_min_size = user_min_size;
         let user_size_value;
         let size_type = match user_size {
-            GridLength::Size(v) => {
+            Length::Exact(v) => {
                 user_size_value = v;
                 user_min_size = user_min_size.max(user_size_value.min(user_max_size));
-                GridLength::Size(v)
+                Length::Exact(v)
             }
-            GridLength::Auto => {
+            Length::Auto => {
                 user_size_value = f32::INFINITY;
-                GridLength::Auto
+                Length::Auto
             }
-            GridLength::Star(v) => {
+            Length::Fill(v) => {
                 user_size_value = f32::INFINITY;
-                if treat_star_as_auto {
-                    GridLength::Auto
+                if treat_fill_as_auto {
+                    Length::Auto
                 } else {
-                    GridLength::Star(v)
+                    Length::Fill(v)
                 }
             }
         };
@@ -125,7 +125,7 @@ impl DefinitionBase {
     }
 
     pub fn get_preferred_size(&self) -> f32 {
-        if let GridLength::Auto = self.user_size {
+        if let Length::Auto = self.user_size {
             self.min_size
         } else {
             self.min_size.max(self.measure_size)
@@ -152,9 +152,9 @@ struct CellCache {
     pub row_index: usize,
     pub column_span: usize,
     pub row_span: usize,
-    pub is_star_u: bool,
+    pub is_fill_u: bool,
     pub is_auto_u: bool,
-    pub is_star_v: bool,
+    pub is_fill_v: bool,
     pub is_auto_v: bool,
 }
 
@@ -190,8 +190,8 @@ pub struct GridDefaultStyle {
     cell_group_2: Vec<CellCache>,
     cell_group_3: Vec<CellCache>,
     cell_group_4: Vec<CellCache>,
-    has_star_cells_u: bool,
-    has_star_cells_v: bool,
+    has_fill_cells_u: bool,
+    has_fill_cells_v: bool,
     has_group_3_cells_in_auto_rows: bool,
 }
 
@@ -210,8 +210,8 @@ impl GridDefaultStyle {
             cell_group_2: Vec::new(),
             cell_group_3: Vec::new(),
             cell_group_4: Vec::new(),
-            has_star_cells_u: false,
-            has_star_cells_v: false,
+            has_fill_cells_u: false,
+            has_fill_cells_v: false,
             has_group_3_cells_in_auto_rows: false,
         }
     }
@@ -225,7 +225,7 @@ impl GridDefaultStyle {
         self.definitions_u = Vec::new();
         for _ in 0..data.columns {
             let definition = DefinitionBase::new(
-                GridLength::Star(1.0f32),
+                Length::Fill(1.0f32),
                 0.0f32,
                 f32::INFINITY,
                 size_to_content_u,
@@ -236,7 +236,7 @@ impl GridDefaultStyle {
         self.definitions_v = Vec::new();
         for _ in 0..data.rows {
             let definition = DefinitionBase::new(
-                GridLength::Star(1.0f32),
+                Length::Fill(1.0f32),
                 0.0f32,
                 f32::INFINITY,
                 size_to_content_v,
@@ -246,8 +246,8 @@ impl GridDefaultStyle {
     }
 
     fn prepare_cell_cache(&mut self, _data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>) {
-        self.has_star_cells_u = false;
-        self.has_star_cells_v = false;
+        self.has_fill_cells_u = false;
+        self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
 
         let mut child_index = 0;
@@ -263,29 +263,29 @@ impl GridDefaultStyle {
             let column_span = 1;
             let row_span = 1;
 
-            let mut is_star_u = false;
+            let mut is_fill_u = false;
             let mut is_auto_u = false;
-            let mut is_star_v = false;
+            let mut is_fill_v = false;
             let mut is_auto_v = false;
 
             for i in column_index..column_index + column_span {
                 match self.definitions_u[i].user_size {
-                    GridLength::Star(_) => is_star_u = true,
-                    GridLength::Auto => is_auto_u = true,
+                    Length::Fill(_) => is_fill_u = true,
+                    Length::Auto => is_auto_u = true,
                     _ => (),
                 }
             }
 
             for i in row_index..row_index + row_span {
                 match self.definitions_v[i].user_size {
-                    GridLength::Star(_) => is_star_v = true,
-                    GridLength::Auto => is_auto_v = true,
+                    Length::Fill(_) => is_fill_v = true,
+                    Length::Auto => is_auto_v = true,
                     _ => (),
                 }
             }
 
-            self.has_star_cells_u |= is_star_u;
-            self.has_star_cells_v |= is_star_v;
+            self.has_fill_cells_u |= is_fill_u;
+            self.has_fill_cells_v |= is_fill_v;
 
             let cell_cache = CellCache {
                 child_index: child_index,
@@ -293,21 +293,21 @@ impl GridDefaultStyle {
                 row_index: row_index,
                 column_span: column_span,
                 row_span: row_span,
-                is_star_u: is_star_u,
+                is_fill_u: is_fill_u,
                 is_auto_u: is_auto_u,
-                is_star_v: is_star_v,
+                is_fill_v: is_fill_v,
                 is_auto_v: is_auto_v,
             };
 
-            if is_star_v {
-                if is_star_u {
+            if is_fill_v {
+                if is_fill_u {
                     self.cell_group_1.push(cell_cache);
                 } else {
                     self.cell_group_3.push(cell_cache);
                     self.has_group_3_cells_in_auto_rows |= is_auto_v;
                 }
             } else {
-                if is_auto_u && !is_star_u {
+                if is_auto_u && !is_fill_u {
                     self.cell_group_2.push(cell_cache);
                 } else {
                     self.cell_group_4.push(cell_cache);
@@ -413,7 +413,7 @@ impl GridDefaultStyle {
         let cell_measure_width;
         let cell_measure_height;
 
-        if cell.is_auto_u && !cell.is_star_u {
+        if cell.is_auto_u && !cell.is_fill_u {
             cell_measure_width = f32::INFINITY;
         } else {
             cell_measure_width = Self::get_measure_size_for_range(
@@ -425,7 +425,7 @@ impl GridDefaultStyle {
 
         if force_infinity_v {
             cell_measure_height = f32::INFINITY;
-        } else if cell.is_auto_v && !cell.is_star_v {
+        } else if cell.is_auto_v && !cell.is_fill_v {
             cell_measure_height = f32::INFINITY;
         } else {
             cell_measure_height =
@@ -445,7 +445,7 @@ impl GridDefaultStyle {
     ) -> f32 {
         let mut measure_size = 0.0f32;
         for i in start..start + count {
-            measure_size += if let GridLength::Auto = definitions[i].size_type {
+            measure_size += if let Length::Auto = definitions[i].size_type {
                 definitions[i].min_size
             } else {
                 definitions[i].measure_size
@@ -489,7 +489,7 @@ impl GridDefaultStyle {
             if max_max_size < max_max_size {
                 max_max_size = max_size;
             }
-            if let GridLength::Auto = definitions[i].user_size {
+            if let Length::Auto = definitions[i].user_size {
                 auto_definitions_count += 1;
             }
 
@@ -502,8 +502,8 @@ impl GridDefaultStyle {
 
         if requested_size <= range_preferred_size {
             temp_definitions.sort_by(|x, y| {
-                if let GridLength::Auto = definitions[*x].user_size {
-                    if let GridLength::Auto = definitions[*y].user_size {
+                if let Length::Auto = definitions[*x].user_size {
+                    if let Length::Auto = definitions[*y].user_size {
                         definitions[*x]
                             .min_size
                             .partial_cmp(&definitions[*y].min_size)
@@ -512,7 +512,7 @@ impl GridDefaultStyle {
                         std::cmp::Ordering::Less
                     }
                 } else {
-                    if let GridLength::Auto = definitions[*y].user_size {
+                    if let Length::Auto = definitions[*y].user_size {
                         std::cmp::Ordering::Greater
                     } else {
                         definitions[*x]
@@ -539,8 +539,8 @@ impl GridDefaultStyle {
             }
         } else if requested_size <= range_max_size {
             temp_definitions.sort_by(|x, y| {
-                if let GridLength::Auto = definitions[*x].user_size {
-                    if let GridLength::Auto = definitions[*y].user_size {
+                if let Length::Auto = definitions[*x].user_size {
+                    if let Length::Auto = definitions[*y].user_size {
                         definitions[*x]
                             .size_cache
                             .partial_cmp(&definitions[*y].size_cache)
@@ -549,7 +549,7 @@ impl GridDefaultStyle {
                         std::cmp::Ordering::Greater
                     }
                 } else {
-                    if let GridLength::Auto = definitions[*y].user_size {
+                    if let Length::Auto = definitions[*y].user_size {
                         std::cmp::Ordering::Less
                     } else {
                         definitions[*x]
@@ -598,28 +598,28 @@ impl GridDefaultStyle {
         }
     }
 
-    fn resolve_star(definitions: &mut Vec<DefinitionBase>, available_size: f32) {
+    fn resolve_fill(definitions: &mut Vec<DefinitionBase>, available_size: f32) {
         let def_count = definitions.len();
         let mut definition_indices_min = Vec::<i32>::with_capacity(def_count);
         let mut definition_indices_max = Vec::<i32>::with_capacity(def_count);
         let mut taken_size = 0.0f32;
-        let mut star_count = 0;
+        let mut fill_count = 0;
         let mut scale = 1.0f32;
 
         // Phase 1.  Determine the maximum *-weight and prepare to adjust *-weights
-        let mut max_star = 0.0f32;
+        let mut max_fill = 0.0f32;
         for def in definitions.iter_mut() {
-            if let GridLength::Star(v) = def.size_type {
-                star_count += 1;
+            if let Length::Fill(v) = def.size_type {
+                fill_count += 1;
                 def.measure_size = 1.0f32;
-                max_star = max_star.max(v);
+                max_fill = max_fill.max(v);
             }
         }
 
-        if max_star.is_infinite() && max_star.is_sign_positive() {
+        if max_fill.is_infinite() && max_fill.is_sign_positive() {
             scale = -1.0f32;
-        } else if star_count > 0 {
-            let power = (f32::MAX / max_star / (star_count as f32)).log2().floor();
+        } else if fill_count > 0 {
+            let power = (f32::MAX / max_fill / (fill_count as f32)).log2().floor();
             if power < 0.0 {
                 scale = 2.0f32.powf(power - 4.0f32);
             }
@@ -629,7 +629,7 @@ impl GridDefaultStyle {
         let mut run_phase_2_and_3 = true;
         while run_phase_2_and_3 {
             // Phase 2.   Compute total *-weight W and available space S.
-            let mut total_star_weight = 0.0f32;
+            let mut total_fill_weight = 0.0f32;
             taken_size = 0.0f32;
             let mut min_count = 0;
             let mut max_count = 0;
@@ -638,23 +638,23 @@ impl GridDefaultStyle {
 
             for (i, def) in definitions.iter_mut().enumerate() {
                 match def.size_type {
-                    GridLength::Auto => {
+                    Length::Auto => {
                         taken_size += def.min_size;
                     }
-                    GridLength::Size(_) => {
+                    Length::Exact(_) => {
                         taken_size += def.measure_size;
                     }
-                    GridLength::Star(v) => {
+                    Length::Fill(v) => {
                         if def.measure_size < 0.0f32 {
                             taken_size += -def.measure_size;
                         } else {
-                            let star_weight = Self::get_star_weight(v, scale);
-                            total_star_weight += star_weight;
+                            let fill_weight = Self::get_fill_weight(v, scale);
+                            total_fill_weight += fill_weight;
 
                             if def.min_size > 0.0f32 {
                                 definition_indices_min.push(i as i32);
                                 min_count += 1;
-                                def.measure_size = star_weight / def.min_size;
+                                def.measure_size = fill_weight / def.min_size;
                             }
 
                             let effective_max_size = def.min_size.max(def.user_max_size);
@@ -663,7 +663,7 @@ impl GridDefaultStyle {
                             {
                                 definition_indices_max.push(i as i32);
                                 max_count += 1;
-                                def.size_cache = star_weight / effective_max_size;
+                                def.size_cache = fill_weight / effective_max_size;
                             }
                         }
                     }
@@ -673,9 +673,9 @@ impl GridDefaultStyle {
             // Phase 3.  Resolve *-items whose proportional sizes are too big or too small.
             let min_count_phase2 = min_count;
             let max_count_phase2 = max_count;
-            let mut taken_star_weight = 0.0f32;
+            let mut taken_fill_weight = 0.0f32;
             let mut remaining_available_size = available_size - taken_size;
-            let mut remaining_star_weight = total_star_weight - taken_star_weight;
+            let mut remaining_fill_weight = total_fill_weight - taken_fill_weight;
 
             definition_indices_min.sort_by(|x, y| {
                 definitions[*y as usize]
@@ -691,19 +691,19 @@ impl GridDefaultStyle {
             });
 
             while min_count + max_count > 0 && remaining_available_size > 0.0f32 {
-                if remaining_star_weight < total_star_weight / 256.0f32 {
-                    taken_star_weight = 0.0f32;
-                    total_star_weight = 0.0f32;
+                if remaining_fill_weight < total_fill_weight / 256.0f32 {
+                    taken_fill_weight = 0.0f32;
+                    total_fill_weight = 0.0f32;
 
                     for def in definitions.iter_mut() {
-                        if let GridLength::Star(v) = def.size_type {
+                        if let Length::Fill(v) = def.size_type {
                             if def.measure_size > 0.0f32 {
-                                total_star_weight += Self::get_star_weight(v, scale);
+                                total_fill_weight += Self::get_fill_weight(v, scale);
                             }
                         }
                     }
 
-                    remaining_star_weight = total_star_weight - taken_star_weight;
+                    remaining_fill_weight = total_fill_weight - taken_fill_weight;
                 }
 
                 let min_ratio = if min_count > 0 {
@@ -716,7 +716,7 @@ impl GridDefaultStyle {
                 } else {
                     -1.0f32
                 };
-                let proportion = remaining_star_weight / remaining_available_size;
+                let proportion = remaining_fill_weight / remaining_available_size;
 
                 let choose_min = if min_ratio < proportion {
                     if max_ratio > proportion {
@@ -753,13 +753,13 @@ impl GridDefaultStyle {
 
                 taken_size += resolved_size;
                 resolved_def.measure_size = -resolved_size;
-                if let GridLength::Star(v) = resolved_def.user_size {
-                    taken_star_weight += Self::get_star_weight(v, scale);
-                    star_count -= 1;
+                if let Length::Fill(v) = resolved_def.user_size {
+                    taken_fill_weight += Self::get_fill_weight(v, scale);
+                    fill_count -= 1;
                 }
 
                 remaining_available_size = available_size - taken_size;
-                remaining_star_weight = total_star_weight - taken_star_weight;
+                remaining_fill_weight = total_fill_weight - taken_fill_weight;
 
                 while min_count > 0
                     && definitions[definition_indices_min[min_count - 1] as usize].measure_size
@@ -778,12 +778,12 @@ impl GridDefaultStyle {
             }
 
             run_phase_2_and_3 = false;
-            if star_count == 0 && taken_size < available_size {
+            if fill_count == 0 && taken_size < available_size {
                 for i in min_count..min_count_phase2 {
                     let index = definition_indices_min[i];
                     if index >= 0 {
                         definitions[index as usize].measure_size = 1.0f32;
-                        star_count += 1;
+                        fill_count += 1;
                         run_phase_2_and_3 = true;
                     }
                 }
@@ -794,7 +794,7 @@ impl GridDefaultStyle {
                     let index = definition_indices_max[i];
                     if index >= 0 {
                         definitions[index as usize].measure_size = 1.0f32;
-                        star_count += 1;
+                        fill_count += 1;
                         run_phase_2_and_3 = true;
                     }
                 }
@@ -802,23 +802,23 @@ impl GridDefaultStyle {
         }
 
         // Phase 4.  Resolve the remaining defs proportionally.
-        star_count = 0;
+        fill_count = 0;
         definition_indices_min.truncate(0);
         for i in 0..def_count {
             let def = &mut definitions[i];
 
-            if let GridLength::Star(v) = def.size_type {
+            if let Length::Fill(v) = def.size_type {
                 if def.measure_size < 0.0f32 {
                     def.measure_size = -def.measure_size;
                 } else {
                     definition_indices_min.push(i as i32);
-                    star_count += 1;
-                    def.measure_size = Self::get_star_weight(v, scale);
+                    fill_count += 1;
+                    def.measure_size = Self::get_fill_weight(v, scale);
                 }
             }
         }
 
-        if star_count > 0 {
+        if fill_count > 0 {
             definition_indices_min.sort_by(|x, y| {
                 definitions[*x as usize]
                     .measure_size
@@ -826,14 +826,14 @@ impl GridDefaultStyle {
                     .unwrap()
             });
 
-            let mut total_star_weight = 0.0f32;
-            for i in 0..star_count {
+            let mut total_fill_weight = 0.0f32;
+            for i in 0..fill_count {
                 let def = &mut definitions[definition_indices_min[i] as usize];
-                total_star_weight += def.measure_size;
-                def.size_cache = total_star_weight;
+                total_fill_weight += def.measure_size;
+                def.size_cache = total_fill_weight;
             }
 
-            for i in (0..star_count).rev() {
+            for i in (0..fill_count).rev() {
                 let def = &mut definitions[definition_indices_min[i] as usize];
                 let mut resolved_size = if def.measure_size > 0.0f32 {
                     (available_size - taken_size).max(0.0f32) * (def.measure_size / def.size_cache)
@@ -855,23 +855,23 @@ impl GridDefaultStyle {
         let mut definition_indices_min = Vec::<i32>::with_capacity(def_count);
         let mut definition_indices_max = Vec::<i32>::with_capacity(def_count);
         let mut taken_size = 0.0f32;
-        let mut star_count = 0;
+        let mut fill_count = 0;
         let mut scale = 1.0f32;
 
         // Phase 1.  Determine the maximum *-weight and prepare to adjust *-weights
-        let mut max_star = 0.0f32;
+        let mut max_fill = 0.0f32;
         for def in definitions.iter_mut() {
-            if let GridLength::Star(v) = def.user_size {
-                star_count += 1;
+            if let Length::Fill(v) = def.user_size {
+                fill_count += 1;
                 def.measure_size = 1.0f32;
-                max_star = max_star.max(v);
+                max_fill = max_fill.max(v);
             }
         }
 
-        if max_star.is_infinite() && max_star.is_sign_positive() {
+        if max_fill.is_infinite() && max_fill.is_sign_positive() {
             scale = -1.0f32;
-        } else if star_count > 0 {
-            let power = (f32::MAX / (max_star as f32) / (star_count as f32))
+        } else if fill_count > 0 {
+            let power = (f32::MAX / (max_fill as f32) / (fill_count as f32))
                 .log(2.0f32)
                 .floor();
             if power < 0.0f32 {
@@ -883,7 +883,7 @@ impl GridDefaultStyle {
         let mut run_phase_2_and_3 = true;
         while run_phase_2_and_3 {
             // Phase 2.   Compute total *-weight W and available space S.
-            let mut total_star_weight = 0.0f32;
+            let mut total_fill_weight = 0.0f32;
             taken_size = 0.0f32;
             let mut min_count = 0;
             let mut max_count = 0;
@@ -891,18 +891,18 @@ impl GridDefaultStyle {
             definition_indices_max.truncate(0);
 
             for (i, def) in definitions.iter_mut().enumerate() {
-                if let GridLength::Star(v) = def.user_size {
+                if let Length::Fill(v) = def.user_size {
                     if def.measure_size < 0.0f32 {
                         taken_size += -def.measure_size;
                     } else {
-                        let star_weight = Self::get_star_weight(v, scale);
-                        total_star_weight += star_weight;
+                        let fill_weight = Self::get_fill_weight(v, scale);
+                        total_fill_weight += fill_weight;
 
                         let min_size_for_arrange = def.get_min_size_for_arrange();
                         if min_size_for_arrange > 0.0f32 {
                             definition_indices_min.push(i as i32);
                             min_count += 1;
-                            def.measure_size = star_weight / min_size_for_arrange;
+                            def.measure_size = fill_weight / min_size_for_arrange;
                         }
 
                         let effective_max_size = min_size_for_arrange.max(def.user_max_size);
@@ -911,15 +911,15 @@ impl GridDefaultStyle {
                         {
                             definition_indices_max.push(i as i32);
                             max_count += 1;
-                            def.size_cache = star_weight / effective_max_size;
+                            def.size_cache = fill_weight / effective_max_size;
                         }
                     }
                 } else {
                     let min_size_for_arrange = def.get_min_size_for_arrange();
 
                     let user_size = match def.user_size {
-                        GridLength::Size(v) => v,
-                        GridLength::Auto => min_size_for_arrange,
+                        Length::Exact(v) => v,
+                        Length::Auto => min_size_for_arrange,
                         _ => 0.0f32,
                     };
 
@@ -937,9 +937,9 @@ impl GridDefaultStyle {
             // Phase 3.  Resolve *-items whose proportional sizes are too big or too small.
             let min_count_phase2 = min_count;
             let max_count_phase2 = max_count;
-            let mut taken_star_weight = 0.0f32;
+            let mut taken_fill_weight = 0.0f32;
             let mut remaining_available_size = final_size - taken_size;
-            let mut remaining_star_weight = total_star_weight - taken_star_weight;
+            let mut remaining_fill_weight = total_fill_weight - taken_fill_weight;
 
             definition_indices_min.sort_by(|x, y| {
                 definitions[*y as usize]
@@ -955,19 +955,19 @@ impl GridDefaultStyle {
             });
 
             while min_count + max_count > 0 && remaining_available_size > 0.0f32 {
-                if remaining_star_weight < total_star_weight / 256.0f32 {
-                    taken_star_weight = 0.0f32;
-                    total_star_weight = 0.0f32;
+                if remaining_fill_weight < total_fill_weight / 256.0f32 {
+                    taken_fill_weight = 0.0f32;
+                    total_fill_weight = 0.0f32;
 
                     for def in definitions.iter_mut() {
-                        if let GridLength::Star(v) = def.user_size {
+                        if let Length::Fill(v) = def.user_size {
                             if def.measure_size > 0.0f32 {
-                                total_star_weight += Self::get_star_weight(v, scale);
+                                total_fill_weight += Self::get_fill_weight(v, scale);
                             }
                         }
                     }
 
-                    remaining_star_weight = total_star_weight - taken_star_weight;
+                    remaining_fill_weight = total_fill_weight - taken_fill_weight;
                 }
 
                 let min_ratio = if min_count > 0 {
@@ -980,7 +980,7 @@ impl GridDefaultStyle {
                 } else {
                     -1.0f32
                 };
-                let proportion = remaining_star_weight / remaining_available_size;
+                let proportion = remaining_fill_weight / remaining_available_size;
 
                 let choose_min = if min_ratio < proportion {
                     if max_ratio > proportion {
@@ -1017,13 +1017,13 @@ impl GridDefaultStyle {
 
                 taken_size += resolved_size;
                 resolved_def.measure_size = -resolved_size;
-                if let GridLength::Star(v) = resolved_def.user_size {
-                    taken_star_weight += Self::get_star_weight(v, scale);
-                    star_count -= 1;
+                if let Length::Fill(v) = resolved_def.user_size {
+                    taken_fill_weight += Self::get_fill_weight(v, scale);
+                    fill_count -= 1;
                 }
 
                 remaining_available_size = final_size - taken_size;
-                remaining_star_weight = total_star_weight - taken_star_weight;
+                remaining_fill_weight = total_fill_weight - taken_fill_weight;
 
                 while min_count > 0
                     && definitions[definition_indices_min[min_count - 1] as usize].measure_size
@@ -1042,12 +1042,12 @@ impl GridDefaultStyle {
             }
 
             run_phase_2_and_3 = false;
-            if star_count == 0 && taken_size < final_size {
+            if fill_count == 0 && taken_size < final_size {
                 for i in min_count..min_count_phase2 {
                     let index = definition_indices_min[i];
                     if index >= 0 {
                         definitions[index as usize].measure_size = 1.0f32;
-                        star_count += 1;
+                        fill_count += 1;
                         run_phase_2_and_3 = true;
                     }
                 }
@@ -1058,7 +1058,7 @@ impl GridDefaultStyle {
                     let index = definition_indices_max[i];
                     if index >= 0 {
                         definitions[index as usize].measure_size = 1.0f32;
-                        star_count += 1;
+                        fill_count += 1;
                         run_phase_2_and_3 = true;
                     }
                 }
@@ -1066,23 +1066,23 @@ impl GridDefaultStyle {
         }
 
         // Phase 4.  Resolve the remaining defs proportionally.
-        star_count = 0;
+        fill_count = 0;
         definition_indices_min.truncate(0);
         for i in 0..def_count {
             let def = &mut definitions[i];
 
-            if let GridLength::Star(v) = def.user_size {
+            if let Length::Fill(v) = def.user_size {
                 if def.measure_size < 0.0f32 {
                     def.size_cache = -def.measure_size;
                 } else {
                     definition_indices_min.push(i as i32);
-                    star_count += 1;
-                    def.measure_size = Self::get_star_weight(v, scale);
+                    fill_count += 1;
+                    def.measure_size = Self::get_fill_weight(v, scale);
                 }
             }
         }
 
-        if star_count > 0 {
+        if fill_count > 0 {
             definition_indices_min.sort_by(|x, y| {
                 definitions[*x as usize]
                     .measure_size
@@ -1090,14 +1090,14 @@ impl GridDefaultStyle {
                     .unwrap()
             });
 
-            let mut total_star_weight = 0.0f32;
-            for i in 0..star_count {
+            let mut total_fill_weight = 0.0f32;
+            for i in 0..fill_count {
                 let def = &mut definitions[definition_indices_min[i] as usize];
-                total_star_weight += def.measure_size;
-                def.size_cache = total_star_weight;
+                total_fill_weight += def.measure_size;
+                def.size_cache = total_fill_weight;
             }
 
-            for i in (0..star_count).rev() {
+            for i in (0..fill_count).rev() {
                 let def = &mut definitions[definition_indices_min[i] as usize];
                 let mut resolved_size = if def.measure_size > 0.0f32 {
                     (final_size - taken_size).max(0.0f32) * (def.measure_size / def.size_cache)
@@ -1190,7 +1190,7 @@ impl GridDefaultStyle {
     }
 
     // Returns *-weight, adjusted for scale computed during Phase 1.
-    fn get_star_weight(v: f32, scale: f32) -> f32 {
+    fn get_fill_weight(v: f32, scale: f32) -> f32 {
         if scale < 0.0f32 {
             if v.is_infinite() && v.is_sign_positive() {
                 1.0f32
@@ -1296,8 +1296,8 @@ impl Style<Grid> for GridDefaultStyle {
             );
 
             if !self.has_group_3_cells_in_auto_rows {
-                if self.has_star_cells_v {
-                    Self::resolve_star(&mut self.definitions_v, size.height);
+                if self.has_fill_cells_v {
+                    Self::resolve_fill(&mut self.definitions_v, size.height);
                 }
                 Self::measure_cells_group(
                     drawing_context,
@@ -1309,8 +1309,8 @@ impl Style<Grid> for GridDefaultStyle {
                     false,
                 );
 
-                if self.has_star_cells_u {
-                    Self::resolve_star(&mut self.definitions_u, size.width);
+                if self.has_fill_cells_u {
+                    Self::resolve_fill(&mut self.definitions_u, size.width);
                 }
                 Self::measure_cells_group(
                     drawing_context,
@@ -1323,8 +1323,8 @@ impl Style<Grid> for GridDefaultStyle {
                 );
             } else {
                 if self.cell_group_2.len() == 0 {
-                    if self.has_star_cells_u {
-                        Self::resolve_star(&mut self.definitions_u, size.width);
+                    if self.has_fill_cells_u {
+                        Self::resolve_fill(&mut self.definitions_u, size.width);
                     }
                     Self::measure_cells_group(
                         drawing_context,
@@ -1335,8 +1335,8 @@ impl Style<Grid> for GridDefaultStyle {
                         false,
                         false,
                     );
-                    if self.has_star_cells_v {
-                        Self::resolve_star(&mut self.definitions_v, size.height);
+                    if self.has_fill_cells_v {
+                        Self::resolve_fill(&mut self.definitions_v, size.height);
                     }
                 } else {
                     let mut has_desired_size_u_changed = false;
@@ -1365,8 +1365,8 @@ impl Style<Grid> for GridDefaultStyle {
                             );
                         }
 
-                        if self.has_star_cells_u {
-                            Self::resolve_star(&mut self.definitions_u, size.width);
+                        if self.has_fill_cells_u {
+                            Self::resolve_fill(&mut self.definitions_u, size.width);
                         }
                         Self::measure_cells_group(
                             drawing_context,
@@ -1380,8 +1380,8 @@ impl Style<Grid> for GridDefaultStyle {
 
                         Self::apply_cached_min_sizes(&mut self.definitions_u, &group_2_min_sizes);
 
-                        if self.has_star_cells_v {
-                            Self::resolve_star(&mut self.definitions_v, size.height);
+                        if self.has_fill_cells_v {
+                            Self::resolve_fill(&mut self.definitions_v, size.height);
                         }
                         has_desired_size_u_changed = Self::measure_cells_group(
                             drawing_context,
