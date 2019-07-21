@@ -45,6 +45,7 @@ use view::*;
 // Length.
 //
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Length {
     /// Minimum size that fits all the children.
     Auto,
@@ -164,11 +165,47 @@ struct CellCache {
 
 #[derive(TypedBuilder)]
 pub struct Grid {
-    #[builder(default = 1)]
+    #[builder(default = 0)]
     pub rows: i32,
 
-    #[builder(default = 1)]
+    #[builder(default = 0)]
     pub columns: i32,
+
+    #[builder(default = Length::Auto)]
+    pub default_width: Length,
+
+    #[builder(default = Length::Auto)]
+    pub default_height: Length,
+
+    #[builder(default_code = "Vec::new()")]
+    pub widths: Vec<(i32, Length)>,
+
+    #[builder(default_code = "Vec::new()")]
+    pub heights: Vec<(i32, Length)>,
+
+    #[builder(default = 0.0f32)]
+    pub default_min_width: f32,
+
+    #[builder(default = 0.0f32)]
+    pub default_min_height: f32,
+
+    #[builder(default = f32::INFINITY)]
+    pub default_max_width: f32,
+
+    #[builder(default = f32::INFINITY)]
+    pub default_max_height: f32,
+
+    #[builder(default = Vec::new())]
+    pub min_widths: Vec<(i32, f32)>,
+
+    #[builder(default = Vec::new())]
+    pub min_heights: Vec<(i32, f32)>,
+
+    #[builder(default = Vec::new())]
+    pub max_widths: Vec<(i32, f32)>,
+
+    #[builder(default = Vec::new())]
+    pub max_heights: Vec<(i32, f32)>,
 }
 
 impl View for Grid {
@@ -219,13 +256,26 @@ impl GridDefaultStyle {
     fn prepare_definitions(
         &mut self,
         data: &Grid,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
         size_to_content_u: bool,
         size_to_content_v: bool,
     ) {
+        let is_horizontal_flow = data.columns > 0;
+
+        let number_of_columns;
+        let number_of_rows;
+        if is_horizontal_flow {
+            number_of_columns = data.columns;
+            number_of_rows = (children.len() as i32 - 1) / number_of_columns + 1;
+        } else {
+            number_of_rows = data.rows;
+            number_of_columns = (children.len() as i32 - 1) / number_of_rows + 1;
+        }
+
         self.definitions_u = Vec::new();
-        for _ in 0..data.columns {
+        for _ in 0..number_of_columns {
             let definition = DefinitionBase::new(
-                Length::Fill(1.0f32),
+                data.default_width,
                 0.0f32,
                 f32::INFINITY,
                 size_to_content_u,
@@ -234,9 +284,9 @@ impl GridDefaultStyle {
         }
 
         self.definitions_v = Vec::new();
-        for _ in 0..data.rows {
+        for _ in 0..number_of_rows {
             let definition = DefinitionBase::new(
-                Length::Fill(1.0f32),
+                data.default_height,
                 0.0f32,
                 f32::INFINITY,
                 size_to_content_v,
@@ -245,7 +295,7 @@ impl GridDefaultStyle {
         }
     }
 
-    fn prepare_cell_cache(&mut self, _data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>) {
+    fn prepare_cell_cache(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
@@ -315,10 +365,20 @@ impl GridDefaultStyle {
             }
 
             child_index += 1;
-            column_index += 1;
-            if column_index == 2 {
+
+            let is_horizontal_flow = data.columns > 0;
+            if is_horizontal_flow {
+                column_index += 1;
+                if column_index >= self.definitions_u.len() {
+                    column_index = 0;
+                    row_index += 1;
+                }
+            } else {
                 row_index += 1;
-                column_index = 0;
+                if row_index >= self.definitions_v.len() {
+                    row_index = 0;
+                    column_index += 1;
+                }
             }
         }
     }
@@ -1270,7 +1330,7 @@ impl Style<Grid> for GridDefaultStyle {
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
 
-        if data.rows == 1 && data.columns == 1 {
+        if data.rows == 0 && data.columns == 0 {
             for child in children {
                 let mut child = child.borrow_mut();
                 child.measure(drawing_context, size);
@@ -1282,7 +1342,7 @@ impl Style<Grid> for GridDefaultStyle {
             let size_to_content_u = size.width == f32::INFINITY;
             let size_to_content_v = size.height == f32::INFINITY;
 
-            self.prepare_definitions(&data, size_to_content_u, size_to_content_v);
+            self.prepare_definitions(&data, &children, size_to_content_u, size_to_content_v);
             self.prepare_cell_cache(&data, &children);
 
             Self::measure_cells_group(
@@ -1421,7 +1481,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn set_rect(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
 
-        if data.rows == 1 && data.columns == 1 {
+        if data.rows == 0 && data.columns == 0 {
             for child in children {
                 child.borrow_mut().set_rect(rect);
             }

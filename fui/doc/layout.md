@@ -83,11 +83,11 @@ ui! {
         default_width: Length::Fill(1.0f32),
         default_height: Length::Exact(100),
 
-        widths: [(0, Length::Exact(100)),
-            (1, Length::Auto())]
+        widths: vec![(0, Length::Exact(100)),
+            (1, Length::Auto())],
 
         default_min_height: 200,
-        min_heights: [(3, 100)],
+        min_heights: vec![(3, 100)],
 
         // ...
     }

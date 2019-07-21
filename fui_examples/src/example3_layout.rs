@@ -2,9 +2,9 @@
 
 extern crate fui;
 extern crate fui_macros;
-extern crate winit;
 extern crate typed_builder;
 extern crate typemap;
+extern crate winit;
 
 use fui::application::*;
 use fui::controls::*;
@@ -46,7 +46,10 @@ impl View for MainViewModel {
 
         let root_control = ui!(
             Grid {
-                columns: 2, rows: 2,
+                columns: 2,
+                default_width: Length::Fill(1.0f32),
+                default_height: Length::Fill(1.0f32),
+
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),

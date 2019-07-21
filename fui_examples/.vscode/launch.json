@@ -10,6 +10,9 @@
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example1_button",
             "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "preLaunchTask": "build_example1"
         },
         {
@@ -21,6 +24,9 @@
             "type": "gdb",
             "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example1_button.exe",
             "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "preLaunchTask": "build_example1_win32"
         },
         {
@@ -32,6 +38,9 @@
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example2_multiwindow",
             "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "preLaunchTask": "build_example2"
         },
         {
@@ -43,6 +52,9 @@
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example3_layout",
             "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "preLaunchTask": "build_example3"
         },
         {
@@ -54,6 +66,9 @@
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example4_video",
             "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
             "preLaunchTask": "build_example4"
         },
     ]
