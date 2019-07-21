@@ -71,7 +71,7 @@ There is a `Length` value assigned to every row and every column. `Length` is an
 * `Length::Exact(value)` - user specified size
 * `Length::Fill(value)` - fill the available space with a specified flex factor (flex factor express a weighted proportion of available space)
 
-Default width and height of the cell is `Length::Auto` but you can change this by specifing `default_width` and `default_height` attributes. Additionally you have control of width and height of individual columns and rows by specyfing `widths` and `heights` attributes.
+Default width and height of the cell is `Length::Fill(1.0f32)` but you can change this by specifing `default_width` and `default_height` attributes. Additionally you have control of width and height of individual columns and rows by specyfing `widths` and `heights` attributes.
 
 You can also specify constraints for minimal and maximal row and column sizes with `default_min_width`, `default_max_width`,`default_min_height`, `default_max_height`, `min_widths`, `max_widths`, `min_heights` and `max_heights` attributes.
 
@@ -80,11 +80,11 @@ ui! {
     Grid {
         columns: 4,
 
-        default_width: Length::Fill(1.0f32),
+        default_width: Length::Auto,
         default_height: Length::Exact(100),
 
         widths: vec![(0, Length::Exact(100)),
-            (1, Length::Auto())],
+            (1, Length::Fill(1.0f32))],
 
         default_min_height: 200,
         min_heights: vec![(3, 100)],

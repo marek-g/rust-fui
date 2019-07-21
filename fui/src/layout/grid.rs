@@ -171,10 +171,10 @@ pub struct Grid {
     #[builder(default = 0)]
     pub columns: i32,
 
-    #[builder(default = Length::Auto)]
+    #[builder(default = Length::Fill(1.0f32))]
     pub default_width: Length,
 
-    #[builder(default = Length::Auto)]
+    #[builder(default = Length::Fill(1.0f32))]
     pub default_height: Length,
 
     #[builder(default_code = "Vec::new()")]

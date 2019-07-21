@@ -47,8 +47,8 @@ impl View for MainViewModel {
         let root_control = ui!(
             Grid {
                 columns: 2,
-                default_width: Length::Fill(1.0f32),
-                default_height: Length::Fill(1.0f32),
+                //default_width: Length::Fill(1.0f32),
+                //default_height: Length::Auto,
 
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
