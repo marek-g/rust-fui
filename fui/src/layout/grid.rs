@@ -126,6 +126,7 @@ impl DefinitionBase {
     }
 
     pub fn get_preferred_size(&self) -> f32 {
+        // may require change when SharedSizeGroup attribute is implemented
         if let Length::Auto = self.user_size {
             self.min_size
         } else {
@@ -134,11 +135,12 @@ impl DefinitionBase {
     }
 
     pub fn get_min_size_for_arrange(&self) -> f32 {
-        // TODO: Add support for SharedSizeGroup attribute
+        // may require change when SharedSizeGroup attribute is implemented
         self.min_size
     }
 
     pub fn is_shared(&self) -> bool {
+        // may require change when SharedSizeGroup attribute is implemented
         false
     }
 }
@@ -335,31 +337,76 @@ impl GridDefaultStyle {
     fn prepare_definitions(
         &mut self,
         data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Vec<Rc<RefCell<ControlObject>>>,
         number_of_rows: usize,
         number_of_columns: usize,
         size_to_content_u: bool,
         size_to_content_v: bool,
     ) {
-        let (number_of_rows, number_of_columns) = Self::decide_number_of_rows_and_columns(data, children);      
+        let mut widths = Vec::with_capacity(number_of_columns);
+        let mut min_widths = Vec::with_capacity(number_of_columns);
+        let mut max_widths = Vec::with_capacity(number_of_columns);
+        let mut heights = Vec::with_capacity(number_of_rows);
+        let mut min_heights = Vec::with_capacity(number_of_rows);
+        let mut max_heights = Vec::with_capacity(number_of_rows);
+        for _ in 0..number_of_columns {
+            widths.push(data.default_width);
+            min_widths.push(data.default_min_width);
+            max_widths.push(data.default_max_width);
+        }
+        for _ in 0..number_of_rows {
+            heights.push(data.default_height);
+            min_heights.push(data.default_min_height);
+            max_heights.push(data.default_max_height);
+        }
+        for (column, width) in &data.widths {
+             if *column >= 0 && *column <= widths.len() as i32 {
+                 widths[*column as usize] = *width;
+             }
+        }
+        for (column, min_width) in &data.min_widths {
+             if *column >= 0 && *column <= min_widths.len() as i32 {
+                 min_widths[*column as usize] = *min_width;
+             }
+        }
+        for (column, max_width) in &data.max_widths {
+             if *column >= 0 && *column <= max_widths.len() as i32 {
+                 max_widths[*column as usize] = *max_width;
+             }
+        }
+        for (row, height) in &data.heights {
+             if *row >= 0 && *row <= heights.len() as i32 {
+                 heights[*row as usize] = *height;
+             }
+        }
+        for (row, min_height) in &data.min_heights {
+             if *row >= 0 && *row <= min_heights.len() as i32 {
+                 min_heights[*row as usize] = *min_height;
+             }
+        }
+        for (row, max_height) in &data.max_heights {
+             if *row >= 0 && *row <= max_heights.len() as i32 {
+                 max_heights[*row as usize] = *max_height;
+             }
+        }
 
         self.definitions_u = Vec::new();
-        for _ in 0..number_of_columns {
+        for i in 0..number_of_columns {
             let definition = DefinitionBase::new(
-                data.default_width,
-                0.0f32,
-                f32::INFINITY,
+                widths[i],
+                min_widths[i],
+                max_widths[i],
                 size_to_content_u,
             );
             self.definitions_u.push(definition);
         }
 
         self.definitions_v = Vec::new();
-        for _ in 0..number_of_rows {
+        for i in 0..number_of_rows {
             let definition = DefinitionBase::new(
-                data.default_height,
-                0.0f32,
-                f32::INFINITY,
+                heights[i],
+                min_heights[i],
+                max_heights[i],
                 size_to_content_v,
             );
             self.definitions_v.push(definition);
@@ -1576,7 +1623,7 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect = grid_desired_size;
     }
 
-    fn set_rect(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {

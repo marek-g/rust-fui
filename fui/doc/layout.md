@@ -26,7 +26,7 @@ ui! {
 
 ### Details
 
-You can specify constant number of `rows` or `columns`. If you specify `columns` the children will be auto-positioned horizontally (and vertically if you specify number of `rows`).
+You can specify constant number of `rows` or `columns`. If you specify `columns` the children will be auto-positioned horizontally (and vertically if you specify only number of `rows`).
 
 If you specify none of the `columns` and `rows`, the grid will put all the children in the same cell (one over the other):
 
@@ -79,13 +79,13 @@ ui! {
         columns: 4,
 
         default_width: Length::Auto,
-        default_height: Length::Exact(100),
+        default_height: Length::Exact(100.0f32),
 
-        widths: vec![(0, Length::Exact(100)),
+        widths: vec![(0, Length::Exact(100.0f32)),
             (1, Length::Fill(1.0f32))],
 
-        default_min_height: 200,
-        min_heights: vec![(3, 100)],
+        default_min_height: 200.0f32,
+        min_heights: vec![(3, 100.0f32)],
 
         // ...
     }
