@@ -160,6 +160,22 @@ struct CellCache {
 }
 
 //
+// Attached values.
+//
+
+pub struct Row;
+impl typemap::Key for Row { type Value = i32; }
+
+pub struct RowSpan;
+impl typemap::Key for RowSpan { type Value = i32; }
+
+pub struct Column;
+impl typemap::Key for Column { type Value = i32; }
+
+pub struct ColumnSpan;
+impl typemap::Key for ColumnSpan { type Value = i32; }
+
+//
 // Grid.
 //
 
@@ -253,24 +269,79 @@ impl GridDefaultStyle {
         }
     }
 
-    fn prepare_definitions(
-        &mut self,
+    fn decide_number_of_rows_and_columns(
         data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
-        size_to_content_u: bool,
-        size_to_content_v: bool,
-    ) {
+        children: &Vec<Rc<RefCell<ControlObject>>>) -> (usize, usize) {
+        let mut max_row_from_attached = -1;
+        let mut max_column_from_attached = -1;
+        for child in children {
+            let child = child.borrow();
+            let map = child.get_attached_values();
+
+            let max_row = if let Some(row) = map.get::<Row>() {
+                if let Some(row_span) = map.get::<RowSpan>() {
+                    row + row_span - 1
+                } else {
+                    *row
+                }
+            } else {
+                -1
+            };
+            max_row_from_attached = max_row_from_attached.max(max_row);
+
+            let max_column = if let Some(column) = map.get::<Column>() {
+                if let Some(column_span) = map.get::<ColumnSpan>() {
+                    column + column_span - 1
+                } else {
+                    *column
+                }
+            } else {
+                -1
+            };
+            max_column_from_attached = max_column_from_attached.max(max_column);
+        }
+
         let is_horizontal_flow = data.columns > 0;
 
         let number_of_columns;
         let number_of_rows;
-        if is_horizontal_flow {
-            number_of_columns = data.columns;
-            number_of_rows = (children.len() as i32 - 1) / number_of_columns + 1;
+        if max_row_from_attached >= 0 || max_column_from_attached >= 0 {
+            number_of_rows = data.rows.max(max_row_from_attached + 1).max(0);
+            number_of_columns = data.columns.max(max_column_from_attached + 1).max(0);
         } else {
-            number_of_rows = data.rows;
-            number_of_columns = (children.len() as i32 - 1) / number_of_rows + 1;
+            if is_horizontal_flow {
+                number_of_columns = data.columns;
+                number_of_rows = if data.rows > 0 {
+                    data.rows
+                } else {
+                    (children.len() as i32 - 1) / number_of_columns + 1
+                };
+            } else if data.rows > 0 {
+                number_of_rows = data.rows;
+                number_of_columns = if data.columns > 0 {
+                    data.columns
+                } else {
+                    (children.len() as i32 - 1) / number_of_rows + 1
+                }
+            } else {
+                number_of_columns = 0;
+                number_of_rows = 0;
+            }
         }
+
+        (number_of_rows as usize, number_of_columns as usize)
+    }
+
+    fn prepare_definitions(
+        &mut self,
+        data: &Grid,
+        children: &Vec<Rc<RefCell<ControlObject>>>,
+        number_of_rows: usize,
+        number_of_columns: usize,
+        size_to_content_u: bool,
+        size_to_content_v: bool,
+    ) {
+        let (number_of_rows, number_of_columns) = Self::decide_number_of_rows_and_columns(data, children);      
 
         self.definitions_u = Vec::new();
         for _ in 0..number_of_columns {
@@ -294,7 +365,7 @@ impl GridDefaultStyle {
             self.definitions_v.push(definition);
         }
     }
-
+    
     fn prepare_cell_cache(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
@@ -309,58 +380,79 @@ impl GridDefaultStyle {
         self.cell_group_3 = Vec::new();
         self.cell_group_4 = Vec::new();
 
-        for _child in children {
-            let column_span = 1;
-            let row_span = 1;
+        for child in children {
+            let mut column_span = 1;
+            let mut row_span = 1;
 
-            let mut is_fill_u = false;
-            let mut is_auto_u = false;
-            let mut is_fill_v = false;
-            let mut is_auto_v = false;
-
-            for i in column_index..column_index + column_span {
-                match self.definitions_u[i].user_size {
-                    Length::Fill(_) => is_fill_u = true,
-                    Length::Auto => is_auto_u = true,
-                    _ => (),
-                }
+            let child = child.borrow();
+            let map = child.get_attached_values();
+            if let Some(row) = map.get::<Row>() {
+                row_index = *row;
+            }
+            if let Some(column) = map.get::<Column>() {
+                column_index = *column;
+            }
+            if let Some(rspan) = map.get::<RowSpan>() {
+                row_span = *rspan;
+            }
+            if let Some(cspan) = map.get::<ColumnSpan>() {
+                column_span = *cspan;
             }
 
-            for i in row_index..row_index + row_span {
-                match self.definitions_v[i].user_size {
-                    Length::Fill(_) => is_fill_v = true,
-                    Length::Auto => is_auto_v = true,
-                    _ => (),
+            if column_index >= 0 && column_index < self.definitions_u.len() as i32 &&
+                row_index >= 0 && row_index < self.definitions_u.len() as i32 &&
+                column_span >= 1 && row_span >= 1 &&
+                column_index + column_span - 1 < self.definitions_u.len() as i32 &&
+                row_index + row_span - 1 < self.definitions_v.len() as i32 {
+                let mut is_fill_u = false;
+                let mut is_auto_u = false;
+                let mut is_fill_v = false;
+                let mut is_auto_v = false;
+
+                for i in column_index..column_index + column_span {
+                    match self.definitions_u[i as usize].user_size {
+                        Length::Fill(_) => is_fill_u = true,
+                        Length::Auto => is_auto_u = true,
+                        _ => (),
+                    }
                 }
-            }
 
-            self.has_fill_cells_u |= is_fill_u;
-            self.has_fill_cells_v |= is_fill_v;
-
-            let cell_cache = CellCache {
-                child_index: child_index,
-                column_index: column_index,
-                row_index: row_index,
-                column_span: column_span,
-                row_span: row_span,
-                is_fill_u: is_fill_u,
-                is_auto_u: is_auto_u,
-                is_fill_v: is_fill_v,
-                is_auto_v: is_auto_v,
-            };
-
-            if is_fill_v {
-                if is_fill_u {
-                    self.cell_group_1.push(cell_cache);
-                } else {
-                    self.cell_group_3.push(cell_cache);
-                    self.has_group_3_cells_in_auto_rows |= is_auto_v;
+                for i in row_index..row_index + row_span {
+                    match self.definitions_v[i as usize].user_size {
+                        Length::Fill(_) => is_fill_v = true,
+                        Length::Auto => is_auto_v = true,
+                        _ => (),
+                    }
                 }
-            } else {
-                if is_auto_u && !is_fill_u {
-                    self.cell_group_2.push(cell_cache);
+
+                self.has_fill_cells_u |= is_fill_u;
+                self.has_fill_cells_v |= is_fill_v;
+
+                let cell_cache = CellCache {
+                    child_index: child_index,
+                    column_index: column_index as usize,
+                    row_index: row_index as usize,
+                    column_span: column_span as usize,
+                    row_span: row_span as usize,
+                    is_fill_u: is_fill_u,
+                    is_auto_u: is_auto_u,
+                    is_fill_v: is_fill_v,
+                    is_auto_v: is_auto_v,
+                };
+
+                if is_fill_v {
+                    if is_fill_u {
+                        self.cell_group_1.push(cell_cache);
+                    } else {
+                        self.cell_group_3.push(cell_cache);
+                        self.has_group_3_cells_in_auto_rows |= is_auto_v;
+                    }
                 } else {
-                    self.cell_group_4.push(cell_cache);
+                    if is_auto_u && !is_fill_u {
+                        self.cell_group_2.push(cell_cache);
+                    } else {
+                        self.cell_group_4.push(cell_cache);
+                    }
                 }
             }
 
@@ -369,13 +461,13 @@ impl GridDefaultStyle {
             let is_horizontal_flow = data.columns > 0;
             if is_horizontal_flow {
                 column_index += 1;
-                if column_index >= self.definitions_u.len() {
+                if column_index >= self.definitions_u.len() as i32 {
                     column_index = 0;
                     row_index += 1;
                 }
             } else {
                 row_index += 1;
-                if row_index >= self.definitions_v.len() {
+                if row_index >= self.definitions_v.len() as i32 {
                     row_index = 0;
                     column_index += 1;
                 }
@@ -1330,7 +1422,12 @@ impl Style<Grid> for GridDefaultStyle {
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
 
-        if data.rows == 0 && data.columns == 0 {
+        let (number_of_rows, number_of_columns) = Self::decide_number_of_rows_and_columns(data, children);
+
+        if number_of_rows == 0 && number_of_columns == 0 {
+            self.definitions_u = Vec::new();
+            self.definitions_v = Vec::new();
+
             for child in children {
                 let mut child = child.borrow_mut();
                 child.measure(drawing_context, size);
@@ -1342,7 +1439,8 @@ impl Style<Grid> for GridDefaultStyle {
             let size_to_content_u = size.width == f32::INFINITY;
             let size_to_content_v = size.height == f32::INFINITY;
 
-            self.prepare_definitions(&data, &children, size_to_content_u, size_to_content_v);
+            self.prepare_definitions(&data, &children, number_of_rows, number_of_columns,
+                size_to_content_u, size_to_content_v);
             self.prepare_cell_cache(&data, &children);
 
             Self::measure_cells_group(
@@ -1481,7 +1579,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn set_rect(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
         self.rect = rect;
 
-        if data.rows == 0 && data.columns == 0 {
+        if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children {
                 child.borrow_mut().set_rect(rect);
             }

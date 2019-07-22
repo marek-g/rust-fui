@@ -26,7 +26,7 @@ ui! {
 
 ### Details
 
-You can specify constant number of `rows` or `columns`. If you specify `columns` the children will be auto-positioned horizontally (and vertically if you specify number of `rows`). If you specify both the `rows` field is ignored. 
+You can specify constant number of `rows` or `columns`. If you specify `columns` the children will be auto-positioned horizontally (and vertically if you specify number of `rows`).
 
 If you specify none of the `columns` and `rows`, the grid will put all the children in the same cell (one over the other):
 
@@ -44,11 +44,9 @@ You can also position controls manually by using attached values: `Row` and `Col
 ```rust
 ui! {
     Grid {
-        columns: 2,
-
         // first row
         Text {
-            Row: 0, Column: 0, RowSpan: 2,
+            Row: 0, Column: 0, ColumnSpan: 2,
             text: "Label"
         },
 

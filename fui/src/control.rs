@@ -52,7 +52,7 @@ impl<D: 'static> Control<D> {
         control
     }
 
-    pub fn get_attached_values(&mut self) -> &TypeMap {
+    pub fn get_attached_values(&self) -> &TypeMap {
         &self.attached_values
     }
 

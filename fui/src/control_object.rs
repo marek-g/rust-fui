@@ -12,7 +12,7 @@ pub trait ControlObject {
     fn is_dirty(&self) -> bool;
     fn set_is_dirty(&mut self, is_dirty: bool);
 
-    fn get_attached_values(&mut self) -> &TypeMap;
+    fn get_attached_values(&self) -> &TypeMap;
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
@@ -38,7 +38,7 @@ impl<D: 'static> ControlObject for Control<D> {
         self.set_is_dirty(is_dirty)
     }
 
-    fn get_attached_values(&mut self) -> &TypeMap {
+    fn get_attached_values(&self) -> &TypeMap {
         self.get_attached_values()
     }
 

@@ -29,6 +29,13 @@ Text {
 }
 ```
 
+Creating new attached value:
+
+```rust
+struct NewValue;
+impl typemap::Key for NewValue { type Value = i32; }
+```
+
 Layout
 -----------------------------
 
