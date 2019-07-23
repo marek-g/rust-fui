@@ -66,16 +66,19 @@ impl View for MainViewModel {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         let root_control = ui!(
-            Horizontal {
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.play()),
-                    Text { text: "Play" }
-                },
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.stop()),
-                    Text { text: "Stop" }
-                },
+            Grid {
+                //columns: 1,
                 Bitmap { texture_id: &vm.texture_id },
+                Horizontal {
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.play()),
+                        Text { text: "Play" }
+                    },
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.stop()),
+                        Text { text: "Stop" }
+                    },   
+                },
             }
         );
 

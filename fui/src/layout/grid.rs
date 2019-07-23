@@ -1680,7 +1680,7 @@ impl Style<Grid> for GridDefaultStyle {
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            for child in children.iter() {
+            for child in children.iter().rev() {
                 let c = child.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
