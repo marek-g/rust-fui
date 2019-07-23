@@ -1,5 +1,31 @@
 # Layout
 
+## StackPanel
+
+Arranges child elements into a single line that can be oriented horizontally or vertically.
+
+```rust
+ui! {
+    StackPanel {
+        orientation: Orientation::Horizontal,
+
+        Text { text: "Label 1" },
+        Button { Text { text: "Button 1" } },
+    }
+}
+```
+
+You can also use `Horizontal` alias for horizontal orientation and `Vertical` alias for vertical orientation:
+
+```rust
+ui! {
+    Vertical {
+        Text { text: "Label 1" },
+        Button { Text { text: "Button 1" } },
+    }
+}
+```
+
 ## Grid
 
 Provides a way of arranging items in a grid (rectangle area with columns and rows).

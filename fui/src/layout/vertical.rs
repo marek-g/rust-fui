@@ -8,10 +8,10 @@ use view::*;
 use super::stack_panel::*;
 
 #[derive(TypedBuilder)]
-pub struct Horizontal {}
+pub struct Vertical {}
 
-impl View for Horizontal {
+impl View for Vertical {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        StackPanel::builder().orientation(Orientation::Horizontal).build().to_view(context)
+        StackPanel::builder().orientation(Orientation::Vertical).build().to_view(context)
     }
 }
