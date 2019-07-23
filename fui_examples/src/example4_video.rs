@@ -67,7 +67,6 @@ impl View for MainViewModel {
 
         let root_control = ui!(
             Grid {
-                //columns: 1,
                 Bitmap { texture_id: &vm.texture_id },
                 Horizontal {
                     Button {

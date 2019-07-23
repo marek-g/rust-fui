@@ -447,7 +447,7 @@ impl GridDefaultStyle {
             }
 
             if column_index >= 0 && column_index < self.definitions_u.len() as i32 &&
-                row_index >= 0 && row_index < self.definitions_u.len() as i32 &&
+                row_index >= 0 && row_index < self.definitions_v.len() as i32 &&
                 column_span >= 1 && row_span >= 1 &&
                 column_index + column_span - 1 < self.definitions_u.len() as i32 &&
                 row_index + row_span - 1 < self.definitions_v.len() as i32 {
@@ -1490,6 +1490,11 @@ impl Style<Grid> for GridDefaultStyle {
                 size_to_content_u, size_to_content_v);
             self.prepare_cell_cache(&data, &children);
 
+            println!("cells 1: {}", self.cell_group_1.len());
+            println!("cells 2: {}", self.cell_group_2.len());
+            println!("cells 3: {}", self.cell_group_3.len());
+            println!("cells 4: {}", self.cell_group_4.len());
+
             Self::measure_cells_group(
                 drawing_context,
                 &mut self.definitions_u,
@@ -1620,6 +1625,7 @@ impl Style<Grid> for GridDefaultStyle {
             grid_desired_size.height = Self::calculate_desired_size(&self.definitions_v);
         }
 
+        println!("grid rect: {:?}", grid_desired_size);
         self.rect = grid_desired_size;
     }
 
