@@ -58,18 +58,32 @@
             "preLaunchTask": "build_example3"
         },
         {
-            "name": "ex4 video",
+            "name": "ex4 list",
             "request": "launch",
             //"type": "lldb",
             //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example4_video",
+            //"program": "${workspaceRoot}/target/debug/example4_list",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example4_video",
+            "target": "${workspaceRoot}/target/debug/example4_list",
             "cwd": "${workspaceRoot}",
             "env": {
                 "RUST_BACKTRACE": "1"
             },
             "preLaunchTask": "build_example4"
+        },
+        {
+            "name": "ex5 video",
+            "request": "launch",
+            //"type": "lldb",
+            //"sourceLanguages": ["rust"],
+            //"program": "${workspaceRoot}/target/debug/example5_video",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/debug/example5_video",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example5"
         },
     ]
 }
