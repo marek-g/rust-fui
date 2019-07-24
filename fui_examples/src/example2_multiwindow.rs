@@ -1,13 +1,13 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
-extern crate winit;
 extern crate fui_macros;
 extern crate typemap;
+extern crate winit;
 
+use fui::application::*;
 use fui::controls::*;
 use fui::layout::*;
-use fui::application::*;
 use fui::*;
 use fui_macros::ui;
 
@@ -19,12 +19,15 @@ use Property;
 
 struct MainViewModel {
     pub counter: Property<i32>,
-    pub counter2: Property<i32>
+    pub counter2: Property<i32>,
 }
 
 impl MainViewModel {
     pub fn new() -> Self {
-        MainViewModel { counter: Property::new(10), counter2: Property::new(0) }
+        MainViewModel {
+            counter: Property::new(10),
+            counter2: Property::new(0),
+        }
     }
 
     pub fn increase(&mut self) {
@@ -41,7 +44,10 @@ impl View for MainViewModel {
         let view_model = &Rc::new(RefCell::new(self));
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
-        let root_control = ui!(
+        vm.counter2.bind(&mut vm.counter);
+        vm.counter.bind(&mut vm.counter2);
+
+        ui!(
             Horizontal {
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
@@ -54,17 +60,12 @@ impl View for MainViewModel {
                 },
                 Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
             }
-        );
-
-        vm.counter2.bind(&mut vm.counter);
-        vm.counter.bind(&mut vm.counter2);
-
-        root_control
+        )
     }
 }
 
 fn main() {
-    let mut app = Application::new("Marek Ogarek").unwrap();
+    let mut app = Application::new("Example: multiwindow").unwrap();
 
     let main_view_model = MainViewModel::new();
     let main_view_model2 = MainViewModel::new();
@@ -73,10 +74,14 @@ fn main() {
         let mut window_manager = app.get_window_manager().borrow_mut();
 
         let window_builder = winit::WindowBuilder::new().with_title("Window 1");
-        window_manager.add_window_view_model(window_builder, app.get_events_loop(), main_view_model).unwrap();
+        window_manager
+            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model)
+            .unwrap();
 
         let window_builder = winit::WindowBuilder::new().with_title("Window 2");
-        window_manager.add_window_view_model(window_builder, app.get_events_loop(), main_view_model2).unwrap();
+        window_manager
+            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model2)
+            .unwrap();
     }
 
     app.run();

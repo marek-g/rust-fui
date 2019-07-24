@@ -17,25 +17,37 @@ use std::rc::Rc;
 
 use typemap::TypeMap;
 
+struct ItemViewModel {
+    pub name: Property<String>,
+    pub number: Property<i32>,
+}
+
 struct MainViewModel {
-    pub counter: Property<i32>,
-    pub counter2: Property<i32>,
+    pub items: Vec<ItemViewModel>,
 }
 
 impl MainViewModel {
     pub fn new() -> Self {
         MainViewModel {
-            counter: Property::new(10),
-            counter2: Property::new(0),
+            items: vec![
+                ItemViewModel {
+                    name: Property::new("Element 1"),
+                    number: Property::new(10),
+                },
+                ItemViewModel {
+                    name: Property::new("Element 2"),
+                    number: Property::new(11),
+                },
+                ItemViewModel {
+                    name: Property::new("Element 3"),
+                    number: Property::new(12),
+                },
+                ItemViewModel {
+                    name: Property::new("Element 4"),
+                    number: Property::new(13),
+                },
+            ],
         }
-    }
-
-    pub fn increase(&mut self) {
-        self.counter.change(|c| c + 1);
-    }
-
-    pub fn decrease(&mut self) {
-        self.counter.change(|c| c - 1);
     }
 }
 
@@ -44,38 +56,29 @@ impl View for MainViewModel {
         let view_model = &Rc::new(RefCell::new(self));
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
-        let root_control = ui!(
-            Grid {
-                columns: 2,
-
-                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.decrease()),
-                    Text { text: "Decrease" },
+        ui!(
+            Vertical {
+                Horizontal {
+                    Text { text: &vm.items[0].name },
+                    Text { text: (&vm.items[0].number, |n| format!(" - {}", n)) },
                 },
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
-                    Text { text: "Increase" },
+                Horizontal {
+                    Text { text: &vm.items[1].name },
+                    Text { text: (&vm.items[1].number, |n| format!(" - {}", n)) },
                 },
-                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
             }
-        );
-
-        vm.counter2.bind(&mut vm.counter);
-        vm.counter.bind(&mut vm.counter2);
-
-        root_control
+        )
     }
 }
 
 fn main() {
-    let mut app = Application::new("Marek Ogarek").unwrap();
+    let mut app = Application::new("Example: list").unwrap();
 
     let main_view_model = MainViewModel::new();
 
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
-        let window_builder = winit::WindowBuilder::new().with_title("Window 1");
+        let window_builder = winit::WindowBuilder::new().with_title("Example: list");
         window_manager
             .add_window_view_model(window_builder, app.get_events_loop(), main_view_model)
             .unwrap();

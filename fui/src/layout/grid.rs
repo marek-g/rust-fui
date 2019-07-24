@@ -1490,11 +1490,6 @@ impl Style<Grid> for GridDefaultStyle {
                 size_to_content_u, size_to_content_v);
             self.prepare_cell_cache(&data, &children);
 
-            println!("cells 1: {}", self.cell_group_1.len());
-            println!("cells 2: {}", self.cell_group_2.len());
-            println!("cells 3: {}", self.cell_group_3.len());
-            println!("cells 4: {}", self.cell_group_4.len());
-
             Self::measure_cells_group(
                 drawing_context,
                 &mut self.definitions_u,
@@ -1625,7 +1620,6 @@ impl Style<Grid> for GridDefaultStyle {
             grid_desired_size.height = Self::calculate_desired_size(&self.definitions_v);
         }
 
-        println!("grid rect: {:?}", grid_desired_size);
         self.rect = grid_desired_size;
     }
 

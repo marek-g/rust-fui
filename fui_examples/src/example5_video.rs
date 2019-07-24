@@ -93,7 +93,7 @@ impl View for MainViewModel {
 }
 
 fn main() {
-    let mut app = Application::new("Marek Ogarek").unwrap();
+    let mut app = Application::new("Example: video").unwrap();
 
     let main_view_model = MainViewModel::new(&mut app).unwrap();
 
