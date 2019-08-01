@@ -2,18 +2,19 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
+use children_collection::*;
 use control_object::ControlObject;
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
-    pub children: Vec<Rc<RefCell<ControlObject>>>,
+    pub children: Box<dyn ChildrenSource>,
 }
 
 impl ViewContext {
     pub fn empty() -> ViewContext {
         ViewContext {
             attached_values: TypeMap::new(),
-            children: Vec::new(),
+            children: Box::new(StaticChildrenSource::new(Vec::new())),
         }
     }
 }

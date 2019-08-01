@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
+use children_collection::*;
 use common::*;
 use control::*;
 use control_object::*;
@@ -62,7 +63,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut StackPanel,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         _event: ControlEvent,
     ) {
     }
@@ -70,7 +71,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn measure(
         &mut self,
         data: &StackPanel,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
@@ -80,7 +81,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
             Orientation::Horizontal => {
                 let available_size = Size::new(f32::INFINITY, size.height);
 
-                for child in children {
+                for child in children.iter() {
                     child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width += child_size.width;
@@ -90,7 +91,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
             Orientation::Vertical => {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
-                for child in children {
+                for child in children.iter() {
                     child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width = result.width.max(child_size.width);
@@ -105,7 +106,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn set_rect(
         &mut self,
         data: &StackPanel,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         rect: Rect,
     ) {
         self.rect = rect;
@@ -114,7 +115,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
 
         match data.orientation {
             Orientation::Horizontal => {
-                for child in children {
+                for child in children.iter() {
                     let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
@@ -123,7 +124,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 }
             },
             Orientation::Vertical => {
-                for child in children {
+                for child in children.iter() {
                     let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
@@ -141,7 +142,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn hit_test(
         &self,
         _data: &StackPanel,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -166,12 +167,12 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn to_primitives(
         &self,
         _data: &StackPanel,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in children {
+        for child in children.iter() {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 

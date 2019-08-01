@@ -10,6 +10,9 @@ pub type Result<T> = std::result::Result<T, failure::Error>;
 
 pub mod application;
 
+mod children_collection;
+pub use children_collection::*;
+
 pub mod common;
 
 mod control;

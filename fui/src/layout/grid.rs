@@ -30,6 +30,7 @@ use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
 
+use children_collection::*;
 use common::*;
 use control::*;
 use control_object::*;
@@ -273,10 +274,10 @@ impl GridDefaultStyle {
 
     fn decide_number_of_rows_and_columns(
         data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>) -> (usize, usize) {
+        children: &Box<dyn ChildrenSource>) -> (usize, usize) {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
-        for child in children {
+        for child in children.iter() {
             let child = child.borrow();
             let map = child.get_attached_values();
 
@@ -337,7 +338,7 @@ impl GridDefaultStyle {
     fn prepare_definitions(
         &mut self,
         data: &Grid,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         number_of_rows: usize,
         number_of_columns: usize,
         size_to_content_u: bool,
@@ -413,7 +414,7 @@ impl GridDefaultStyle {
         }
     }
     
-    fn prepare_cell_cache(&mut self, data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>) {
+    fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ChildrenSource>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
@@ -427,7 +428,7 @@ impl GridDefaultStyle {
         self.cell_group_3 = Vec::new();
         self.cell_group_4 = Vec::new();
 
-        for child in children {
+        for child in children.iter() {
             let mut column_span = 1;
             let mut row_span = 1;
 
@@ -527,7 +528,7 @@ impl GridDefaultStyle {
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         ignore_desired_size_u: bool,
         force_infinity_v: bool,
     ) -> bool {
@@ -1455,7 +1456,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Grid,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         _event: ControlEvent,
     ) {
     }
@@ -1463,7 +1464,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn measure(
         &mut self,
         data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
@@ -1475,7 +1476,7 @@ impl Style<Grid> for GridDefaultStyle {
             self.definitions_u = Vec::new();
             self.definitions_v = Vec::new();
 
-            for child in children {
+            for child in children.iter() {
                 let mut child = child.borrow_mut();
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
@@ -1623,11 +1624,11 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect = grid_desired_size;
     }
 
-    fn set_rect(&mut self, _data: &Grid, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Grid, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
-            for child in children {
+            for child in children.iter() {
                 child.borrow_mut().set_rect(rect);
             }
         } else {
@@ -1676,7 +1677,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn hit_test(
         &self,
         _data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -1701,12 +1702,12 @@ impl Style<Grid> for GridDefaultStyle {
     fn to_primitives(
         &self,
         _data: &Grid,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in children {
+        for child in children.iter() {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 

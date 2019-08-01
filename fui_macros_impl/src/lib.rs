@@ -25,27 +25,28 @@ use crate::parser::CtrlProperty;
 // translates to:
 //
 // <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
+//     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
 //     children: vec![
 //
 //         <Button>::builder().build().to_view(ViewContext {
-//             attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
-//             children: vec![
+//             attached_values: TypeMap::new(),
+//             children: Box::new(StaticChildrenSource::new(vec![
 //
 //                 <Text::builder()
 //                     .text("Button".to_string())
 //                     .build().to_view(ViewContext {
 //                         attached_values: TypeMap::new(),
-//                         children: Vec::<Rc<RefCell<ControlObject>>>::new()
+//                         children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
 //                     }),
 //
-//             )],
+//             )])),
 //         }),
 //
 //         <Text>::builder()
 //             .text("Label".to_string())
 //             .build().to_view(ViewContext {
 //                 attached_values: TypeMap::new(),
-//                 children: Vec::<Rc<RefCell<ControlObject>>>::new()
+//                 children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
 //             }),
 //         ),
 //     ],
@@ -109,9 +110,9 @@ fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
     }
 
     if children.len() > 0 {
-        quote!(vec![#(#children,)*])
+        quote!(Box::new(StaticChildrenSource::new(vec![#(#children,)*])))
     } else {
-        quote!(Vec::<Rc<RefCell<ControlObject>>>::new())
+        quote!(Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new())))
     }
 }
 

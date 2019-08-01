@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use children_collection::*;
 use common::*;
 use control::*;
 use control_object::*;
@@ -61,7 +62,7 @@ impl Style<Text> for TextDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         _event: ControlEvent,
     ) {
     }
@@ -69,7 +70,7 @@ impl Style<Text> for TextDefaultStyle {
     fn measure(
         &mut self,
         data: &Text,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         _size: Size,
     ) {
@@ -79,7 +80,7 @@ impl Style<Text> for TextDefaultStyle {
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &Text, _children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Text, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
     }
 
@@ -90,7 +91,7 @@ impl Style<Text> for TextDefaultStyle {
     fn hit_test(
         &self,
         _data: &Text,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -103,7 +104,7 @@ impl Style<Text> for TextDefaultStyle {
     fn to_primitives(
         &self,
         data: &Text,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();

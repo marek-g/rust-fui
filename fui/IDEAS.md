@@ -122,19 +122,19 @@ Cons:
 pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
-    pub children: Vec<Rc<RefCell<ControlObject>>>,
+    pub children: Box<dyn ChildrenSource>,
 
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,
 }
 
 pub trait View {
-    fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject>>;
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>>;
 }
 
 impl View for Button {
-  fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject> {
-    Control::new(self, <ButtonDefaultStyle>::new(), _children)
+  fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject> {
+    Control::new(self, <ButtonDefaultStyle>::new(), context.children)
   }
 }
 
@@ -151,7 +151,7 @@ struct Header {
 }
 
 impl View for Header {
-  fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject> {
+  fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject> {
     ui! {
       Text { title: self.title }
     }
@@ -159,7 +159,7 @@ impl View for Header {
 }
 
 impl View for MainViewModel {
-  fn to_view(self, _children: Vec<Rc<RefCell<ControlObject>>>) -> Rc<RefCell<ControlObject> {
+  fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject> {
     let vm = Rc::new(Cell::new(self));
     ui!(
       // <Vertical>::builder().spacing(4).build().to_view(vec![
@@ -194,9 +194,93 @@ struct Vertical {
 }
 
 impl View for Vertical {
-  fn to_view(self, children: Vec<Rc<RefCell<ControlObject>>>) -> ViewData {
-    Control::new(self, <VerticalDefaultStyle>::new(), children)
+  fn to_view(self, context: ViewContext) -> ViewData {
+    Control::new(self, <VerticalDefaultStyle>::new(), context.children)
   }
 }
+
+```
+
+```rust
+ui!(
+    Vertical {
+        Collection<ItemViewModel>(&self.items),
+
+        Collection(&self.items), // take type from items collection
+
+        for (index, item) in &self.items {
+            Horizontal {
+                Text { text: &item.name },
+                Text { text: (&item.number, |n| format!(" - {}", n)) },
+            }
+        },
+    }
+)
+```
+
+```rust
+// Vec<Rc<RefCell<ControlObject>>>
+
+trait ChildrenCollection {
+  fn len(&self) -> usize;
+  fn create_view(&self, index: usize) -> Rc<RefCell<ControlObject>>;
+}
+
+struct DynamicCollection {
+  pub items: Rc<RefCell<ObservableCollection>>,
+}
+
+impl ChildrenCollection for DynamicCollection {
+  fn len(&self) -> { self.items }
+
+  fn create_view(&self, index: usize) -> Rc<RefCell<ObservableCollection>> {
+    let item = &items.borrow_mut().get(index);
+
+    ui!(
+      Horizontal {
+          Text { text: &item.name },
+          Text { text: (&item.number, |n| format!(" - {}", n)) },
+      }
+    )
+  }
+}
+
+```
+
+
+```rust
+
+struct ItemViewModel {
+  pub title: String,
+}
+
+impl View for ItemViewModel {
+  fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject> {
+    ui! {
+      Text { title: self.title }
+    }
+  }
+}
+
+struct MainViewModel {
+  pub elements: Rc<RefCell<Vec<Rc<RefCell<ItemViewModel>>>>>,
+
+  pub elements: Collection<Rc<RefCell<ItemViewModel>>>,
+
+  pub elements: Collection<ItemViewModel>,
+
+  pub elements: Vec<ItemViewModel>,
+}
+
+pub struct ChildrenCollection<T: View> {
+  pub sub_collection: Rc<RefCell<Vec<T>>>
+}
+
+pub enum ChildrenCollectionItem {
+  Control(Rc<RefCell<dyn ControlObject>>),
+  Views(Vec<Rc<RefCell<dyn View>>),
+}
+
+children: Vec<ChildrenCollectionItem>
 
 ```

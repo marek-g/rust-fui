@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
+use children_collection::*;
 use control_object::*;
 use observable::*;
 use style::*;
@@ -17,7 +18,7 @@ pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
     attached_values: TypeMap,
-    pub children: Vec<Rc<RefCell<ControlObject>>>,
+    pub children: Box<dyn ChildrenSource>,
 
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,
@@ -56,8 +57,8 @@ impl<D: 'static> Control<D> {
         &self.attached_values
     }
 
-    pub fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
-        self.children.clone()
+    pub fn get_children(&mut self) -> &Box<dyn ChildrenSource> {
+        &self.children
     }
 
     pub fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {

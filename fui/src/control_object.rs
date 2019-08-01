@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 use typemap::TypeMap;
 
+use children_collection::*;
 use common::*;
 use control::*;
 use drawing_context::DrawingContext;
@@ -16,7 +17,7 @@ pub trait ControlObject {
 
     fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
     fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>>;
+    fn get_children(&mut self) -> &Box<dyn ChildrenSource>;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn handle_event(&mut self, event: ControlEvent);
@@ -50,7 +51,7 @@ impl<D: 'static> ControlObject for Control<D> {
         self.set_parent(parent);
     }
 
-    fn get_children(&mut self) -> Vec<Rc<RefCell<ControlObject>>> {
+    fn get_children(&mut self) -> &Box<dyn ChildrenSource> {
         self.get_children()
     }
 

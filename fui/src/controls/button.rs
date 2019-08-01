@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use children_collection::*;
 use common::*;
 use control::*;
 use control_object::*;
@@ -64,7 +65,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn handle_event(
         &mut self,
         data: &mut Button,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         event: ControlEvent,
     ) {
         match event {
@@ -102,11 +103,11 @@ impl Style<Button> for ButtonDefaultStyle {
     fn measure(
         &mut self,
         _data: &Button,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
-        let content_size = if let Some(ref content) = children.first() {
+        let content_size = if let Some(ref content) = children.iter().next() {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
@@ -121,7 +122,7 @@ impl Style<Button> for ButtonDefaultStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &Button, children: &Vec<Rc<RefCell<ControlObject>>>, rect: Rect) {
+    fn set_rect(&mut self, _data: &Button, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -131,7 +132,7 @@ impl Style<Button> for ButtonDefaultStyle {
             rect.height - 20.0f32,
         );
 
-        if let Some(ref content) = children.first() {
+        if let Some(ref content) = children.iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
@@ -143,7 +144,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn hit_test(
         &self,
         _data: &Button,
-        _children: &Vec<Rc<RefCell<ControlObject>>>,
+        _children: &Box<dyn ChildrenSource>,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -156,7 +157,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn to_primitives(
         &self,
         _data: &Button,
-        children: &Vec<Rc<RefCell<ControlObject>>>,
+        children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
@@ -219,7 +220,7 @@ impl Style<Button> for ButtonDefaultStyle {
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        if let Some(ref content) = children.first() {
+        if let Some(ref content) = children.iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
                 vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32));

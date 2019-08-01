@@ -53,19 +53,17 @@ impl MainViewModel {
 
 impl View for MainViewModel {
     fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        let view_model = &Rc::new(RefCell::new(self));
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+        //let view_model = &Rc::new(RefCell::new(self));
+        //let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         ui!(
             Vertical {
-                Horizontal {
-                    Text { text: &vm.items[0].name },
-                    Text { text: (&vm.items[0].number, |n| format!(" - {}", n)) },
-                },
-                Horizontal {
-                    Text { text: &vm.items[1].name },
-                    Text { text: (&vm.items[1].number, |n| format!(" - {}", n)) },
-                },
+                //for (index, item) in &self.items {
+                    Horizontal {
+                        Text { text: &item.name },
+                        Text { text: (&item.number, |n| format!(" - {}", n)) },
+                    }
+                //},
             }
         )
     }
