@@ -32,18 +32,18 @@ impl ItemViewModel {
 }
 
 struct MainViewModel {
-    pub items: Vec<Rc<RefCell<ItemViewModel>>>,
+    pub items: ObservableVec<ItemViewModel>,
 }
 
 impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
-            items: vec![
+            items: ObservableVec::new(vec![
                 ItemViewModel::new(Property::new("Element 1"), Property::new(10)),
                 ItemViewModel::new(Property::new("Element 2"), Property::new(11)),
                 ItemViewModel::new(Property::new("Element 3"), Property::new(12)),
                 ItemViewModel::new(Property::new("Element 4"), Property::new(13)),
-            ],
+            ]),
         }))
     }
 }

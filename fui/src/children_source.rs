@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::ops::Index;
 use std::rc::Rc;
 use view::{RcView, ViewContext};
+use observable::ObservableVec;
 
 use control_object::ControlObject;
 
@@ -63,13 +64,13 @@ pub struct DynamicChildrenSource {
 }
 
 impl DynamicChildrenSource {
-    pub fn new<T>(children: &Vec<Rc<RefCell<T>>>) -> Self
+    pub fn new<T>(children: &ObservableVec<T>) -> Self
     where
         T: RcView,
     {
         DynamicChildrenSource {
             children: children
-                .iter()
+                .into_iter()
                 .map(|vm| RcView::to_view(&vm, ViewContext::empty()))
                 .collect(),
         }
