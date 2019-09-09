@@ -39,7 +39,7 @@ impl<D: 'static> Control<D> {
             is_dirty: true,
         }));
 
-        for child in control.borrow_mut().get_children().iter() {
+        for child in control.borrow_mut().get_children().into_iter() {
             let control_weak = Rc::downgrade(&control) as Weak<RefCell<ControlObject>>;
             child.borrow_mut().set_parent(control_weak);
         }

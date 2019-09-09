@@ -81,7 +81,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
             Orientation::Horizontal => {
                 let available_size = Size::new(f32::INFINITY, size.height);
 
-                for child in children.iter() {
+                for child in children.into_iter() {
                     child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width += child_size.width;
@@ -91,7 +91,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
             Orientation::Vertical => {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
-                for child in children.iter() {
+                for child in children.into_iter() {
                     child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width = result.width.max(child_size.width);
@@ -115,7 +115,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
 
         match data.orientation {
             Orientation::Horizontal => {
-                for child in children.iter() {
+                for child in children.into_iter() {
                     let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
@@ -124,7 +124,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 }
             },
             Orientation::Vertical => {
-                for child in children.iter() {
+                for child in children.into_iter() {
                     let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
@@ -146,7 +146,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            for child in children.iter() {
+            for child in children.into_iter() {
                 let c = child.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
@@ -172,7 +172,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in children.iter() {
+        for child in children.into_iter() {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 

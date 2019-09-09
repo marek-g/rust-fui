@@ -107,7 +107,7 @@ impl Style<Button> for ButtonDefaultStyle {
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
-        let content_size = if let Some(ref content) = children.iter().next() {
+        let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
@@ -132,7 +132,7 @@ impl Style<Button> for ButtonDefaultStyle {
             rect.height - 20.0f32,
         );
 
-        if let Some(ref content) = children.iter().next() {
+        if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
@@ -220,7 +220,7 @@ impl Style<Button> for ButtonDefaultStyle {
             end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
         });
 
-        if let Some(ref content) = children.iter().next() {
+        if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
                 vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32));

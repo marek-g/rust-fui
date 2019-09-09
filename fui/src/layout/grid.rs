@@ -277,7 +277,7 @@ impl GridDefaultStyle {
         children: &Box<dyn ChildrenSource>) -> (usize, usize) {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
-        for child in children.iter() {
+        for child in children.into_iter() {
             let child = child.borrow();
             let map = child.get_attached_values();
 
@@ -428,7 +428,7 @@ impl GridDefaultStyle {
         self.cell_group_3 = Vec::new();
         self.cell_group_4 = Vec::new();
 
-        for child in children.iter() {
+        for child in children.into_iter() {
             let mut column_span = 1;
             let mut row_span = 1;
 
@@ -1476,7 +1476,7 @@ impl Style<Grid> for GridDefaultStyle {
             self.definitions_u = Vec::new();
             self.definitions_v = Vec::new();
 
-            for child in children.iter() {
+            for child in children.into_iter() {
                 let mut child = child.borrow_mut();
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
@@ -1628,7 +1628,7 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect = rect;
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
-            for child in children.iter() {
+            for child in children.into_iter() {
                 child.borrow_mut().set_rect(rect);
             }
         } else {
@@ -1681,7 +1681,7 @@ impl Style<Grid> for GridDefaultStyle {
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            for child in children.iter().rev() {
+            for child in children.into_iter().rev() {
                 let c = child.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
@@ -1707,7 +1707,7 @@ impl Style<Grid> for GridDefaultStyle {
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
-        for child in children.iter() {
+        for child in children.into_iter() {
             vec.append(&mut child.borrow().to_primitives(drawing_context));
         }
 

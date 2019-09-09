@@ -54,7 +54,8 @@ impl RcView for MainViewModel {
 
         ui!(
             Vertical {
-                &vm.items
+                Button { Text { text: "Add" } },
+                &vm.items,
             }
         )
     }

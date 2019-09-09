@@ -1,23 +1,56 @@
+use observable::ObservableVec;
 use std::cell::RefCell;
 use std::ops::Index;
 use std::rc::Rc;
 use view::{RcView, ViewContext};
-use observable::ObservableVec;
 
 use control_object::ControlObject;
 
 pub trait ChildrenSource {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>>;
     fn len(&self) -> usize;
     fn index<'a>(&'a self, index: usize) -> &'a Rc<RefCell<dyn ControlObject>>;
 }
 
+pub struct ChildrenSourceIterator<'a> {
+    source: &'a ChildrenSource,
+    pos: usize,
+    len: usize,
+}
+
+impl<'a> Iterator for ChildrenSourceIterator<'a> {
+    type Item = &'a Rc<RefCell<dyn ControlObject>>;
+
+    fn next(&mut self) -> Option<&'a Rc<RefCell<dyn ControlObject>>> {
+        if self.pos < self.len {
+            self.pos += 1;
+            Some(self.source.index(self.pos - 1))
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a> DoubleEndedIterator for ChildrenSourceIterator<'a> {
+    fn next_back(&mut self) -> Option<&'a Rc<RefCell<dyn ControlObject>>> {
+        if self.len > self.pos {
+            self.len -= 1;
+            Some(self.source.index(self.len))
+        } else {
+            None
+        }
+    }
+}
+
 impl<'a> IntoIterator for &'a ChildrenSource {
     type Item = &'a Rc<RefCell<dyn ControlObject>>;
-    type IntoIter = ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>>;
+    type IntoIter = ChildrenSourceIterator<'a>;
 
-    fn into_iter(self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
-        self.iter()
+    fn into_iter(self) -> ChildrenSourceIterator<'a> {
+        ChildrenSourceIterator {
+            source: self,
+            pos: 0,
+            len: self.len(),
+        }
     }
 }
 
@@ -43,10 +76,6 @@ impl StaticChildrenSource {
 }
 
 impl ChildrenSource for StaticChildrenSource {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
-        self.children.iter()
-    }
-
     fn len(&self) -> usize {
         self.children.len()
     }
@@ -78,15 +107,45 @@ impl DynamicChildrenSource {
 }
 
 impl ChildrenSource for DynamicChildrenSource {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
-        self.children.iter()
-    }
-
     fn len(&self) -> usize {
         self.children.len()
     }
 
     fn index<'a>(&'a self, index: usize) -> &'a Rc<RefCell<dyn ControlObject>> {
         self.children.index(index)
+    }
+}
+
+///
+/// AggregatedChildrenSource.
+///
+pub struct AggregatedChildrenSource {
+    sources: Vec<Box<dyn ChildrenSource>>,
+}
+
+impl AggregatedChildrenSource {
+    pub fn new(sources: Vec<Box<dyn ChildrenSource>>) -> Self {
+        AggregatedChildrenSource { sources }
+    }
+}
+
+impl ChildrenSource for AggregatedChildrenSource {
+    fn len(&self) -> usize {
+        self.sources.iter().map(|s| s.len()).sum()
+    }
+
+    fn index<'a>(&'a self, index: usize) -> &'a Rc<RefCell<dyn ControlObject>> {
+        let mut new_index = index;
+        for source in &self.sources {
+            let len = source.len();
+            if new_index < len {
+                return source.index(new_index);
+            } else {
+                new_index -= len;
+            }
+        }
+
+        panic!(format!("index out of bounds: the len is {} but the index is {}",
+            self.len(), index))
     }
 }
