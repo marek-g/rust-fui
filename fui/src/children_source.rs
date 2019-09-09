@@ -1,3 +1,4 @@
+use view::View;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::Index;
@@ -53,3 +54,19 @@ impl ChildrenSource for StaticChildrenSource {
         self.children.index(index)
     }
 }
+
+/*
+///
+/// DynamicChildrenSource.
+/// 
+pub struct DynamicChildrenSource {
+    children: Vec<Rc<RefCell<dyn ControlObject>>>,
+}
+
+impl DynamicChildrenSource {
+    pub fn new<T>(children: &Vec<T>) -> Self where T: View {
+        DynamicChildrenSource {
+            children: children.
+        }
+    }
+}*/

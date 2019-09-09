@@ -204,16 +204,18 @@ impl View for Vertical {
 ```rust
 ui!(
     Vertical {
-        Collection<ItemViewModel>(&self.items),
+        // Collection<ItemViewModel>(&self.items),
 
-        Collection(&self.items), // take type from items collection
+        // Collection(&self.items), // take type from items collection
 
-        for (index, item) in &self.items {
+        &self.items, // simplest syntax
+
+        /*for (index, item) in &self.items {
             Horizontal {
                 Text { text: &item.name },
                 Text { text: (&item.number, |n| format!(" - {}", n)) },
             }
-        },
+        },*/
     }
 )
 ```

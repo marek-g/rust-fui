@@ -26,7 +26,7 @@ use crate::parser::CtrlProperty;
 //
 // <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
 //     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
-//     children: vec![
+//     children: Box::new(StaticChildrenSource::new(vec![
 //
 //         <Button>::builder().build().to_view(ViewContext {
 //             attached_values: TypeMap::new(),
@@ -49,7 +49,7 @@ use crate::parser::CtrlProperty;
 //                 children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
 //             }),
 //         ),
-//     ],
+//     ])),
 // })
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {

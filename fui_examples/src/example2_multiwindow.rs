@@ -23,11 +23,11 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new() -> Self {
-        MainViewModel {
+    pub fn new() -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
-        }
+        }))
     }
 
     pub fn increase(&mut self) {
@@ -39,9 +39,8 @@ impl MainViewModel {
     }
 }
 
-impl View for MainViewModel {
-    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        let view_model = &Rc::new(RefCell::new(self));
+impl RcView for MainViewModel {
+    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);
@@ -75,12 +74,12 @@ fn main() {
 
         let window_builder = winit::WindowBuilder::new().with_title("Window 1");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model)
+            .add_window_view_model(window_builder, app.get_events_loop(), &main_view_model)
             .unwrap();
 
         let window_builder = winit::WindowBuilder::new().with_title("Window 2");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model2)
+            .add_window_view_model(window_builder, app.get_events_loop(), &main_view_model2)
             .unwrap();
     }
 

@@ -27,7 +27,7 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(app: &mut Application) -> Result<Self> {
+    pub fn new(app: &mut Application) -> Result<Rc<RefCell<Self>>> {
         let player = Rc::new(RefCell::new(PlayerGl::new(app.get_drawing_context(),
             app.get_window_manager(),
             app.get_events_loop())?));
@@ -43,11 +43,11 @@ impl MainViewModel {
             }
         });
 
-        Ok(MainViewModel {
+        Ok(Rc::new(RefCell::new(MainViewModel {
             player,
             texture_id: Property::new(-1),
             player_loop_subscription,
-        })
+        })))
     }
 
     pub fn play(&mut self) {
@@ -60,10 +60,9 @@ impl MainViewModel {
     }
 }
 
-impl View for MainViewModel {
-    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        let view_model = &Rc::new(RefCell::new(self));
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+impl RcView for MainViewModel {
+    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        let vm = &mut view_model.borrow_mut();
 
         let root_control = ui!(
             Grid {
@@ -100,7 +99,7 @@ fn main() {
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::WindowBuilder::new().with_title("GStreamer test");
-        window_manager.add_window_view_model(window_builder, app.get_events_loop(), main_view_model).unwrap();
+        window_manager.add_window_view_model(window_builder, app.get_events_loop(), &main_view_model).unwrap();
     }
  
     app.run();

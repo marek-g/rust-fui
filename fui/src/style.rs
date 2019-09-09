@@ -1,7 +1,7 @@
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
-use children_collection::*;
+use children_source::*;
 use common::*;
 use control::*;
 use control_object::*;

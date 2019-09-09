@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::{ Rc, Weak };
 use typemap::TypeMap;
 
-use children_collection::*;
+use children_source::*;
 use common::*;
 use control::*;
 use drawing_context::DrawingContext;

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
-use children_collection::*;
+use children_source::*;
 use common::*;
 use control::*;
 use control_object::*;

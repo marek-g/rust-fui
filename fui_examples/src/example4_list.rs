@@ -22,48 +22,52 @@ struct ItemViewModel {
     pub number: Property<i32>,
 }
 
-struct MainViewModel {
-    pub items: Vec<ItemViewModel>,
-}
-
-impl MainViewModel {
-    pub fn new() -> Self {
-        MainViewModel {
-            items: vec![
-                ItemViewModel {
-                    name: Property::new("Element 1"),
-                    number: Property::new(10),
-                },
-                ItemViewModel {
-                    name: Property::new("Element 2"),
-                    number: Property::new(11),
-                },
-                ItemViewModel {
-                    name: Property::new("Element 3"),
-                    number: Property::new(12),
-                },
-                ItemViewModel {
-                    name: Property::new("Element 4"),
-                    number: Property::new(13),
-                },
-            ],
-        }
+impl ItemViewModel {
+    pub fn new(name: Property<String>, number: Property<i32>) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(ItemViewModel {
+            name,
+            number,
+        }))
     }
 }
 
-impl View for MainViewModel {
-    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        //let view_model = &Rc::new(RefCell::new(self));
-        //let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+struct MainViewModel {
+    pub items: Vec<Rc<RefCell<ItemViewModel>>>,
+}
+
+impl MainViewModel {
+    pub fn new() -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(MainViewModel {
+            items: vec![
+                ItemViewModel::new(Property::new("Element 1"), Property::new(10)),
+                ItemViewModel::new(Property::new("Element 2"), Property::new(11)),
+                ItemViewModel::new(Property::new("Element 3"), Property::new(12)),
+                ItemViewModel::new(Property::new("Element 4"), Property::new(13)),
+            ],
+        }))
+    }
+}
+
+impl RcView for MainViewModel {
+    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        let vm = &mut view_model.borrow_mut();
 
         ui!(
             Vertical {
-                //for (index, item) in &self.items {
-                    Horizontal {
-                        Text { text: &item.name },
-                        Text { text: (&item.number, |n| format!(" - {}", n)) },
-                    }
-                //},
+                //&vm.items,
+            }
+        )
+    }
+}
+
+impl RcView for ItemViewModel {
+    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+        let vm = &mut view_model.borrow_mut();
+
+        ui!(
+            Horizontal {
+                Text { text: &vm.name },
+                Text { text: (&vm.number, |n| format!(" - {}", n)) },
             }
         )
     }
@@ -78,7 +82,7 @@ fn main() {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::WindowBuilder::new().with_title("Example: list");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop(), main_view_model)
+            .add_window_view_model(window_builder, app.get_events_loop(), &main_view_model)
             .unwrap();
     }
 
