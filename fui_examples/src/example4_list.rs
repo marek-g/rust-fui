@@ -54,7 +54,7 @@ impl RcView for MainViewModel {
 
         ui!(
             Vertical {
-                //&vm.items,
+                &vm.items
             }
         )
     }
@@ -68,6 +68,7 @@ impl RcView for ItemViewModel {
             Horizontal {
                 Text { text: &vm.name },
                 Text { text: (&vm.number, |n| format!(" - {}", n)) },
+                Button { Text { text: "Youpi!" } }
             }
         )
     }

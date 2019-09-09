@@ -1,7 +1,7 @@
-use view::View;
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::ops::Index;
+use std::rc::Rc;
+use view::{RcView, ViewContext};
 
 use control_object::ControlObject;
 
@@ -30,7 +30,7 @@ impl Index<usize> for ChildrenSource {
 
 ///
 /// StaticChildrenSource.
-/// 
+///
 pub struct StaticChildrenSource {
     children: Vec<Rc<RefCell<dyn ControlObject>>>,
 }
@@ -55,18 +55,37 @@ impl ChildrenSource for StaticChildrenSource {
     }
 }
 
-/*
 ///
 /// DynamicChildrenSource.
-/// 
+///
 pub struct DynamicChildrenSource {
     children: Vec<Rc<RefCell<dyn ControlObject>>>,
 }
 
 impl DynamicChildrenSource {
-    pub fn new<T>(children: &Vec<T>) -> Self where T: View {
+    pub fn new<T>(children: &Vec<Rc<RefCell<T>>>) -> Self
+    where
+        T: RcView,
+    {
         DynamicChildrenSource {
-            children: children.
+            children: children
+                .iter()
+                .map(|vm| RcView::to_view(&vm, ViewContext::empty()))
+                .collect(),
         }
     }
-}*/
+}
+
+impl ChildrenSource for DynamicChildrenSource {
+    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
+        self.children.iter()
+    }
+
+    fn len(&self) -> usize {
+        self.children.len()
+    }
+
+    fn index<'a>(&'a self, index: usize) -> &'a Rc<RefCell<dyn ControlObject>> {
+        self.children.index(index)
+    }
+}

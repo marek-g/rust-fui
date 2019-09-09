@@ -1,7 +1,8 @@
 
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
-use syn::{braced, Expr, Ident, Token};
+use syn::{braced, Expr, ExprReference, Ident, Token, Error};
+use proc_macro2::Span;
 
 
 /// Syntax of ui! macro.
@@ -51,12 +52,15 @@ impl Parse for Ctrl {
 pub enum CtrlParam {
     Property(CtrlProperty),
     Ctrl(Ctrl),
+    Collection(Collection),
 }
 
 impl Parse for CtrlParam {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.peek(Ident) && input.peek2(Token![:]) {
             input.parse().map(CtrlParam::Property)
+        } else if input.peek(Token![&]) {
+            input.parse().map(CtrlParam::Collection)
         } else {
             input.parse().map(CtrlParam::Ctrl)
         }
@@ -77,11 +81,27 @@ impl Parse for CtrlProperty {
     }
 }
 
+pub struct Collection {
+    pub reference: ExprReference,
+}
+
+impl Parse for Collection {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let expr: Expr = input.parse()?;
+        if let Expr::Reference(reference) = expr {
+            Ok(Collection { reference })
+        } else {
+            Err(Error::new(Span::call_site(), "expected reference to collection"))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::parser::{Ctrl, CtrlParam, CtrlProperty};
+    use crate::parser::{Ctrl, CtrlParam, CtrlProperty, Collection};
     use proc_macro2::Span;
-    use syn::{parse_quote, Ident};
+    use syn::{parse_quote, Ident, ExprReference};
+    use quote::quote;
 
     #[test]
     fn test_property() {

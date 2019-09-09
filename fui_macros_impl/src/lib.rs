@@ -12,6 +12,7 @@ mod parser;
 use crate::parser::Ctrl;
 use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
+use crate::parser::Collection;
 
 // ui!(
 //     Horizontal {
@@ -51,6 +52,19 @@ use crate::parser::CtrlProperty;
 //         ),
 //     ])),
 // })
+//
+// ui!(
+//     Vertical {
+//         &vm.items,
+//     }
+// )
+//
+// translates to:
+//
+// <Vertical>::builder().build().to_view(ViewContext {
+//     attached_values: TypeMap::new(),
+//     children: Box::new(DynamicChildrenSource::new(&vm.items)),
+// })
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
     let ctrl = parse_macro_input!(input as Ctrl);
@@ -67,12 +81,17 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         name: control_name,
         params,
     } = ctrl;
-    let (properties, attached_values, controls) = decouple_params(params);
+    let (properties, attached_values, controls, collection) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
     let attached_values_typemap = get_attached_values_typemap(attached_values);
 
-    let children = get_control_children(controls);
+    let children = if let Some(collection) = collection {
+        let reference = collection.reference;
+        quote!(Box::new(DynamicChildrenSource::new(#reference)))
+    } else {
+        get_control_children(controls)
+    };
 
     quote! { #properties_builder.to_view(ViewContext {
         attached_values: #attached_values_typemap,
@@ -116,10 +135,11 @@ fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
     }
 }
 
-fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<Ctrl>) {
+fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<Ctrl>, Option<Collection>) {
     let mut properties = Vec::new();
     let mut attached_values = Vec::new();
     let mut controls = Vec::new();
+    let mut collection = None;
 
     for el in params.into_pairs() {
         let el = el.into_value();
@@ -135,8 +155,10 @@ fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlPropert
             }
         } else if let CtrlParam::Ctrl(control) = el {
             controls.push(control)
+        } else if let CtrlParam::Collection(c) = el {
+            collection = Some(c)
         }
     }
 
-    (properties, attached_values, controls)
+    (properties, attached_values, controls, collection)
 }
