@@ -3,7 +3,6 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
 
-
 use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::{parse_macro_input, Ident, Token};
@@ -12,8 +11,8 @@ mod parser;
 use crate::parser::Ctrl;
 use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
-use crate::parser::Collection;
 
+//
 // ui!(
 //     Horizontal {
 //         Row: 1,
@@ -65,6 +64,9 @@ use crate::parser::Collection;
 //     attached_values: TypeMap::new(),
 //     children: Box::new(DynamicChildrenSource::new(&vm.items)),
 // })
+//
+// StaticChildrenSource and DynamicChildrenSource can be aggregated with AggregatedChildrenSource.
+//
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
     let ctrl = parse_macro_input!(input as Ctrl);
@@ -81,21 +83,15 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         name: control_name,
         params,
     } = ctrl;
-    let (properties, attached_values, controls, collection) = decouple_params(params);
+    let (properties, attached_values, children) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
     let attached_values_typemap = get_attached_values_typemap(attached_values);
-
-    let children = if let Some(collection) = collection {
-        let reference = collection.reference;
-        quote!(Box::new(DynamicChildrenSource::new(#reference)))
-    } else {
-        get_control_children(controls)
-    };
+    let children_source = get_children_source(children);
 
     quote! { #properties_builder.to_view(ViewContext {
         attached_values: #attached_values_typemap,
-        children: #children,
+        children: #children_source,
     }) }
 }
 
@@ -122,24 +118,50 @@ fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro
     quote!({ let mut map = TypeMap::new(); #(#insert_statements)* map })
 }
 
-fn get_control_children(controls: Vec<Ctrl>) -> proc_macro2::TokenStream {
-    let mut children = Vec::new();
-    for control in controls {
-        children.push(quote_control(control));
+fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
+    let mut sources = Vec::new();
+
+    let mut static_children = Vec::new();
+    for child in children {
+        if let CtrlParam::Ctrl(static_child) = child {
+            static_children.push(quote_control(static_child));
+        } else if let CtrlParam::Collection(dynamic_child) = child {
+            if static_children.len() > 0 {
+                sources.push(quote!(Box::new(StaticChildrenSource::new(
+                    vec![#(#static_children,)*]
+                ))));
+                static_children = Vec::new();
+            }
+
+            let reference = dynamic_child.reference;
+            sources.push(quote!(Box::new(DynamicChildrenSource::new(#reference))));
+        }
     }
 
-    if children.len() > 0 {
-        quote!(Box::new(StaticChildrenSource::new(vec![#(#children,)*])))
+    if static_children.len() > 0 {
+        sources.push(quote!(Box::new(StaticChildrenSource::new(
+            vec![#(#static_children,)*]
+        ))));
+    }
+
+    let len = sources.len();
+    if len == 0 {
+        quote!(Box::new(StaticChildrenSource::new(Vec::<
+            Rc<RefCell<ControlObject>>,
+        >::new())))
+    } else if len == 1 {
+        sources.into_iter().next().unwrap()
     } else {
-        quote!(Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new())))
+        quote!(Box::new(AggregatedChildrenSource::new(vec![#(#sources,)*])))
     }
 }
 
-fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<Ctrl>, Option<Collection>) {
+fn decouple_params(
+    params: Punctuated<CtrlParam, Token![,]>,
+) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<CtrlParam>) {
     let mut properties = Vec::new();
     let mut attached_values = Vec::new();
-    let mut controls = Vec::new();
-    let mut collection = None;
+    let mut children = Vec::new();
 
     for el in params.into_pairs() {
         let el = el.into_value();
@@ -148,17 +170,16 @@ fn decouple_params(params: Punctuated<CtrlParam, Token![,]>) -> (Vec<CtrlPropert
             if let Some(first_char) = property.name.to_string().chars().next() {
                 if first_char.is_uppercase() {
                     attached_values.push(property)
-                }
-                else {
+                } else {
                     properties.push(property);
                 }
             }
         } else if let CtrlParam::Ctrl(control) = el {
-            controls.push(control)
+            children.push(CtrlParam::Ctrl(control))
         } else if let CtrlParam::Collection(c) = el {
-            collection = Some(c)
+            children.push(CtrlParam::Collection(c))
         }
     }
 
-    (properties, attached_values, controls, collection)
+    (properties, attached_values, children)
 }
