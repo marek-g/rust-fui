@@ -1,6 +1,6 @@
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
 use std::collections::VecDeque;
+use std::rc::{Rc, Weak};
 
 thread_local! {
     static THREAD_CALLBACKS: RefCell<VecDeque<Box<EmittedCallback>>> = RefCell::new(VecDeque::new());
@@ -15,7 +15,7 @@ thread_local! {
 /// Callback is the owner of the listener clousure.
 ///
 pub struct Callback<A> {
-    callback: Option<Rc<'static + Fn(A)>>
+    callback: Option<Rc<'static + Fn(A)>>,
 }
 
 impl<A: 'static + Clone> Callback<A> {
@@ -29,7 +29,23 @@ impl<A: 'static + Clone> Callback<A> {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);
         };
-        Callback { callback: Some(Rc::new(f2)) }
+        Callback {
+            callback: Some(Rc::new(f2)),
+        }
+    }
+
+    pub fn new_rc<T: 'static, F: 'static + Fn(Rc<RefCell<T>>, A)>(
+        vm: &Rc<RefCell<T>>,
+        f: F,
+    ) -> Self {
+        let vm_clone = vm.clone();
+        let f2 = move |args: A| {
+            let vm = vm_clone.clone();
+            f(vm, args);
+        };
+        Callback {
+            callback: Some(Rc::new(f2)),
+        }
     }
 
     pub fn set<F: 'static + Fn(A)>(&mut self, f: F) {
@@ -53,7 +69,7 @@ impl<A: 'static + Clone> Callback<A> {
         if let Some(ref f) = self.callback {
             let e = EmittedCallbackStruct {
                 callback: Rc::downgrade(f),
-                args: args
+                args: args,
             };
             THREAD_CALLBACKS.with(|coll| {
                 coll.borrow_mut().push_back(Box::new(e));

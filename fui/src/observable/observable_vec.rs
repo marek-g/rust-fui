@@ -12,6 +12,21 @@ impl<T> ObservableVec<T> {
     pub fn push(&mut self, value: T) {
         self.items.push(value);
     }
+
+    pub fn remove_filter<F>(&mut self, mut filter: F)
+    where
+        F: FnMut(&mut T) -> bool,
+    {
+        let mut i = 0;
+        while i != self.items.len() {
+            if filter(&mut self.items[i]) {
+                self.items.remove(i);
+                println!("Removed {}!", i);
+            } else {
+                i += 1;
+            }
+        }
+    }
 }
 
 impl<'a, T> IntoIterator for &'a ObservableVec<T> {
