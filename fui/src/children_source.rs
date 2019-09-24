@@ -93,7 +93,7 @@ pub struct DynamicChildrenSource {
 }
 
 impl DynamicChildrenSource {
-    pub fn new<T>(children: &ObservableVec<T>) -> Self
+    pub fn new<T>(children: &ObservableVec<Rc<RefCell<T>>>) -> Self
     where
         T: RcView,
     {

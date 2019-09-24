@@ -13,63 +13,104 @@ use fui::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 use typemap::TypeMap;
 
 struct ItemViewModel {
+    pub parent: Weak<RefCell<MainViewModel>>,
     pub name: Property<String>,
     pub number: Property<i32>,
 }
 
 impl ItemViewModel {
-    pub fn new(name: Property<String>, number: Property<i32>) -> Rc<RefCell<Self>> {
+    pub fn new(
+        parent: Weak<RefCell<MainViewModel>>,
+        name: Property<String>,
+        number: Property<i32>,
+    ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(ItemViewModel {
+            parent,
             name,
             number,
         }))
     }
-}
 
-struct MainViewModel {
-    pub items: ObservableVec<ItemViewModel>,
-}
-
-impl MainViewModel {
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(MainViewModel {
-            items: ObservableVec::new(vec![
-                ItemViewModel::new(Property::new("Element 1"), Property::new(10)),
-                ItemViewModel::new(Property::new("Element 2"), Property::new(11)),
-                ItemViewModel::new(Property::new("Element 3"), Property::new(12)),
-                ItemViewModel::new(Property::new("Element 4"), Property::new(13)),
-            ]),
-        }))
-    }
-}
-
-impl RcView for MainViewModel {
-    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
-        let vm = &mut view_model.borrow_mut();
-
-        ui!(
-            Vertical {
-                Button { Text { text: "Add" } },
-                &vm.items,
-            }
-        )
+    pub fn delete(&mut self) {
+        println!("Delete!");
     }
 }
 
 impl RcView for ItemViewModel {
-    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+        _context: ViewContext,
+    ) -> Rc<RefCell<ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
             Horizontal {
                 Text { text: &vm.name },
                 Text { text: (&vm.number, |n| format!(" - {}", n)) },
-                Button { Text { text: "Youpi!" } }
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.delete()),
+                    Text { text: "Delete" },
+                }
+            }
+        )
+    }
+}
+
+struct MainViewModel {
+    pub items: ObservableVec<Rc<RefCell<ItemViewModel>>>,
+}
+
+impl MainViewModel {
+    pub fn new() -> Rc<RefCell<Self>> {
+        let main_vm = Rc::new(RefCell::new(MainViewModel {
+            items: ObservableVec::new(),
+        }));
+
+        {
+            let main_vm_weak = Rc::downgrade(&main_vm);
+            let mut main_vm_mut = main_vm.borrow_mut();
+            main_vm_mut.items.push(ItemViewModel::new(
+                main_vm_weak.clone(),
+                Property::new("Element 1"),
+                Property::new(10),
+            ));
+            main_vm_mut.items.push(ItemViewModel::new(
+                main_vm_weak.clone(),
+                Property::new("Element 2"),
+                Property::new(11),
+            ));
+            main_vm_mut.items.push(ItemViewModel::new(
+                main_vm_weak.clone(),
+                Property::new("Element 3"),
+                Property::new(12),
+            ));
+            main_vm_mut.items.push(ItemViewModel::new(
+                main_vm_weak,
+                Property::new("Element 4"),
+                Property::new(13),
+            ));
+        }
+
+        main_vm
+    }
+}
+
+impl RcView for MainViewModel {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+        _context: ViewContext,
+    ) -> Rc<RefCell<ControlObject>> {
+        let vm = &mut view_model.borrow_mut();
+
+        ui!(
+            Vertical {
+                Button { Text { text: "Add" } },
+                &vm.items,
             }
         )
     }
