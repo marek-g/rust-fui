@@ -1,12 +1,18 @@
 use observable::event::Event;
 use std::iter::FromIterator;
 
-pub struct ObservableVec<T> {
-    items: Vec<T>,
-    changed_event: Event<()>,
+#[derive(Clone)]
+pub enum ChangedEventArgs<T: 'static + Clone> {
+    Add { index: usize, value: T },
+    Remove { index: usize, value: T },
 }
 
-impl<T> ObservableVec<T> {
+pub struct ObservableVec<T: 'static + Clone> {
+    items: Vec<T>,
+    changed_event: Event<ChangedEventArgs<T>>,
+}
+
+impl<T: 'static + Clone> ObservableVec<T> {
     pub fn new() -> Self {
         ObservableVec {
             items: Vec::new(),
@@ -14,13 +20,17 @@ impl<T> ObservableVec<T> {
         }
     }
 
-    pub fn get_changed_event(&mut self) -> &mut Event<()> {
+    pub fn get_changed_event(&mut self) -> &mut Event<ChangedEventArgs<T>> {
         &mut self.changed_event
     }
 
     pub fn push(&mut self, value: T) {
+        let event_args = ChangedEventArgs::Add {
+            index: self.items.len(),
+            value: value.clone(),
+        };
         self.items.push(value);
-        self.changed_event.emit(());
+        self.changed_event.emit(event_args);
     }
 
     pub fn remove_filter<F>(&mut self, mut filter: F)
@@ -28,24 +38,23 @@ impl<T> ObservableVec<T> {
         F: FnMut(&mut T) -> bool,
     {
         let mut i = 0;
-        let mut removed = false;
         while i != self.items.len() {
             if filter(&mut self.items[i]) {
+                let event_args = ChangedEventArgs::Remove {
+                    index: i,
+                    value: self.items[i].clone(),
+                };
                 self.items.remove(i);
-                removed = true;
+                self.changed_event.emit(event_args);
                 println!("Removed {}!", i);
             } else {
                 i += 1;
             }
         }
-
-        if removed {
-            self.changed_event.emit(());
-        }
     }
 }
 
-impl<'a, T> IntoIterator for &'a ObservableVec<T> {
+impl<'a, T: 'static + Clone> IntoIterator for &'a ObservableVec<T> {
     type Item = &'a T;
     type IntoIter = ::std::slice::Iter<'a, T>;
 
@@ -54,7 +63,7 @@ impl<'a, T> IntoIterator for &'a ObservableVec<T> {
     }
 }
 
-impl<T> FromIterator<T> for ObservableVec<T> {
+impl<T: 'static + Clone> FromIterator<T> for ObservableVec<T> {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
         let mut vec = Vec::new();
         for i in iter {
