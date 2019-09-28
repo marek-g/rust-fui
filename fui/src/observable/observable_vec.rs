@@ -1,16 +1,26 @@
+use observable::event::Event;
 use std::iter::FromIterator;
 
 pub struct ObservableVec<T> {
     items: Vec<T>,
+    changed_event: Event<()>,
 }
 
 impl<T> ObservableVec<T> {
     pub fn new() -> Self {
-        ObservableVec { items: Vec::new() }
+        ObservableVec {
+            items: Vec::new(),
+            changed_event: Event::new(),
+        }
+    }
+
+    pub fn get_changed_event(&mut self) -> &mut Event<()> {
+        &mut self.changed_event
     }
 
     pub fn push(&mut self, value: T) {
         self.items.push(value);
+        self.changed_event.emit(());
     }
 
     pub fn remove_filter<F>(&mut self, mut filter: F)
@@ -18,13 +28,19 @@ impl<T> ObservableVec<T> {
         F: FnMut(&mut T) -> bool,
     {
         let mut i = 0;
+        let mut removed = false;
         while i != self.items.len() {
             if filter(&mut self.items[i]) {
                 self.items.remove(i);
+                removed = true;
                 println!("Removed {}!", i);
             } else {
                 i += 1;
             }
+        }
+
+        if removed {
+            self.changed_event.emit(());
         }
     }
 }
@@ -44,6 +60,9 @@ impl<T> FromIterator<T> for ObservableVec<T> {
         for i in iter {
             vec.push(i);
         }
-        ObservableVec { items: vec }
+        ObservableVec {
+            items: vec,
+            changed_event: Event::new(),
+        }
     }
 }
