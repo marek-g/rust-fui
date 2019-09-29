@@ -1,36 +1,37 @@
 use observable::event::Event;
+use std::cell::RefCell;
 use std::iter::FromIterator;
 
 #[derive(Clone)]
 pub enum ChangedEventArgs<T: 'static + Clone> {
-    Add { index: usize, value: T },
+    Insert { index: usize, value: T },
     Remove { index: usize, value: T },
 }
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
-    changed_event: Event<ChangedEventArgs<T>>,
+    changed_event: RefCell<Event<ChangedEventArgs<T>>>,
 }
 
 impl<T: 'static + Clone> ObservableVec<T> {
     pub fn new() -> Self {
         ObservableVec {
             items: Vec::new(),
-            changed_event: Event::new(),
+            changed_event: RefCell::new(Event::new()),
         }
     }
 
-    pub fn get_changed_event(&mut self) -> &mut Event<ChangedEventArgs<T>> {
-        &mut self.changed_event
+    pub fn get_changed_event(&self) -> &RefCell<Event<ChangedEventArgs<T>>> {
+        &self.changed_event
     }
 
     pub fn push(&mut self, value: T) {
-        let event_args = ChangedEventArgs::Add {
+        let event_args = ChangedEventArgs::Insert {
             index: self.items.len(),
             value: value.clone(),
         };
         self.items.push(value);
-        self.changed_event.emit(event_args);
+        self.changed_event.borrow().emit(event_args);
     }
 
     pub fn remove_filter<F>(&mut self, mut filter: F)
@@ -45,7 +46,7 @@ impl<T: 'static + Clone> ObservableVec<T> {
                     value: self.items[i].clone(),
                 };
                 self.items.remove(i);
-                self.changed_event.emit(event_args);
+                self.changed_event.borrow().emit(event_args);
                 println!("Removed {}!", i);
             } else {
                 i += 1;
@@ -71,7 +72,7 @@ impl<T: 'static + Clone> FromIterator<T> for ObservableVec<T> {
         }
         ObservableVec {
             items: vec,
-            changed_event: Event::new(),
+            changed_event: RefCell::new(Event::new()),
         }
     }
 }

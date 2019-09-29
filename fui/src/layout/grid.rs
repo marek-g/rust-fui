@@ -538,7 +538,7 @@ impl GridDefaultStyle {
         let ignore_desired_size_v = force_infinity_v;
 
         for cell in cells {
-            let child = &children[cell.child_index];
+            let child = children.index(cell.child_index);
 
             let old_width = child.borrow().get_rect().width;
             Self::measure_cell(
@@ -1642,7 +1642,7 @@ impl Style<Grid> for GridDefaultStyle {
                 .chain(self.cell_group_3.iter())
                 .chain(self.cell_group_4.iter())
             {
-                let child = &children[cell.child_index];
+                let child = children.index(cell.child_index);
                 let column_index = cell.column_index;
                 let row_index = cell.row_index;
                 let column_span = cell.column_span;
