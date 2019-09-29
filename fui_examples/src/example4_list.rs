@@ -98,6 +98,18 @@ impl MainViewModel {
         self.items.push(new_item);
     }
 
+    pub fn add_100(&mut self) {
+        for i in 0..100 {
+            self.add();
+        }
+    }
+
+    pub fn remove_all(&mut self) {
+        println!("Remove all!");
+        self.items
+            .remove_filter(|i| true);
+    }
+
     pub fn delete(&mut self, item: Rc<RefCell<ItemViewModel>>) {
         println!("Delete {}!", item.borrow().name.get());
         self.items
@@ -114,9 +126,19 @@ impl RcView for MainViewModel {
 
         ui!(
             Vertical {
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.add()),
-                    Text { text: "Add" }
+                Horizontal {
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.add()),
+                        Text { text: "Add" },
+                    },
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.add_100()),
+                        Text { text: "Add 100" },
+                    },
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.remove_all()),
+                        Text { text: "Remove all" },
+                    },
                 },
                 &vm.items,
             }
