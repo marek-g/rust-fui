@@ -1,3 +1,4 @@
+use std::cell::RefMut;
 use observable::event::Event;
 use std::cell::RefCell;
 use std::iter::FromIterator;
@@ -21,8 +22,8 @@ impl<T: 'static + Clone> ObservableVec<T> {
         }
     }
 
-    pub fn get_changed_event(&self) -> &RefCell<Event<ChangedEventArgs<T>>> {
-        &self.changed_event
+    pub fn get_changed_event(&self) -> RefMut<'_, Event<ChangedEventArgs<T>>> {
+        self.changed_event.borrow_mut()
     }
 
     pub fn push(&mut self, value: T) {
