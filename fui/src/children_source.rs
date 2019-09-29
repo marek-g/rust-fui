@@ -1,4 +1,4 @@
-use observable::ChangedEventArgs;
+use observable::ObservableChangedEventArgs;
 use observable::Event;
 use observable::EventSubscription;
 use observable::ObservableVec;
@@ -10,10 +10,16 @@ use view::{RcView, ViewContext};
 
 use control_object::ControlObject;
 
+#[derive(Clone)]
+pub enum ChildrenSourceChangedEventArgs {
+    Insert(Rc<RefCell<dyn ControlObject>>),
+    Remove(Rc<RefCell<dyn ControlObject>>),
+}
+
 pub trait ChildrenSource {
     fn len(&self) -> usize;
     fn index(&self, index: usize) -> Rc<RefCell<dyn ControlObject>>;
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<()>>>;
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>>;
 }
 
 pub struct ChildrenSourceIterator<'a> {
@@ -81,7 +87,7 @@ impl ChildrenSource for StaticChildrenSource {
         self.children.index(index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<()>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
         None
     }
 }
@@ -91,7 +97,7 @@ impl ChildrenSource for StaticChildrenSource {
 ///
 pub struct DynamicChildrenSource {
     children: Rc<RefCell<Vec<Rc<RefCell<dyn ControlObject>>>>>,
-    changed_event: Rc<RefCell<Event<()>>>,
+    changed_event: Rc<RefCell<Event<ChildrenSourceChangedEventArgs>>>,
     _children_changed_event_subscription: EventSubscription,
 }
 
@@ -114,22 +120,24 @@ impl DynamicChildrenSource {
             children
                 .get_changed_event()
                 .subscribe(move |changed_args| match changed_args {
-                    ChangedEventArgs::Insert { index, value } => {
+                    ObservableChangedEventArgs::Insert { index, value } => {
                         let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
                             children_rc_clone.borrow_mut();
-                        vec.insert(index, RcView::to_view(&value, ViewContext::empty()));
+                        let control = RcView::to_view(&value, ViewContext::empty());
+                        let control_clone = control.clone();
+                        vec.insert(index, control);
 
-                        changed_event_rc_clone.borrow().emit(());
+                        changed_event_rc_clone.borrow().emit(ChildrenSourceChangedEventArgs::Insert(control_clone));
                     }
-                    ChangedEventArgs::Remove {
+                    ObservableChangedEventArgs::Remove {
                         index,
                         value: _value,
                     } => {
                         let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
                             children_rc_clone.borrow_mut();
-                        vec.remove(index);
+                        let control = vec.remove(index);
 
-                        changed_event_rc_clone.borrow().emit(());
+                        changed_event_rc_clone.borrow().emit(ChildrenSourceChangedEventArgs::Remove(control));
                     }
                 });
 
@@ -150,7 +158,7 @@ impl ChildrenSource for DynamicChildrenSource {
         self.children.borrow().index(index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<()>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
         Some(self.changed_event.borrow_mut())
     }
 }
@@ -160,23 +168,27 @@ impl ChildrenSource for DynamicChildrenSource {
 ///
 pub struct AggregatedChildrenSource {
     sources: Vec<Box<dyn ChildrenSource>>,
-    changed_event: Option<Rc<RefCell<Event<()>>>>,
+    changed_event: Option<Rc<RefCell<Event<ChildrenSourceChangedEventArgs>>>>,
+    source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
 impl AggregatedChildrenSource {
     pub fn new(sources: Vec<Box<dyn ChildrenSource>>) -> Self {
         let mut changed_event = None;
+        let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
             if let Some(mut source_changed_event) = source.get_changed_event() {
-                let dest_event_rc = changed_event.get_or_insert_with(|| Rc::new(RefCell::new(Event::new()))).clone();
-                source_changed_event.subscribe(move |_| {
-                    dest_event_rc.borrow().emit(())
-                });
+                let dest_event_rc = changed_event
+                    .get_or_insert_with(|| Rc::new(RefCell::new(Event::new())))
+                    .clone();
+                source_changed_event_subscriptions
+                    .push(source_changed_event.subscribe(move |changed_args| dest_event_rc.borrow().emit(changed_args)));
             }
         }
         AggregatedChildrenSource {
             sources,
             changed_event,
+            source_changed_event_subscriptions,
         }
     }
 }
@@ -204,7 +216,7 @@ impl ChildrenSource for AggregatedChildrenSource {
         ))
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<()>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
         match &self.changed_event {
             None => None,
             Some(ref changed_event) => Some(changed_event.borrow_mut()),

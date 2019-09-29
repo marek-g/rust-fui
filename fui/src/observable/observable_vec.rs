@@ -4,14 +4,14 @@ use std::cell::RefCell;
 use std::iter::FromIterator;
 
 #[derive(Clone)]
-pub enum ChangedEventArgs<T: 'static + Clone> {
+pub enum ObservableChangedEventArgs<T: 'static + Clone> {
     Insert { index: usize, value: T },
     Remove { index: usize, value: T },
 }
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
-    changed_event: RefCell<Event<ChangedEventArgs<T>>>,
+    changed_event: RefCell<Event<ObservableChangedEventArgs<T>>>,
 }
 
 impl<T: 'static + Clone> ObservableVec<T> {
@@ -22,12 +22,12 @@ impl<T: 'static + Clone> ObservableVec<T> {
         }
     }
 
-    pub fn get_changed_event(&self) -> RefMut<'_, Event<ChangedEventArgs<T>>> {
+    pub fn get_changed_event(&self) -> RefMut<'_, Event<ObservableChangedEventArgs<T>>> {
         self.changed_event.borrow_mut()
     }
 
     pub fn push(&mut self, value: T) {
-        let event_args = ChangedEventArgs::Insert {
+        let event_args = ObservableChangedEventArgs::Insert {
             index: self.items.len(),
             value: value.clone(),
         };
@@ -42,7 +42,7 @@ impl<T: 'static + Clone> ObservableVec<T> {
         let mut i = 0;
         while i != self.items.len() {
             if filter(&mut self.items[i]) {
-                let event_args = ChangedEventArgs::Remove {
+                let event_args = ObservableChangedEventArgs::Remove {
                     index: i,
                     value: self.items[i].clone(),
                 };
