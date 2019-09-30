@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
 
+use common::Orientation;
 use control_object::*;
 use view::*;
 use super::stack_panel::*;

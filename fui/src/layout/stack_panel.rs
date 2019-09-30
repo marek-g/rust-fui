@@ -14,11 +14,6 @@ use style::*;
 use typed_builder::TypedBuilder;
 use view::*;
 
-pub enum Orientation {
-    Horizontal,
-    Vertical,
-}
-
 #[derive(TypedBuilder)]
 pub struct StackPanel {
     #[builder(default = Orientation::Vertical)]

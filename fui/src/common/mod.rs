@@ -4,6 +4,9 @@ pub use self::color::*;
 mod matrix;
 pub use self::matrix::*;
 
+mod orientation;
+pub use self::orientation::*;
+
 mod point;
 pub use self::point::*;
 

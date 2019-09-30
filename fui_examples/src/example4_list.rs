@@ -7,6 +7,7 @@ extern crate typemap;
 extern crate winit;
 
 use fui::application::*;
+use fui::common::*;
 use fui::controls::*;
 use fui::layout::*;
 use fui::*;
@@ -106,8 +107,7 @@ impl MainViewModel {
 
     pub fn remove_all(&mut self) {
         println!("Remove all!");
-        self.items
-            .remove_filter(|i| true);
+        self.items.remove_filter(|i| true);
     }
 
     pub fn delete(&mut self, item: Rc<RefCell<ItemViewModel>>) {
@@ -139,6 +139,11 @@ impl RcView for MainViewModel {
                         clicked: Callback::new(view_model, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
+                },
+                ScrollBar {
+                    orientation: Orientation::Horizontal,
+                    viewport_size: 0.5f32,
+                    value: 0.3f32,
                 },
                 &vm.items,
             }
