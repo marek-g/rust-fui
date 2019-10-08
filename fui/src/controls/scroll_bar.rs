@@ -49,6 +49,8 @@ pub struct ScrollBarDefaultStyle {
 
     is_thumb_hover: Property<bool>,
     is_thumb_pressed: Property<bool>,
+    pressed_position: Point,
+
     event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -65,6 +67,7 @@ impl ScrollBarDefaultStyle {
             thumb_size_px: 0f32,
             is_thumb_hover: Property::new(false),
             is_thumb_pressed: Property::new(false),
+            pressed_position: Point::new(0.0f32, 0.0f32),
             event_subscriptions: Vec::new(),
         }
     }
@@ -89,13 +92,22 @@ impl ScrollBarDefaultStyle {
 impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
-        _data: &mut ScrollBar,
+        data: &mut ScrollBar,
         control: &Rc<RefCell<Control<ScrollBar>>>,
     ) {
         self.event_subscriptions
             .push(self.is_thumb_hover.dirty_watching(control));
         self.event_subscriptions
             .push(self.is_thumb_pressed.dirty_watching(control));
+
+        self.event_subscriptions
+            .push(data.min_value.dirty_watching(control));
+        self.event_subscriptions
+            .push(data.max_value.dirty_watching(control));
+        self.event_subscriptions
+            .push(data.value.dirty_watching(control));
+        self.event_subscriptions
+            .push(data.viewport_size.dirty_watching(control));
     }
 
     fn handle_event(
@@ -110,6 +122,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                     && position.x < self.thumb_pos_px + self.thumb_size_px
                 {
                     self.is_thumb_pressed.set(true);
+                    self.pressed_position = position;
                 }
             }
 
@@ -121,10 +134,24 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
-                    self.is_thumb_pressed.set(true);
-                } else {
-                    self.is_thumb_pressed.set(false);
+                if self.is_thumb_pressed.get() {
+                    let scroll_bar_size_px = match data.orientation {
+                        Orientation::Horizontal => self.rect.width - self.rect.x,
+                        Orientation::Vertical => self.rect.height - self.rect.y,
+                    };
+                    let offset_x = position.x - self.pressed_position.x;
+                    let current_value = data.value.get();
+                    let new_value = (data.min_value.get()
+                        + (self.thumb_pos_px + offset_x)
+                            * (data.max_value.get() - data.min_value.get())
+                            / (scroll_bar_size_px - self.thumb_size_px))
+                        .max(data.min_value.get())
+                        .min(data.max_value.get());
+
+                    if new_value != current_value {
+                        self.pressed_position = *position;
+                        data.value.set(new_value);
+                    }
                 }
             }
 
