@@ -6,7 +6,6 @@ use common::*;
 use control::*;
 use control_object::*;
 use drawing::primitive::Primitive;
-use drawing::primitive_extensions::PrimitiveTransformations;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use drawing_context::DrawingContext;
 use events::*;
@@ -180,17 +179,6 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             / (data.max_value.get() - data.min_value.get());
 
         let background = [0.1, 0.5, 0.0, 0.2];
-        let foreground = [0.1, 1.0, 0.0, 0.4];
-        let line_color1 = if !self.is_pressed.get() {
-            [1.0, 1.0, 1.0, 1.0]
-        } else {
-            [0.0, 0.0, 0.0, 1.0]
-        };
-        let line_color2 = if !self.is_pressed.get() {
-            [0.0, 0.0, 0.0, 1.0]
-        } else {
-            [1.0, 1.0, 1.0, 1.0]
-        };
 
         let mut vec = Vec::new();
         if thumb_pos_px > 0.0f32 {
@@ -203,13 +191,15 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             });
         }
 
-        vec.push(Primitive::Rectangle {
-            color: foreground,
-            rect: UserPixelRect::new(
-                UserPixelPoint::new(x + thumb_pos_px, y),
-                UserPixelSize::new(thumb_size_px, height),
-            ),
-        });
+        default_theme::button(
+            &mut vec,
+            x + thumb_pos_px,
+            y + 1.0f32,
+            thumb_size_px,
+            height - 2.0f32,
+            false,
+            false,
+        );
 
         if thumb_pos_px + thumb_size_px < scroll_bar_size_px {
             vec.push(Primitive::Rectangle {
@@ -221,30 +211,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             });
         }
 
-        vec.push(Primitive::Line {
-            color: line_color1,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
-            end_point: UserPixelPoint::new(x + 0.5, y + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color1,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + 0.5, y + 0.5),
-            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color2,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
-            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color2,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
-            end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
-        });
+        default_theme::border_3d(&mut vec, x, y, width, height, true);
 
         vec
     }

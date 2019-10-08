@@ -167,58 +167,7 @@ impl Style<Button> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let background = if self.is_pressed.get() {
-            [0.1, 0.5, 0.0, 0.2]
-        } else {
-            if self.is_hover.get() {
-                [0.1, 1.0, 0.0, 0.4]
-            } else {
-                [0.1, 1.0, 0.0, 0.2]
-            }
-        };
-        let line_color1 = if !self.is_pressed.get() {
-            [1.0, 1.0, 1.0, 1.0]
-        } else {
-            [0.0, 0.0, 0.0, 1.0]
-        };
-        let line_color2 = if !self.is_pressed.get() {
-            [0.0, 0.0, 0.0, 1.0]
-        } else {
-            [1.0, 1.0, 1.0, 1.0]
-        };
-
-        vec.push(Primitive::Rectangle {
-            color: background,
-            rect: UserPixelRect::new(
-                UserPixelPoint::new(x + 1.0, y + 1.0),
-                UserPixelSize::new(width - 2.0, height - 2.0),
-            ),
-        });
-
-        vec.push(Primitive::Line {
-            color: line_color1,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
-            end_point: UserPixelPoint::new(x + 0.5, y + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color1,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + 0.5, y + 0.5),
-            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color2,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
-            end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
-        });
-        vec.push(Primitive::Line {
-            color: line_color2,
-            thickness: UserPixelThickness::new(1.0f32),
-            start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
-            end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
-        });
+        default_theme::button(&mut vec, x, y, width, height, self.is_pressed.get(), self.is_hover.get());
 
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);

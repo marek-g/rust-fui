@@ -100,14 +100,14 @@ impl MainViewModel {
     }
 
     pub fn add_100(&mut self) {
-        for i in 0..100 {
+        for _ in 0..100 {
             self.add();
         }
     }
 
     pub fn remove_all(&mut self) {
         println!("Remove all!");
-        self.items.remove_filter(|i| true);
+        self.items.remove_filter(|_i| true);
     }
 
     pub fn delete(&mut self, item: Rc<RefCell<ItemViewModel>>) {
