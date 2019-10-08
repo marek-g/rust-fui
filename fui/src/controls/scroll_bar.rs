@@ -44,8 +44,11 @@ impl View for ScrollBar {
 
 pub struct ScrollBarDefaultStyle {
     rect: Rect,
-    is_hover: Property<bool>,
-    is_pressed: Property<bool>,
+    thumb_pos_px: f32,
+    thumb_size_px: f32,
+
+    is_thumb_hover: Property<bool>,
+    is_thumb_pressed: Property<bool>,
     event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -58,10 +61,28 @@ impl ScrollBarDefaultStyle {
                 width: 0f32,
                 height: 0f32,
             },
-            is_hover: Property::new(false),
-            is_pressed: Property::new(false),
+            thumb_pos_px: 0f32,
+            thumb_size_px: 0f32,
+            is_thumb_hover: Property::new(false),
+            is_thumb_pressed: Property::new(false),
             event_subscriptions: Vec::new(),
         }
+    }
+
+    fn calc_sizes(&mut self, data: &ScrollBar) {
+        let scroll_bar_size_px = match data.orientation {
+            Orientation::Horizontal => self.rect.width - self.rect.x,
+            Orientation::Vertical => self.rect.height - self.rect.y,
+        };
+        let scroll_bar_size_f32 =
+            data.max_value.get() - data.min_value.get() + data.viewport_size.get();
+
+        self.thumb_size_px =
+            ((data.viewport_size.get() * scroll_bar_size_px) / scroll_bar_size_f32).max(20.0f32);
+
+        self.thumb_pos_px = (scroll_bar_size_px - self.thumb_size_px)
+            * (data.value.get() - data.min_value.get())
+            / (data.max_value.get() - data.min_value.get());
     }
 }
 
@@ -72,9 +93,9 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         control: &Rc<RefCell<Control<ScrollBar>>>,
     ) {
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
+            .push(self.is_thumb_hover.dirty_watching(control));
         self.event_subscriptions
-            .push(self.is_pressed.dirty_watching(control));
+            .push(self.is_thumb_pressed.dirty_watching(control));
     }
 
     fn handle_event(
@@ -84,31 +105,35 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         event: ControlEvent,
     ) {
         match event {
-            ControlEvent::TapDown { .. } => {
-                self.is_pressed.set(true);
+            ControlEvent::TapDown { position } => {
+                if position.x >= self.thumb_pos_px
+                    && position.x < self.thumb_pos_px + self.thumb_size_px
+                {
+                    self.is_thumb_pressed.set(true);
+                }
             }
 
             ControlEvent::TapUp { ref position } => {
                 if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
                     //data.clicked.emit(());
                 }
-                self.is_pressed.set(false);
+                self.is_thumb_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
                 if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
-                    self.is_pressed.set(true);
+                    self.is_thumb_pressed.set(true);
                 } else {
-                    self.is_pressed.set(false);
+                    self.is_thumb_pressed.set(false);
                 }
             }
 
             ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+                self.is_thumb_hover.set(true);
             }
 
             ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
+                self.is_thumb_hover.set(false);
             }
 
             _ => (),
@@ -132,8 +157,9 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &ScrollBar, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &ScrollBar, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
+        self.calc_sizes(data);
     }
 
     fn get_rect(&self) -> Rect {
@@ -168,45 +194,39 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             Orientation::Horizontal => width - x,
             Orientation::Vertical => height - y,
         };
-        let scroll_bar_size_f32 =
-            data.max_value.get() - data.min_value.get() + data.viewport_size.get();
-
-        let thumb_size_px =
-            ((data.viewport_size.get() * scroll_bar_size_px) / scroll_bar_size_f32).max(20.0f32);
-
-        let thumb_pos_px = (scroll_bar_size_px - thumb_size_px)
-            * (data.value.get() - data.min_value.get())
-            / (data.max_value.get() - data.min_value.get());
 
         let background = [0.1, 0.5, 0.0, 0.2];
 
         let mut vec = Vec::new();
-        if thumb_pos_px > 0.0f32 {
+        if self.thumb_pos_px > 0.0f32 {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: UserPixelRect::new(
                     UserPixelPoint::new(x, y),
-                    UserPixelSize::new(thumb_pos_px, height),
+                    UserPixelSize::new(self.thumb_pos_px, height),
                 ),
             });
         }
 
         default_theme::button(
             &mut vec,
-            x + thumb_pos_px,
+            x + self.thumb_pos_px,
             y + 1.0f32,
-            thumb_size_px,
+            self.thumb_size_px,
             height - 2.0f32,
-            false,
-            false,
+            self.is_thumb_pressed.get(),
+            self.is_thumb_hover.get(),
         );
 
-        if thumb_pos_px + thumb_size_px < scroll_bar_size_px {
+        if self.thumb_pos_px + self.thumb_size_px < scroll_bar_size_px {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: UserPixelRect::new(
-                    UserPixelPoint::new(x + thumb_pos_px + thumb_size_px, y),
-                    UserPixelSize::new(scroll_bar_size_px - thumb_pos_px - thumb_size_px, height),
+                    UserPixelPoint::new(x + self.thumb_pos_px + self.thumb_size_px, y),
+                    UserPixelSize::new(
+                        scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
+                        height,
+                    ),
                 ),
             });
         }
