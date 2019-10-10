@@ -8,16 +8,14 @@ drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
 fui = { path = "../../rust-fui/fui", version = "*" }
 gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
-failure = "*"
-gstreamer = "*"
-gstreamer-sys = "*"
-gstreamer-app = "*"
-gstreamer-video = "*"
-gstreamer-video-sys = "*"
-glib = "*"
-glutin = "*"
-#glutin = { git = "https://github.com/marek-g/glutin" }
-gl = "*"
-winit = "*"
-#winit = { git = "https://github.com/marek-g/winit" }
-time = "*"
+failure = "0.1"
+gstreamer = "0.14"
+gstreamer-sys = "0.8"
+gstreamer-app = "0.14"
+gstreamer-video = "0.14"
+gstreamer-video-sys = "0.8"
+glib = "0.8"
+glutin = "0.21"
+gl = "0.14"
+winit = "0.19"
+time = "0.1"

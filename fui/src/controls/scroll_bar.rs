@@ -149,6 +149,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                         .min(data.max_value.get());
 
                     if new_value != current_value {
+                        println!("New value: {}", new_value);
                         self.pressed_position = *position;
                         data.value.set(new_value);
                     }

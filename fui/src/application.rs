@@ -1,15 +1,15 @@
 extern crate winit;
 
-use ::Result;
+use Result;
 
-use winit::dpi::LogicalSize;
 use std::cell::RefCell;
 use std::rc::Rc;
+use winit::dpi::LogicalSize;
 
-use drawing::units::{ PhysPixelSize };
-use drawing::backend::WindowTarget;
-use drawing_context::DrawingContext;
 use common::*;
+use drawing::backend::WindowTarget;
+use drawing::units::PhysPixelSize;
+use drawing_context::DrawingContext;
 use events::*;
 use observable::Event;
 use CallbackExecutor;
@@ -81,49 +81,81 @@ impl Application {
         let window_manager = self.window_manager.clone();
 
         events_loop.run_forever(|event| {
-            if let winit::Event::WindowEvent { ref window_id, ref event } = event {
-                if let Some(window) = window_manager.borrow_mut().get_windows_mut().get_mut(window_id) {
+            if let winit::Event::WindowEvent {
+                ref window_id,
+                ref event,
+            } = event
+            {
+                if let Some(window) = window_manager
+                    .borrow_mut()
+                    .get_windows_mut()
+                    .get_mut(window_id)
+                {
                     match event {
                         winit::WindowEvent::CloseRequested => {
                             running = false;
-                        },
+                        }
 
                         winit::WindowEvent::Refresh => {
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
                                 let mut root_control = root_view.borrow_mut();
                                 root_control.set_is_dirty(true);
                             }
-                        },
+                        }
 
                         winit::WindowEvent::Resized(logical_size) => {
-                            let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+                            let physical_size = logical_size.to_physical(
+                                window.get_drawing_target().get_window().get_hidpi_factor(),
+                            );
 
                             let drawing_context = &mut drawing_context.borrow_mut();
-                            drawing_context.update_size(window.get_drawing_target_mut(),
-                                physical_size.width as u16, physical_size.height as u16);
+                            drawing_context.update_size(
+                                window.get_drawing_target_mut(),
+                                physical_size.width as u16,
+                                physical_size.height as u16,
+                            );
 
                             if let Some(ref mut root_view) = window.get_root_view_mut() {
-                                let size = Size::new(physical_size.width as f32, physical_size.height as f32);
+                                let size = Size::new(
+                                    physical_size.width as f32,
+                                    physical_size.height as f32,
+                                );
                                 let mut root_control = root_view.borrow_mut();
                                 root_control.measure(drawing_context, size);
-                                root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+                                root_control.set_rect(Rect::new(
+                                    0f32,
+                                    0f32,
+                                    size.width,
+                                    size.height,
+                                ));
                             }
-                        },
-                        
-                        _ => ()
+                        }
+
+                        _ => (),
                     }
 
                     event_processor.handle_event(window, event);
                 }
             };
 
+            println!("Events loop iteration");
             events_loop_interation.emit(());
+            println!("Execute callbacks");
             CallbackExecutor::execute_all_in_queue();
+            println!("Execute dispatcher");
             Dispatcher::execute_all_in_queue();
+            println!("Draw");
+
+            // todo: check if there is no more events
 
             for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
-                let logical_size = window.get_drawing_target().get_window().get_inner_size().unwrap_or(LogicalSize::new(0.0, 0.0));
-                let physical_size = logical_size.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+                let logical_size = window
+                    .get_drawing_target()
+                    .get_window()
+                    .get_inner_size()
+                    .unwrap_or(LogicalSize::new(0.0, 0.0));
+                let physical_size = logical_size
+                    .to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
                 if running && physical_size.width > 0.0 && physical_size.height > 0.0 {
                     if let Some(ref mut root_view) = window.get_root_view_mut() {
                         let root_control = root_view.borrow();
@@ -133,25 +165,37 @@ impl Application {
                         }
                     }
 
-                    let need_swap_buffers = Application::render(window, &mut drawing_context.borrow_mut(),
-                        physical_size.width as u32, physical_size.height as u32);
+                    let need_swap_buffers = Application::render(
+                        window,
+                        &mut drawing_context.borrow_mut(),
+                        physical_size.width as u32,
+                        physical_size.height as u32,
+                    );
                     window.set_need_swap_buffers(need_swap_buffers);
                 }
             }
 
             for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                 if window.get_need_swap_buffers() {
+                    println!("-- Swap buffers");
                     window.get_drawing_target_mut().swap_buffers();
                 }
             }
 
-            if running { winit::ControlFlow::Continue } else { winit::ControlFlow::Break }
+            if running {
+                winit::ControlFlow::Continue
+            } else {
+                winit::ControlFlow::Break
+            }
         });
     }
 
-    fn render(window: &mut Window,
+    fn render(
+        window: &mut Window,
         drawing_context: &mut DrawingContext,
-        width: u32, height: u32) -> bool {
+        width: u32,
+        height: u32,
+    ) -> bool {
         let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
         if let Some(ref mut root_view) = root_view {
             let mut root_control = root_view.borrow_mut();
@@ -167,10 +211,15 @@ impl Application {
                 if let Err(err) = res {
                     eprintln!("Render error on begin drawing: {}", err);
                 } else {
-                    drawing_context.clear(drawing_target.get_render_target(), &[0.5f32, 0.4f32, 0.3f32, 1.0f32]);
-                    let res = drawing_context.draw(drawing_target.get_render_target(),
+                    drawing_context.clear(
+                        drawing_target.get_render_target(),
+                        &[0.5f32, 0.4f32, 0.3f32, 1.0f32],
+                    );
+                    let res = drawing_context.draw(
+                        drawing_target.get_render_target(),
                         PhysPixelSize::new(width as f32, height as f32),
-                        primitives);
+                        primitives,
+                    );
                     if let Err(err) = res {
                         eprintln!("Render error: {}", err);
                     }

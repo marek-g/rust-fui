@@ -6,10 +6,9 @@ authors = ["Marek G <no@mail.com>"]
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
-failure = "*"
-winit = "*"
-#winit = { git = "https://github.com/marek-g/winit" }
-shared_library = "*"
-find_folder = "*"
+failure = "0.1"
+winit = "0.19"
+shared_library = "0.1"
+find_folder = "0.3"
 typed-builder = "0.3"
 typemap = "0.3"

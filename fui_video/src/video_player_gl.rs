@@ -130,11 +130,13 @@ impl PlayerGl {
                                 use self::glib::translate::from_glib;
                                 const GST_MAP_GL: u32 = 131072u32;
 
+                                // TODO: can we use from_buffer_readable_gl() instead?
+                                // https://gitlab.freedesktop.org/sjakthol/gstreamer-rs/commit/43f5a10f9c75c69fadccdf9d88e0102bd0ecaa5b
                                 let mut frame: gst_video_ffi::GstVideoFrame = mem::zeroed();
                                 let res: bool = from_glib(gst_video_ffi::gst_video_frame_map(
                                     &mut frame,
                                     video_info.to_glib_none().0 as *mut _,
-                                    buffer.to_glib_none().0,
+                                    buffer.as_mut_ptr(),
                                     mem::transmute(
                                         gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF | gst_ffi::GST_MAP_READ |
                                             GST_MAP_GL,
