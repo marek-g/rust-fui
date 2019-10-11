@@ -72,9 +72,9 @@ fn main() {
 
     {
         let mut window_manager = app.get_window_manager().borrow_mut();
-        let window_builder = winit::WindowBuilder::new().with_title("Example: layout");
+        let window_builder = winit::window::WindowBuilder::new().with_title("Example: layout");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop(), &main_view_model)
+            .add_window_view_model(window_builder, app.get_events_loop().unwrap(), &main_view_model)
             .unwrap();
     }
 

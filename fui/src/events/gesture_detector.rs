@@ -19,23 +19,23 @@ impl GestureDetector {
         }
     }
 
-    pub fn handle_event(&mut self, window: &mut Window, event: &::winit::WindowEvent) -> Option<Gesture> {
+    pub fn handle_event(&mut self, window: &mut Window, event: &::winit::event::WindowEvent) -> Option<Gesture> {
         match event {
-            ::winit::WindowEvent::CursorMoved { position, .. } => {
-                let physical_pos = position.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+            ::winit::event::WindowEvent::CursorMoved { position, .. } => {
+                let physical_pos = position.to_physical(window.get_drawing_target().get_window().hidpi_factor());
                 self.mouse_pos = Point::new(physical_pos.x as f32, physical_pos.y as f32);
                 return Some(Gesture::TapMove {
                     position: self.mouse_pos,
                 })
             },
 
-            ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Pressed, .. } => {
+            ::winit::event::WindowEvent::MouseInput { button: ::winit::event::MouseButton::Left, state: ::winit::event::ElementState::Pressed, .. } => {
                 return Some(Gesture::TapDown {
                     position: self.mouse_pos,
                 });
             },
 
-            ::winit::WindowEvent::MouseInput { button: ::winit::MouseButton::Left, state: ::winit::ElementState::Released, .. } => {
+            ::winit::event::WindowEvent::MouseInput { button: ::winit::event::MouseButton::Left, state: ::winit::event::ElementState::Released, .. } => {
                 return Some(Gesture::TapUp {
                     position: self.mouse_pos,
                 });

@@ -16,8 +16,8 @@ use drawing::resources::Resources;
 use drawing::units::*;
 use drawing::primitive::Primitive;
 
-use winit::EventsLoop;
-use winit::WindowBuilder;
+use winit::event_loop::EventLoop;
+use winit::window::WindowBuilder;
 use find_folder;
 use std::fs::File;
 use std::io::Read;
@@ -42,8 +42,8 @@ impl DrawingContext {
         })
     }
 
-    pub fn create_window(&mut self, window_builder: WindowBuilder, events_loop: &EventsLoop) -> Result<DrawingWindowTarget> {
-        Ok(self.device.create_window_target(window_builder, &events_loop)?)
+    pub fn create_window(&mut self, window_builder: WindowBuilder, event_loop: &EventLoop<()>) -> Result<DrawingWindowTarget> {
+        Ok(self.device.create_window_target(window_builder, &event_loop)?)
     }
 
     pub fn get_font(&mut self, font_name: &'static str) -> Result<&mut DrawingFont> {

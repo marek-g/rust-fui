@@ -35,10 +35,10 @@ impl HoverDetector {
         }
     }
 
-    pub fn handle_event(&mut self, window: &mut Window, event: &::winit::WindowEvent) {
+    pub fn handle_event(&mut self, window: &mut Window, event: &::winit::event::WindowEvent) {
         match event {
-            ::winit::WindowEvent::CursorMoved { position, .. } => {
-                let physical_pos = position.to_physical(window.get_drawing_target().get_window().get_hidpi_factor());
+            ::winit::event::WindowEvent::CursorMoved { position, .. } => {
+                let physical_pos = position.to_physical(window.get_drawing_target().get_window().hidpi_factor());
                 if let Some(ref mut root_view) = window.get_root_view_mut() {
                     let hit_test_result = root_view.borrow().hit_test(Point::new(physical_pos.x as f32, physical_pos.y as f32));
                     let hit_control = match hit_test_result {
@@ -76,7 +76,7 @@ impl HoverDetector {
                 }
             },
 
-            ::winit::WindowEvent::CursorLeft { .. } => {
+            ::winit::event::WindowEvent::CursorLeft { .. } => {
                 if let Some(ref hover_control) = self.get_hover_control() {
                     if self.is_running {
                         hover_control.borrow_mut().handle_event(ControlEvent::HoverLeave);

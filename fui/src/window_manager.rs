@@ -17,8 +17,8 @@ use Result;
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
-    main_window_id: Option<winit::WindowId>,
-    windows: HashMap<winit::WindowId, Window>,
+    main_window_id: Option<winit::window::WindowId>,
+    windows: HashMap<winit::window::WindowId, Window>,
 }
 
 impl WindowManager {
@@ -32,21 +32,20 @@ impl WindowManager {
 
     pub fn add_window(
         &mut self,
-        window_builder: winit::WindowBuilder,
-        events_loop: &winit::EventsLoop,
+        window_builder: winit::window::WindowBuilder,
+        event_loop: &winit::event_loop::EventLoop<()>,
         view: Rc<RefCell<ControlObject>>,
-    ) -> Result<winit::WindowId> {
+    ) -> Result<winit::window::WindowId> {
         let mut window_target = self
             .drawing_context
             .borrow_mut()
-            .create_window(window_builder, &events_loop)?;
+            .create_window(window_builder, &event_loop)?;
         let logical_size = window_target
             .get_window()
-            .get_inner_size()
-            .unwrap_or(LogicalSize::new(0.0, 0.0));
+            .inner_size();
         let window_id = window_target.get_window().id();
 
-        let physical_size = logical_size.to_physical(window_target.get_window().get_hidpi_factor());
+        let physical_size = logical_size.to_physical(window_target.get_window().hidpi_factor());
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         let mut window = Window::new(window_target);
         window.set_root_view(view);
@@ -61,22 +60,22 @@ impl WindowManager {
 
     pub fn add_window_view_model<V: RcView>(
         &mut self,
-        window_builder: winit::WindowBuilder,
-        events_loop: &winit::EventsLoop,
+        window_builder: winit::window::WindowBuilder,
+        event_loop: &winit::event_loop::EventLoop<()>,
         view_model: &Rc<RefCell<V>>,
-    ) -> Result<winit::WindowId> {
+    ) -> Result<winit::window::WindowId> {
         self.add_window(
             window_builder,
-            &events_loop,
+            &event_loop,
             RcView::to_view(&view_model, ViewContext::empty()),
         )
     }
 
-    pub fn get_main_window_id(&self) -> Option<winit::WindowId> {
+    pub fn get_main_window_id(&self) -> Option<winit::window::WindowId> {
         self.main_window_id
     }
 
-    pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::WindowId, Window> {
+    pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::window::WindowId, Window> {
         &mut self.windows
     }
 

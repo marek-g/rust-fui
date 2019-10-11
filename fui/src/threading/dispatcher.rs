@@ -22,17 +22,17 @@ pub type Job = Box<FnBox + Send + 'static>;
 struct DispatcherSource {
     tx: Sender<Job>,
     rx: Receiver<Job>,
-    loop_proxy: Option<winit::EventsLoopProxy>,
+    loop_proxy: Option<winit::event_loop::EventLoopProxy<()>>,
 }
 
 #[derive(Clone)]
 pub struct Dispatcher {
     pub tx: Sender<Job>,
-    loop_proxy: Option<winit::EventsLoopProxy>,
+    loop_proxy: Option<winit::event_loop::EventLoopProxy<()>>,
 }
 
 impl Dispatcher {
-    pub fn setup_events_loop_proxy(loop_proxy: winit::EventsLoopProxy) {
+    pub fn setup_events_loop_proxy(loop_proxy: winit::event_loop::EventLoopProxy<()>) {
         CURRENT_THREAD_DISPATCHER.with(|x| {
             let mut borrowed = x.borrow_mut();
             if let Some(ref mut dispatcher_source) = *borrowed {
@@ -69,7 +69,7 @@ impl Dispatcher {
     pub fn send_async<F: FnOnce() + Send + 'static>(&self, f: F) {
         self.tx.send(Box::new(f)).unwrap();
         if let Some(ref loop_proxy) = self.loop_proxy {
-            loop_proxy.wakeup().unwrap();
+            loop_proxy.send_event(()).unwrap();
         }
     }
 }

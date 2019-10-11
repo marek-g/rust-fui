@@ -42,17 +42,17 @@ pub struct PlayerGl {
     pipeline: Option<self::gst::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<GLuint>>,
-    events_loop_proxy: winit::EventsLoopProxy,
+    event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
 }
 
 impl PlayerGl {
     #[cfg(target_os = "linux")]
     pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>,
         window_manager: &Rc<RefCell<WindowManager>>,
-        events_loop: &winit::EventsLoop) -> Result<Self> {
+        event_loop: &winit::event_loop::EventLoop<()>) -> Result<Self> {
         gst::init()?;
 
-        let xconnection = match events_loop.get_xlib_xconnection() {
+        let xconnection = match event_loop.get_xlib_xconnection() {
             Some(xconnection) => xconnection,
             None => return Err(::failure::err_msg("Cannot find X11 Connection (Display)!")),
         };
@@ -65,14 +65,14 @@ impl PlayerGl {
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
-            events_loop_proxy: events_loop.create_proxy(),
+            event_loop_proxy: event_loop.create_proxy(),
         })
     }
 
     #[cfg(target_os = "windows")]
     pub fn new(drawing_context: &Rc<RefCell<DrawingContext>>,
         window_manager: &Rc<RefCell<WindowManager>>,
-        events_loop: &winit::EventsLoop) -> Result<Self> {
+        event_loop: &winit::event_loop::EventLoop) -> Result<Self> {
         gst::init()?;
 
         Ok(PlayerGl {
@@ -82,7 +82,7 @@ impl PlayerGl {
             pipeline: None,
             dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
-            events_loop_proxy: events_loop.create_proxy(),
+            event_loop_proxy: event_loop.create_proxy(),
         })
     }
 
@@ -109,7 +109,7 @@ impl PlayerGl {
                 self.texture.set_size(1280, 544);
 
                 let dispatcher_clone = self.dispatcher.clone();
-                let events_loop_proxy_clone = self.events_loop_proxy.clone();
+                let event_loop_proxy_clone = self.event_loop_proxy.clone();
 
                 video_sink.connect("client-reshape", false, move |args| {
                     println!("client-reshape! {:?}", args);
@@ -157,7 +157,7 @@ impl PlayerGl {
                                
                                 sender.lock().unwrap().send(texture_id).unwrap();
 
-                                events_loop_proxy_clone.wakeup().unwrap();;
+                                event_loop_proxy_clone.send_event(()).unwrap();;
                                 //dispatcher_clone.lock().unwrap().send_async(|| {});
                             }
                         }
@@ -236,7 +236,7 @@ impl PlayerGl {
                 self.texture.set_size(1280, 544);
 
                 let dispatcher_clone = self.dispatcher.clone();
-                let events_loop_proxy_clone = self.events_loop_proxy.clone();
+                let event_loop_proxy_clone = self.event_loop_proxy.clone();
 
                 video_sink.connect("client-reshape", false, move |args| {
                     println!("client-reshape! {:?}", args);
@@ -283,7 +283,7 @@ impl PlayerGl {
                                
                                 sender.lock().unwrap().send(texture_id).unwrap();
 
-                                events_loop_proxy_clone.wakeup().unwrap();;
+                                event_loop_proxy_clone.wakeup().unwrap();;
                                 //dispatcher_clone.lock().unwrap().send_async(|| {});
                             }
                         }
