@@ -21,7 +21,7 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, TextDefaultStyle::new(), context)
     }
 }

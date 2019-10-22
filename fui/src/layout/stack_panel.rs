@@ -21,7 +21,7 @@ pub struct StackPanel {
 }
 
 impl View for StackPanel {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, StackPanelDefaultStyle::new(), context)
     }
 }
@@ -82,7 +82,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                     result.width += child_size.width;
                     result.height = result.height.max(child_size.height);
                 }
-            },
+            }
             Orientation::Vertical => {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
@@ -92,18 +92,13 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                     result.width = result.width.max(child_size.width);
                     result.height += child_size.height;
                 }
-            },
+            }
         }
 
         self.rect = result;
     }
 
-    fn set_rect(
-        &mut self,
-        data: &StackPanel,
-        children: &Box<dyn ChildrenSource>,
-        rect: Rect,
-    ) {
+    fn set_rect(&mut self, data: &StackPanel, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
@@ -117,7 +112,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                     child.borrow_mut().set_rect(child_rect);
                     child_rect.x += child_rect.width;
                 }
-            },
+            }
             Orientation::Vertical => {
                 for child in children.into_iter() {
                     let child_size = child.borrow_mut().get_rect();
@@ -126,7 +121,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                     child.borrow_mut().set_rect(child_rect);
                     child_rect.y += child_rect.height;
                 }
-            },
+            }
         }
     }
 

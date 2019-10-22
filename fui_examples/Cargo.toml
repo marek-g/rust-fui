@@ -6,7 +6,7 @@ authors = ["Marek G <no@mail.com>"]
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
-winit = "0.20.0-alpha3"
+winit = "0.20.0-alpha4"
 failure = "0.1"
 time = "0.1"
 typed-builder = "0.3"

@@ -48,7 +48,7 @@ impl Application {
         self.title
     }
 
-    pub fn get_events_loop(&self) -> Option<&winit::event_loop::EventLoop<()>> {
+    pub fn get_event_loop(&self) -> Option<&winit::event_loop::EventLoop<()>> {
         self.event_loop.as_ref()
     }
 
@@ -64,7 +64,7 @@ impl Application {
         self.event_loop.as_ref().map(|el| el.create_proxy())
     }
 
-    pub fn get_events_loop_interation(&self) -> &Rc<RefCell<Event<()>>> {
+    pub fn get_event_loop_interation(&self) -> &Rc<RefCell<Event<()>>> {
         &self.event_loop_iteration
     }
 

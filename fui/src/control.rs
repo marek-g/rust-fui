@@ -11,16 +11,16 @@ use view::ViewContext;
 pub enum HitTestResult {
     Nothing,
     Current,
-    Child(Rc<RefCell<ControlObject>>),
+    Child(Rc<RefCell<dyn ControlObject>>),
 }
 
 pub struct Control<D> {
     pub data: D,
-    pub style: Box<Style<D>>,
+    pub style: Box<dyn Style<D>>,
     attached_values: TypeMap,
     pub children: Box<dyn ChildrenSource>,
 
-    parent: Option<Weak<RefCell<ControlObject>>>,
+    parent: Option<Weak<RefCell<dyn ControlObject>>>,
     is_dirty: bool,
     children_collection_changed_event_subscription: Option<EventSubscription>,
 }
@@ -47,7 +47,8 @@ impl<D: 'static> Control<D> {
             let control_clone = control.clone();
             Some(changed_event.subscribe(move |changed_args| {
                 if let ChildrenSourceChangedEventArgs::Insert(child) = changed_args {
-                    let control_weak = Rc::downgrade(&control_clone) as Weak<RefCell<ControlObject>>;
+                    let control_weak =
+                        Rc::downgrade(&control_clone) as Weak<RefCell<dyn ControlObject>>;
                     child.borrow_mut().set_parent(control_weak);
                     let mut control_mut = control_clone.borrow_mut();
                     let (data, style) = control_mut.get_data_and_style_mut();
@@ -63,7 +64,7 @@ impl<D: 'static> Control<D> {
             .children_collection_changed_event_subscription = subscription;
 
         for child in control.borrow_mut().get_children().into_iter() {
-            let control_weak = Rc::downgrade(&control) as Weak<RefCell<ControlObject>>;
+            let control_weak = Rc::downgrade(&control) as Weak<RefCell<dyn ControlObject>>;
             child.borrow_mut().set_parent(control_weak);
         }
 
@@ -84,7 +85,7 @@ impl<D: 'static> Control<D> {
         &self.children
     }
 
-    pub fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+    pub fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if let Some(ref test) = self.parent {
             test.upgrade()
         } else {
@@ -92,7 +93,7 @@ impl<D: 'static> Control<D> {
         }
     }
 
-    pub fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+    pub fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>) {
         self.parent = Some(parent);
     }
 
@@ -109,7 +110,7 @@ impl<D: 'static> Control<D> {
         }
     }
 
-    fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<Style<D>>) {
+    fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<dyn Style<D>>) {
         (&mut self.data, &mut self.style)
     }
 }

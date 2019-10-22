@@ -1,7 +1,7 @@
 extern crate winit;
 
 use std::cell::RefCell;
-use std::sync::{ mpsc::{ Sender, Receiver, channel } };
+use std::sync::mpsc::{channel, Receiver, Sender};
 
 thread_local! {
     static CURRENT_THREAD_DISPATCHER: RefCell<Option<DispatcherSource>> = RefCell::new(None);
@@ -17,7 +17,7 @@ impl<F: FnOnce() + Send + 'static> FnBox for F {
     }
 }
 
-pub type Job = Box<FnBox + Send + 'static>;
+pub type Job = Box<dyn FnBox + Send + 'static>;
 
 struct DispatcherSource {
     tx: Sender<Job>,
@@ -40,7 +40,11 @@ impl Dispatcher {
                 return;
             }
             let (tx, rx) = channel();
-            let dispatcher_source = DispatcherSource { tx, rx, loop_proxy: Some(loop_proxy) };
+            let dispatcher_source = DispatcherSource {
+                tx,
+                rx,
+                loop_proxy: Some(loop_proxy),
+            };
             *borrowed = Some(dispatcher_source);
         })
     }

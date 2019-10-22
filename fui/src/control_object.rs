@@ -1,12 +1,12 @@
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
+use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use children_source::*;
 use common::*;
 use control::*;
-use drawing_context::DrawingContext;
 use drawing::primitive::Primitive;
+use drawing_context::DrawingContext;
 use events::*;
 
 pub trait ControlObject {
@@ -15,8 +15,8 @@ pub trait ControlObject {
 
     fn get_attached_values(&self) -> &TypeMap;
 
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>>;
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>);
+    fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>>;
+    fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>);
     fn get_children(&mut self) -> &Box<dyn ChildrenSource>;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
@@ -43,11 +43,11 @@ impl<D: 'static> ControlObject for Control<D> {
         self.get_attached_values()
     }
 
-    fn get_parent(&self) -> Option<Rc<RefCell<ControlObject>>> {
+    fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         self.get_parent()
     }
 
-    fn set_parent(&mut self, parent: Weak<RefCell<ControlObject>>) {
+    fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>) {
         self.set_parent(parent);
     }
 
@@ -56,11 +56,13 @@ impl<D: 'static> ControlObject for Control<D> {
     }
 
     fn handle_event(&mut self, event: ControlEvent) {
-        self.style.handle_event(&mut self.data, &self.children, event)
+        self.style
+            .handle_event(&mut self.data, &self.children, event)
     }
 
     fn measure(&mut self, drawing_context: &mut DrawingContext, size: Size) {
-        self.style.measure(&mut self.data, &self.children, drawing_context, size)
+        self.style
+            .measure(&mut self.data, &self.children, drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
@@ -76,6 +78,7 @@ impl<D: 'static> ControlObject for Control<D> {
     }
 
     fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
-        self.style.to_primitives(&self.data, &self.children, drawing_context)
+        self.style
+            .to_primitives(&self.data, &self.children, drawing_context)
     }
 }

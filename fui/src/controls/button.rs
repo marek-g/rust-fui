@@ -22,7 +22,7 @@ pub struct Button {
 }
 
 impl View for Button {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, ButtonDefaultStyle::new(), context)
     }
 }
@@ -167,7 +167,15 @@ impl Style<Button> for ButtonDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        default_theme::button(&mut vec, x, y, width, height, self.is_pressed.get(), self.is_hover.get());
+        default_theme::button(
+            &mut vec,
+            x,
+            y,
+            width,
+            height,
+            self.is_pressed.get(),
+            self.is_hover.get(),
+        );
 
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);

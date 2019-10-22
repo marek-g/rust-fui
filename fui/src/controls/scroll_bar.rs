@@ -33,7 +33,7 @@ pub struct ScrollBar {
 }
 
 impl View for ScrollBar {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, ScrollBarDefaultStyle::new(), context)
     }
 }

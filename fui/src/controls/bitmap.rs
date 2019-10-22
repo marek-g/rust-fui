@@ -22,7 +22,7 @@ pub struct Bitmap {
 }
 
 impl View for Bitmap {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, BitmapDefaultStyle::new(), context)
     }
 }
@@ -83,12 +83,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         }
     }
 
-    fn set_rect(
-        &mut self,
-        _data: &Bitmap,
-        _children: &Box<dyn ChildrenSource>,
-        rect: Rect,
-    ) {
+    fn set_rect(&mut self, _data: &Bitmap, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
     }
 

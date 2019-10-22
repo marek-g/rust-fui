@@ -42,7 +42,7 @@ impl RcView for ItemViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
         _context: ViewContext,
-    ) -> Rc<RefCell<ControlObject>> {
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -121,7 +121,7 @@ impl RcView for MainViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
         _context: ViewContext,
-    ) -> Rc<RefCell<ControlObject>> {
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -160,7 +160,11 @@ fn main() {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::window::WindowBuilder::new().with_title("Example: list");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop().unwrap(), &main_view_model)
+            .add_window_view_model(
+                window_builder,
+                app.get_event_loop().unwrap(),
+                &main_view_model,
+            )
             .unwrap();
     }
 

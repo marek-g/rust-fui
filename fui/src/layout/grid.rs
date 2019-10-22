@@ -167,16 +167,24 @@ struct CellCache {
 //
 
 pub struct Row;
-impl typemap::Key for Row { type Value = i32; }
+impl typemap::Key for Row {
+    type Value = i32;
+}
 
 pub struct RowSpan;
-impl typemap::Key for RowSpan { type Value = i32; }
+impl typemap::Key for RowSpan {
+    type Value = i32;
+}
 
 pub struct Column;
-impl typemap::Key for Column { type Value = i32; }
+impl typemap::Key for Column {
+    type Value = i32;
+}
 
 pub struct ColumnSpan;
-impl typemap::Key for ColumnSpan { type Value = i32; }
+impl typemap::Key for ColumnSpan {
+    type Value = i32;
+}
 
 //
 // Grid.
@@ -228,7 +236,7 @@ pub struct Grid {
 }
 
 impl View for Grid {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(self, GridDefaultStyle::new(), context)
     }
 }
@@ -274,7 +282,8 @@ impl GridDefaultStyle {
 
     fn decide_number_of_rows_and_columns(
         data: &Grid,
-        children: &Box<dyn ChildrenSource>) -> (usize, usize) {
+        children: &Box<dyn ChildrenSource>,
+    ) -> (usize, usize) {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
         for child in children.into_iter() {
@@ -361,44 +370,40 @@ impl GridDefaultStyle {
             max_heights.push(data.default_max_height);
         }
         for (column, width) in &data.widths {
-             if *column >= 0 && *column <= widths.len() as i32 {
-                 widths[*column as usize] = *width;
-             }
+            if *column >= 0 && *column <= widths.len() as i32 {
+                widths[*column as usize] = *width;
+            }
         }
         for (column, min_width) in &data.min_widths {
-             if *column >= 0 && *column <= min_widths.len() as i32 {
-                 min_widths[*column as usize] = *min_width;
-             }
+            if *column >= 0 && *column <= min_widths.len() as i32 {
+                min_widths[*column as usize] = *min_width;
+            }
         }
         for (column, max_width) in &data.max_widths {
-             if *column >= 0 && *column <= max_widths.len() as i32 {
-                 max_widths[*column as usize] = *max_width;
-             }
+            if *column >= 0 && *column <= max_widths.len() as i32 {
+                max_widths[*column as usize] = *max_width;
+            }
         }
         for (row, height) in &data.heights {
-             if *row >= 0 && *row <= heights.len() as i32 {
-                 heights[*row as usize] = *height;
-             }
+            if *row >= 0 && *row <= heights.len() as i32 {
+                heights[*row as usize] = *height;
+            }
         }
         for (row, min_height) in &data.min_heights {
-             if *row >= 0 && *row <= min_heights.len() as i32 {
-                 min_heights[*row as usize] = *min_height;
-             }
+            if *row >= 0 && *row <= min_heights.len() as i32 {
+                min_heights[*row as usize] = *min_height;
+            }
         }
         for (row, max_height) in &data.max_heights {
-             if *row >= 0 && *row <= max_heights.len() as i32 {
-                 max_heights[*row as usize] = *max_height;
-             }
+            if *row >= 0 && *row <= max_heights.len() as i32 {
+                max_heights[*row as usize] = *max_height;
+            }
         }
 
         self.definitions_u = Vec::new();
         for i in 0..number_of_columns {
-            let definition = DefinitionBase::new(
-                widths[i],
-                min_widths[i],
-                max_widths[i],
-                size_to_content_u,
-            );
+            let definition =
+                DefinitionBase::new(widths[i], min_widths[i], max_widths[i], size_to_content_u);
             self.definitions_u.push(definition);
         }
 
@@ -413,7 +418,6 @@ impl GridDefaultStyle {
             self.definitions_v.push(definition);
         }
     }
-    
     fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ChildrenSource>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
@@ -447,11 +451,15 @@ impl GridDefaultStyle {
                 column_span = *cspan;
             }
 
-            if column_index >= 0 && column_index < self.definitions_u.len() as i32 &&
-                row_index >= 0 && row_index < self.definitions_v.len() as i32 &&
-                column_span >= 1 && row_span >= 1 &&
-                column_index + column_span - 1 < self.definitions_u.len() as i32 &&
-                row_index + row_span - 1 < self.definitions_v.len() as i32 {
+            if column_index >= 0
+                && column_index < self.definitions_u.len() as i32
+                && row_index >= 0
+                && row_index < self.definitions_v.len() as i32
+                && column_span >= 1
+                && row_span >= 1
+                && column_index + column_span - 1 < self.definitions_u.len() as i32
+                && row_index + row_span - 1 < self.definitions_v.len() as i32
+            {
                 let mut is_fill_u = false;
                 let mut is_auto_u = false;
                 let mut is_fill_v = false;
@@ -605,7 +613,7 @@ impl GridDefaultStyle {
     fn measure_cell(
         drawing_context: &mut DrawingContext,
         cell: &CellCache,
-        child: &Rc<RefCell<ControlObject>>,
+        child: &Rc<RefCell<dyn ControlObject>>,
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         force_infinity_v: bool,
@@ -1446,7 +1454,7 @@ impl GridDefaultStyle {
     }
 
     fn calculate_desired_size(definitions: &Vec<DefinitionBase>) -> f32 {
-        return definitions.iter().map(|d| d.min_size).sum()
+        return definitions.iter().map(|d| d.min_size).sum();
     }
 }
 
@@ -1470,7 +1478,8 @@ impl Style<Grid> for GridDefaultStyle {
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
 
-        let (number_of_rows, number_of_columns) = Self::decide_number_of_rows_and_columns(data, children);
+        let (number_of_rows, number_of_columns) =
+            Self::decide_number_of_rows_and_columns(data, children);
 
         if number_of_rows == 0 && number_of_columns == 0 {
             self.definitions_u = Vec::new();
@@ -1487,8 +1496,14 @@ impl Style<Grid> for GridDefaultStyle {
             let size_to_content_u = size.width == f32::INFINITY;
             let size_to_content_v = size.height == f32::INFINITY;
 
-            self.prepare_definitions(&data, &children, number_of_rows, number_of_columns,
-                size_to_content_u, size_to_content_v);
+            self.prepare_definitions(
+                &data,
+                &children,
+                number_of_rows,
+                number_of_columns,
+                size_to_content_u,
+                size_to_content_v,
+            );
             self.prepare_cell_cache(&data, &children);
 
             Self::measure_cells_group(

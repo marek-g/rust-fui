@@ -49,7 +49,7 @@ pub struct ButtonText {
 }
 
 impl View for ButtonText {
-    fn to_view(self, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, _context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {
                 clicked: self.clicked,
@@ -60,7 +60,10 @@ impl View for ButtonText {
 }
 
 impl RcView for MainViewModel {
-    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+        _context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);
@@ -92,7 +95,11 @@ fn main() {
         let mut window_manager = app.get_window_manager().borrow_mut();
         let window_builder = winit::window::WindowBuilder::new().with_title("Example: button");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop().unwrap(), &main_view_model)
+            .add_window_view_model(
+                window_builder,
+                app.get_event_loop().unwrap(),
+                &main_view_model,
+            )
             .unwrap();
     }
 

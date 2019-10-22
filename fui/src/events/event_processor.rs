@@ -1,7 +1,7 @@
 extern crate winit;
 
 use std::cell::RefCell;
-use std::rc::{ Rc, Weak };
+use std::rc::{Rc, Weak};
 
 use common::Point;
 use control::HitTestResult;
@@ -21,7 +21,7 @@ pub enum ControlEvent {
 pub struct EventProcessor {
     hover_detector: HoverDetector,
     gesture_detector: GestureDetector,
-    captured_control: Option<Weak<RefCell<ControlObject>>>,
+    captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
 }
 
 impl EventProcessor {
@@ -39,37 +39,43 @@ impl EventProcessor {
     }
 
     pub fn handle_gesture_event(&mut self, window: &mut Window, event: &winit::event::WindowEvent) {
-        self.gesture_detector.handle_event(window, event).map(|ev| match ev {
-            Gesture::TapDown { position } => {
-                if let Some(ref mut root_view) = window.get_root_view_mut() {
-                    let hit_test_result = root_view.borrow().hit_test(position);
-                    let hit_control = match hit_test_result {
-                        HitTestResult::Current => Some(root_view.clone()),
-                        HitTestResult::Child(control) => Some(control),
-                        HitTestResult::Nothing => None,
-                    };
+        self.gesture_detector
+            .handle_event(window, event)
+            .map(|ev| match ev {
+                Gesture::TapDown { position } => {
+                    if let Some(ref mut root_view) = window.get_root_view_mut() {
+                        let hit_test_result = root_view.borrow().hit_test(position);
+                        let hit_control = match hit_test_result {
+                            HitTestResult::Current => Some(root_view.clone()),
+                            HitTestResult::Child(control) => Some(control),
+                            HitTestResult::Nothing => None,
+                        };
 
-                    if let Some(ref hit_control) = hit_control {
-                        self.captured_control = Some(Rc::downgrade(hit_control));
-                        self.hover_detector.stop();
-                        self.send_event_to_captured_control(ControlEvent::TapDown { position: position });
+                        if let Some(ref hit_control) = hit_control {
+                            self.captured_control = Some(Rc::downgrade(hit_control));
+                            self.hover_detector.stop();
+                            self.send_event_to_captured_control(ControlEvent::TapDown {
+                                position: position,
+                            });
+                        }
                     }
                 }
-            },
 
-            Gesture::TapUp { position } => {
-                self.send_event_to_captured_control(ControlEvent::TapUp { position: position });
-                self.captured_control = None;
-                self.hover_detector.start();
-            },
+                Gesture::TapUp { position } => {
+                    self.send_event_to_captured_control(ControlEvent::TapUp { position: position });
+                    self.captured_control = None;
+                    self.hover_detector.start();
+                }
 
-            Gesture::TapMove { position } => {
-                self.send_event_to_captured_control(ControlEvent::TapMove { position: position });
-            },
-        });
+                Gesture::TapMove { position } => {
+                    self.send_event_to_captured_control(ControlEvent::TapMove {
+                        position: position,
+                    });
+                }
+            });
     }
 
-    fn get_captured_control(&self) -> Option<Rc<RefCell<ControlObject>>> {
+    fn get_captured_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if let Some(ref captured_control) = self.captured_control {
             captured_control.upgrade()
         } else {

@@ -1,6 +1,6 @@
-use observable::ObservableChangedEventArgs;
 use observable::Event;
 use observable::EventSubscription;
+use observable::ObservableChangedEventArgs;
 use observable::ObservableVec;
 use std::cell::RefCell;
 use std::cell::RefMut;
@@ -23,7 +23,7 @@ pub trait ChildrenSource {
 }
 
 pub struct ChildrenSourceIterator<'a> {
-    source: &'a ChildrenSource,
+    source: &'a dyn ChildrenSource,
     pos: usize,
     len: usize,
 }
@@ -52,7 +52,7 @@ impl<'a> DoubleEndedIterator for ChildrenSourceIterator<'a> {
     }
 }
 
-impl<'a> IntoIterator for &'a ChildrenSource {
+impl<'a> IntoIterator for &'a dyn ChildrenSource {
     type Item = Rc<RefCell<dyn ControlObject>>;
     type IntoIter = ChildrenSourceIterator<'a>;
 
@@ -127,7 +127,9 @@ impl DynamicChildrenSource {
                         let control_clone = control.clone();
                         vec.insert(index, control);
 
-                        changed_event_rc_clone.borrow().emit(ChildrenSourceChangedEventArgs::Insert(control_clone));
+                        changed_event_rc_clone
+                            .borrow()
+                            .emit(ChildrenSourceChangedEventArgs::Insert(control_clone));
                     }
                     ObservableChangedEventArgs::Remove {
                         index,
@@ -137,7 +139,9 @@ impl DynamicChildrenSource {
                             children_rc_clone.borrow_mut();
                         let control = vec.remove(index);
 
-                        changed_event_rc_clone.borrow().emit(ChildrenSourceChangedEventArgs::Remove(control));
+                        changed_event_rc_clone
+                            .borrow()
+                            .emit(ChildrenSourceChangedEventArgs::Remove(control));
                     }
                 });
 
@@ -181,8 +185,10 @@ impl AggregatedChildrenSource {
                 let dest_event_rc = changed_event
                     .get_or_insert_with(|| Rc::new(RefCell::new(Event::new())))
                     .clone();
-                source_changed_event_subscriptions
-                    .push(source_changed_event.subscribe(move |changed_args| dest_event_rc.borrow().emit(changed_args)));
+                source_changed_event_subscriptions.push(
+                    source_changed_event
+                        .subscribe(move |changed_args| dest_event_rc.borrow().emit(changed_args)),
+                );
             }
         }
         AggregatedChildrenSource {

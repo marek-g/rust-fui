@@ -40,7 +40,10 @@ impl MainViewModel {
 }
 
 impl RcView for MainViewModel {
-    fn to_view(view_model: &Rc<RefCell<Self>>, _context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+        _context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);
@@ -74,12 +77,20 @@ fn main() {
 
         let window_builder = winit::window::WindowBuilder::new().with_title("Window 1");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop().unwrap(), &main_view_model)
+            .add_window_view_model(
+                window_builder,
+                app.get_event_loop().unwrap(),
+                &main_view_model,
+            )
             .unwrap();
 
         let window_builder = winit::window::WindowBuilder::new().with_title("Window 2");
         window_manager
-            .add_window_view_model(window_builder, app.get_events_loop().unwrap(), &main_view_model2)
+            .add_window_view_model(
+                window_builder,
+                app.get_event_loop().unwrap(),
+                &main_view_model2,
+            )
             .unwrap();
     }
 

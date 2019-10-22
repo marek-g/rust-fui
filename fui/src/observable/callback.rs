@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 use std::rc::{Rc, Weak};
 
 thread_local! {
-    static THREAD_CALLBACKS: RefCell<VecDeque<Box<EmittedCallback>>> = RefCell::new(VecDeque::new());
+    static THREAD_CALLBACKS: RefCell<VecDeque<Box<dyn EmittedCallback>>> = RefCell::new(VecDeque::new());
 }
 
 ///
@@ -15,7 +15,7 @@ thread_local! {
 /// Callback is the owner of the listener clousure.
 ///
 pub struct Callback<A> {
-    callback: Option<Rc<'static + Fn(A)>>,
+    callback: Option<Rc<dyn 'static + Fn(A)>>,
 }
 
 impl<A: 'static + Clone> Callback<A> {
@@ -101,7 +101,7 @@ trait EmittedCallback {
 }
 
 struct EmittedCallbackStruct<A> {
-    callback: Weak<'static + Fn(A)>,
+    callback: Weak<dyn 'static + Fn(A)>,
     args: A,
 }
 

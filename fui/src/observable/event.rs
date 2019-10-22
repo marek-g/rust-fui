@@ -1,6 +1,6 @@
+use std::cell::RefCell;
 use std::rc::Rc;
 use std::rc::Weak;
-use std::cell::RefCell;
 use Callback;
 
 ///
@@ -8,11 +8,11 @@ use Callback;
 /// Calling the callback stops when EventSubscription is dropped.
 ///
 pub struct EventSubscription {
-    _callback: Rc<CallbackObject>
+    _callback: Rc<dyn CallbackObject>,
 }
 
-pub trait CallbackObject { }
-impl<A> CallbackObject for Callback<A> { }
+pub trait CallbackObject {}
+impl<A> CallbackObject for Callback<A> {}
 
 pub struct Event<A> {
     callbacks: RefCell<Vec<Weak<Callback<A>>>>,
@@ -32,7 +32,9 @@ impl<A: 'static + Clone> Event<A> {
         let weak_callback = Rc::downgrade(&rc_callback);
         self.callbacks.borrow_mut().push(weak_callback);
 
-        EventSubscription { _callback: rc_callback }
+        EventSubscription {
+            _callback: rc_callback,
+        }
     }
 
     pub fn emit(&self, args: A) {
@@ -49,7 +51,10 @@ impl<A: 'static + Clone> Event<A> {
         if cleanup {
             self.callbacks.borrow_mut().retain(|ref weak_callback| {
                 let got_ref = weak_callback.clone().upgrade();
-                match got_ref { None => false, _ => true }
+                match got_ref {
+                    None => false,
+                    _ => true,
+                }
             });
         }
     }
