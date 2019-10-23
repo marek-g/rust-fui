@@ -42,6 +42,9 @@ impl View for ScrollBar {
 // ScrollBar Default Style
 //
 
+const START_MARGIN: f32 = 1.0f32;
+const END_MARGIN: f32 = 1.0f32;
+
 pub struct ScrollBarDefaultStyle {
     rect: Rect,
     thumb_pos_px: f32,
@@ -49,7 +52,7 @@ pub struct ScrollBarDefaultStyle {
 
     is_thumb_hover: Property<bool>,
     is_thumb_pressed: Property<bool>,
-    pressed_position: Point,
+    pressed_offset: f32,
 
     event_subscriptions: Vec<EventSubscription>,
 }
@@ -67,15 +70,15 @@ impl ScrollBarDefaultStyle {
             thumb_size_px: 0f32,
             is_thumb_hover: Property::new(false),
             is_thumb_pressed: Property::new(false),
-            pressed_position: Point::new(0.0f32, 0.0f32),
+            pressed_offset: 0.0f32,
             event_subscriptions: Vec::new(),
         }
     }
 
     fn calc_sizes(&mut self, data: &ScrollBar) {
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => self.rect.width - self.rect.x,
-            Orientation::Vertical => self.rect.height - self.rect.y,
+            Orientation::Horizontal => self.rect.width - self.rect.x - START_MARGIN - END_MARGIN,
+            Orientation::Vertical => self.rect.height - self.rect.y - START_MARGIN - END_MARGIN,
         };
         let scroll_bar_size_f32 =
             data.max_value.get() - data.min_value.get() + data.viewport_size.get();
@@ -122,7 +125,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                     && position.x < self.thumb_pos_px + self.thumb_size_px
                 {
                     self.is_thumb_pressed.set(true);
-                    self.pressed_position = position;
+                    self.pressed_offset = position.x - self.thumb_pos_px;
                 }
             }
 
@@ -136,21 +139,22 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             ControlEvent::TapMove { ref position } => {
                 if self.is_thumb_pressed.get() {
                     let scroll_bar_size_px = match data.orientation {
-                        Orientation::Horizontal => self.rect.width - self.rect.x,
-                        Orientation::Vertical => self.rect.height - self.rect.y,
+                        Orientation::Horizontal => {
+                            self.rect.width - self.rect.x - START_MARGIN - END_MARGIN
+                        }
+                        Orientation::Vertical => {
+                            self.rect.height - self.rect.y - START_MARGIN - END_MARGIN
+                        }
                     };
-                    let offset_x = position.x - self.pressed_position.x;
-                    let current_value = data.value.get();
+                    let new_thumb_pos_px = position.x - self.pressed_offset;
                     let new_value = (data.min_value.get()
-                        + (self.thumb_pos_px + offset_x)
-                            * (data.max_value.get() - data.min_value.get())
+                        + new_thumb_pos_px * (data.max_value.get() - data.min_value.get())
                             / (scroll_bar_size_px - self.thumb_size_px))
                         .max(data.min_value.get())
                         .min(data.max_value.get());
 
-                    if new_value != current_value {
+                    if new_value != data.value.get() {
                         println!("New value: {}", new_value);
-                        self.pressed_position = *position;
                         data.value.set(new_value);
                     }
                 }
@@ -219,8 +223,8 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         let height = self.rect.height;
 
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => width - x,
-            Orientation::Vertical => height - y,
+            Orientation::Horizontal => width - x - START_MARGIN - END_MARGIN,
+            Orientation::Vertical => height - y - START_MARGIN - END_MARGIN,
         };
 
         let background = [0.1, 0.5, 0.0, 0.2];
@@ -230,7 +234,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: UserPixelRect::new(
-                    UserPixelPoint::new(x, y),
+                    UserPixelPoint::new(x + START_MARGIN, y),
                     UserPixelSize::new(self.thumb_pos_px, height),
                 ),
             });
@@ -238,7 +242,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
 
         default_theme::button(
             &mut vec,
-            x + self.thumb_pos_px,
+            x + self.thumb_pos_px + START_MARGIN,
             y + 1.0f32,
             self.thumb_size_px,
             height - 2.0f32,
@@ -250,7 +254,10 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: UserPixelRect::new(
-                    UserPixelPoint::new(x + self.thumb_pos_px + self.thumb_size_px, y),
+                    UserPixelPoint::new(
+                        x + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
+                        y,
+                    ),
                     UserPixelSize::new(
                         scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
                         height,
