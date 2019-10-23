@@ -125,11 +125,6 @@ impl Application {
                             }
 
                             winit::event::WindowEvent::RedrawRequested => {
-                                if let Some(ref mut root_view) = window.get_root_view_mut() {
-                                    let mut root_control = root_view.borrow_mut();
-                                    root_control.set_is_dirty(true);
-                                }
-
                                 if window.get_need_swap_buffers() {
                                     println!("-- Swap buffers");
                                     window.get_drawing_target_mut().swap_buffers();
@@ -154,6 +149,7 @@ impl Application {
                                         physical_size.height as f32,
                                     );
                                     let mut root_control = root_view.borrow_mut();
+                                    root_control.set_is_dirty(true);
                                     root_control.measure(drawing_context, size);
                                     root_control.set_rect(Rect::new(
                                         0f32,
