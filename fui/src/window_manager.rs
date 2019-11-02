@@ -36,10 +36,16 @@ impl WindowManager {
         event_loop: &winit::event_loop::EventLoop<()>,
         view: Rc<RefCell<dyn ControlObject>>,
     ) -> Result<winit::window::WindowId> {
-        let mut window_target = self
-            .drawing_context
-            .borrow_mut()
-            .create_window(window_builder, &event_loop)?;
+        let shared_window_target = self
+            .windows
+            .iter()
+            .next()
+            .map(|(id, window)| window.get_drawing_target());
+        let mut window_target = self.drawing_context.borrow_mut().create_window(
+            window_builder,
+            &event_loop,
+            shared_window_target,
+        )?;
         let logical_size = window_target.get_window().inner_size();
         let window_id = window_target.get_window().id();
 
