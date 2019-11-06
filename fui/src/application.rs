@@ -80,12 +80,32 @@ impl Application {
         event_loop.run(move |event, _, control_flow| {
             match event {
                 winit::event::Event::EventsCleared => {
+                    println!("Events cleared");
                     event_loop_iteration.borrow_mut().emit(());
                     CallbackExecutor::execute_all_in_queue();
                     Dispatcher::execute_all_in_queue();
 
-                    // if dirty queue a RedrawRequested event
                     for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                        let is_dirty = if let Some(ref mut root_view) = window.get_root_view_mut() {
+                            let root_control = root_view.borrow();
+                            if root_control.is_dirty() {
+                                frame_no += 1;
+                                println!("Frame no: {}", frame_no);
+                                true
+                            } else {
+                                false
+                            }
+                        } else {
+                            false
+                        };
+
+                        if is_dirty {
+                            window.get_drawing_target().get_window().request_redraw();
+                        }
+                    }
+
+                    // if dirty queue a RedrawRequested event
+                    /*for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                         let logical_size = window.get_drawing_target().get_window().inner_size();
                         let physical_size = logical_size
                             .to_physical(window.get_drawing_target().get_window().hidpi_factor());
@@ -105,9 +125,17 @@ impl Application {
                                 physical_size.height as u32,
                             );
                             window.set_need_swap_buffers(need_swap_buffers);
+                            println!("Request redraw");
                             window.get_drawing_target().get_window().request_redraw();
                         }
-                    }
+                    }*/
+
+                    /*for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                        if window.get_need_swap_buffers() {
+                            println!("-- Swap buffers [2]");
+                            window.get_drawing_target_mut().swap_buffers();
+                        }
+                    }*/
                 }
 
                 winit::event::Event::WindowEvent {
@@ -125,6 +153,33 @@ impl Application {
                             }
 
                             winit::event::WindowEvent::RedrawRequested => {
+                                println!("Redraw");
+
+                                let logical_size =
+                                    window.get_drawing_target().get_window().inner_size();
+                                let physical_size = logical_size.to_physical(
+                                    window.get_drawing_target().get_window().hidpi_factor(),
+                                );
+                                if physical_size.width > 0.0 && physical_size.height > 0.0 {
+                                    if let Some(ref mut root_view) = window.get_root_view_mut() {
+                                        let root_control = root_view.borrow();
+                                        if root_control.is_dirty() {
+                                            frame_no += 1;
+                                            println!("Frame no: {}", frame_no);
+                                        }
+                                    }
+
+                                    let need_swap_buffers = Application::render(
+                                        window,
+                                        &mut drawing_context.borrow_mut(),
+                                        physical_size.width as u32,
+                                        physical_size.height as u32,
+                                    );
+                                    window.set_need_swap_buffers(need_swap_buffers);
+                                    println!("Request redraw");
+                                    window.get_drawing_target().get_window().request_redraw();
+                                }
+
                                 if window.get_need_swap_buffers() {
                                     println!("-- Swap buffers");
                                     window.get_drawing_target_mut().swap_buffers();
@@ -167,7 +222,7 @@ impl Application {
                     }
                 }
 
-                _ => {}
+                _ => *control_flow = winit::event_loop::ControlFlow::Wait,
             };
 
             event_loop_iteration.borrow_mut().emit(());
@@ -187,6 +242,7 @@ impl Application {
             let mut root_control = root_view.borrow_mut();
 
             if root_control.is_dirty() {
+                println!("Render");
                 let size = Size::new(width as f32, height as f32);
                 root_control.measure(drawing_context, size);
                 root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
