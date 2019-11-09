@@ -85,10 +85,7 @@ impl Application {
                     Dispatcher::execute_all_in_queue();
 
                     for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
-                        // Uncomment when [1] (look below) works correctly
-                        // With polling event loop it is better to refresh every frame and pause on vsync(),
-                        // otherwise the event loop will eat CPU up to 100% when there are no redraws
-                        /*let is_dirty = if let Some(ref mut root_view) = window.get_root_view_mut() {
+                        let is_dirty = if let Some(ref mut root_view) = window.get_root_view_mut() {
                             let root_control = root_view.borrow();
                             if root_control.is_dirty() {
                                 frame_no += 1;
@@ -101,17 +98,9 @@ impl Application {
                             false
                         };
 
-                        if is_dirty
-                        {
+                        if is_dirty {
                             window.get_drawing_target().get_window().request_redraw();
-                        }*/
-
-                        // Comment out when [1]
-                        if let Some(ref mut root_view) = window.get_root_view_mut() {
-                            let mut root_control = root_view.borrow_mut();
-                            root_control.set_is_dirty(true);
                         }
-                        window.get_drawing_target().get_window().request_redraw();
                     }
                 }
 
@@ -140,7 +129,7 @@ impl Application {
                                         let root_control = root_view.borrow();
                                         if root_control.is_dirty() {
                                             frame_no += 1;
-                                            //println!("Frame no: {}", frame_no);
+                                            println!("Frame no: {}", frame_no);
                                         }
                                     }
 
@@ -196,15 +185,17 @@ impl Application {
                 }
 
                 _ => {
-                    // [1] The event loop should be in Wait mode to not waste CPU cycles,
+                    // The event loop should be in Wait mode to not waste CPU cycles,
                     // however (bug in winint?) the LMB pressed event is received late - along with
                     // the LMB release event.
                     //
-                    // Let's test it from time to time if it is fixed. Remember to also uncomment
-                    // code marked as [1] above (if is_dirty).
+                    // As a workaround we are using WaitUntil here but it will be better
+                    // to go back to Wait mode when the bug in winit is fixed.
                     //
                     // *control_flow = winit::event_loop::ControlFlow::Wait,
-                    *control_flow = winit::event_loop::ControlFlow::Poll
+                    *control_flow = winit::event_loop::ControlFlow::WaitUntil(
+                        std::time::Instant::now() + std::time::Duration::from_millis(10),
+                    );
                 }
             };
 
