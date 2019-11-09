@@ -78,18 +78,16 @@ impl Application {
         let window_manager = self.window_manager.clone();
 
         event_loop.run(move |event, _, control_flow| {
+            event_loop_iteration.borrow_mut().emit(());
+            CallbackExecutor::execute_all_in_queue();
+            Dispatcher::execute_all_in_queue();
+
             match event {
                 winit::event::Event::EventsCleared => {
-                    event_loop_iteration.borrow_mut().emit(());
-                    CallbackExecutor::execute_all_in_queue();
-                    Dispatcher::execute_all_in_queue();
-
                     for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                         let is_dirty = if let Some(ref mut root_view) = window.get_root_view_mut() {
                             let root_control = root_view.borrow();
                             if root_control.is_dirty() {
-                                frame_no += 1;
-                                println!("Frame no: {}", frame_no);
                                 true
                             } else {
                                 false
@@ -140,7 +138,6 @@ impl Application {
                                         physical_size.height as u32,
                                     );
                                     window.set_need_swap_buffers(need_swap_buffers);
-                                    window.get_drawing_target().get_window().request_redraw();
                                 }
 
                                 if window.get_need_swap_buffers() {
@@ -185,12 +182,24 @@ impl Application {
                 }
 
                 _ => {
+                    // As of winit = "0.20.0-alpha4".
+                    //
                     // The event loop should be in Wait mode to not waste CPU cycles,
-                    // however (bug in winint?) the LMB pressed event is received late - along with
-                    // the LMB release event.
+                    // however currently it's not working with the LMB pressed event,
+                    // the pressed event is received late - along with the LMB release event.
                     //
                     // As a workaround we are using WaitUntil here but it will be better
                     // to go back to Wait mode when the bug in winit is fixed.
+                    //
+                    // What is probably happening is - winit is generating events:
+                    // - DeviceEvent LMB pressed
+                    // - EventsCleared
+                    // - NewEvents / WaitCancelled
+                    // - WindowEvent / MouseInput LMB pressed
+                    // Calling request_redraw() in EventsCleared puts the RedrawRequested
+                    // event before NewEvents
+                    //
+                    // More info: https://github.com/rust-windowing/winit/issues/1041
                     //
                     // *control_flow = winit::event_loop::ControlFlow::Wait,
                     *control_flow = winit::event_loop::ControlFlow::WaitUntil(
@@ -198,10 +207,6 @@ impl Application {
                     );
                 }
             };
-
-            event_loop_iteration.borrow_mut().emit(());
-            CallbackExecutor::execute_all_in_queue();
-            Dispatcher::execute_all_in_queue();
         });
     }
 
