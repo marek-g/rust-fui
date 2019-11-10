@@ -9,7 +9,6 @@ use ViewContext;
 pub struct Window {
     drawing_window_target: DrawingWindowTarget,
     root_view: Option<Rc<RefCell<dyn ControlObject>>>,
-    need_swap_buffers: bool,
 }
 
 impl Window {
@@ -17,7 +16,6 @@ impl Window {
         Window {
             drawing_window_target,
             root_view: None,
-            need_swap_buffers: false,
         }
     }
 
@@ -52,13 +50,5 @@ impl Window {
 
     pub fn clear_root(&mut self) {
         self.root_view = None;
-    }
-
-    pub fn set_need_swap_buffers(&mut self, need_swap_buffers: bool) {
-        self.need_swap_buffers = need_swap_buffers;
-    }
-
-    pub fn get_need_swap_buffers(&mut self) -> bool {
-        self.need_swap_buffers
     }
 }

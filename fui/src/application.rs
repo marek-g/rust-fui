@@ -84,19 +84,8 @@ impl Application {
 
             match event {
                 winit::event::Event::EventsCleared => {
-                    for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
-                        let is_dirty = if let Some(ref mut root_view) = window.get_root_view_mut() {
-                            let root_control = root_view.borrow();
-                            if root_control.is_dirty() {
-                                true
-                            } else {
-                                false
-                            }
-                        } else {
-                            false
-                        };
-
-                        if is_dirty {
+                    for mut window in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                        if Application::is_dirty(&mut window) {
                             window.get_drawing_target().get_window().request_redraw();
                         }
                     }
@@ -123,24 +112,16 @@ impl Application {
                                     window.get_drawing_target().get_window().hidpi_factor(),
                                 );
                                 if physical_size.width > 0.0 && physical_size.height > 0.0 {
-                                    if let Some(ref mut root_view) = window.get_root_view_mut() {
-                                        let root_control = root_view.borrow();
-                                        if root_control.is_dirty() {
-                                            frame_no += 1;
-                                            println!("Frame no: {}", frame_no);
-                                        }
-                                    }
-
-                                    let need_swap_buffers = Application::render(
+                                    Application::render(
                                         window,
                                         &mut drawing_context.borrow_mut(),
                                         physical_size.width as u32,
                                         physical_size.height as u32,
                                     );
-                                    window.set_need_swap_buffers(need_swap_buffers);
-                                }
 
-                                if window.get_need_swap_buffers() {
+                                    frame_no += 1;
+                                    println!("Frame no: {}", frame_no);
+
                                     window.get_drawing_target_mut().swap_buffers();
                                 }
                             }
@@ -210,48 +191,50 @@ impl Application {
         });
     }
 
-    fn render(
-        window: &mut Window,
-        drawing_context: &mut DrawingContext,
-        width: u32,
-        height: u32,
-    ) -> bool {
+    fn is_dirty(window: &mut Window) -> bool {
+        if let Some(ref mut root_view) = window.get_root_view_mut() {
+            let root_control = root_view.borrow();
+            if root_control.is_dirty() {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    fn render(window: &mut Window, drawing_context: &mut DrawingContext, width: u32, height: u32) {
         let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
         if let Some(ref mut root_view) = root_view {
             let mut root_control = root_view.borrow_mut();
 
-            if root_control.is_dirty() {
-                let size = Size::new(width as f32, height as f32);
-                root_control.measure(drawing_context, size);
-                root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+            let size = Size::new(width as f32, height as f32);
+            root_control.measure(drawing_context, size);
+            root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
-                let primitives = root_control.to_primitives(drawing_context);
+            let primitives = root_control.to_primitives(drawing_context);
 
-                let res = drawing_context.begin(drawing_target);
+            let res = drawing_context.begin(drawing_target);
+            if let Err(err) = res {
+                eprintln!("Render error on begin drawing: {}", err);
+            } else {
+                drawing_context.clear(
+                    drawing_target.get_render_target(),
+                    &[0.5f32, 0.4f32, 0.3f32, 1.0f32],
+                );
+                let res = drawing_context.draw(
+                    drawing_target.get_render_target(),
+                    PhysPixelSize::new(width as f32, height as f32),
+                    primitives,
+                );
                 if let Err(err) = res {
-                    eprintln!("Render error on begin drawing: {}", err);
-                } else {
-                    drawing_context.clear(
-                        drawing_target.get_render_target(),
-                        &[0.5f32, 0.4f32, 0.3f32, 1.0f32],
-                    );
-                    let res = drawing_context.draw(
-                        drawing_target.get_render_target(),
-                        PhysPixelSize::new(width as f32, height as f32),
-                        primitives,
-                    );
-                    if let Err(err) = res {
-                        eprintln!("Render error: {}", err);
-                    }
-                    drawing_context.end(drawing_target);
+                    eprintln!("Render error: {}", err);
                 }
-
-                root_control.set_is_dirty(false);
-
-                return true;
+                drawing_context.end(drawing_target);
             }
-        }
 
-        false
+            root_control.set_is_dirty(false);
+        }
     }
 }
