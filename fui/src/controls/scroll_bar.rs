@@ -44,6 +44,8 @@ impl View for ScrollBar {
 
 const START_MARGIN: f32 = 1.0f32;
 const END_MARGIN: f32 = 1.0f32;
+const SIDE_MARGIN: f32 = 1.0f32;
+const MIN_THUMB_SIZE: f32 = 20.0f32;
 
 pub struct ScrollBarDefaultStyle {
     rect: Rect,
@@ -77,14 +79,15 @@ impl ScrollBarDefaultStyle {
 
     fn calc_sizes(&mut self, data: &ScrollBar) {
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => self.rect.width - self.rect.x - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => self.rect.height - self.rect.y - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => self.rect.width - START_MARGIN - END_MARGIN,
+            Orientation::Vertical => self.rect.height - START_MARGIN - END_MARGIN,
         };
         let scroll_bar_size_f32 =
             data.max_value.get() - data.min_value.get() + data.viewport_size.get();
 
-        self.thumb_size_px =
-            ((data.viewport_size.get() * scroll_bar_size_px) / scroll_bar_size_f32).max(20.0f32);
+        self.thumb_size_px = ((data.viewport_size.get() * scroll_bar_size_px)
+            / scroll_bar_size_f32)
+            .max(MIN_THUMB_SIZE);
 
         self.thumb_pos_px = (scroll_bar_size_px - self.thumb_size_px)
             * (data.value.get() - data.min_value.get())
@@ -116,37 +119,38 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn handle_event(
         &mut self,
         data: &mut ScrollBar,
-        children: &Box<dyn ChildrenSource>,
+        _children: &Box<dyn ChildrenSource>,
         event: ControlEvent,
     ) {
         match event {
             ControlEvent::TapDown { position } => {
-                if position.x >= self.thumb_pos_px
-                    && position.x < self.thumb_pos_px + self.thumb_size_px
-                {
+                let pos = match data.orientation {
+                    Orientation::Horizontal => position.x - self.rect.x - START_MARGIN,
+                    Orientation::Vertical => position.y - self.rect.y - START_MARGIN,
+                };
+                if pos >= self.thumb_pos_px && pos < self.thumb_pos_px + self.thumb_size_px {
                     self.is_thumb_pressed.set(true);
-                    self.pressed_offset = position.x - self.thumb_pos_px;
+                    self.pressed_offset = pos - self.thumb_pos_px;
                 }
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
-                    //data.clicked.emit(());
-                }
                 self.is_thumb_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
                 if self.is_thumb_pressed.get() {
                     let scroll_bar_size_px = match data.orientation {
-                        Orientation::Horizontal => {
-                            self.rect.width - self.rect.x - START_MARGIN - END_MARGIN
-                        }
-                        Orientation::Vertical => {
-                            self.rect.height - self.rect.y - START_MARGIN - END_MARGIN
-                        }
+                        Orientation::Horizontal => self.rect.width - START_MARGIN - END_MARGIN,
+                        Orientation::Vertical => self.rect.height - START_MARGIN - END_MARGIN,
                     };
-                    let new_thumb_pos_px = position.x - self.pressed_offset;
+
+                    let pos = match data.orientation {
+                        Orientation::Horizontal => position.x - self.rect.x - START_MARGIN,
+                        Orientation::Vertical => position.y - self.rect.y - START_MARGIN,
+                    };
+
+                    let new_thumb_pos_px = pos - self.pressed_offset;
                     let new_value = (data.min_value.get()
                         + new_thumb_pos_px * (data.max_value.get() - data.min_value.get())
                             / (scroll_bar_size_px - self.thumb_size_px))
@@ -223,8 +227,8 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         let height = self.rect.height;
 
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => width - x - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => height - y - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => width - START_MARGIN - END_MARGIN,
+            Orientation::Vertical => height - START_MARGIN - END_MARGIN,
         };
 
         let background = [0.1, 0.5, 0.0, 0.2];
@@ -233,36 +237,65 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         if self.thumb_pos_px > 0.0f32 {
             vec.push(Primitive::Rectangle {
                 color: background,
-                rect: UserPixelRect::new(
-                    UserPixelPoint::new(x + START_MARGIN, y),
-                    UserPixelSize::new(self.thumb_pos_px, height),
-                ),
+                rect: match data.orientation {
+                    Orientation::Horizontal => UserPixelRect::new(
+                        UserPixelPoint::new(x + START_MARGIN, y + SIDE_MARGIN),
+                        UserPixelSize::new(self.thumb_pos_px, height - SIDE_MARGIN - SIDE_MARGIN),
+                    ),
+                    Orientation::Vertical => UserPixelRect::new(
+                        UserPixelPoint::new(x + SIDE_MARGIN, y + START_MARGIN),
+                        UserPixelSize::new(width - SIDE_MARGIN - SIDE_MARGIN, self.thumb_pos_px),
+                    ),
+                },
             });
         }
 
-        default_theme::button(
-            &mut vec,
-            x + self.thumb_pos_px + START_MARGIN,
-            y + 1.0f32,
-            self.thumb_size_px,
-            height - 2.0f32,
-            self.is_thumb_pressed.get(),
-            self.is_thumb_hover.get(),
-        );
+        match data.orientation {
+            Orientation::Horizontal => default_theme::button(
+                &mut vec,
+                x + self.thumb_pos_px + START_MARGIN,
+                y + SIDE_MARGIN,
+                self.thumb_size_px,
+                height - SIDE_MARGIN - SIDE_MARGIN,
+                self.is_thumb_pressed.get(),
+                self.is_thumb_hover.get(),
+            ),
+            Orientation::Vertical => default_theme::button(
+                &mut vec,
+                x + SIDE_MARGIN,
+                y + self.thumb_pos_px + START_MARGIN,
+                width - SIDE_MARGIN - SIDE_MARGIN,
+                self.thumb_size_px,
+                self.is_thumb_pressed.get(),
+                self.is_thumb_hover.get(),
+            ),
+        };
 
         if self.thumb_pos_px + self.thumb_size_px < scroll_bar_size_px {
             vec.push(Primitive::Rectangle {
                 color: background,
-                rect: UserPixelRect::new(
-                    UserPixelPoint::new(
-                        x + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
-                        y,
+                rect: match data.orientation {
+                    Orientation::Horizontal => UserPixelRect::new(
+                        UserPixelPoint::new(
+                            x + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
+                            y + SIDE_MARGIN,
+                        ),
+                        UserPixelSize::new(
+                            scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
+                            height - SIDE_MARGIN - SIDE_MARGIN,
+                        ),
                     ),
-                    UserPixelSize::new(
-                        scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
-                        height,
+                    Orientation::Vertical => UserPixelRect::new(
+                        UserPixelPoint::new(
+                            x + SIDE_MARGIN,
+                            y + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
+                        ),
+                        UserPixelSize::new(
+                            width - SIDE_MARGIN - SIDE_MARGIN,
+                            scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
+                        ),
                     ),
-                ),
+                },
             });
         }
 
