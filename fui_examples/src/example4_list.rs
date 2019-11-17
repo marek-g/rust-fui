@@ -145,12 +145,7 @@ impl RcView for MainViewModel {
                     viewport_size: 0.5f32,
                     value: 0.3f32,
                 },
-                Horizontal {
-                    ScrollBar {
-                        orientation: Orientation::Vertical,
-                        viewport_size: 0.5f32,
-                        value: 0.3f32,
-                    },
+                ScrollViewer {
                     Vertical {
                         &vm.items,
                     },
