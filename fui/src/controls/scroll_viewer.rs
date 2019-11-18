@@ -1,3 +1,4 @@
+use controls::scroll_bar::ScrollBar;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -15,8 +16,21 @@ use style::*;
 use typed_builder::TypedBuilder;
 use view::*;
 
+pub enum ScrollBarVisibility {
+    Disabled,
+    Auto,
+    Hidden,
+    Visible,
+}
+
 #[derive(TypedBuilder)]
-pub struct ScrollViewer {}
+pub struct ScrollViewer {
+    #[builder(default = ScrollBarVisibility::Auto)]
+    pub horizontal_scroll_bar_visibility: ScrollBarVisibility,
+
+    #[builder(default = ScrollBarVisibility::Auto)]
+    pub vertical_scroll_bar_visibility: ScrollBarVisibility,
+}
 
 impl View for ScrollViewer {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
@@ -74,6 +88,8 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
+        println!("measure: {:?}", size);
+
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
@@ -81,26 +97,18 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        )
+
+        //self.rect = Rect::new(0.0f32, 0.0f32, content_size.width, content_size.height);
+        self.rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
     }
 
     fn set_rect(&mut self, _data: &ScrollViewer, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
-        let content_rect = Rect::new(
-            rect.x + 10.0f32,
-            rect.y + 10.0f32,
-            rect.width - 20.0f32,
-            rect.height - 20.0f32,
-        );
+        println!("set_rect: {:?}", rect);
 
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(rect);
         }
     }
 

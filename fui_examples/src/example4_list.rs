@@ -125,7 +125,10 @@ impl RcView for MainViewModel {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
-            Vertical {
+            Grid {
+                columns: 1,
+                heights: vec![(0, Length::Auto), (1, Length::Auto)],
+
                 Horizontal {
                     Button {
                         clicked: Callback::new(view_model, |vm, _| vm.add()),
@@ -140,11 +143,13 @@ impl RcView for MainViewModel {
                         Text { text: "Remove all" },
                     },
                 },
+
                 ScrollBar {
                     orientation: Orientation::Horizontal,
                     viewport_size: 0.5f32,
                     value: 0.3f32,
                 },
+
                 ScrollViewer {
                     Vertical {
                         &vm.items,
