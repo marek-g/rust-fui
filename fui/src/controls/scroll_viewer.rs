@@ -1,3 +1,5 @@
+use controls::button::Button;
+use controls::text::Text;
 use layout::Grid;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -13,6 +15,7 @@ use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThic
 use drawing_context::DrawingContext;
 use events::*;
 use fui_macros::ui;
+use layout::*;
 use observable::*;
 use style::*;
 use typed_builder::TypedBuilder;
@@ -43,6 +46,11 @@ impl View for ScrollViewer {
             Grid {
                 columns: 2,
 
+                default_width: Length::Auto,
+                default_height: Length::Auto,
+                widths: vec![(0, Length::Fill(1.0f32))],
+                heights: vec![(0, Length::Fill(1.0f32))],
+
                 @content,
 
                 ScrollBar {
@@ -52,6 +60,8 @@ impl View for ScrollViewer {
                 ScrollBar {
                     orientation: Orientation::Horizontal,
                 },
+
+                Button { Text { text: "Aaa" }},
             }
         }
     }

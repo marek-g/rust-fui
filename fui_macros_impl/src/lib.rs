@@ -133,7 +133,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
             static_children.push(quote_control(static_child));
         } else if let CtrlParam::RawCtrl(raw_control) = child {
             let name = raw_control.name;
-            static_children.push(quote!("#name"));
+            static_children.push(quote!(#name));
         } else if let CtrlParam::Collection(dynamic_child) = child {
             if static_children.len() > 0 {
                 sources.push(quote!(Box::new(StaticChildrenSource::new(
@@ -185,6 +185,8 @@ fn decouple_params(
             }
         } else if let CtrlParam::Ctrl(control) = el {
             children.push(CtrlParam::Ctrl(control))
+        } else if let CtrlParam::RawCtrl(raw_control) = el {
+            children.push(CtrlParam::RawCtrl(raw_control))
         } else if let CtrlParam::Collection(c) = el {
             children.push(CtrlParam::Collection(c))
         }
