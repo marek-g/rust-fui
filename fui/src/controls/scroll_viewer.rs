@@ -1,4 +1,4 @@
-use controls::scroll_bar::ScrollBar;
+use layout::Grid;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -6,14 +6,17 @@ use children_source::*;
 use common::*;
 use control::*;
 use control_object::*;
+use controls::scroll_bar::ScrollBar;
 use drawing::primitive::Primitive;
 use drawing::primitive_extensions::PrimitiveTransformations;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use drawing_context::DrawingContext;
 use events::*;
+use fui_macros::ui;
 use observable::*;
 use style::*;
 use typed_builder::TypedBuilder;
+use typemap::TypeMap;
 use view::*;
 
 pub enum ScrollBarVisibility {
@@ -34,7 +37,23 @@ pub struct ScrollViewer {
 
 impl View for ScrollViewer {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, ScrollViewerDefaultStyle::new(), context)
+        let content = Control::new(self, ScrollViewerDefaultStyle::new(), context);
+
+        ui! {
+            Grid {
+                columns: 2,
+
+                @content,
+
+                ScrollBar {
+                    orientation: Orientation::Vertical,
+                },
+
+                ScrollBar {
+                    orientation: Orientation::Horizontal,
+                },
+            }
+        }
     }
 }
 

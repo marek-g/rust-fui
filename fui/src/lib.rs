@@ -2,9 +2,10 @@ extern crate drawing;
 extern crate drawing_gl;
 extern crate failure;
 extern crate find_folder;
-extern crate winit;
+extern crate fui_macros;
 extern crate typed_builder;
 extern crate typemap;
+extern crate winit;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 

@@ -396,6 +396,7 @@ dependencies = [
  "drawing_gl 0.1.0",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fui_macros 0.1.0",
  "shared_library 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
