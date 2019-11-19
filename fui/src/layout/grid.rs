@@ -418,6 +418,7 @@ impl GridDefaultStyle {
             self.definitions_v.push(definition);
         }
     }
+
     fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ChildrenSource>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;

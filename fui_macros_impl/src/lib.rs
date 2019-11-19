@@ -13,12 +13,16 @@ use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
 
 //
+// let control: Rc<RefCell<dyn ControlObject>> = ...;
+//
 // ui!(
 //     Horizontal {
 //         Row: 1,
 //         spacing: 4,
+//
 //         Button { Text { text: "Button".to_string() } },
-//         Text { text: "Label".to_string() }
+//         Text { text: "Label".to_string() },
+//         @control,
 //     }
 // )
 //
@@ -49,6 +53,8 @@ use crate::parser::CtrlProperty;
 //                 children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
 //             }),
 //         ),
+//
+//         control,
 //     ])),
 // })
 //
@@ -125,6 +131,9 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
     for child in children {
         if let CtrlParam::Ctrl(static_child) = child {
             static_children.push(quote_control(static_child));
+        } else if let CtrlParam::RawCtrl(raw_control) = child {
+            let name = raw_control.name;
+            static_children.push(quote!("#name"));
         } else if let CtrlParam::Collection(dynamic_child) = child {
             if static_children.len() > 0 {
                 sources.push(quote!(Box::new(StaticChildrenSource::new(
