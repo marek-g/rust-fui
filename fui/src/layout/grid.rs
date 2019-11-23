@@ -1665,14 +1665,14 @@ impl Style<Grid> for GridDefaultStyle {
                 let row_span = cell.row_span;
                 let rc = Rect::new(
                     if column_index == 0 {
-                        0.0f32
+                        rect.x
                     } else {
-                        self.definitions_u[column_index].final_offset
+                        rect.x + self.definitions_u[column_index].final_offset
                     },
                     if row_index == 0 {
-                        0.0f32
+                        rect.y
                     } else {
-                        self.definitions_v[row_index].final_offset
+                        rect.y + self.definitions_v[row_index].final_offset
                     },
                     Self::get_final_size_for_range(
                         &mut self.definitions_u,
