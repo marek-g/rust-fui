@@ -17,18 +17,57 @@ impl<T: 'static + Clone + PartialEq + Default> Property<T> {
         }
     }
 
-    pub fn binded(src_property: &Property<T>) -> Self {
+    pub fn binded_from(src_property: &Property<T>) -> Self {
         let mut property = Property::new(T::default());
         property.bind(src_property);
         property
     }
 
-    pub fn binded_c<TSrc: 'static + Clone + PartialEq + Default, F: 'static + Fn(TSrc) -> T>(
+    pub fn binded_c_from<
+        TSrc: 'static + Clone + PartialEq + Default,
+        F: 'static + Fn(TSrc) -> T,
+    >(
         src_property: &Property<TSrc>,
         f: F,
     ) -> Self {
         let mut property = Property::new(T::default());
         property.bind_c(src_property, f);
+        property
+    }
+
+    pub fn binded_to(dst_property: &mut Property<T>) -> Self {
+        let property = Property::new(T::default());
+        dst_property.bind(&property);
+        property
+    }
+
+    pub fn binded_c_to<TDst: 'static + Clone + PartialEq + Default, F: 'static + Fn(T) -> TDst>(
+        dst_property: &mut Property<TDst>,
+        f: F,
+    ) -> Self {
+        let mut property = Property::new(T::default());
+        dst_property.bind_c(&mut property, f);
+        property
+    }
+
+    pub fn binded_two_way(other_property: &mut Property<T>) -> Self {
+        let mut property = Property::binded_from(&other_property);
+        other_property.bind(&mut property);
+        property
+    }
+
+    pub fn binded_c_two_way<TOther, F1, F2>(
+        other_property: &mut Property<TOther>,
+        f1: F1,
+        f2: F2,
+    ) -> Self
+    where
+        TOther: 'static + Clone + PartialEq + Default,
+        F1: 'static + Fn(TOther) -> T,
+        F2: 'static + Fn(T) -> TOther,
+    {
+        let mut property = Property::binded_c_from(other_property, f1);
+        other_property.bind_c(&mut property, f2);
         property
     }
 
@@ -163,7 +202,7 @@ where
     T: 'static + Clone + PartialEq + Default,
 {
     fn from(value: &Property<T>) -> Property<T> {
-        Property::binded(value)
+        Property::binded_from(value)
     }
 }
 
@@ -179,9 +218,7 @@ where
     T: 'static + Clone + PartialEq + Default,
 {
     fn from(value: &mut Property<T>) -> Property<T> {
-        let mut new_property = Property::binded(value);
-        value.bind(&mut new_property);
-        new_property
+        Property::binded_two_way(value)
     }
 }
 
@@ -199,7 +236,7 @@ where
     F: 'static + Fn(TSrc) -> TDest,
 {
     fn from(value: (&Property<TSrc>, F)) -> Property<TDest> {
-        Property::binded_c(value.0, value.1)
+        Property::binded_c_from(value.0, value.1)
     }
 }
 
@@ -219,8 +256,6 @@ where
     F2: 'static + Fn(TDest) -> TSrc,
 {
     fn from(value: (&mut Property<TSrc>, F1, F2)) -> Property<TDest> {
-        let mut new_property = Property::binded_c(value.0, value.1);
-        value.0.bind_c(&mut new_property, value.2);
-        new_property
+        Property::binded_c_two_way(value.0, value.1, value.2)
     }
 }

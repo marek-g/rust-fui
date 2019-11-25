@@ -1472,7 +1472,7 @@ impl Style<Grid> for GridDefaultStyle {
 
     fn measure(
         &mut self,
-        data: &Grid,
+        data: &mut Grid,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
@@ -1640,7 +1640,7 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect = grid_desired_size;
     }
 
-    fn set_rect(&mut self, _data: &Grid, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Grid, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {

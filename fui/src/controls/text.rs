@@ -69,7 +69,7 @@ impl Style<Text> for TextDefaultStyle {
 
     fn measure(
         &mut self,
-        data: &Text,
+        data: &mut Text,
         _children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         _size: Size,
@@ -80,7 +80,7 @@ impl Style<Text> for TextDefaultStyle {
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &Text, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Text, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
     }
 

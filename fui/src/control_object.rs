@@ -66,7 +66,7 @@ impl<D: 'static> ControlObject for Control<D> {
     }
 
     fn set_rect(&mut self, rect: Rect) {
-        self.style.set_rect(&self.data, &self.children, rect);
+        self.style.set_rect(&mut self.data, &self.children, rect);
     }
 
     fn get_rect(&self) -> Rect {

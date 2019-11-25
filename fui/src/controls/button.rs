@@ -102,7 +102,7 @@ impl Style<Button> for ButtonDefaultStyle {
 
     fn measure(
         &mut self,
-        _data: &Button,
+        _data: &mut Button,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
@@ -122,7 +122,7 @@ impl Style<Button> for ButtonDefaultStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &Button, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Button, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(

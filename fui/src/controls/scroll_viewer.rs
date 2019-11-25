@@ -36,10 +36,35 @@ pub struct ScrollViewer {
 
     #[builder(default = ScrollBarVisibility::Auto)]
     pub vertical_scroll_bar_visibility: ScrollBarVisibility,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub offset_x: Property<f32>,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub offset_y: Property<f32>,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub max_offset_x: Property<f32>,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub max_offset_y: Property<f32>,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub viewport_width: Property<f32>,
+
+    #[builder(default = Property::new(0.0f32))]
+    pub viewport_height: Property<f32>,
 }
 
 impl View for ScrollViewer {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(mut self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+        let offset_x_prop = Property::binded_two_way(&mut self.offset_x);
+        let offset_y_prop = Property::binded_two_way(&mut self.offset_y);
+        let max_offset_x_prop = Property::binded_from(&self.max_offset_x);
+        let max_offset_y_prop = Property::binded_from(&self.max_offset_y);
+        let viewport_width_prop = Property::binded_from(&self.viewport_width);
+        let viewport_height_prop = Property::binded_from(&self.viewport_height);
+
         let content = Control::new(self, ScrollViewerDefaultStyle::new(), context);
 
         ui! {
@@ -55,13 +80,17 @@ impl View for ScrollViewer {
 
                 ScrollBar {
                     orientation: Orientation::Vertical,
+                    value: offset_y_prop,
+                    max_value: max_offset_y_prop,
+                    viewport_size: viewport_height_prop,
                 },
 
                 ScrollBar {
                     orientation: Orientation::Horizontal,
+                    value: offset_x_prop,
+                    max_value: max_offset_x_prop,
+                    viewport_size: viewport_width_prop,
                 },
-
-                Button { Text { text: "Aaa" }},
             }
         }
     }
@@ -73,8 +102,7 @@ impl View for ScrollViewer {
 
 pub struct ScrollViewerDefaultStyle {
     rect: Rect,
-    offset_x: f32,
-    offset_y: f32,
+    content_size: Size,
     event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -87,9 +115,23 @@ impl ScrollViewerDefaultStyle {
                 width: 0f32,
                 height: 0f32,
             },
-            offset_x: 50.0f32,
-            offset_y: 50.0f32,
+            content_size: Size::new(0.0f32, 0.0f32),
             event_subscriptions: Vec::new(),
+        }
+    }
+
+    fn update_scrollbars(&self, data: &mut ScrollViewer) {
+        data.viewport_width.set(self.rect.width);
+        data.viewport_height.set(self.rect.height);
+        data.max_offset_x
+            .set((self.content_size.width - self.rect.width).max(0.0f32));
+        data.max_offset_y
+            .set((self.content_size.height - self.rect.height).max(0.0f32));
+        if data.offset_x.get() > data.max_offset_x.get() {
+            data.offset_x.set(data.max_offset_x.get())
+        }
+        if data.offset_y.get() > data.max_offset_y.get() {
+            data.offset_y.set(data.max_offset_y.get())
         }
     }
 }
@@ -98,7 +140,7 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut ScrollViewer,
-        control: &Rc<RefCell<Control<ScrollViewer>>>,
+        _control: &Rc<RefCell<Control<ScrollViewer>>>,
     ) {
     }
 
@@ -112,29 +154,38 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
 
     fn measure(
         &mut self,
-        _data: &ScrollViewer,
+        data: &mut ScrollViewer,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
         println!("measure: {:?}", size);
 
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        self.content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
+
+            //data.max_offset_x.set(rect.width);
+            //data.max_offset_y.set(rect.height);
+
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
         };
 
-        //self.rect = Rect::new(0.0f32, 0.0f32, content_size.width, content_size.height);
+        //self.rect = Rect::new(0.0f32, 0.0f32, self.content_size.width, self.content_size.height);
         self.rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
     }
 
-    fn set_rect(&mut self, _data: &ScrollViewer, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        data: &mut ScrollViewer,
+        children: &Box<dyn ChildrenSource>,
+        rect: Rect,
+    ) {
         self.rect = rect;
 
-        println!("set_rect: {:?}", rect);
+        self.update_scrollbars(data);
 
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(rect);
@@ -160,7 +211,7 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
 
     fn to_primitives(
         &self,
-        _data: &ScrollViewer,
+        data: &ScrollViewer,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
     ) -> Vec<Primitive> {
@@ -176,7 +227,10 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
 
-            vec2.translate(UserPixelPoint::new(self.offset_x, self.offset_y));
+            vec2.translate(UserPixelPoint::new(
+                -data.offset_x.get(),
+                -data.offset_y.get(),
+            ));
 
             vec.append(&mut vec2);
         }

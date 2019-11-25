@@ -65,7 +65,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
 
     fn measure(
         &mut self,
-        data: &StackPanel,
+        data: &mut StackPanel,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
@@ -98,7 +98,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         self.rect = result;
     }
 
-    fn set_rect(&mut self, data: &StackPanel, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &mut StackPanel, children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;

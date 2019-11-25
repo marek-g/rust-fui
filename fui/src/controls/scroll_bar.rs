@@ -178,7 +178,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
 
     fn measure(
         &mut self,
-        data: &ScrollBar,
+        data: &mut ScrollBar,
         _children: &Box<dyn ChildrenSource>,
         _drawing_context: &mut DrawingContext,
         _size: Size,
@@ -193,7 +193,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &ScrollBar, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ScrollBar, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
         self.calc_sizes(data);
     }

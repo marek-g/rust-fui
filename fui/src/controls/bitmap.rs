@@ -66,7 +66,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
 
     fn measure(
         &mut self,
-        data: &Bitmap,
+        data: &mut Bitmap,
         _children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         _size: Size,
@@ -83,7 +83,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &Bitmap, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Bitmap, _children: &Box<dyn ChildrenSource>, rect: Rect) {
         self.rect = rect;
     }
 

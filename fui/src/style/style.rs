@@ -22,20 +22,16 @@ pub trait Style<D> {
 
     fn measure(
         &mut self,
-        data: &D,
+        data: &mut D,
         children: &Box<dyn ChildrenSource>,
         drawing_context: &mut DrawingContext,
         size: Size,
     );
-    fn set_rect(&mut self, data: &D, children: &Box<dyn ChildrenSource>, rect: Rect);
+    fn set_rect(&mut self, data: &mut D, children: &Box<dyn ChildrenSource>, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(
-        &self,
-        data: &D,
-        children: &Box<dyn ChildrenSource>,
-        point: Point,
-    ) -> HitTestResult;
+    fn hit_test(&self, data: &D, children: &Box<dyn ChildrenSource>, point: Point)
+        -> HitTestResult;
 
     fn to_primitives(
         &self,
