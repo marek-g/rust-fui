@@ -497,8 +497,8 @@ impl GridDefaultStyle {
                     is_auto_v: is_auto_v,
                 };
 
-                if is_fill_v {
-                    if is_fill_u {
+                if !is_fill_v {
+                    if !is_fill_u {
                         self.cell_group_1.push(cell_cache);
                     } else {
                         self.cell_group_3.push(cell_cache);

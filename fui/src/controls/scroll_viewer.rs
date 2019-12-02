@@ -1,5 +1,3 @@
-use controls::button::Button;
-use controls::text::Text;
 use layout::Grid;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -71,10 +69,8 @@ impl View for ScrollViewer {
             Grid {
                 columns: 2,
 
-                default_width: Length::Auto,
-                default_height: Length::Auto,
-                widths: vec![(0, Length::Fill(1.0f32))],
-                heights: vec![(0, Length::Fill(1.0f32))],
+                widths: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
+                heights: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
 
                 @content,
 
@@ -159,22 +155,20 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         drawing_context: &mut DrawingContext,
         size: Size,
     ) {
-        println!("measure: {:?}", size);
-
         self.content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
-
-            //data.max_offset_x.set(rect.width);
-            //data.max_offset_y.set(rect.height);
-
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
         };
 
-        //self.rect = Rect::new(0.0f32, 0.0f32, self.content_size.width, self.content_size.height);
-        self.rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
+        self.rect = Rect::new(
+            0.0f32,
+            0.0f32,
+            self.content_size.width.min(size.width),
+            self.content_size.height.min(size.height),
+        );
     }
 
     fn set_rect(
