@@ -46,6 +46,7 @@ const START_MARGIN: f32 = 1.0f32;
 const END_MARGIN: f32 = 1.0f32;
 const SIDE_MARGIN: f32 = 1.0f32;
 const MIN_THUMB_SIZE: f32 = 20.0f32;
+const MIN_SIZE: f32 = MIN_THUMB_SIZE * 2.0f32;
 
 pub struct ScrollBarDefaultStyle {
     rect: Rect,
@@ -181,14 +182,24 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         data: &mut ScrollBar,
         _children: &Box<dyn ChildrenSource>,
         _drawing_context: &mut DrawingContext,
-        _size: Size,
+        size: Size,
     ) {
         match data.orientation {
             Orientation::Horizontal => {
-                self.rect = Rect::new(0.0f32, 0.0f32, 150.0f32, 20.0f32);
+                let space = if size.width.is_infinite() {
+                    MIN_SIZE
+                } else {
+                    size.width
+                };
+                self.rect = Rect::new(0.0f32, 0.0f32, MIN_SIZE.max(space), 20.0f32);
             }
             Orientation::Vertical => {
-                self.rect = Rect::new(0.0f32, 0.0f32, 20.0f32, 150.0f32);
+                let space = if size.height.is_infinite() {
+                    MIN_SIZE
+                } else {
+                    size.height
+                };
+                self.rect = Rect::new(0.0f32, 0.0f32, 20.0f32, MIN_SIZE.max(space));
             }
         }
     }

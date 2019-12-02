@@ -127,7 +127,7 @@ impl RcView for MainViewModel {
         ui!(
             Grid {
                 columns: 1,
-                heights: vec![(0, Length::Auto), (1, Length::Auto)],
+                heights: vec![(0, Length::Auto)],
 
                 Horizontal {
                     Button {
@@ -142,12 +142,6 @@ impl RcView for MainViewModel {
                         clicked: Callback::new(view_model, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
-                },
-
-                ScrollBar {
-                    orientation: Orientation::Horizontal,
-                    viewport_size: 0.5f32,
-                    value: 0.3f32,
                 },
 
                 ScrollViewer {
