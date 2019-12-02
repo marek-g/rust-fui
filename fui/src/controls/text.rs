@@ -125,6 +125,10 @@ impl Style<Text> for TextDefaultStyle {
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,
             ),
+            clipping_rect: UserPixelRect::new(
+                UserPixelPoint::new(x, y),
+                UserPixelSize::new(width, height),
+            ),
             size: self.font_size as u16,
             text: data.text.get(),
         });

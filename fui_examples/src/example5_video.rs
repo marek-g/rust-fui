@@ -74,7 +74,9 @@ impl RcView for MainViewModel {
 
         let root_control = ui!(
             Grid {
-                Bitmap { texture_id: &vm.texture_id },
+                ScrollViewer {
+                    Bitmap { texture_id: &vm.texture_id },
+                },
                 Horizontal {
                     Button {
                         clicked: Callback::new(view_model, |vm, _| vm.play()),

@@ -84,7 +84,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     }
 
     fn set_rect(&mut self, _data: &mut Bitmap, _children: &Box<dyn ChildrenSource>, rect: Rect) {
-        self.rect = rect;
+        //self.rect = rect;
     }
 
     fn get_rect(&self) -> Rect {
@@ -119,6 +119,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
                     UserPixelPoint::new(self.rect.x, self.rect.y),
                     UserPixelSize::new(self.rect.width, self.rect.height),
                 ),
+                uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
             });
         }
 

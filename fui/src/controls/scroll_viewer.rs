@@ -226,6 +226,11 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
                 -data.offset_y.get(),
             ));
 
+            let mut vec2 = vec2.clip(UserPixelRect::new(
+                UserPixelPoint::new(x, y),
+                UserPixelSize::new(width, height),
+            ));
+
             vec.append(&mut vec2);
         }
 

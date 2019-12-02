@@ -129,7 +129,7 @@ impl RcView for MainViewModel {
                 columns: 1,
                 heights: vec![(0, Length::Auto)],
 
-                Horizontal {
+                Vertical {
                     Button {
                         clicked: Callback::new(view_model, |vm, _| vm.add()),
                         Text { text: "Add" },
