@@ -222,8 +222,8 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
             let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
 
             vec2.translate(UserPixelPoint::new(
-                -data.offset_x.get(),
-                -data.offset_y.get(),
+                -data.offset_x.get().round(),
+                -data.offset_y.get().round(),
             ));
 
             let mut vec2 = vec2.clip(UserPixelRect::new(
