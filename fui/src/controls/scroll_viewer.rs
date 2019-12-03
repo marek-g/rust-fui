@@ -182,7 +182,13 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         self.update_scrollbars(data);
 
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(rect);
+            let child_rect = Rect::new(
+                rect.x - data.offset_x.get().round(),
+                rect.y - data.offset_y.get().round(),
+                rect.width + data.offset_x.get().round(),
+                rect.height + data.offset_y.get().round(),
+            );
+            content.borrow_mut().set_rect(child_rect);
         }
     }
 
@@ -193,11 +199,23 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
     fn hit_test(
         &self,
         _data: &ScrollViewer,
-        _children: &Box<dyn ChildrenSource>,
+        children: &Box<dyn ChildrenSource>,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            HitTestResult::Current
+            if let Some(ref content) = children.into_iter().next() {
+                let c = content.borrow();
+                let rect = c.get_rect();
+                if point.is_inside(&rect) {
+                    let child_hit_test = c.hit_test(point);
+                    match child_hit_test {
+                        HitTestResult::Current => return HitTestResult::Child(content.clone()),
+                        HitTestResult::Child(..) => return child_hit_test,
+                        HitTestResult::Nothing => (),
+                    }
+                }
+            }
+            HitTestResult::Nothing
         } else {
             HitTestResult::Nothing
         }
@@ -219,12 +237,7 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         default_theme::button(&mut vec, x, y, width, height, true, false);
 
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
-
-            vec2.translate(UserPixelPoint::new(
-                -data.offset_x.get().round(),
-                -data.offset_y.get().round(),
-            ));
+            let vec2 = content.borrow_mut().to_primitives(drawing_context);
 
             let mut vec2 = vec2.clip(UserPixelRect::new(
                 UserPixelPoint::new(x, y),

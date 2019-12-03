@@ -15,8 +15,4 @@ impl Rect {
             height: height,
         }
     }
-
-    pub fn is_inside(&self, x: f32, y: f32) -> bool {
-        x >= self.x && x <= self.x + self.width && y >= self.y && y <= self.y + self.height
-    }
 }
