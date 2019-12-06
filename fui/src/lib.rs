@@ -2,7 +2,6 @@ extern crate drawing;
 extern crate drawing_gl;
 extern crate failure;
 extern crate find_folder;
-extern crate fui_macros;
 extern crate typed_builder;
 extern crate typemap;
 extern crate winit;
@@ -14,7 +13,8 @@ pub mod application;
 mod children_source;
 pub use children_source::*;
 
-pub mod common;
+mod common;
+pub use common::*;
 
 mod control;
 pub use control::*;
@@ -22,14 +22,14 @@ pub use control::*;
 mod control_object;
 pub use control_object::*;
 
-pub mod controls;
-
 mod drawing_context;
 pub use drawing_context::*;
 
-pub mod events;
-pub mod high_dpi;
-pub mod layout;
+mod events;
+pub use events::*;
+
+mod high_dpi;
+pub use high_dpi::*;
 
 mod observable;
 pub use observable::*;

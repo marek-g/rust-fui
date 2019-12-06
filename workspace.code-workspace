@@ -4,10 +4,13 @@
 			"path": "fui"
 		},
 		{
-			"path": "fui_examples"
+			"path": "fui_controls"
 		},
 		{
-			"path": "fui_video"
+			"path": "fui_controls_media"
+		},
+		{
+			"path": "fui_examples"
 		},
 		{
 			"path": "fui_macros"

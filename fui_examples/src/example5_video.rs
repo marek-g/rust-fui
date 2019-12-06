@@ -1,23 +1,23 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate fui_controls;
+extern crate fui_controls_media;
 extern crate fui_macros;
-extern crate fui_video;
 extern crate typemap;
 extern crate winit;
 
 use fui::application::*;
-use fui::controls::*;
-use fui::layout::*;
 use fui::*;
+use fui_controls::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use fui_video::PlayerGl;
-//use fui_video::Player;
+use fui_controls_media::PlayerGl;
+//use fui_controls_media::Player;
 
 struct MainViewModel {
     pub player: Rc<RefCell<PlayerGl>>,

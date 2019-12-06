@@ -12,7 +12,9 @@ impl Point {
     }
 
     pub fn is_inside(&self, rect: &Rect) -> bool {
-        self.x >= rect.x && self.x <= rect.x + rect.width &&
-        self.y >= rect.y && self.y <= rect.y + rect.height
+        self.x >= rect.x
+            && self.x <= rect.x + rect.width
+            && self.y >= rect.y
+            && self.y <= rect.y + rect.height
     }
 }

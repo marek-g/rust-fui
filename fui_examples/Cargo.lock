@@ -396,10 +396,41 @@ dependencies = [
  "drawing_gl 0.1.0",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "find_folder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "fui_macros 0.1.0",
  "shared_library 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winit 0.20.0-alpha4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "fui_controls"
+version = "0.1.0"
+dependencies = [
+ "drawing 0.1.0",
+ "fui 0.1.0",
+ "fui_macros 0.1.0",
+ "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "fui_controls_media"
+version = "0.1.0"
+dependencies = [
+ "drawing 0.1.0",
+ "drawing_gl 0.1.0",
+ "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fui 0.1.0",
+ "gl 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glib 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "glutin 0.22.0-alpha3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer 0.14.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer-app 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer-video 0.14.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer-video-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "gstreamer_media 0.1.0",
+ "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.20.0-alpha4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -409,8 +440,9 @@ version = "0.1.0"
 dependencies = [
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "fui 0.1.0",
+ "fui_controls 0.1.0",
+ "fui_controls_media 0.1.0",
  "fui_macros 0.1.0",
- "fui_video 0.1.0",
  "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
  "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -435,27 +467,6 @@ dependencies = [
  "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "fui_video"
-version = "0.1.0"
-dependencies = [
- "drawing 0.1.0",
- "drawing_gl 0.1.0",
- "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "fui 0.1.0",
- "gl 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "glib 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "glutin 0.22.0-alpha3 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer 0.14.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer-app 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer-video 0.14.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer-video-sys 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "gstreamer_media 0.1.0",
- "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
- "winit 0.20.0-alpha4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

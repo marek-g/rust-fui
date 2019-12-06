@@ -1,6 +1,6 @@
-use common::*;
 use drawing::primitive::Primitive;
 use drawing::units::*;
+use fui::*;
 
 const BACKGROUND: Color = [0.1, 1.0, 0.0, 0.2];
 const BACKGROUND_PRESSED: Color = [0.1, 0.5, 0.0, 0.2];

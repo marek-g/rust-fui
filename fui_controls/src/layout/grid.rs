@@ -30,17 +30,10 @@ use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
 
-use children_source::*;
-use common::*;
-use control::*;
-use control_object::*;
 use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
-use drawing_context::DrawingContext;
-use events::*;
-use style::*;
+use fui::*;
 use typed_builder::TypedBuilder;
-use view::*;
 
 //
 // Length.
@@ -1333,7 +1326,7 @@ impl GridDefaultStyle {
             let mut rounding_errors = Vec::with_capacity(definitions.len());
             let mut rounded_taken_size = 0.0f32;
             for def in definitions.iter_mut() {
-                let rounded_size = crate::high_dpi::round_layout_value(def.size_cache, dpi_scale);
+                let rounded_size = fui::round_layout_value(def.size_cache, dpi_scale);
                 rounding_errors.push(rounded_size - def.size_cache);
                 def.size_cache = rounded_size;
                 rounded_taken_size += rounded_size;

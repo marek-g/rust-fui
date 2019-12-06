@@ -4,9 +4,7 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
 use super::stack_panel::*;
-use common::Orientation;
-use control_object::*;
-use view::*;
+use fui::*;
 
 #[derive(TypedBuilder)]
 pub struct Vertical {}

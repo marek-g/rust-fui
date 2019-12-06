@@ -1,16 +1,15 @@
 #![windows_subsystem = "windows"]
 
 extern crate fui;
+extern crate fui_controls;
 extern crate fui_macros;
 extern crate typed_builder;
 extern crate typemap;
 extern crate winit;
 
 use fui::application::*;
-use fui::common::*;
-use fui::controls::*;
-use fui::layout::*;
 use fui::*;
+use fui_controls::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;

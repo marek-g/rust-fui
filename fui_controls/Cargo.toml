@@ -1,0 +1,11 @@
+[package]
+name = "fui_controls"
+version = "0.1.0"
+authors = ["Marek G <no@mail.com>"]
+
+[dependencies]
+drawing = { path = "../../rust-drawing/drawing", version = "*" }
+fui = { path = "../fui", version = "*" }
+fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
+typed-builder = "0.3"
+typemap = "0.3"

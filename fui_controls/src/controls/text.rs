@@ -1,19 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use children_source::*;
-use common::*;
-use control::*;
-use control_object::*;
 use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
-use drawing_context::DrawingContext;
-use events::*;
-use observable::*;
+use fui::*;
 use style::*;
 use typed_builder::TypedBuilder;
-use view::*;
-use Property;
 
 #[derive(TypedBuilder)]
 pub struct Text {
