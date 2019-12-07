@@ -526,7 +526,7 @@ impl GridDefaultStyle {
     }
 
     fn measure_cells_group(
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
@@ -544,7 +544,7 @@ impl GridDefaultStyle {
 
             let old_width = child.borrow().get_rect().width;
             Self::measure_cell(
-                drawing_context,
+                resources,
                 &cell,
                 &child,
                 definitions_u,
@@ -605,7 +605,7 @@ impl GridDefaultStyle {
     }
 
     fn measure_cell(
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         cell: &CellCache,
         child: &Rc<RefCell<dyn ControlObject>>,
         definitions_u: &mut Vec<DefinitionBase>,
@@ -635,7 +635,7 @@ impl GridDefaultStyle {
         }
 
         child.borrow_mut().measure(
-            drawing_context,
+            resources,
             Size::new(cell_measure_width, cell_measure_height),
         );
     }
@@ -1326,7 +1326,7 @@ impl GridDefaultStyle {
             let mut rounding_errors = Vec::with_capacity(definitions.len());
             let mut rounded_taken_size = 0.0f32;
             for def in definitions.iter_mut() {
-                let rounded_size = fui::round_layout_value(def.size_cache, dpi_scale);
+                let rounded_size = round_layout_value(def.size_cache, dpi_scale);
                 rounding_errors.push(rounded_size - def.size_cache);
                 def.size_cache = rounded_size;
                 rounded_taken_size += rounded_size;
@@ -1467,7 +1467,7 @@ impl Style<Grid> for GridDefaultStyle {
         &mut self,
         data: &mut Grid,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         size: Size,
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
@@ -1481,7 +1481,7 @@ impl Style<Grid> for GridDefaultStyle {
 
             for child in children.into_iter() {
                 let mut child = child.borrow_mut();
-                child.measure(drawing_context, size);
+                child.measure(resources, size);
                 let child_rc = child.get_rect();
                 grid_desired_size.width = grid_desired_size.width.max(child_rc.width);
                 grid_desired_size.height = grid_desired_size.height.max(child_rc.height);
@@ -1501,7 +1501,7 @@ impl Style<Grid> for GridDefaultStyle {
             self.prepare_cell_cache(&data, &children);
 
             Self::measure_cells_group(
-                drawing_context,
+                resources,
                 &mut self.definitions_u,
                 &mut self.definitions_v,
                 &self.cell_group_1,
@@ -1515,7 +1515,7 @@ impl Style<Grid> for GridDefaultStyle {
                     Self::resolve_fill(&mut self.definitions_v, size.height);
                 }
                 Self::measure_cells_group(
-                    drawing_context,
+                    resources,
                     &mut self.definitions_u,
                     &mut self.definitions_v,
                     &self.cell_group_2,
@@ -1528,7 +1528,7 @@ impl Style<Grid> for GridDefaultStyle {
                     Self::resolve_fill(&mut self.definitions_u, size.width);
                 }
                 Self::measure_cells_group(
-                    drawing_context,
+                    resources,
                     &mut self.definitions_u,
                     &mut self.definitions_v,
                     &self.cell_group_3,
@@ -1542,7 +1542,7 @@ impl Style<Grid> for GridDefaultStyle {
                         Self::resolve_fill(&mut self.definitions_u, size.width);
                     }
                     Self::measure_cells_group(
-                        drawing_context,
+                        resources,
                         &mut self.definitions_u,
                         &mut self.definitions_v,
                         &self.cell_group_3,
@@ -1563,7 +1563,7 @@ impl Style<Grid> for GridDefaultStyle {
                         Self::cache_min_sizes(&self.definitions_v, &self.cell_group_3, true);
 
                     Self::measure_cells_group(
-                        drawing_context,
+                        resources,
                         &mut self.definitions_u,
                         &mut self.definitions_v,
                         &self.cell_group_2,
@@ -1584,7 +1584,7 @@ impl Style<Grid> for GridDefaultStyle {
                             Self::resolve_fill(&mut self.definitions_u, size.width);
                         }
                         Self::measure_cells_group(
-                            drawing_context,
+                            resources,
                             &mut self.definitions_u,
                             &mut self.definitions_v,
                             &self.cell_group_3,
@@ -1599,7 +1599,7 @@ impl Style<Grid> for GridDefaultStyle {
                             Self::resolve_fill(&mut self.definitions_v, size.height);
                         }
                         has_desired_size_u_changed = Self::measure_cells_group(
-                            drawing_context,
+                            resources,
                             &mut self.definitions_u,
                             &mut self.definitions_v,
                             &self.cell_group_2,
@@ -1617,7 +1617,7 @@ impl Style<Grid> for GridDefaultStyle {
             }
 
             Self::measure_cells_group(
-                drawing_context,
+                resources,
                 &mut self.definitions_u,
                 &mut self.definitions_v,
                 &self.cell_group_4,
@@ -1712,12 +1712,12 @@ impl Style<Grid> for GridDefaultStyle {
         &self,
         _data: &Grid,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         for child in children.into_iter() {
-            vec.append(&mut child.borrow().to_primitives(drawing_context));
+            vec.append(&mut child.borrow().to_primitives(resources));
         }
 
         vec

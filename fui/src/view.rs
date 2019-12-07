@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use children_source::*;
-use control_object::ControlObject;
+use crate::children_source::*;
+use crate::control_object::ControlObject;
 
 pub struct ViewContext {
     pub attached_values: TypeMap,

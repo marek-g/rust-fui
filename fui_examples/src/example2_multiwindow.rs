@@ -6,8 +6,8 @@ extern crate fui_macros;
 extern crate typemap;
 extern crate winit;
 
-use fui::application::*;
 use fui::*;
+use fui_app::*;
 use fui_controls::*;
 use fui_macros::ui;
 

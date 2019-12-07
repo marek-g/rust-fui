@@ -6,19 +6,16 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use winit::dpi::LogicalSize;
 
-use control_object::ControlObject;
-use DrawingContext;
-use RcView;
-use View;
-use ViewContext;
-use Window;
+use fui::*;
 
-use Result;
+use crate::DrawingContext;
+use crate::DrawingWindowTarget;
+use crate::Window;
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
     main_window_id: Option<winit::window::WindowId>,
-    windows: HashMap<winit::window::WindowId, Window>,
+    windows: HashMap<winit::window::WindowId, Window<DrawingWindowTarget>>,
 }
 
 impl WindowManager {
@@ -40,7 +37,7 @@ impl WindowManager {
             .windows
             .iter()
             .next()
-            .map(|(id, window)| window.get_drawing_target());
+            .map(|(_id, window)| window.get_drawing_target());
         let mut window_target = self.drawing_context.borrow_mut().create_window(
             window_builder,
             &event_loop,
@@ -79,7 +76,9 @@ impl WindowManager {
         self.main_window_id
     }
 
-    pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::window::WindowId, Window> {
+    pub fn get_windows_mut(
+        &mut self,
+    ) -> &mut HashMap<winit::window::WindowId, Window<DrawingWindowTarget>> {
         &mut self.windows
     }
 

@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use Event;
-use EventSubscription;
+use crate::Event;
+use crate::EventSubscription;
 
 pub struct Property<T> {
     data: Rc<RefCell<PropertyData<T>>>,

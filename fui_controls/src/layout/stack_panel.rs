@@ -60,7 +60,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         &mut self,
         data: &mut StackPanel,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         size: Size,
     ) {
         let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
@@ -70,7 +70,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 let available_size = Size::new(f32::INFINITY, size.height);
 
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
+                    child.borrow_mut().measure(resources, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width += child_size.width;
                     result.height = result.height.max(child_size.height);
@@ -80,7 +80,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
+                    child.borrow_mut().measure(resources, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width = result.width.max(child_size.width);
                     result.height += child_size.height;
@@ -151,12 +151,12 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         &self,
         _data: &StackPanel,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
         for child in children.into_iter() {
-            vec.append(&mut child.borrow().to_primitives(drawing_context));
+            vec.append(&mut child.borrow().to_primitives(resources));
         }
 
         vec

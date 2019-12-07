@@ -1,17 +1,16 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use control_object::ControlObject;
-use drawing_context::DrawingWindowTarget;
-use View;
-use ViewContext;
+use fui::ControlObject;
+use fui::View;
+use fui::ViewContext;
 
-pub struct Window {
+pub struct Window<DrawingWindowTarget> {
     drawing_window_target: DrawingWindowTarget,
     root_view: Option<Rc<RefCell<dyn ControlObject>>>,
 }
 
-impl Window {
+impl<DrawingWindowTarget> Window<DrawingWindowTarget> {
     pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
         Window {
             drawing_window_target,

@@ -1,8 +1,9 @@
+extern crate fui;
 extern crate winit;
 
 pub use drawing::color::ColorFormat;
 
-use Result;
+use fui::*;
 
 use drawing::backend::Device;
 use drawing::backend::Texture;
@@ -167,7 +168,7 @@ impl DrawingContext {
     pub fn clear(
         &mut self,
         render_target: &<DrawingDevice as Device>::RenderTarget,
-        color: &Color,
+        color: &fui::Color,
     ) {
         self.device.clear(render_target, color)
     }
@@ -189,5 +190,47 @@ impl DrawingContext {
 
     pub fn end(&mut self, window_target: &DrawingWindowTarget) {
         self.device.end(window_target);
+    }
+}
+
+impl fui::Resources for DrawingContext {
+    fn get_font_dimensions(
+        &mut self,
+        font_name: &'static str,
+        size: u8,
+        text: &str,
+    ) -> Result<(u16, u16)> {
+        self.get_font_dimensions(font_name, size, text)
+    }
+
+    fn create_texture(
+        &mut self,
+        memory: &[u8],
+        width: u16,
+        height: u16,
+        format: ColorFormat,
+        updatable: bool,
+    ) -> Result<i32> {
+        self.create_texture(memory, width, height, format, updatable)
+    }
+
+    fn update_texture(
+        &mut self,
+        texture_id: i32,
+        memory: &[u8],
+        offset_x: u16,
+        offset_y: u16,
+        width: u16,
+        height: u16,
+    ) -> Result<()> {
+        self.update_texture(texture_id, memory, offset_x, offset_y, width, height)
+    }
+
+    fn get_texture_size(&mut self, texture_id: i32) -> Result<(u16, u16)> {
+        if let Some(texture) = self.get_resources().textures().get(&texture_id) {
+            Ok(texture.get_size())
+        } else {
+            Err(failure::format_err!("Texture not found!"))
+        }
     }
 }

@@ -1,14 +1,14 @@
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
-use children_source::*;
-use common::*;
-use control::*;
-use control_object::*;
 use drawing::primitive::Primitive;
-use drawing_context::DrawingContext;
-use events::ControlEvent;
-use observable::*;
+
+use crate::children_source::*;
+use crate::common::*;
+use crate::control::*;
+use crate::events::ControlEvent;
+use crate::observable::*;
+use crate::resources::Resources;
 
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
@@ -24,7 +24,7 @@ pub trait Style<D> {
         &mut self,
         data: &mut D,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         size: Size,
     );
     fn set_rect(&mut self, data: &mut D, children: &Box<dyn ChildrenSource>, rect: Rect);
@@ -37,7 +37,7 @@ pub trait Style<D> {
         &self,
         data: &D,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive>;
 }
 

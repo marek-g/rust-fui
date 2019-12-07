@@ -2,6 +2,7 @@
 name = "fui_controls"
 version = "0.1.0"
 authors = ["Marek G <no@mail.com>"]
+edition = "2018"
 
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }

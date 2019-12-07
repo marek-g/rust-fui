@@ -4,8 +4,9 @@ use std::rc::Rc;
 use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use fui::*;
-use style::*;
 use typed_builder::TypedBuilder;
+
+use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Text {
@@ -63,10 +64,10 @@ impl Style<Text> for TextDefaultStyle {
         &mut self,
         data: &mut Text,
         _children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         _size: Size,
     ) {
-        let (text_width, text_height) = drawing_context
+        let (text_width, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
@@ -97,7 +98,7 @@ impl Style<Text> for TextDefaultStyle {
         &self,
         data: &Text,
         _children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
@@ -106,7 +107,7 @@ impl Style<Text> for TextDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = drawing_context
+        let (text_width, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 

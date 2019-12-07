@@ -1,21 +1,20 @@
+extern crate fui;
 extern crate winit;
 
-use Result;
+use fui::*;
 
 use std::cell::RefCell;
 use std::rc::Rc;
 use winit::dpi::LogicalSize;
 
-use common::*;
 use drawing::backend::WindowTarget;
 use drawing::units::PhysPixelSize;
-use drawing_context::DrawingContext;
-use events::*;
-use observable::Event;
-use CallbackExecutor;
-use Dispatcher;
-use Window;
-use WindowManager;
+
+use crate::DrawingContext;
+use crate::DrawingWindowTarget;
+use crate::Window;
+use crate::WindowManager;
+use std::ops::DerefMut;
 
 pub struct Application {
     title: &'static str,
@@ -27,7 +26,7 @@ pub struct Application {
 
 impl Application {
     pub fn new(title: &'static str) -> Result<Self> {
-        ::high_dpi::set_process_high_dpi_aware();
+        crate::high_dpi::set_process_high_dpi_aware();
 
         let event_loop = winit::event_loop::EventLoop::new();
 
@@ -145,7 +144,7 @@ impl Application {
                                     );
                                     let mut root_control = root_view.borrow_mut();
                                     root_control.set_is_dirty(true);
-                                    root_control.measure(drawing_context, size);
+                                    root_control.measure(drawing_context.deref_mut(), size);
                                     root_control.set_rect(Rect::new(
                                         0f32,
                                         0f32,
@@ -158,7 +157,9 @@ impl Application {
                             _ => (),
                         }
 
-                        event_processor.handle_event(window, event);
+                        if let Some(ref mut root_view) = window.get_root_view_mut() {
+                            event_processor.handle_event(root_view, event);
+                        }
                     }
                 }
 
@@ -191,7 +192,7 @@ impl Application {
         });
     }
 
-    fn is_dirty(window: &mut Window) -> bool {
+    fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
         if let Some(ref mut root_view) = window.get_root_view_mut() {
             let root_control = root_view.borrow();
             if root_control.is_dirty() {
@@ -204,7 +205,12 @@ impl Application {
         }
     }
 
-    fn render(window: &mut Window, drawing_context: &mut DrawingContext, width: u32, height: u32) {
+    fn render(
+        window: &mut Window<DrawingWindowTarget>,
+        drawing_context: &mut DrawingContext,
+        width: u32,
+        height: u32,
+    ) {
         let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
         if let Some(ref mut root_view) = root_view {
             let mut root_control = root_view.borrow_mut();

@@ -2,11 +2,13 @@
 name = "fui_examples"
 version = "0.1.0"
 authors = ["Marek G <no@mail.com>"]
+edition = "2018"
 
 [dependencies]
 fui = { path = "../../rust-fui/fui", version = "*" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "*" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
+fui_app = { path = "../../rust-fui/fui_app", version = "*" }
 winit = "0.20.0-alpha4"
 failure = "0.1"
 time = "0.1"

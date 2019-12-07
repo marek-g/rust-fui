@@ -1,7 +1,8 @@
-use std::cell::RefMut;
-use observable::event::Event;
 use std::cell::RefCell;
+use std::cell::RefMut;
 use std::iter::FromIterator;
+
+use crate::observable::event::Event;
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {

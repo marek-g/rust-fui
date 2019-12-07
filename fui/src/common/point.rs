@@ -1,4 +1,4 @@
-use common::Rect;
+use crate::common::Rect;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Point {

@@ -1,17 +1,17 @@
-use layout::Grid;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use controls::scroll_bar::ScrollBar;
 use drawing::primitive::Primitive;
 use drawing::primitive_extensions::PrimitiveTransformations;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use fui::*;
 use fui_macros::ui;
-use layout::*;
-use style::*;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
+
+use crate::controls::scroll_bar::ScrollBar;
+use crate::layout::*;
+use crate::style::*;
 
 pub enum ScrollBarVisibility {
     Disabled,
@@ -145,11 +145,11 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         &mut self,
         data: &mut ScrollViewer,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         size: Size,
     ) {
         self.content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(drawing_context, size);
+            content.borrow_mut().measure(resources, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -218,7 +218,7 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         &self,
         data: &ScrollViewer,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
@@ -230,7 +230,7 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         default_theme::button(&mut vec, x, y, width, height, true, false);
 
         if let Some(ref content) = children.into_iter().next() {
-            let vec2 = content.borrow_mut().to_primitives(drawing_context);
+            let vec2 = content.borrow_mut().to_primitives(resources);
 
             let mut vec2 = vec2.clip(UserPixelRect::new(
                 UserPixelPoint::new(x, y),

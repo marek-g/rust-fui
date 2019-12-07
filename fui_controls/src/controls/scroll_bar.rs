@@ -4,8 +4,9 @@ use std::rc::Rc;
 use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use fui::*;
-use style::*;
 use typed_builder::TypedBuilder;
+
+use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct ScrollBar {
@@ -174,7 +175,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         &mut self,
         data: &mut ScrollBar,
         _children: &Box<dyn ChildrenSource>,
-        _drawing_context: &mut DrawingContext,
+        _resources: &mut dyn Resources,
         size: Size,
     ) {
         match data.orientation {
@@ -223,7 +224,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         &self,
         data: &ScrollBar,
         _children: &Box<dyn ChildrenSource>,
-        _drawing_context: &mut DrawingContext,
+        _resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let x = self.rect.x;
         let y = self.rect.y;

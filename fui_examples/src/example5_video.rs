@@ -7,8 +7,8 @@ extern crate fui_macros;
 extern crate typemap;
 extern crate winit;
 
-use fui::application::*;
 use fui::*;
+use fui_app::*;
 use fui_controls::*;
 use fui_macros::ui;
 
@@ -33,7 +33,7 @@ impl MainViewModel {
             app.get_window_manager(),
             app.get_event_loop().unwrap(),
         )?));
-        //let player = Rc::new(RefCell::new(Player::new(app.get_drawing_context().clone())));
+        //let player = Rc::new(RefCell::new(Player::new(app.get_resources().clone())));
 
         let player_copy = Rc::downgrade(&player);
         let player_loop_subscription =

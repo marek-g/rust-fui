@@ -3,11 +3,10 @@ extern crate winit;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use common::Point;
-use control::HitTestResult;
-use control_object::*;
-use events::*;
-use Window;
+use crate::common::Point;
+use crate::control::HitTestResult;
+use crate::control_object::*;
+use crate::events::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ControlEvent {
@@ -33,31 +32,37 @@ impl EventProcessor {
         }
     }
 
-    pub fn handle_event(&mut self, window: &mut Window, event: &winit::event::WindowEvent) {
-        self.hover_detector.handle_event(window, event);
-        self.handle_gesture_event(window, event);
+    pub fn handle_event(
+        &mut self,
+        root_view: &Rc<RefCell<dyn ControlObject>>,
+        event: &winit::event::WindowEvent,
+    ) {
+        self.hover_detector.handle_event(root_view, event);
+        self.handle_gesture_event(root_view, event);
     }
 
-    pub fn handle_gesture_event(&mut self, window: &mut Window, event: &winit::event::WindowEvent) {
+    pub fn handle_gesture_event(
+        &mut self,
+        root_view: &Rc<RefCell<dyn ControlObject>>,
+        event: &winit::event::WindowEvent,
+    ) {
         self.gesture_detector
-            .handle_event(window, event)
+            .handle_event(root_view, event)
             .map(|ev| match ev {
                 Gesture::TapDown { position } => {
-                    if let Some(ref mut root_view) = window.get_root_view_mut() {
-                        let hit_test_result = root_view.borrow().hit_test(position);
-                        let hit_control = match hit_test_result {
-                            HitTestResult::Current => Some(root_view.clone()),
-                            HitTestResult::Child(control) => Some(control),
-                            HitTestResult::Nothing => None,
-                        };
+                    let hit_test_result = root_view.borrow().hit_test(position);
+                    let hit_control = match hit_test_result {
+                        HitTestResult::Current => Some(root_view.clone()),
+                        HitTestResult::Child(control) => Some(control),
+                        HitTestResult::Nothing => None,
+                    };
 
-                        if let Some(ref hit_control) = hit_control {
-                            self.captured_control = Some(Rc::downgrade(hit_control));
-                            self.hover_detector.stop();
-                            self.send_event_to_captured_control(ControlEvent::TapDown {
-                                position: position,
-                            });
-                        }
+                    if let Some(ref hit_control) = hit_control {
+                        self.captured_control = Some(Rc::downgrade(hit_control));
+                        self.hover_detector.stop();
+                        self.send_event_to_captured_control(ControlEvent::TapDown {
+                            position: position,
+                        });
                     }
                 }
 

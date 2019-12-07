@@ -2,11 +2,13 @@
 name = "fui_controls_media"
 version = "0.1.0"
 authors = ["Marek G <no@mail.com>"]
+edition = "2018"
 
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
 fui = { path = "../../rust-fui/fui", version = "*" }
+fui_app = { path = "../../rust-fui/fui_app", version = "*" }
 gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
 failure = "0.1"
 gstreamer = "0.14"

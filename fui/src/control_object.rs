@@ -2,12 +2,13 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
-use children_source::*;
-use common::*;
-use control::*;
 use drawing::primitive::Primitive;
-use drawing_context::DrawingContext;
-use events::*;
+
+use crate::children_source::*;
+use crate::common::*;
+use crate::control::*;
+use crate::events::*;
+use crate::resources::Resources;
 
 pub trait ControlObject {
     fn is_dirty(&self) -> bool;
@@ -21,13 +22,13 @@ pub trait ControlObject {
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn handle_event(&mut self, event: ControlEvent);
-    fn measure(&mut self, drawing_context: &mut DrawingContext, size: Size);
+    fn measure(&mut self, resources: &mut dyn Resources, size: Size);
     fn set_rect(&mut self, rect: Rect);
     fn get_rect(&self) -> Rect;
 
     fn hit_test(&self, point: Point) -> HitTestResult;
 
-    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive>;
+    fn to_primitives(&self, resources: &mut dyn Resources) -> Vec<Primitive>;
 }
 
 impl<D: 'static> ControlObject for Control<D> {
@@ -60,9 +61,9 @@ impl<D: 'static> ControlObject for Control<D> {
             .handle_event(&mut self.data, &self.children, event)
     }
 
-    fn measure(&mut self, drawing_context: &mut DrawingContext, size: Size) {
+    fn measure(&mut self, resources: &mut dyn Resources, size: Size) {
         self.style
-            .measure(&mut self.data, &self.children, drawing_context, size)
+            .measure(&mut self.data, &self.children, resources, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
@@ -77,8 +78,8 @@ impl<D: 'static> ControlObject for Control<D> {
         self.style.hit_test(&self.data, &self.children, point)
     }
 
-    fn to_primitives(&self, drawing_context: &mut DrawingContext) -> Vec<Primitive> {
+    fn to_primitives(&self, resources: &mut dyn Resources) -> Vec<Primitive> {
         self.style
-            .to_primitives(&self.data, &self.children, drawing_context)
+            .to_primitives(&self.data, &self.children, resources)
     }
 }

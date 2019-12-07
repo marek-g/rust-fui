@@ -2,26 +2,11 @@
 
 extern crate shared_library;
 
-use std::f32;
-
 #[cfg(windows)]
 use std::result;
 
 #[cfg(windows)]
 use std::mem;
-
-pub fn round_layout_value(value: f32, dpi_scale: f32) -> f32 {
-    if (dpi_scale - 1.0f32).abs() < 0.0000015f32 {
-        value.round()
-    } else {
-        let mut new_value = (value * dpi_scale).round() / dpi_scale;
-        if new_value.is_infinite() || new_value.is_nan() ||
-            (f32::MAX - new_value) < 0.0000015f32 {
-            new_value = value;
-        }
-        new_value
-    }
-}
 
 /// Makes the process high-DPI aware.
 ///
@@ -48,9 +33,7 @@ pub fn set_process_high_dpi_aware() {
 
 /// This function only works on Windows.
 #[cfg(not(windows))]
-pub fn set_process_high_dpi_aware() {
-}
-
+pub fn set_process_high_dpi_aware() {}
 
 #[cfg(windows)]
 type Result = result::Result<(), ()>;
@@ -65,9 +48,7 @@ fn try_get_function_pointer<F>(dll: &str, name: &str, callback: &Fn(&F) -> Resul
     // Try to load the function dynamically.
     let lib = DynamicLibrary::open(Some(Path::new(dll))).map_err(|_| ())?;
 
-    let func_ptr = unsafe {
-        lib.symbol::<F>(name).map_err(|_| ())?
-    };
+    let func_ptr = unsafe { lib.symbol::<F>(name).map_err(|_| ())? };
 
     let func = unsafe { mem::transmute(&func_ptr) };
 
@@ -86,29 +67,30 @@ fn set_high_dpi_windows_10() -> Result {
             // First, try using the new Per-Monitor high-DPI awareness introduced in Windows 10 Creators Update,
             // to benefit from the added features.
             // See https://msdn.microsoft.com/library/windows/desktop/mt791579(v=vs.85).aspx for reference.
-            let DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2: usize = unsafe { mem::transmute(-4 as isize) };
+            let DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2: usize =
+                unsafe { mem::transmute(-4 as isize) };
 
             let result = unsafe {
                 SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-            }; 
+            };
 
             match result {
                 // The V2 only works with Windows 10 Creators Update. Try using the older per-monitor context V1.
                 0 => {
-                    let DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE = unsafe { mem::transmute(-3 as isize) };
-                    
+                    let DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE =
+                        unsafe { mem::transmute(-3 as isize) };
                     let result = unsafe {
                         SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE)
-                    }; 
+                    };
 
                     match result {
                         0 => Err(()),
-                        _ => Ok(())
+                        _ => Ok(()),
                     }
-                },
-                _ => Ok(())
+                }
+                _ => Ok(()),
             }
-        }
+        },
     )
 }
 
@@ -124,15 +106,13 @@ fn set_high_dpi_windows_8() -> Result {
             // From https://msdn.microsoft.com/en-us/library/windows/desktop/dn280512(v=vs.85).aspx
             const PROCESS_PER_MONITOR_DPI_AWARE: u32 = 2;
 
-            let result = unsafe {
-                SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE)
-            };
+            let result = unsafe { SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) };
 
             match result {
                 0 => Ok(()),
-                _ => Err(())
+                _ => Err(()),
             }
-        }
+        },
     )
 }
 
@@ -145,14 +125,12 @@ fn set_high_dpi_windows_vista() -> Result {
         "SetProcessDPIAware",
         &|SetProcessDPIAware| {
             // See https://msdn.microsoft.com/en-us/library/windows/desktop/ms633543(v=vs.85).aspx
-            let result = unsafe {
-                SetProcessDPIAware()
-            };
+            let result = unsafe { SetProcessDPIAware() };
 
             match result {
                 0 => Err(()),
-                _ => Ok(())
+                _ => Ok(()),
             }
-        }
+        },
     )
 }

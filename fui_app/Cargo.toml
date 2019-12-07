@@ -1,12 +1,16 @@
 [package]
-name = "fui"
+name = "fui_app"
 version = "0.1.0"
 authors = ["Marek G <no@mail.com>"]
 edition = "2018"
 
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
+drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
+fui = { path = "../fui", version = "*" }
 failure = "0.1"
 winit = "0.20.0-alpha4"
+shared_library = "0.1"
+find_folder = "0.3"
 typed-builder = "0.3"
 typemap = "0.3"

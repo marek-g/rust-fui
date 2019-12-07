@@ -1,26 +1,11 @@
-extern crate drawing;
-extern crate drawing_gl;
-extern crate failure;
-extern crate fui;
-extern crate gl;
-extern crate glib;
-extern crate glutin;
-extern crate gstreamer as gst;
-extern crate gstreamer_app as gst_app;
-extern crate gstreamer_sys as gst_ffi;
-extern crate gstreamer_video as gst_video;
-extern crate gstreamer_video_sys as gst_video_ffi;
-extern crate std;
-extern crate time;
-extern crate winit;
-
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
-use self::drawing::backend::WindowTargetExt;
-use self::gl::types::*;
-use self::glib::Value;
-use self::gst::prelude::*;
+use drawing::backend::WindowTargetExt;
 use fui::*;
+use fui_app::*;
+use gl::types::*;
+use glib::Value;
+use gstreamer::prelude::*;
 use gstreamer_media;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -34,14 +19,14 @@ use std::sync::{Arc, Mutex};
 //#[cfg(target_os = "linux")]
 //use self::winit::platform::unix::EventsLoopExt;
 
-use self::drawing::backend::WindowTarget;
-use self::winit::platform::unix::WindowExtUnix;
+use drawing::backend::WindowTarget;
+use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
     drawing_context: Rc<RefCell<DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
-    pipeline: Option<self::gst::Pipeline>,
+    pipeline: Option<gstreamer::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
     receiver: Option<Receiver<GLuint>>,
     event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
@@ -54,7 +39,7 @@ impl PlayerGl {
         window_manager: &Rc<RefCell<WindowManager>>,
         event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
-        gst::init()?;
+        gstreamer::init()?;
 
         Ok(PlayerGl {
             texture: PlayerTexture::new(drawing_context.clone()),
@@ -132,39 +117,41 @@ impl PlayerGl {
                     .connect("client-draw", false, move |args| {
                         println!("client-draw! {:?}", args);
                         let sample = args[2]
-                            .get::<gst::Sample>()
+                            .get::<gstreamer::Sample>()
                             .expect("Invalid argument - GstSample expected.");
                         if let (Some(buffer), Some(caps)) = (sample.get_buffer(), sample.get_caps())
                         {
                             println!("caps: {}", caps.to_string());
-                            if let Some(video_info) = gst_video::VideoInfo::from_caps(&caps) {
+                            if let Some(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
                                 println!("video_info: {:?}", video_info);
 
                                 let texture_id = unsafe {
-                                    use self::glib::translate::from_glib;
+                                    use glib::translate::from_glib;
+                                    use glib::translate::ToGlibPtr;
                                     use std::mem;
-                                    use video_player_gl::glib::translate::ToGlibPtr;
                                     const GST_MAP_GL: u32 = 131072u32;
 
                                     // TODO: can we use from_buffer_readable_gl() instead?
                                     // https://gitlab.freedesktop.org/sjakthol/gstreamer-rs/commit/43f5a10f9c75c69fadccdf9d88e0102bd0ecaa5b
-                                    let mut frame: gst_video_ffi::GstVideoFrame = mem::zeroed();
-                                    let res: bool = from_glib(gst_video_ffi::gst_video_frame_map(
-                                        &mut frame,
-                                        video_info.to_glib_none().0 as *mut _,
-                                        buffer.as_mut_ptr(),
-                                        mem::transmute(
-                                            gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF
-                                                | gst_ffi::GST_MAP_READ
-                                                | GST_MAP_GL,
-                                        ),
-                                    ));
+                                    let mut frame: gstreamer_video_sys::GstVideoFrame =
+                                        mem::zeroed();
+                                    let res: bool =
+                                        from_glib(gstreamer_video_sys::gst_video_frame_map(
+                                            &mut frame,
+                                            video_info.to_glib_none().0 as *mut _,
+                                            buffer.as_mut_ptr(),
+                                            mem::transmute(
+                                                gstreamer_video_sys::GST_VIDEO_FRAME_MAP_FLAG_NO_REF
+                                                    | gstreamer_sys::GST_MAP_READ
+                                                    | GST_MAP_GL,
+                                            ),
+                                        ));
 
                                     if !res {
                                         Err(buffer)
                                     } else {
                                         let texture_id = *(frame.data[0] as *const GLuint);
-                                        gst_video_ffi::gst_video_frame_unmap(&mut frame);
+                                        gstreamer_video_sys::gst_video_frame_unmap(&mut frame);
                                         Ok(texture_id)
                                     }
                                 };
@@ -384,8 +371,8 @@ impl PlayerGl {
     pub fn play(&mut self) {
         // Start playing
         if let Some(ref pipeline) = self.pipeline {
-            let ret = pipeline.set_state(gst::State::Playing);
-            assert_ne!(ret, Err(gst::StateChangeError));
+            let ret = pipeline.set_state(gstreamer::State::Playing);
+            assert_ne!(ret, Err(gstreamer::StateChangeError));
         }
     }
 
@@ -405,8 +392,8 @@ impl PlayerGl {
     pub fn stop(&mut self) {
         // Shutdown pipeline
         if let Some(ref pipeline) = self.pipeline {
-            let ret = pipeline.set_state(gst::State::Null);
-            assert_ne!(ret, Err(gst::StateChangeError));
+            let ret = pipeline.set_state(gstreamer::State::Null);
+            assert_ne!(ret, Err(gstreamer::StateChangeError));
         }
     }
 }

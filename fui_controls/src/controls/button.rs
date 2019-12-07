@@ -5,8 +5,9 @@ use drawing::primitive::Primitive;
 use drawing::primitive_extensions::PrimitiveTransformations;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use fui::*;
-use style::*;
 use typed_builder::TypedBuilder;
+
+use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Button {
@@ -97,11 +98,11 @@ impl Style<Button> for ButtonDefaultStyle {
         &mut self,
         _data: &mut Button,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         size: Size,
     ) {
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(drawing_context, size);
+            content.borrow_mut().measure(resources, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -151,7 +152,7 @@ impl Style<Button> for ButtonDefaultStyle {
         &self,
         _data: &Button,
         children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
@@ -171,7 +172,7 @@ impl Style<Button> for ButtonDefaultStyle {
         );
 
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(drawing_context);
+            let mut vec2 = content.borrow_mut().to_primitives(resources);
             if self.is_pressed.get() {
                 vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32));
             }

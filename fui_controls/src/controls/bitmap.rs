@@ -1,12 +1,12 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::backend::Texture;
 use drawing::primitive::Primitive;
 use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
 use fui::*;
-use style::*;
 use typed_builder::TypedBuilder;
+
+use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
@@ -60,16 +60,11 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         &mut self,
         data: &mut Bitmap,
         _children: &Box<dyn ChildrenSource>,
-        drawing_context: &mut DrawingContext,
+        resources: &mut dyn Resources,
         _size: Size,
     ) {
-        self.rect = if let Some(texture) = drawing_context
-            .get_resources()
-            .textures()
-            .get(&data.texture_id.get())
-        {
-            let size = texture.get_size();
-            Rect::new(0.0f32, 0.0f32, size.0 as f32, size.1 as f32)
+        self.rect = if let Ok(texture_size) = resources.get_texture_size(data.texture_id.get()) {
+            Rect::new(0.0f32, 0.0f32, texture_size.0 as f32, texture_size.1 as f32)
         } else {
             Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
         }
@@ -100,7 +95,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         &self,
         data: &Bitmap,
         _children: &Box<dyn ChildrenSource>,
-        _drawing_context: &mut DrawingContext,
+        _resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 

@@ -13,6 +13,9 @@ pub use self::point::*;
 mod rect;
 pub use self::rect::*;
 
+mod rounding;
+pub use self::rounding::*;
+
 mod size;
 pub use self::size::*;
 
