@@ -1,8 +1,9 @@
-use crate::control_object::ControlObject;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::Point;
+use crate::control_object::ControlObject;
+use crate::events::*;
 
 pub enum Gesture {
     TapDown { position: Point },
@@ -24,22 +25,22 @@ impl GestureDetector {
     pub fn handle_event(
         &mut self,
         _root_view: &Rc<RefCell<dyn ControlObject>>,
-        event: &::winit::event::WindowEvent,
+        event: &InputEvent,
     ) -> Option<Gesture> {
         match event {
-            ::winit::event::WindowEvent::CursorMoved { position, .. } => {
+            InputEvent::CursorMoved { position, .. } => {
                 //let physical_pos =
                 //    position.to_physical(window.get_drawing_target().get_window().hidpi_factor());
                 //self.mouse_pos = Point::new(physical_pos.x as f32, physical_pos.y as f32);
-                self.mouse_pos = Point::new(position.x as f32, position.y as f32);
+                self.mouse_pos = *position;
                 return Some(Gesture::TapMove {
                     position: self.mouse_pos,
                 });
             }
 
-            ::winit::event::WindowEvent::MouseInput {
-                button: ::winit::event::MouseButton::Left,
-                state: ::winit::event::ElementState::Pressed,
+            InputEvent::MouseInput {
+                button: MouseButton::Left,
+                state: ElementState::Pressed,
                 ..
             } => {
                 return Some(Gesture::TapDown {
@@ -47,9 +48,9 @@ impl GestureDetector {
                 });
             }
 
-            ::winit::event::WindowEvent::MouseInput {
-                button: ::winit::event::MouseButton::Left,
-                state: ::winit::event::ElementState::Released,
+            InputEvent::MouseInput {
+                button: MouseButton::Left,
+                state: ElementState::Released,
                 ..
             } => {
                 return Some(Gesture::TapUp {

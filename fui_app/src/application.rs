@@ -159,7 +159,10 @@ impl Application {
                         }
 
                         if let Some(ref mut root_view) = window.get_root_view_mut() {
-                            event_processor.handle_event(root_view, event);
+                            if let Some(input_event) = crate::event_converter::convert_event(event)
+                            {
+                                event_processor.handle_event(root_view, &input_event);
+                            }
                         }
                     }
                 }

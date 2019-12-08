@@ -1,10 +1,9 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::common::Point;
 use crate::control::HitTestResult;
 use crate::control_object::*;
-use crate::events::ControlEvent;
+use crate::events::*;
 
 pub struct HoverDetector {
     hover_control: Option<Weak<RefCell<dyn ControlObject>>>,
@@ -37,19 +36,12 @@ impl HoverDetector {
         }
     }
 
-    pub fn handle_event(
-        &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
-        /*window: &mut Window,*/ event: &::winit::event::WindowEvent,
-    ) {
+    pub fn handle_event(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>, event: &InputEvent) {
         match event {
-            ::winit::event::WindowEvent::CursorMoved { position, .. } => {
+            InputEvent::CursorMoved { position, .. } => {
                 //let physical_pos =
                 //    position.to_physical(window.get_drawing_target().get_window().hidpi_factor());
-                let physical_pos = Point::new(position.x as f32, position.y as f32);
-                let hit_test_result = root_view
-                    .borrow()
-                    .hit_test(Point::new(physical_pos.x as f32, physical_pos.y as f32));
+                let hit_test_result = root_view.borrow().hit_test(*position);
                 let hit_control = match hit_test_result {
                     HitTestResult::Current => Some(root_view.clone()),
                     HitTestResult::Child(control) => Some(control),
@@ -91,7 +83,7 @@ impl HoverDetector {
                 }
             }
 
-            ::winit::event::WindowEvent::CursorLeft { .. } => {
+            InputEvent::CursorLeft { .. } => {
                 if let Some(ref hover_control) = self.get_hover_control() {
                     if self.is_running {
                         hover_control

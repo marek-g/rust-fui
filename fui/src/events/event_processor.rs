@@ -30,11 +30,7 @@ impl EventProcessor {
         }
     }
 
-    pub fn handle_event(
-        &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
-        event: &winit::event::WindowEvent,
-    ) {
+    pub fn handle_event(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>, event: &InputEvent) {
         self.hover_detector.handle_event(root_view, event);
         self.handle_gesture_event(root_view, event);
     }
@@ -42,7 +38,7 @@ impl EventProcessor {
     pub fn handle_gesture_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        event: &winit::event::WindowEvent,
+        event: &InputEvent,
     ) {
         self.gesture_detector
             .handle_event(root_view, event)

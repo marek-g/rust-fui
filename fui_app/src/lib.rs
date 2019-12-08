@@ -15,6 +15,8 @@ pub use drawing_context::*;
 mod dispatcher;
 pub use dispatcher::*;
 
+mod event_converter;
+
 mod high_dpi;
 pub use high_dpi::*;
 
