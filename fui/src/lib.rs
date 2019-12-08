@@ -1,9 +1,3 @@
-extern crate drawing;
-extern crate failure;
-extern crate typed_builder;
-extern crate typemap;
-extern crate winit;
-
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
 mod children_source;
@@ -29,9 +23,6 @@ pub use observable::*;
 
 mod style;
 pub use style::*;
-
-mod threading;
-pub use threading::*;
 
 mod view;
 pub use view::*;

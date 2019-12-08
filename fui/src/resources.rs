@@ -1,5 +1,3 @@
-extern crate winit;
-
 pub use drawing::color::ColorFormat;
 
 use crate::Result;

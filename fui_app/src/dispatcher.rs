@@ -1,5 +1,3 @@
-extern crate winit;
-
 use std::cell::RefCell;
 use std::sync::mpsc::{channel, Receiver, Sender};
 

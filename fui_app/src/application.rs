@@ -4,17 +4,18 @@ extern crate winit;
 use fui::*;
 
 use std::cell::RefCell;
+use std::ops::DerefMut;
 use std::rc::Rc;
 use winit::dpi::LogicalSize;
 
 use drawing::backend::WindowTarget;
 use drawing::units::PhysPixelSize;
 
+use crate::Dispatcher;
 use crate::DrawingContext;
 use crate::DrawingWindowTarget;
 use crate::Window;
 use crate::WindowManager;
-use std::ops::DerefMut;
 
 pub struct Application {
     title: &'static str,

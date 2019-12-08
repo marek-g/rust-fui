@@ -12,6 +12,9 @@ pub use application::*;
 mod drawing_context;
 pub use drawing_context::*;
 
+mod dispatcher;
+pub use dispatcher::*;
+
 mod high_dpi;
 pub use high_dpi::*;
 
