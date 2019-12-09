@@ -52,7 +52,7 @@ impl RcView for ItemViewModel {
                     clicked: Callback::new_rc(view_model, |vm, _| {
                         let parent = vm.borrow().parent.clone();
                         if let Some(parent) = parent.upgrade() {
-                            parent.borrow_mut().delete(vm);
+                            parent.delete(vm);
                         }
                     }),
                     Text { text: "Delete" },
@@ -64,8 +64,6 @@ impl RcView for ItemViewModel {
 
 struct MainViewModel {
     pub items: ObservableVec<Rc<RefCell<ItemViewModel>>>,
-
-    self_weak: Weak<RefCell<MainViewModel>>,
     counter: i32,
 }
 
@@ -73,45 +71,53 @@ impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         let main_vm = Rc::new(RefCell::new(MainViewModel {
             items: ObservableVec::new(),
-            self_weak: Weak::new(),
             counter: 0,
         }));
 
-        main_vm.borrow_mut().self_weak = Rc::downgrade(&main_vm);
-        main_vm.borrow_mut().add();
-        main_vm.borrow_mut().add();
-        main_vm.borrow_mut().add();
-        main_vm.borrow_mut().add();
+        main_vm.add();
+        main_vm.add();
+        main_vm.add();
+        main_vm.add();
 
         main_vm
     }
+}
 
-    pub fn add(&mut self) {
+trait MainViewModelMethods {
+    fn add(&self);
+    fn add_100(&self);
+    fn remove_all(&self);
+    fn delete(&self, item: Rc<RefCell<ItemViewModel>>);
+}
+
+impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
+    fn add(&self) {
         let new_item = ItemViewModel::new(
-            self.self_weak.clone(),
-            Property::new(format!("Element {}", self.counter)),
-            Property::new(self.counter + 10),
+            Rc::downgrade(self),
+            Property::new(format!("Element {}", self.borrow().counter)),
+            Property::new(self.borrow().counter + 10),
         );
-        self.counter += 1;
+        self.borrow_mut().counter += 1;
 
         println!("Add {}!", new_item.borrow().name.get());
-        self.items.push(new_item);
+        self.borrow_mut().items.push(new_item);
     }
 
-    pub fn add_100(&mut self) {
+    fn add_100(&self) {
         for _ in 0..100 {
             self.add();
         }
     }
 
-    pub fn remove_all(&mut self) {
+    fn remove_all(&self) {
         println!("Remove all!");
-        self.items.remove_filter(|_i| true);
+        self.borrow_mut().items.remove_filter(|_i| true);
     }
 
-    pub fn delete(&mut self, item: Rc<RefCell<ItemViewModel>>) {
+    fn delete(&self, item: Rc<RefCell<ItemViewModel>>) {
         println!("Delete {}!", item.borrow().name.get());
-        self.items
+        self.borrow_mut()
+            .items
             .remove_filter(|i| std::ptr::eq(i.as_ref(), item.as_ref()));
     }
 }
@@ -130,15 +136,15 @@ impl RcView for MainViewModel {
 
                 Vertical {
                     Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.add()),
+                        clicked: Callback::new_rc(view_model, |vm, _| vm.add()),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.add_100()),
+                        clicked: Callback::new_rc(view_model, |vm, _| vm.add_100()),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_rc(view_model, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
                 },
