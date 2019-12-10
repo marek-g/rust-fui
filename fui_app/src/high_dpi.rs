@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-extern crate shared_library;
-
 #[cfg(windows)]
 use std::result;
 

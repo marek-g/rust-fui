@@ -1,6 +1,3 @@
-extern crate fui;
-extern crate winit;
-
 use fui::*;
 
 use std::cell::RefCell;

@@ -1,5 +1,3 @@
-extern crate winit;
-
 use drawing::backend::WindowTarget;
 use std::cell::RefCell;
 use std::collections::HashMap;

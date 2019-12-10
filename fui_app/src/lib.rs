@@ -1,11 +1,3 @@
-extern crate drawing;
-extern crate drawing_gl;
-extern crate failure;
-extern crate find_folder;
-extern crate typed_builder;
-extern crate typemap;
-extern crate winit;
-
 mod application;
 pub use application::*;
 

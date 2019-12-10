@@ -1,6 +1,3 @@
-extern crate fui;
-extern crate winit;
-
 pub use drawing::color::ColorFormat;
 
 use fui::*;

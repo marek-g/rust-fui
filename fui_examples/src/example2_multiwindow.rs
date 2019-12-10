@@ -1,11 +1,5 @@
 #![windows_subsystem = "windows"]
 
-extern crate fui;
-extern crate fui_controls;
-extern crate fui_macros;
-extern crate typemap;
-extern crate winit;
-
 use fui::*;
 use fui_app::*;
 use fui_controls::*;
