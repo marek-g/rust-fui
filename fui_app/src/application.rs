@@ -65,6 +65,18 @@ impl Application {
         &self.event_loop_iteration
     }
 
+    pub fn add_window<V: RcView>(
+        &mut self,
+        window_builder: winit::window::WindowBuilder,
+        view_model: Rc<RefCell<V>>,
+    ) -> Result<winit::window::WindowId> {
+        self.window_manager.borrow_mut().add_window_view_model(
+            window_builder,
+            self.get_event_loop().unwrap(),
+            &view_model,
+        )
+    }
+
     pub fn run(&mut self) {
         let mut frame_no = 0;
 

@@ -7,7 +7,9 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+
 use typemap::TypeMap;
+use winit::window::WindowBuilder;
 
 use fui_controls_media::PlayerGl;
 //use fui_controls_media::Player;
@@ -98,21 +100,17 @@ impl RcView for MainViewModel {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut app = Application::new("Example: video").unwrap();
 
     let main_view_model = MainViewModel::new(&mut app).unwrap();
 
-    {
-        let mut window_manager = app.get_window_manager().borrow_mut();
-        let window_builder = winit::window::WindowBuilder::new().with_title("GStreamer test");
-        window_manager
-            .add_window_view_model(
-                window_builder,
-                app.get_event_loop().unwrap(),
-                &main_view_model,
-            )
-            .unwrap();
-    }
+    app.add_window(
+        WindowBuilder::new().with_title("GStreamer test"),
+        main_view_model,
+    )?;
+
     app.run();
+
+    Ok(())
 }

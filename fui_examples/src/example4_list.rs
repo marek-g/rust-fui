@@ -9,6 +9,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use typemap::TypeMap;
+use winit::window::WindowBuilder;
 
 struct ItemViewModel {
     pub parent: Weak<RefCell<MainViewModel>>,
@@ -67,10 +68,7 @@ impl MainViewModel {
             counter: 0,
         }));
 
-        main_vm.add();
-        main_vm.add();
-        main_vm.add();
-        main_vm.add();
+        main_vm.add_n(4);
 
         main_vm
     }
@@ -78,7 +76,7 @@ impl MainViewModel {
 
 trait MainViewModelMethods {
     fn add(&self);
-    fn add_100(&self);
+    fn add_n(&self, n: i32);
     fn remove_all(&self);
     fn delete(&self, item: Rc<RefCell<ItemViewModel>>);
 }
@@ -96,8 +94,8 @@ impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
         self.borrow_mut().items.push(new_item);
     }
 
-    fn add_100(&self) {
-        for _ in 0..100 {
+    fn add_n(&self, n: i32) {
+        for _ in 0..n {
             self.add();
         }
     }
@@ -133,7 +131,7 @@ impl RcView for MainViewModel {
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| vm.add_100()),
+                        clicked: Callback::new_rc(view_model, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
@@ -152,22 +150,15 @@ impl RcView for MainViewModel {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut app = Application::new("Example: list").unwrap();
 
-    let main_view_model = MainViewModel::new();
-
-    {
-        let mut window_manager = app.get_window_manager().borrow_mut();
-        let window_builder = winit::window::WindowBuilder::new().with_title("Example: list");
-        window_manager
-            .add_window_view_model(
-                window_builder,
-                app.get_event_loop().unwrap(),
-                &main_view_model,
-            )
-            .unwrap();
-    }
+    app.add_window(
+        WindowBuilder::new().with_title("Example: list"),
+        MainViewModel::new(),
+    )?;
 
     app.run();
+
+    Ok(())
 }

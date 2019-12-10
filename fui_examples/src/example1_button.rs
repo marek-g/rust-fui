@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
+use winit::window::WindowBuilder;
 
 struct MainViewModel {
     pub counter: Property<i32>,
@@ -79,22 +80,15 @@ impl RcView for MainViewModel {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut app = Application::new("Example: button").unwrap();
 
-    let main_view_model = MainViewModel::new();
-
-    {
-        let mut window_manager = app.get_window_manager().borrow_mut();
-        let window_builder = winit::window::WindowBuilder::new().with_title("Example: button");
-        window_manager
-            .add_window_view_model(
-                window_builder,
-                app.get_event_loop().unwrap(),
-                &main_view_model,
-            )
-            .unwrap();
-    }
+    app.add_window(
+        WindowBuilder::new().with_title("Example: button"),
+        MainViewModel::new(),
+    )?;
 
     app.run();
+
+    Ok(())
 }

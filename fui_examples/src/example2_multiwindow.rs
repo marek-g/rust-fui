@@ -7,7 +7,9 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+
 use typemap::TypeMap;
+use winit::window::WindowBuilder;
 
 use Property;
 
@@ -60,33 +62,20 @@ impl RcView for MainViewModel {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let mut app = Application::new("Example: multiwindow").unwrap();
 
-    let main_view_model = MainViewModel::new();
-    let main_view_model2 = MainViewModel::new();
+    app.add_window(
+        WindowBuilder::new().with_title("Window 1"),
+        MainViewModel::new(),
+    )?;
 
-    {
-        let mut window_manager = app.get_window_manager().borrow_mut();
-
-        let window_builder = winit::window::WindowBuilder::new().with_title("Window 1");
-        window_manager
-            .add_window_view_model(
-                window_builder,
-                app.get_event_loop().unwrap(),
-                &main_view_model,
-            )
-            .unwrap();
-
-        let window_builder = winit::window::WindowBuilder::new().with_title("Window 2");
-        window_manager
-            .add_window_view_model(
-                window_builder,
-                app.get_event_loop().unwrap(),
-                &main_view_model2,
-            )
-            .unwrap();
-    }
+    app.add_window(
+        WindowBuilder::new().with_title("Window 2"),
+        MainViewModel::new(),
+    )?;
 
     app.run();
+
+    Ok(())
 }
