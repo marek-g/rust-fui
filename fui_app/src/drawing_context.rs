@@ -4,7 +4,6 @@ use fui::*;
 
 use drawing::backend::Device;
 use drawing::backend::Texture;
-use drawing::backend::WindowTarget;
 use drawing::color::*;
 use drawing::font::*;
 use drawing::primitive::Primitive;

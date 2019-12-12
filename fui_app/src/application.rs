@@ -5,7 +5,6 @@ use std::ops::DerefMut;
 use std::rc::Rc;
 use winit::dpi::LogicalSize;
 
-use drawing::backend::WindowTarget;
 use drawing::units::PhysPixelSize;
 
 use crate::Dispatcher;

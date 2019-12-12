@@ -1,6 +1,5 @@
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
-use drawing::backend::WindowTargetExt;
 use fui::*;
 use fui_app::*;
 use gl::types::*;
@@ -19,7 +18,6 @@ use std::sync::{Arc, Mutex};
 //#[cfg(target_os = "linux")]
 //use self::winit::platform::unix::EventsLoopExt;
 
-use drawing::backend::WindowTarget;
 use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
