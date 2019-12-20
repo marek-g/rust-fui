@@ -173,7 +173,7 @@ impl DrawingContext {
         &mut self,
         render_target: &<DrawingDevice as Device>::RenderTarget,
         size: PhysPixelSize,
-        primitives: Vec<Primitive>,
+        primitives: &Vec<Primitive>,
     ) -> Result<()> {
         self.renderer.draw(
             &mut self.device,

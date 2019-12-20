@@ -244,7 +244,7 @@ impl Application {
                 let res = drawing_context.draw(
                     drawing_target.get_render_target(),
                     PhysPixelSize::new(width as f32, height as f32),
-                    primitives,
+                    &primitives,
                 );
                 if let Err(err) = res {
                     eprintln!("Render error: {}", err);
