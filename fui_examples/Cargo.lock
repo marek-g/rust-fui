@@ -101,6 +101,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "clamped"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -205,9 +210,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "drawing"
 version = "0.1.0"
 dependencies = [
+ "bitflags 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clamped 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "euclid 0.20.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "freetype-rs 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rawpointer 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -216,7 +224,6 @@ version = "0.1.0"
 dependencies = [
  "drawing 0.1.0",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "freetype-rs 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gl 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glutin 0.22.0-alpha3 (registry+https://github.com/rust-lang/crates.io-index)",
  "winit 0.20.0-alpha4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1135,6 +1142,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "rawpointer"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "rdrand"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1513,6 +1525,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cc 1.0.46 (registry+https://github.com/rust-lang/crates.io-index)" = "0213d356d3c4ea2c18c40b037c3be23cd639825c18f25ee670ac7813beeef99c"
 "checksum cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)" = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 "checksum cgl 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "55e7ec0b74fe5897894cbc207092c577e87c52f8a59e8ca8d97ef37551f60a49"
+"checksum clamped 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "37b0d2da5c869904d6ef7d442ce86e35fc9300ec77fbca115cb1b9b985e81a84"
 "checksum cloudabi 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 "checksum cocoa 0.18.5 (registry+https://github.com/rust-lang/crates.io-index)" = "1706996401131526e36b3b49f0c4d912639ce110996f3ca144d78946727bce54"
 "checksum cocoa 0.19.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f29f7768b2d1be17b96158e3285951d366b40211320fb30826a76cb7a0da6400"
@@ -1608,6 +1621,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum rand_pcg 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "abf9b09b01790cfe0364f52bf32995ea3c39f4d2dd011eac241d2914146d0b44"
 "checksum rand_xorshift 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "cbf7e9e623549b0e21f6e97cf8ecf247c1a8fd2e8a992ae265314300b2455d5c"
 "checksum raw-window-handle 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2e815b85b31e4d397ca9dd8eb1d692e9cb458b9f6ae8ac2232c995dca8236f87"
+"checksum rawpointer 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "60a357793950651c4ed0f3f52338f53b2f809f32d83a07f72909fa13e4c6c1e3"
 "checksum rdrand 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "678054eb77286b51581ba43620cc911abf02758c91f93f479767aed0f90458b2"
 "checksum redox_syscall 0.1.56 (registry+https://github.com/rust-lang/crates.io-index)" = "2439c63f3f6139d1b57529d16bc3b8bb855230c8efcc5d3a896c8bea7c3b1e84"
 "checksum rustc-demangle 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)" = "4c691c0e608126e00913e33f0ccf3727d5fc84573623b8d65b2df340b5201783"

@@ -241,11 +241,7 @@ impl Application {
                     drawing_target.get_render_target(),
                     &[0.5f32, 0.4f32, 0.3f32, 1.0f32],
                 );
-                let res = drawing_context.draw(
-                    drawing_target.get_render_target(),
-                    PhysPixelSize::new(width as f32, height as f32),
-                    &primitives,
-                );
+                let res = drawing_context.draw(drawing_target.get_render_target(), &primitives);
                 if let Err(err) = res {
                     eprintln!("Render error: {}", err);
                 }
