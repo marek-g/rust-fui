@@ -22,27 +22,27 @@ pub fn border_3d(
 
     vec.push(Primitive::Line {
         color: line_color1,
-        thickness: UserPixelThickness::new(1.0f32),
-        start_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
-        end_point: UserPixelPoint::new(x + 0.5, y + 0.5),
+        thickness: PixelThickness::new(1.0f32),
+        start_point: PixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
+        end_point: PixelPoint::new(x + 0.5, y + 0.5),
     });
     vec.push(Primitive::Line {
         color: line_color1,
-        thickness: UserPixelThickness::new(1.0f32),
-        start_point: UserPixelPoint::new(x + 0.5, y + 0.5),
-        end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
+        thickness: PixelThickness::new(1.0f32),
+        start_point: PixelPoint::new(x + 0.5, y + 0.5),
+        end_point: PixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
     });
     vec.push(Primitive::Line {
         color: line_color2,
-        thickness: UserPixelThickness::new(1.0f32),
-        start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
-        end_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
+        thickness: PixelThickness::new(1.0f32),
+        start_point: PixelPoint::new(x + width - 1.0 + 0.5, y + 0.5),
+        end_point: PixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
     });
     vec.push(Primitive::Line {
         color: line_color2,
-        thickness: UserPixelThickness::new(1.0f32),
-        start_point: UserPixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
-        end_point: UserPixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
+        thickness: PixelThickness::new(1.0f32),
+        start_point: PixelPoint::new(x + width - 1.0 + 0.5, y + height - 1.0 + 0.5),
+        end_point: PixelPoint::new(x + 0.5, y + height - 1.0 + 0.5),
     });
 }
 
@@ -67,9 +67,9 @@ pub fn button(
 
     vec.push(Primitive::Rectangle {
         color: background,
-        rect: UserPixelRect::new(
-            UserPixelPoint::new(x + 1.0, y + 1.0),
-            UserPixelSize::new(width - 2.0, height - 2.0),
+        rect: PixelRect::new(
+            PixelPoint::new(x + 1.0, y + 1.0),
+            PixelSize::new(width - 2.0, height - 2.0),
         ),
     });
 

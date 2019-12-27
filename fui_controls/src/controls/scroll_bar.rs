@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -243,13 +243,13 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: match data.orientation {
-                    Orientation::Horizontal => UserPixelRect::new(
-                        UserPixelPoint::new(x + START_MARGIN, y + SIDE_MARGIN),
-                        UserPixelSize::new(self.thumb_pos_px, height - SIDE_MARGIN - SIDE_MARGIN),
+                    Orientation::Horizontal => PixelRect::new(
+                        PixelPoint::new(x + START_MARGIN, y + SIDE_MARGIN),
+                        PixelSize::new(self.thumb_pos_px, height - SIDE_MARGIN - SIDE_MARGIN),
                     ),
-                    Orientation::Vertical => UserPixelRect::new(
-                        UserPixelPoint::new(x + SIDE_MARGIN, y + START_MARGIN),
-                        UserPixelSize::new(width - SIDE_MARGIN - SIDE_MARGIN, self.thumb_pos_px),
+                    Orientation::Vertical => PixelRect::new(
+                        PixelPoint::new(x + SIDE_MARGIN, y + START_MARGIN),
+                        PixelSize::new(width - SIDE_MARGIN - SIDE_MARGIN, self.thumb_pos_px),
                     ),
                 },
             });
@@ -280,22 +280,22 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             vec.push(Primitive::Rectangle {
                 color: background,
                 rect: match data.orientation {
-                    Orientation::Horizontal => UserPixelRect::new(
-                        UserPixelPoint::new(
+                    Orientation::Horizontal => PixelRect::new(
+                        PixelPoint::new(
                             x + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
                             y + SIDE_MARGIN,
                         ),
-                        UserPixelSize::new(
+                        PixelSize::new(
                             scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
                             height - SIDE_MARGIN - SIDE_MARGIN,
                         ),
                     ),
-                    Orientation::Vertical => UserPixelRect::new(
-                        UserPixelPoint::new(
+                    Orientation::Vertical => PixelRect::new(
+                        PixelPoint::new(
                             x + SIDE_MARGIN,
                             y + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
                         ),
-                        UserPixelSize::new(
+                        PixelSize::new(
                             width - SIDE_MARGIN - SIDE_MARGIN,
                             scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
                         ),

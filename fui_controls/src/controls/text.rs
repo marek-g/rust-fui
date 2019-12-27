@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use euclid::Length;
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -114,15 +115,12 @@ impl Style<Text> for TextDefaultStyle {
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: [1.0, 1.0, 1.0, 1.0],
-            position: UserPixelPoint::new(
+            position: PixelPoint::new(
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,
             ),
-            clipping_rect: UserPixelRect::new(
-                UserPixelPoint::new(x, y),
-                UserPixelSize::new(width, height),
-            ),
-            size: self.font_size as u16,
+            clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
+            size: Length::new(self.font_size as f32),
             text: data.text.get(),
         });
 

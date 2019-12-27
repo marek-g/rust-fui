@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::primitive_extensions::Clipping;
-use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
@@ -232,9 +232,9 @@ impl Style<ScrollViewer> for ScrollViewerDefaultStyle {
         if let Some(ref content) = children.into_iter().next() {
             let vec2 = content.borrow_mut().to_primitives(resources);
 
-            let mut vec2 = vec2.clip(UserPixelRect::new(
-                UserPixelPoint::new(x, y),
-                UserPixelSize::new(width, height),
+            let mut vec2 = vec2.clip(PixelRect::new(
+                PixelPoint::new(x, y),
+                PixelSize::new(width, height),
             ));
 
             vec.append(&mut vec2);

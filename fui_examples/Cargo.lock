@@ -344,6 +344,7 @@ name = "fui_controls"
 version = "0.1.0"
 dependencies = [
  "drawing 0.1.0",
+ "euclid 0.20.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "fui 0.1.0",
  "fui_macros 0.1.0",
  "typed-builder 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -102,9 +102,9 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         if self.rect.width > 0.0f32 && self.rect.height > 0.0f32 {
             vec.push(Primitive::Image {
                 resource_key: data.texture_id.get(),
-                rect: UserPixelRect::new(
-                    UserPixelPoint::new(self.rect.x, self.rect.y),
-                    UserPixelSize::new(self.rect.width, self.rect.height),
+                rect: PixelRect::new(
+                    PixelPoint::new(self.rect.x, self.rect.y),
+                    PixelSize::new(self.rect.width, self.rect.height),
                 ),
                 uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
             });

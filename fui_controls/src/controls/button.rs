@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::primitive_extensions::Transformation;
-use drawing::units::{UserPixelPoint, UserPixelRect, UserPixelSize, UserPixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -174,7 +174,7 @@ impl Style<Button> for ButtonDefaultStyle {
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(resources);
             if self.is_pressed.get() {
-                vec2.translate(UserPixelPoint::new(1.0f32, 1.0f32));
+                vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
         }

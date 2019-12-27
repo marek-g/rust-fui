@@ -179,6 +179,7 @@ impl DrawingContext {
             render_target,
             primitives,
             &mut self.resources,
+            false,
         )
     }
 

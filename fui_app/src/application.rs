@@ -5,8 +5,6 @@ use std::ops::DerefMut;
 use std::rc::Rc;
 use winit::dpi::LogicalSize;
 
-use drawing::units::PhysPixelSize;
-
 use crate::Dispatcher;
 use crate::DrawingContext;
 use crate::DrawingWindowTarget;
