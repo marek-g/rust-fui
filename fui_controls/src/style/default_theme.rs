@@ -124,24 +124,25 @@ pub fn button(
     border_3d(&mut vec, x, y, width, height, is_pressed);
 
     // shadow
+    let shadow_size = if is_pressed { 3.0f32 } else { 6.0f32 };
     let mut shadow_fill_path = Vec::new();
     shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + width + 0.5, y + 6.0 + 0.5),
-        PixelSize::new(6.0 - 0.5, height - 6.0 - 0.5),
+        PixelPoint::new(x + width + 0.5, y + shadow_size + 0.5),
+        PixelSize::new(shadow_size - 0.5, height - shadow_size - 0.5),
     )));
     shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + 6.0 + 0.5, y + height + 0.5),
-        PixelSize::new(width - 0.5, 6.0 - 0.5),
+        PixelPoint::new(x + shadow_size + 0.5, y + height + 0.5),
+        PixelSize::new(width - 0.5, shadow_size - 0.5),
     )));
     vec.push(Primitive::Fill {
         path: shadow_fill_path,
         brush: Brush::ShadowGradient {
             rect: PixelRect::new(
-                PixelPoint::new(x + 6.0 + 0.5, y + 6.0 + 0.5),
+                PixelPoint::new(x + shadow_size + 0.5, y + shadow_size + 0.5),
                 PixelSize::new(width - 2.0, height - 2.0),
             ),
-            radius: 6.0f32,
-            feather: 6.0f32,
+            radius: shadow_size,
+            feather: shadow_size,
             inner_color: [0.0, 0.0, 0.0, 0.35],
             outer_color: [0.0, 0.0, 0.0, 0.0],
         },
