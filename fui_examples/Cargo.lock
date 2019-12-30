@@ -223,6 +223,7 @@ name = "drawing_gl"
 version = "0.1.0"
 dependencies = [
  "drawing 0.1.0",
+ "euclid 0.20.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "gl 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glutin 0.22.0-alpha3 (registry+https://github.com/rust-lang/crates.io-index)",

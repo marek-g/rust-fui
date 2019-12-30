@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::primitive_extensions::Transformation;
+use drawing::transformation::*;
 use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;

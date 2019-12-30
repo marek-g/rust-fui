@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
-use drawing::primitive_extensions::Clipping;
 use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use fui_macros::ui;
