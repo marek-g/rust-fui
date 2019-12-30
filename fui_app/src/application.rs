@@ -237,7 +237,7 @@ impl Application {
             } else {
                 drawing_context.clear(
                     drawing_target.get_render_target(),
-                    &[0.5f32, 0.4f32, 0.3f32, 1.0f32],
+                    &[0.3f32, 0.4f32, 0.3f32, 1.0f32],
                 );
                 let res = drawing_context.draw(drawing_target.get_render_target(), &primitives);
                 if let Err(err) = res {

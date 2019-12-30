@@ -82,11 +82,13 @@ impl ScrollBarDefaultStyle {
 
         self.thumb_size_px = ((data.viewport_size.get() * scroll_bar_size_px)
             / scroll_bar_size_f32)
+            .round()
             .max(MIN_THUMB_SIZE);
 
-        self.thumb_pos_px = (scroll_bar_size_px - self.thumb_size_px)
+        self.thumb_pos_px = ((scroll_bar_size_px - self.thumb_size_px)
             * (data.value.get() - data.min_value.get())
-            / (data.max_value.get() - data.min_value.get());
+            / (data.max_value.get() - data.min_value.get()))
+        .round();
     }
 }
 
