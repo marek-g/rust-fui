@@ -155,7 +155,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                         .min(data.max_value.get());
 
                     if new_value != data.value.get() {
-                        println!("New value: {}", new_value);
+                        //println!("New value: {}", new_value);
                         data.value.set(new_value);
                     }
                 }

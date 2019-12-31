@@ -118,6 +118,8 @@ impl Application {
                                     window.get_drawing_target().get_window().hidpi_factor(),
                                 );
                                 if physical_size.width > 0.0 && physical_size.height > 0.0 {
+                                    let cpu_time = cpu_time::ProcessTime::now();
+
                                     Application::render(
                                         window,
                                         &mut drawing_context.borrow_mut(),
@@ -125,8 +127,9 @@ impl Application {
                                         physical_size.height as u32,
                                     );
 
+                                    let cpu_time = cpu_time.elapsed();
                                     frame_no += 1;
-                                    println!("Frame no: {}", frame_no);
+                                    println!("Frame no: {}, CPU time: {:?}", frame_no, cpu_time);
 
                                     window.get_drawing_target_mut().swap_buffers();
                                 }
