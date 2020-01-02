@@ -36,6 +36,13 @@ struct NewValue;
 impl typemap::Key for NewValue { type Value = i32; }
 ```
 
+Properties
+-----------------------------
+
+- binding from many (at least two) properties with converter
+- read only property
+
+
 Layout
 -----------------------------
 

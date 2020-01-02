@@ -4,6 +4,9 @@ pub use self::bitmap::*;
 mod button;
 pub use self::button::*;
 
+mod scroll_area;
+pub use self::scroll_area::*;
+
 mod scroll_bar;
 pub use self::scroll_bar::*;
 
