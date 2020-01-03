@@ -25,15 +25,9 @@ pub fn border_3d(
     // border light
     vec.push(Primitive::Stroke {
         path: vec![
-            PathElement::MoveTo(PixelPoint::new(
-                x + 1.0 + 0.5,
-                y + 1.0 + 0.5 + height - 3.0 - 0.5,
-            )),
-            PathElement::LineTo(PixelPoint::new(x + 1.0 + 0.5, y + 1.0 + 0.5)),
-            PathElement::LineTo(PixelPoint::new(
-                x + 1.0 + 0.5 + width - 2.0 - 0.5,
-                y + 1.0 + 0.5,
-            )),
+            PathElement::MoveTo(PixelPoint::new(x + 1.0f32, y + height - 2.0f32)),
+            PathElement::LineTo(PixelPoint::new(x + 1.0f32, y + 1.0f32)),
+            PathElement::LineTo(PixelPoint::new(x + width, y + 1.0f32)),
         ],
         thickness: PixelThickness::new(1.0f32),
         brush: Brush::Color {
@@ -48,18 +42,9 @@ pub fn border_3d(
     // border medium
     vec.push(Primitive::Stroke {
         path: vec![
-            PathElement::MoveTo(PixelPoint::new(
-                x + 1.0 + 0.5,
-                y + 1.0 + 0.5 + height - 2.0 - 0.5,
-            )),
-            PathElement::LineTo(PixelPoint::new(
-                x + 1.0 + 0.5 + width - 2.0 - 0.5,
-                y + 1.0 + 0.5 + height - 2.0 - 0.5,
-            )),
-            PathElement::LineTo(PixelPoint::new(
-                x + 1.0 + 0.5 + width - 2.0 - 0.5,
-                y + 2.0 + 0.5,
-            )),
+            PathElement::MoveTo(PixelPoint::new(x + 1.0f32, y + height - 1.0f32)),
+            PathElement::LineTo(PixelPoint::new(x + width - 1.0f32, y + height - 1.0f32)),
+            PathElement::LineTo(PixelPoint::new(x + width - 1.0f32, y + 1.0f32)),
         ],
         thickness: PixelThickness::new(1.0f32),
         brush: Brush::Color {
@@ -74,11 +59,66 @@ pub fn border_3d(
     // border dark
     vec.push(Primitive::Stroke {
         path: rect_path(PixelRect::new(
-            PixelPoint::new(x + 0.5, y + 0.5),
-            PixelSize::new(width - 0.5, height - 0.5),
+            PixelPoint::new(x, y),
+            PixelSize::new(width, height),
         )),
         thickness: PixelThickness::new(1.0f32),
         brush: Brush::Color { color: BORDER_DARK },
+    });
+}
+
+pub fn gradient_rect(
+    vec: &mut Vec<Primitive>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    color_top: Color,
+    color_bottom: Color,
+) {
+    vec.push(Primitive::Fill {
+        path: rect_path(PixelRect::new(
+            PixelPoint::new(x, y),
+            PixelSize::new(width, height),
+        )),
+        brush: Brush::LinearGradient {
+            start_point: PixelPoint::new(x, y),
+            end_point: PixelPoint::new(x + width, y + height),
+            inner_color: color_top,
+            outer_color: color_bottom,
+        },
+    });
+}
+
+pub fn shadow_under_rect(
+    vec: &mut Vec<Primitive>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    shadow_size: f32,
+) {
+    let mut shadow_fill_path = Vec::new();
+    shadow_fill_path.append(&mut rect_path(PixelRect::new(
+        PixelPoint::new(x + width + 0.5f32, y + shadow_size + 0.5f32),
+        PixelSize::new(shadow_size - 0.5f32, height - shadow_size - 0.5f32),
+    )));
+    shadow_fill_path.append(&mut rect_path(PixelRect::new(
+        PixelPoint::new(x + shadow_size + 0.5f32, y + height + 0.5f32),
+        PixelSize::new(width - 0.5f32, shadow_size - 0.5f32),
+    )));
+    vec.push(Primitive::Fill {
+        path: shadow_fill_path,
+        brush: Brush::ShadowGradient {
+            rect: PixelRect::new(
+                PixelPoint::new(x + shadow_size + 0.5f32, y + shadow_size + 0.5f32),
+                PixelSize::new(width - 2.0f32, height - 2.0f32),
+            ),
+            radius: shadow_size,
+            feather: shadow_size,
+            inner_color: [0.0, 0.0, 0.0, 0.35],
+            outer_color: [0.0, 0.0, 0.0, 0.0],
+        },
     });
 }
 
@@ -91,60 +131,27 @@ pub fn button(
     is_pressed: bool,
     is_hover: bool,
 ) {
-    // background gradient
-    vec.push(Primitive::Fill {
-        path: rect_path(PixelRect::new(
-            PixelPoint::new(x + 2.0 + 0.5, y + 2.0 + 0.5),
-            PixelSize::new(width - 4.0 - 0.5, height - 4.0 - 0.5),
-        )),
-        brush: Brush::LinearGradient {
-            start_point: PixelPoint::new(x + 2.0 + 0.5, y + 2.0 + 0.5),
-            end_point: PixelPoint::new(x + width - 4.0 - 0.5, y + height - 4.0 - 0.5),
-            inner_color: if is_pressed {
-                GRADIENT_TOP_PRESSED
+    gradient_rect(&mut vec, x + 2.5f32, y + 2.5f32, width - 4.0f32, height - 4.0f32,
+        if is_pressed {
+            GRADIENT_TOP_PRESSED
+        } else {
+            if is_hover {
+                GRADIENT_TOP_HOVER
             } else {
-                if is_hover {
-                    GRADIENT_TOP_HOVER
-                } else {
-                    GRADIENT_TOP_NORMAL
-                }
-            },
-            outer_color: if is_pressed {
-                GRADIENT_BOT_PRESSED
+                GRADIENT_TOP_NORMAL
+            }
+        },
+        if is_pressed {
+            GRADIENT_BOT_PRESSED
+        } else {
+            if is_hover {
+                GRADIENT_BOT_HOVER
             } else {
-                if is_hover {
-                    GRADIENT_BOT_HOVER
-                } else {
-                    GRADIENT_BOT_NORMAL
-                }
-            },
-        },
-    });
+                GRADIENT_BOT_NORMAL
+            }
+        });
 
-    border_3d(&mut vec, x, y, width, height, is_pressed);
+    border_3d(&mut vec, x + 0.5f32, y + 0.5f32, width - 1.0f32, height - 1.0f32, is_pressed);
 
-    // shadow
-    let shadow_size = if is_pressed { 3.0f32 } else { 6.0f32 };
-    let mut shadow_fill_path = Vec::new();
-    shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + width + 0.5, y + shadow_size + 0.5),
-        PixelSize::new(shadow_size - 0.5, height - shadow_size - 0.5),
-    )));
-    shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + shadow_size + 0.5, y + height + 0.5),
-        PixelSize::new(width - 0.5, shadow_size - 0.5),
-    )));
-    vec.push(Primitive::Fill {
-        path: shadow_fill_path,
-        brush: Brush::ShadowGradient {
-            rect: PixelRect::new(
-                PixelPoint::new(x + shadow_size + 0.5, y + shadow_size + 0.5),
-                PixelSize::new(width - 2.0, height - 2.0),
-            ),
-            radius: shadow_size,
-            feather: shadow_size,
-            inner_color: [0.0, 0.0, 0.0, 0.35],
-            outer_color: [0.0, 0.0, 0.0, 0.0],
-        },
-    });
+    shadow_under_rect(&mut vec, x + 0.5f32, y + 0.5f32, width - 1.0f32, height - 1.0f32, if is_pressed { 3.0f32 } else { 6.0f32 });
 }
