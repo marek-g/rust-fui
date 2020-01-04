@@ -7,6 +7,7 @@ use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
+use crate::controls::border::Border;
 use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
 use crate::controls::scroll_bar::ScrollBar;
 use crate::layout::*;
@@ -68,7 +69,9 @@ impl View for ScrollViewer {
                 widths: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
                 heights: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
 
-                @scroll_area,
+                Border {
+                    @scroll_area,
+                },
 
                 ScrollBar {
                     orientation: Orientation::Vertical,

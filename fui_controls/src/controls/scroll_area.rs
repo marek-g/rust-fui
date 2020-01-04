@@ -179,8 +179,6 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        default_theme::button(&mut vec, x, y, width, height, true, false);
-
         if let Some(ref content) = children.into_iter().next() {
             let vec2 = content.borrow_mut().to_primitives(resources);
 

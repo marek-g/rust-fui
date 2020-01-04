@@ -23,7 +23,7 @@ fn multiply_color(color: Color, factor: f32) -> Color {
     ]
 }
 
-pub fn border_3d(
+pub fn border_3d_single(
     vec: &mut Vec<Primitive>,
     x: f32,
     y: f32,
@@ -63,18 +63,12 @@ pub fn border_3d(
     // border light
     vec.push(Primitive::Stroke {
         path: vec![
-            PathElement::MoveTo(PixelPoint::new(
-                x + width - line_thickness,
-                y + line_thickness + line_thickness * 0.5f32,
-            )),
+            PathElement::MoveTo(PixelPoint::new(x + width, y + line_thickness * 0.5f32)),
             PathElement::LineTo(PixelPoint::new(
-                x + line_thickness + line_thickness * 0.5f32,
-                y + line_thickness + line_thickness * 0.5f32,
+                x + line_thickness * 0.5f32,
+                y + line_thickness * 0.5f32,
             )),
-            PathElement::LineTo(PixelPoint::new(
-                x + line_thickness + line_thickness * 0.5f32,
-                y + height - line_thickness * 2.0f32,
-            )),
+            PathElement::LineTo(PixelPoint::new(x + line_thickness * 0.5f32, y + height)),
         ],
         thickness: PixelThickness::new(line_thickness),
         brush: Brush::LinearGradient {
@@ -90,14 +84,14 @@ pub fn border_3d(
         path: vec![
             PathElement::MoveTo(PixelPoint::new(
                 x + line_thickness,
-                y + height - line_thickness - line_thickness * 0.5f32,
+                y + height - line_thickness * 0.5f32,
             )),
             PathElement::LineTo(PixelPoint::new(
-                x + width - line_thickness - line_thickness * 0.5f32,
-                y + height - line_thickness - line_thickness * 0.5f32,
+                x + width - line_thickness * 0.5f32,
+                y + height - line_thickness * 0.5f32,
             )),
             PathElement::LineTo(PixelPoint::new(
-                x + width - line_thickness - line_thickness * 0.5f32,
+                x + width - line_thickness * 0.5f32,
                 y + line_thickness,
             )),
         ],
@@ -109,6 +103,28 @@ pub fn border_3d(
             outer_color: border_color4,
         },
     });
+}
+
+pub fn border_3d(
+    vec: &mut Vec<Primitive>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    is_pressed: bool,
+    is_hover: bool,
+) {
+    let line_thickness = 1.0f32;
+
+    border_3d_single(
+        vec,
+        x + line_thickness,
+        y + line_thickness,
+        width - line_thickness * 2.0f32,
+        height - line_thickness * 2.0f32,
+        is_pressed,
+        is_hover,
+    );
 
     // border dark
     vec.push(Primitive::Stroke {
