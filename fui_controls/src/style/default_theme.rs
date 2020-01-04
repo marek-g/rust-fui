@@ -3,16 +3,25 @@ use drawing::primitive_extensions::*;
 use drawing::units::*;
 use fui::*;
 
-const BORDER_LIGHT: Color = [0.45, 0.45, 0.45, 1.0];
-const BORDER_MEDIUM: Color = [0.20, 0.20, 0.20, 1.0];
-const BORDER_DARK: Color = [0.11, 0.11, 0.11, 1.0];
+const BORDER_LIGHT1: Color = [0.75, 0.75, 0.75, 1.0];
+const BORDER_LIGHT2: Color = [0.45, 0.45, 0.45, 1.0];
+const BORDER_MEDIUM1: Color = [0.30, 0.30, 0.30, 1.0];
+const BORDER_MEDIUM2: Color = [0.10, 0.10, 0.10, 1.0];
+const BORDER_DARK: Color = [0.0, 0.0, 0.0, 1.0];
 
-const GRADIENT_TOP_NORMAL: Color = [0.29, 0.29, 0.29, 1.0];
-const GRADIENT_BOT_NORMAL: Color = [0.22, 0.22, 0.22, 1.0];
-const GRADIENT_TOP_PRESSED: Color = [0.15, 0.15, 0.15, 1.0];
-const GRADIENT_BOT_PRESSED: Color = [0.20, 0.20, 0.20, 1.0];
-const GRADIENT_TOP_HOVER: Color = [0.40, 0.40, 0.40, 1.0];
-const GRADIENT_BOT_HOVER: Color = [0.35, 0.35, 0.35, 1.0];
+const GRADIENT_TOP_NORMAL: Color = [0.35, 0.35, 0.35, 1.0];
+const GRADIENT_BOT_NORMAL: Color = [0.25, 0.25, 0.25, 1.0];
+const HOVER_HIGHLIGHT: f32 = 1.25f32;
+const PRESSED_HIGHLIGHT: f32 = 0.75f32;
+
+fn multiply_color(color: Color, factor: f32) -> Color {
+    [
+        (color[0] * factor).min(1.0f32),
+        (color[1] * factor).min(1.0f32),
+        (color[2] * factor).min(1.0f32),
+        color[3],
+    ]
+}
 
 pub fn border_3d(
     vec: &mut Vec<Primitive>,
@@ -21,48 +30,93 @@ pub fn border_3d(
     width: f32,
     height: f32,
     is_pressed: bool,
+    is_hover: bool,
 ) {
+    let line_thickness = 1.0f32;
+
+    let w2 = width * width;
+    let h2 = height * height;
+    let grad_len = (w2 + h2).sqrt();
+    let grad_width = h2 / grad_len;
+    let grad_height = width * height / grad_len;
+
+    let (border_color1, border_color2, border_color3, border_color4) = if is_pressed {
+        (
+            multiply_color(BORDER_MEDIUM2, PRESSED_HIGHLIGHT),
+            multiply_color(BORDER_MEDIUM1, PRESSED_HIGHLIGHT),
+            multiply_color(BORDER_LIGHT2, PRESSED_HIGHLIGHT),
+            multiply_color(BORDER_LIGHT1, PRESSED_HIGHLIGHT),
+        )
+    } else {
+        if is_hover {
+            (
+                multiply_color(BORDER_LIGHT1, HOVER_HIGHLIGHT),
+                multiply_color(BORDER_LIGHT2, HOVER_HIGHLIGHT),
+                multiply_color(BORDER_MEDIUM1, HOVER_HIGHLIGHT),
+                multiply_color(BORDER_MEDIUM2, HOVER_HIGHLIGHT),
+            )
+        } else {
+            (BORDER_LIGHT1, BORDER_LIGHT2, BORDER_MEDIUM1, BORDER_MEDIUM2)
+        }
+    };
+
     // border light
     vec.push(Primitive::Stroke {
         path: vec![
-            PathElement::MoveTo(PixelPoint::new(x + 1.0f32, y + height - 2.0f32)),
-            PathElement::LineTo(PixelPoint::new(x + 1.0f32, y + 1.0f32)),
-            PathElement::LineTo(PixelPoint::new(x + width, y + 1.0f32)),
+            PathElement::MoveTo(PixelPoint::new(
+                x + width - line_thickness,
+                y + line_thickness + line_thickness * 0.5f32,
+            )),
+            PathElement::LineTo(PixelPoint::new(
+                x + line_thickness + line_thickness * 0.5f32,
+                y + line_thickness + line_thickness * 0.5f32,
+            )),
+            PathElement::LineTo(PixelPoint::new(
+                x + line_thickness + line_thickness * 0.5f32,
+                y + height - line_thickness * 2.0f32,
+            )),
         ],
-        thickness: PixelThickness::new(1.0f32),
-        brush: Brush::Color {
-            color: if !is_pressed {
-                BORDER_LIGHT
-            } else {
-                BORDER_MEDIUM
-            },
+        thickness: PixelThickness::new(line_thickness),
+        brush: Brush::LinearGradient {
+            start_point: PixelPoint::new(x, y),
+            end_point: PixelPoint::new(x + grad_width, y + grad_height),
+            inner_color: border_color1,
+            outer_color: border_color2,
         },
     });
 
     // border medium
     vec.push(Primitive::Stroke {
         path: vec![
-            PathElement::MoveTo(PixelPoint::new(x + 1.0f32, y + height - 1.0f32)),
-            PathElement::LineTo(PixelPoint::new(x + width - 1.0f32, y + height - 1.0f32)),
-            PathElement::LineTo(PixelPoint::new(x + width - 1.0f32, y + 1.0f32)),
+            PathElement::MoveTo(PixelPoint::new(
+                x + line_thickness,
+                y + height - line_thickness - line_thickness * 0.5f32,
+            )),
+            PathElement::LineTo(PixelPoint::new(
+                x + width - line_thickness - line_thickness * 0.5f32,
+                y + height - line_thickness - line_thickness * 0.5f32,
+            )),
+            PathElement::LineTo(PixelPoint::new(
+                x + width - line_thickness - line_thickness * 0.5f32,
+                y + line_thickness,
+            )),
         ],
-        thickness: PixelThickness::new(1.0f32),
-        brush: Brush::Color {
-            color: if !is_pressed {
-                BORDER_MEDIUM
-            } else {
-                BORDER_LIGHT
-            },
+        thickness: PixelThickness::new(line_thickness),
+        brush: Brush::LinearGradient {
+            start_point: PixelPoint::new(x + width - grad_width, y + height - grad_height),
+            end_point: PixelPoint::new(x + width, y + height),
+            inner_color: border_color3,
+            outer_color: border_color4,
         },
     });
 
     // border dark
     vec.push(Primitive::Stroke {
-        path: rect_path(PixelRect::new(
-            PixelPoint::new(x, y),
-            PixelSize::new(width, height),
-        )),
-        thickness: PixelThickness::new(1.0f32),
+        path: pixel_rect_path(
+            PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
+            PixelThickness::new(line_thickness),
+        ),
+        thickness: PixelThickness::new(line_thickness),
         brush: Brush::Color { color: BORDER_DARK },
     });
 }
@@ -100,22 +154,22 @@ pub fn shadow_under_rect(
 ) {
     let mut shadow_fill_path = Vec::new();
     shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + width + 0.5f32, y + shadow_size + 0.5f32),
-        PixelSize::new(shadow_size - 0.5f32, height - shadow_size - 0.5f32),
+        PixelPoint::new(x + width, y),
+        PixelSize::new(shadow_size, height),
     )));
     shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + shadow_size + 0.5f32, y + height + 0.5f32),
-        PixelSize::new(width - 0.5f32, shadow_size - 0.5f32),
+        PixelPoint::new(x, y + height),
+        PixelSize::new(width + shadow_size, shadow_size),
     )));
     vec.push(Primitive::Fill {
         path: shadow_fill_path,
         brush: Brush::ShadowGradient {
             rect: PixelRect::new(
-                PixelPoint::new(x + shadow_size + 0.5f32, y + shadow_size + 0.5f32),
-                PixelSize::new(width - 2.0f32, height - 2.0f32),
+                PixelPoint::new(x + shadow_size * 0.5f32, y + shadow_size * 0.5f32),
+                PixelSize::new(width, height),
             ),
             radius: shadow_size,
-            feather: shadow_size,
+            feather: shadow_size * 0.5f32,
             inner_color: [0.0, 0.0, 0.0, 0.35],
             outer_color: [0.0, 0.0, 0.0, 0.0],
         },
@@ -131,27 +185,40 @@ pub fn button(
     is_pressed: bool,
     is_hover: bool,
 ) {
-    gradient_rect(&mut vec, x + 2.5f32, y + 2.5f32, width - 4.0f32, height - 4.0f32,
-        if is_pressed {
-            GRADIENT_TOP_PRESSED
-        } else {
-            if is_hover {
-                GRADIENT_TOP_HOVER
-            } else {
-                GRADIENT_TOP_NORMAL
-            }
-        },
-        if is_pressed {
-            GRADIENT_BOT_PRESSED
-        } else {
-            if is_hover {
-                GRADIENT_BOT_HOVER
-            } else {
-                GRADIENT_BOT_NORMAL
-            }
-        });
+    border_3d(&mut vec, x, y, width, height, is_pressed, is_hover);
 
-    border_3d(&mut vec, x + 0.5f32, y + 0.5f32, width - 1.0f32, height - 1.0f32, is_pressed);
+    let (gradient_top_color, gradient_bottom_color) = if is_pressed {
+        (
+            multiply_color(GRADIENT_BOT_NORMAL, PRESSED_HIGHLIGHT),
+            multiply_color(GRADIENT_TOP_NORMAL, PRESSED_HIGHLIGHT),
+        )
+    } else {
+        if is_hover {
+            (
+                multiply_color(GRADIENT_TOP_NORMAL, HOVER_HIGHLIGHT),
+                multiply_color(GRADIENT_BOT_NORMAL, HOVER_HIGHLIGHT),
+            )
+        } else {
+            (GRADIENT_TOP_NORMAL, GRADIENT_BOT_NORMAL)
+        }
+    };
 
-    shadow_under_rect(&mut vec, x + 0.5f32, y + 0.5f32, width - 1.0f32, height - 1.0f32, if is_pressed { 3.0f32 } else { 6.0f32 });
+    gradient_rect(
+        &mut vec,
+        x + 2.0f32,
+        y + 2.0f32,
+        width - 4.0f32,
+        height - 4.0f32,
+        gradient_top_color,
+        gradient_bottom_color,
+    );
+
+    shadow_under_rect(
+        &mut vec,
+        x,
+        y,
+        width,
+        height,
+        if is_pressed { 3.0f32 } else { 6.0f32 },
+    );
 }

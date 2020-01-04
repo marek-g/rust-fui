@@ -306,7 +306,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             });
         }
 
-        default_theme::border_3d(&mut vec, x, y, width, height, true);
+        default_theme::border_3d(&mut vec, x, y, width, height, true, false);
 
         vec
     }
