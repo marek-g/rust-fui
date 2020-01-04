@@ -3,14 +3,14 @@ use drawing::primitive_extensions::*;
 use drawing::units::*;
 use fui::*;
 
-const BORDER_LIGHT1: Color = [0.75, 0.75, 0.75, 1.0];
-const BORDER_LIGHT2: Color = [0.45, 0.45, 0.45, 1.0];
-const BORDER_MEDIUM1: Color = [0.30, 0.30, 0.30, 1.0];
-const BORDER_MEDIUM2: Color = [0.10, 0.10, 0.10, 1.0];
+const BORDER_LIGHT1: Color = [0.65, 0.65, 0.65, 1.0];
+const BORDER_LIGHT2: Color = [0.35, 0.35, 0.35, 1.0];
+const BORDER_MEDIUM1: Color = [0.15, 0.15, 0.15, 1.0];
+const BORDER_MEDIUM2: Color = [0.12, 0.12, 0.12, 1.0];
 const BORDER_DARK: Color = [0.0, 0.0, 0.0, 1.0];
 
 const GRADIENT_TOP_NORMAL: Color = [0.35, 0.35, 0.35, 1.0];
-const GRADIENT_BOT_NORMAL: Color = [0.25, 0.25, 0.25, 1.0];
+const GRADIENT_BOT_NORMAL: Color = [0.28, 0.28, 0.28, 1.0];
 const HOVER_HIGHLIGHT: f32 = 1.25f32;
 const PRESSED_HIGHLIGHT: f32 = 0.75f32;
 
@@ -185,8 +185,6 @@ pub fn button(
     is_pressed: bool,
     is_hover: bool,
 ) {
-    border_3d(&mut vec, x, y, width, height, is_pressed, is_hover);
-
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (
             multiply_color(GRADIENT_BOT_NORMAL, PRESSED_HIGHLIGHT),
@@ -212,6 +210,8 @@ pub fn button(
         gradient_top_color,
         gradient_bottom_color,
     );
+
+    border_3d(&mut vec, x, y, width, height, is_pressed, is_hover);
 
     shadow_under_rect(
         &mut vec,
