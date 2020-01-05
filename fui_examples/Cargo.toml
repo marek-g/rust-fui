@@ -29,8 +29,8 @@ name = "example2_multiwindow"
 path = "src/example2_multiwindow.rs"
 
 [[bin]]
-name = "example3_layout"
-path = "src/example3_layout.rs"
+name = "example3_controls"
+path = "src/example3_controls.rs"
 
 [[bin]]
 name = "example4_list"

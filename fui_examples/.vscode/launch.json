@@ -44,13 +44,13 @@
             "preLaunchTask": "build_example2"
         },
         {
-            "name": "ex3 layout",
+            "name": "ex3 controls",
             "request": "launch",
             //"type": "lldb",
             //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example3_layout",
+            //"program": "${workspaceRoot}/target/debug/example3_controls",
             "type": "gdb",
-            "target": "${workspaceRoot}/target/debug/example3_layout",
+            "target": "${workspaceRoot}/target/debug/example3_controls",
             "cwd": "${workspaceRoot}",
             "env": {
                 "RUST_BACKTRACE": "1"

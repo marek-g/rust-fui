@@ -21,7 +21,7 @@
         {
             "taskName": "build_example3",
             "type": "shell",
-            "command": "cargo build --bin example3_layout"
+            "command": "cargo build --bin example3_controls"
         },
         {
             "taskName": "build_example4",
