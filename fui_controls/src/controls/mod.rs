@@ -18,3 +18,6 @@ pub use self::scroll_viewer::*;
 
 mod text;
 pub use self::text::*;
+
+mod text_box;
+pub use self::text_box::*;

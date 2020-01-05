@@ -12,6 +12,7 @@ use typemap::TypeMap;
 use winit::window::WindowBuilder;
 
 struct MainViewModel {
+    pub text: Property<String>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
 }
@@ -19,6 +20,7 @@ struct MainViewModel {
 impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
+            text: Property::new("My text"),
             counter: Property::new(10),
             counter2: Property::new(0),
         }))
@@ -46,6 +48,14 @@ impl RcView for MainViewModel {
         ui!(
             Grid {
                 columns: 2,
+                heights: vec![(0, Length::Auto)],
+
+                TextBox {
+                    text: &mut vm.text,
+                },
+                Text {
+                    text: &mut vm.text,
+                },
 
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
