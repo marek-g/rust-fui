@@ -93,7 +93,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut ScrollArea,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -101,10 +101,11 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     fn measure(
         &mut self,
         _data: &mut ScrollArea,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     ) {
+        let children = context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(resources, size);
             let rect = content.borrow().get_rect();
@@ -121,11 +122,12 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
         );
     }
 
-    fn set_rect(&mut self, data: &mut ScrollArea, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ScrollArea, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         self.update_properties(data);
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let child_rect = Rect::new(
                 rect.x - data.offset_x.get().round(),
@@ -144,10 +146,11 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     fn hit_test(
         &self,
         _data: &ScrollArea,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
+            let children = context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
@@ -169,7 +172,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     fn to_primitives(
         &self,
         data: &ScrollArea,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
@@ -179,6 +182,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let vec2 = content.borrow_mut().to_primitives(resources);
 

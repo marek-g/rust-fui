@@ -51,7 +51,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Bitmap,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -59,7 +59,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn measure(
         &mut self,
         data: &mut Bitmap,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         resources: &mut dyn Resources,
         _size: Size,
     ) {
@@ -70,7 +70,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Bitmap, _context: &mut ControlContext, rect: Rect) {
         //self.rect = rect;
     }
 
@@ -81,7 +81,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn hit_test(
         &self,
         _data: &Bitmap,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -94,7 +94,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
     fn to_primitives(
         &self,
         data: &Bitmap,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         _resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();

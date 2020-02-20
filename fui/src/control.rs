@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use typemap::TypeMap;
 
 use crate::children_source::*;
+use crate::control_context::*;
 use crate::control_object::*;
 use crate::observable::*;
 use crate::style::*;
@@ -17,12 +17,7 @@ pub enum HitTestResult {
 pub struct Control<D> {
     pub data: D,
     pub style: Box<dyn Style<D>>,
-    attached_values: TypeMap,
-    pub children: Box<dyn ChildrenSource>,
-
-    parent: Option<Weak<RefCell<dyn ControlObject>>>,
-    is_dirty: bool,
-    children_collection_changed_event_subscription: Option<EventSubscription>,
+    pub context: ControlContext,
 }
 
 impl<D: 'static> Control<D> {
@@ -31,18 +26,22 @@ impl<D: 'static> Control<D> {
         style: S,
         view_context: ViewContext,
     ) -> Rc<RefCell<Self>> {
-        let control = Rc::new(RefCell::new(Control {
-            data: data,
-            style: Box::new(style),
+        let control_context = ControlContext {
             attached_values: view_context.attached_values,
             children: view_context.children,
             parent: None,
             is_dirty: true,
             children_collection_changed_event_subscription: None,
+        };
+
+        let control = Rc::new(RefCell::new(Control {
+            data: data,
+            style: Box::new(style),
+            context: control_context,
         }));
 
         let subscription = if let Some(mut changed_event) =
-            control.borrow_mut().get_children().get_changed_event()
+            control.borrow_mut().get_context_mut().get_children().get_changed_event()
         {
             let control_clone = control.clone();
             Some(changed_event.subscribe(move |changed_args| {
@@ -54,16 +53,17 @@ impl<D: 'static> Control<D> {
                     let (data, style) = control_mut.get_data_and_style_mut();
                     style.setup_dirty_watching(data, &control_clone);
                 }
-                control_clone.borrow_mut().set_is_dirty(true);
+                control_clone.borrow_mut().get_context_mut().set_is_dirty(true);
             }))
         } else {
             None
         };
         control
             .borrow_mut()
+            .context
             .children_collection_changed_event_subscription = subscription;
 
-        for child in control.borrow_mut().get_children().into_iter() {
+        for child in control.borrow_mut().get_context_mut().get_children().into_iter() {
             let control_weak = Rc::downgrade(&control) as Weak<RefCell<dyn ControlObject>>;
             child.borrow_mut().set_parent(control_weak);
         }
@@ -77,37 +77,12 @@ impl<D: 'static> Control<D> {
         control
     }
 
-    pub fn get_attached_values(&self) -> &TypeMap {
-        &self.attached_values
+    pub fn get_context(&self) -> &ControlContext {
+        &self.context
     }
 
-    pub fn get_children(&mut self) -> &Box<dyn ChildrenSource> {
-        &self.children
-    }
-
-    pub fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        if let Some(ref test) = self.parent {
-            test.upgrade()
-        } else {
-            None
-        }
-    }
-
-    pub fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>) {
-        self.parent = Some(parent);
-    }
-
-    pub fn is_dirty(&self) -> bool {
-        self.is_dirty
-    }
-
-    pub fn set_is_dirty(&mut self, is_dirty: bool) {
-        self.is_dirty = is_dirty;
-        if is_dirty {
-            if let Some(ref parent) = self.get_parent() {
-                parent.borrow_mut().set_is_dirty(is_dirty)
-            }
-        }
+    pub fn get_context_mut(&mut self) -> &mut ControlContext {
+        &mut self.context
     }
 
     fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<dyn Style<D>>) {

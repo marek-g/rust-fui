@@ -51,7 +51,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut StackPanel,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -59,11 +59,13 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn measure(
         &mut self,
         data: &mut StackPanel,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     ) {
         let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
+
+        let children = context.get_children();
 
         match data.orientation {
             Orientation::Horizontal => {
@@ -91,10 +93,12 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         self.rect = result;
     }
 
-    fn set_rect(&mut self, data: &mut StackPanel, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &mut StackPanel, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
+
+        let children = context.get_children();
 
         match data.orientation {
             Orientation::Horizontal => {
@@ -125,10 +129,11 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn hit_test(
         &self,
         _data: &StackPanel,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
+            let children = context.get_children();
             for child in children.into_iter() {
                 let c = child.borrow();
                 let rect = c.get_rect();
@@ -150,11 +155,12 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn to_primitives(
         &self,
         _data: &StackPanel,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
+        let children = context.get_children();
         for child in children.into_iter() {
             vec.append(&mut child.borrow().to_primitives(resources));
         }

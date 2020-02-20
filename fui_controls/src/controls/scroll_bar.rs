@@ -116,7 +116,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn handle_event(
         &mut self,
         data: &mut ScrollBar,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         event: ControlEvent,
     ) {
         match event {
@@ -176,7 +176,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn measure(
         &mut self,
         data: &mut ScrollBar,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _resources: &mut dyn Resources,
         size: Size,
     ) {
@@ -200,7 +200,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &mut ScrollBar, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ScrollBar, _context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
         self.calc_sizes(data);
     }
@@ -212,7 +212,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn hit_test(
         &self,
         _data: &ScrollBar,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -225,7 +225,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn to_primitives(
         &self,
         data: &ScrollBar,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         _resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let x = self.rect.x;

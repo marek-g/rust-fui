@@ -1458,7 +1458,7 @@ impl Style<Grid> for GridDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Grid,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -1466,11 +1466,13 @@ impl Style<Grid> for GridDefaultStyle {
     fn measure(
         &mut self,
         data: &mut Grid,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
+
+        let children = context.get_children();
 
         let (number_of_rows, number_of_columns) =
             Self::decide_number_of_rows_and_columns(data, children);
@@ -1633,8 +1635,10 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect = grid_desired_size;
     }
 
-    fn set_rect(&mut self, _data: &mut Grid, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Grid, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
+
+        let children = context.get_children();
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
@@ -1686,10 +1690,11 @@ impl Style<Grid> for GridDefaultStyle {
     fn hit_test(
         &self,
         _data: &Grid,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
+            let children = context.get_children();
             for child in children.into_iter().rev() {
                 let c = child.borrow();
                 let rect = c.get_rect();
@@ -1711,11 +1716,12 @@ impl Style<Grid> for GridDefaultStyle {
     fn to_primitives(
         &self,
         _data: &Grid,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
 
+        let children = context.get_children();
         for child in children.into_iter() {
             vec.append(&mut child.borrow().to_primitives(resources));
         }

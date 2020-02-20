@@ -1,9 +1,9 @@
+use crate::control_context::ControlContext;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 
-use crate::children_source::*;
 use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
@@ -16,27 +16,27 @@ pub trait Style<D> {
     fn handle_event(
         &mut self,
         data: &mut D,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         event: ControlEvent,
     );
 
     fn measure(
         &mut self,
         data: &mut D,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     );
-    fn set_rect(&mut self, data: &mut D, children: &Box<dyn ChildrenSource>, rect: Rect);
+    fn set_rect(&mut self, data: &mut D, context: &mut ControlContext, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, data: &D, children: &Box<dyn ChildrenSource>, point: Point)
+    fn hit_test(&self, data: &D, context: &ControlContext, point: Point)
         -> HitTestResult;
 
     fn to_primitives(
         &self,
         data: &D,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive>;
 }
@@ -54,7 +54,7 @@ where
         self.on_changed(move |_| {
             weak_control
                 .upgrade()
-                .map(|control| (control.borrow_mut() as RefMut<Control<D>>).set_is_dirty(true));
+                .map(|control| (control.borrow_mut() as RefMut<Control<D>>).get_context_mut().set_is_dirty(true));
         })
     }
 }

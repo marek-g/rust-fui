@@ -48,7 +48,7 @@ impl Style<Border> for BorderDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Border,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -56,10 +56,12 @@ impl Style<Border> for BorderDefaultStyle {
     fn measure(
         &mut self,
         _data: &mut Border,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     ) {
+        let children = context.get_children();
+
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(resources, size);
             let rect = content.borrow().get_rect();
@@ -75,7 +77,7 @@ impl Style<Border> for BorderDefaultStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Border, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Border, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -85,6 +87,7 @@ impl Style<Border> for BorderDefaultStyle {
             rect.height - 2.0f32,
         );
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
@@ -97,10 +100,11 @@ impl Style<Border> for BorderDefaultStyle {
     fn hit_test(
         &self,
         _data: &Border,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
+            let children = context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
@@ -122,7 +126,7 @@ impl Style<Border> for BorderDefaultStyle {
     fn to_primitives(
         &self,
         _data: &Border,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
@@ -134,6 +138,7 @@ impl Style<Border> for BorderDefaultStyle {
 
         default_theme::border_3d_single(&mut vec, x, y, width, height, true, false);
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(resources);
             vec.append(&mut vec2);

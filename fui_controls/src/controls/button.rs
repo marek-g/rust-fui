@@ -59,7 +59,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn handle_event(
         &mut self,
         data: &mut Button,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         event: ControlEvent,
     ) {
         match event {
@@ -68,14 +68,14 @@ impl Style<Button> for ButtonDefaultStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
                     data.clicked.emit(());
                 }
                 self.is_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &children, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
                     self.is_pressed.set(true);
                 } else {
                     self.is_pressed.set(false);
@@ -97,10 +97,11 @@ impl Style<Button> for ButtonDefaultStyle {
     fn measure(
         &mut self,
         _data: &mut Button,
-        children: &Box<dyn ChildrenSource>,
+        context: &mut ControlContext,
         resources: &mut dyn Resources,
         size: Size,
     ) {
+        let children = context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(resources, size);
             let rect = content.borrow().get_rect();
@@ -116,7 +117,7 @@ impl Style<Button> for ButtonDefaultStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Button, children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Button, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -126,6 +127,7 @@ impl Style<Button> for ButtonDefaultStyle {
             rect.height - 20.0f32,
         );
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
@@ -138,7 +140,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn hit_test(
         &self,
         _data: &Button,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -151,7 +153,7 @@ impl Style<Button> for ButtonDefaultStyle {
     fn to_primitives(
         &self,
         _data: &Button,
-        children: &Box<dyn ChildrenSource>,
+        context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
@@ -171,6 +173,7 @@ impl Style<Button> for ButtonDefaultStyle {
             self.is_hover.get(),
         );
 
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let mut vec2 = content.borrow_mut().to_primitives(resources);
             if self.is_pressed.get() {

@@ -56,7 +56,7 @@ impl Style<Text> for TextDefaultStyle {
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         _event: ControlEvent,
     ) {
     }
@@ -64,7 +64,7 @@ impl Style<Text> for TextDefaultStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &mut ControlContext,
         resources: &mut dyn Resources,
         _size: Size,
     ) {
@@ -74,7 +74,7 @@ impl Style<Text> for TextDefaultStyle {
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _children: &Box<dyn ChildrenSource>, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Text, _context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
     }
 
@@ -85,7 +85,7 @@ impl Style<Text> for TextDefaultStyle {
     fn hit_test(
         &self,
         _data: &Text,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -98,7 +98,7 @@ impl Style<Text> for TextDefaultStyle {
     fn to_primitives(
         &self,
         data: &Text,
-        _children: &Box<dyn ChildrenSource>,
+        _context: &ControlContext,
         resources: &mut dyn Resources,
     ) -> Vec<Primitive> {
         let mut vec = Vec::new();
