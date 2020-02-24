@@ -31,7 +31,7 @@ pub struct ScrollArea {
 
 impl View for ScrollArea {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, ScrollAreaDefaultStyle::new(), context)
+        StyledControl::new(self, ScrollAreaDefaultStyle::new(), context)
     }
 }
 
@@ -82,7 +82,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut ScrollArea,
-        control: &Rc<RefCell<Control<ScrollArea>>>,
+        control: &Rc<RefCell<StyledControl<ScrollArea>>>,
     ) {
         self.event_subscriptions
             .push(data.offset_x.dirty_watching(control));

@@ -12,7 +12,7 @@ pub struct Border {}
 
 impl View for Border {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, BorderDefaultStyle::new(), context)
+        StyledControl::new(self, BorderDefaultStyle::new(), context)
     }
 }
 
@@ -41,7 +41,7 @@ impl Style<Border> for BorderDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut Border,
-        _control: &Rc<RefCell<Control<Border>>>,
+        _control: &Rc<RefCell<StyledControl<Border>>>,
     ) {
     }
 
@@ -97,12 +97,7 @@ impl Style<Border> for BorderDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &Border,
-        context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &Border, context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             let children = context.get_children();
             if let Some(ref content) = children.into_iter().next() {

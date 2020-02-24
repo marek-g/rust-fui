@@ -11,7 +11,7 @@ use crate::observable::*;
 use crate::resources::Resources;
 
 pub trait Style<D> {
-    fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
+    fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<StyledControl<D>>>);
 
     fn handle_event(&mut self, data: &mut D, context: &mut ControlContext, event: ControlEvent);
 
@@ -36,18 +36,18 @@ pub trait Style<D> {
 }
 
 pub trait PropertyDirtyExtension<D> {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription;
+    fn dirty_watching(&mut self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription;
 }
 
 impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
 where
     T: 'static + Clone + PartialEq + Default,
 {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription {
+    fn dirty_watching(&mut self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {
             weak_control.upgrade().map(|control| {
-                (control.borrow_mut() as RefMut<Control<D>>)
+                (control.borrow_mut() as RefMut<StyledControl<D>>)
                     .get_context_mut()
                     .set_is_dirty(true)
             });

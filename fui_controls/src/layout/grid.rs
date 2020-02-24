@@ -230,7 +230,7 @@ pub struct Grid {
 
 impl View for Grid {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, GridDefaultStyle::new(), context)
+        StyledControl::new(self, GridDefaultStyle::new(), context)
     }
 }
 
@@ -1453,7 +1453,7 @@ impl GridDefaultStyle {
 }
 
 impl Style<Grid> for GridDefaultStyle {
-    fn setup_dirty_watching(&mut self, _data: &mut Grid, _control: &Rc<RefCell<Control<Grid>>>) {}
+    fn setup_dirty_watching(&mut self, _data: &mut Grid, _control: &Rc<RefCell<StyledControl<Grid>>>) {}
 
     fn handle_event(
         &mut self,

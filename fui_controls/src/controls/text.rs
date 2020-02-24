@@ -16,7 +16,7 @@ pub struct Text {
 
 impl View for Text {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, TextDefaultStyle::new(), context)
+        StyledControl::new(self, TextDefaultStyle::new(), context)
     }
 }
 
@@ -48,7 +48,11 @@ impl TextDefaultStyle {
 }
 
 impl Style<Text> for TextDefaultStyle {
-    fn setup_dirty_watching(&mut self, data: &mut Text, control: &Rc<RefCell<Control<Text>>>) {
+    fn setup_dirty_watching(
+        &mut self,
+        data: &mut Text,
+        control: &Rc<RefCell<StyledControl<Text>>>,
+    ) {
         self.event_subscriptions
             .push(data.text.dirty_watching(control));
     }
@@ -82,12 +86,7 @@ impl Style<Text> for TextDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &Text,
-        _context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &Text, _context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

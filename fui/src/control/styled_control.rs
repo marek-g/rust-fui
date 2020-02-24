@@ -13,13 +13,13 @@ pub enum HitTestResult {
     Child(Rc<RefCell<dyn ControlObject>>),
 }
 
-pub struct Control<D> {
+pub struct StyledControl<D> {
     pub data: D,
     pub style: Box<dyn Style<D>>,
     pub context: ControlContext,
 }
 
-impl<D: 'static> Control<D> {
+impl<D: 'static> StyledControl<D> {
     pub fn new<S: 'static + Style<D>>(
         data: D,
         style: S,
@@ -33,7 +33,7 @@ impl<D: 'static> Control<D> {
             children_collection_changed_event_subscription: None,
         };
 
-        let control = Rc::new(RefCell::new(Control {
+        let control = Rc::new(RefCell::new(StyledControl {
             data: data,
             style: Box::new(style),
             context: control_context,
@@ -101,26 +101,29 @@ impl<D: 'static> Control<D> {
 }
 
 pub trait ControlExtensions<D> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(
+    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut StyledControl<D>)>(
         self,
         vm: &Rc<RefCell<V>>,
         f: F,
     ) -> Self;
 
-    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(
+    fn with_binding<
+        V: 'static,
+        F: 'static + Fn(&mut V, &mut StyledControl<D>) -> EventSubscription,
+    >(
         self,
         bindings: &mut Vec<EventSubscription>,
         vm: &Rc<RefCell<V>>,
         f: F,
-    ) -> Rc<RefCell<Control<D>>>;
+    ) -> Rc<RefCell<StyledControl<D>>>;
 }
 
-impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut Control<D>)>(
+impl<D: 'static> ControlExtensions<D> for Rc<RefCell<StyledControl<D>>> {
+    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut StyledControl<D>)>(
         self,
         vm: &Rc<RefCell<V>>,
         f: F,
-    ) -> Rc<RefCell<Control<D>>> {
+    ) -> Rc<RefCell<StyledControl<D>>> {
         {
             let mut control = self.borrow_mut();
             f(&vm, &mut control);
@@ -128,12 +131,15 @@ impl<D: 'static> ControlExtensions<D> for Rc<RefCell<Control<D>>> {
         self
     }
 
-    fn with_binding<V: 'static, F: 'static + Fn(&mut V, &mut Control<D>) -> EventSubscription>(
+    fn with_binding<
+        V: 'static,
+        F: 'static + Fn(&mut V, &mut StyledControl<D>) -> EventSubscription,
+    >(
         self,
         bindings: &mut Vec<EventSubscription>,
         vm: &Rc<RefCell<V>>,
         f: F,
-    ) -> Rc<RefCell<Control<D>>> {
+    ) -> Rc<RefCell<StyledControl<D>>> {
         {
             let mut vm = vm.borrow_mut();
             let mut control = self.borrow_mut();

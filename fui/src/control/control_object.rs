@@ -31,7 +31,7 @@ pub trait ControlObject {
     fn to_primitives(&self, resources: &mut dyn Resources) -> Vec<Primitive>;
 }
 
-impl<D: 'static> ControlObject for Control<D> {
+impl<D: 'static> ControlObject for StyledControl<D> {
     fn is_dirty(&self) -> bool {
         self.get_context().is_dirty()
     }

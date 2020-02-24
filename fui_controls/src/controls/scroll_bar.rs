@@ -28,7 +28,7 @@ pub struct ScrollBar {
 
 impl View for ScrollBar {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, ScrollBarDefaultStyle::new(), context)
+        StyledControl::new(self, ScrollBarDefaultStyle::new(), context)
     }
 }
 
@@ -96,7 +96,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut ScrollBar,
-        control: &Rc<RefCell<Control<ScrollBar>>>,
+        control: &Rc<RefCell<StyledControl<ScrollBar>>>,
     ) {
         self.event_subscriptions
             .push(self.is_thumb_hover.dirty_watching(control));

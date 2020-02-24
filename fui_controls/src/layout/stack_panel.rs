@@ -15,7 +15,7 @@ pub struct StackPanel {
 
 impl View for StackPanel {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, StackPanelDefaultStyle::new(), context)
+        StyledControl::new(self, StackPanelDefaultStyle::new(), context)
     }
 }
 
@@ -44,7 +44,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut StackPanel,
-        _control: &Rc<RefCell<Control<StackPanel>>>,
+        _control: &Rc<RefCell<StyledControl<StackPanel>>>,
     ) {
     }
 

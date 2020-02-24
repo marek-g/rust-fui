@@ -18,7 +18,7 @@ pub struct TextBox {
 
 impl View for TextBox {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, TextBoxDefaultStyle::new(), context)
+        StyledControl::new(self, TextBoxDefaultStyle::new(), context)
     }
 }
 
@@ -53,7 +53,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut TextBox,
-        control: &Rc<RefCell<Control<TextBox>>>,
+        control: &Rc<RefCell<StyledControl<TextBox>>>,
     ) {
         self.event_subscriptions
             .push(data.text.dirty_watching(control));
@@ -93,12 +93,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &TextBox,
-        _context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &TextBox, _context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

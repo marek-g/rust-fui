@@ -1,5 +1,5 @@
-mod control;
-pub use control::*;
+mod styled_control;
+pub use styled_control::*;
 
 mod control_context;
 pub use control_context::*;

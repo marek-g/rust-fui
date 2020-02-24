@@ -15,7 +15,7 @@ pub struct Bitmap {
 
 impl View for Bitmap {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, BitmapDefaultStyle::new(), context)
+        StyledControl::new(self, BitmapDefaultStyle::new(), context)
     }
 }
 
@@ -43,7 +43,11 @@ impl BitmapDefaultStyle {
 }
 
 impl Style<Bitmap> for BitmapDefaultStyle {
-    fn setup_dirty_watching(&mut self, data: &mut Bitmap, control: &Rc<RefCell<Control<Bitmap>>>) {
+    fn setup_dirty_watching(
+        &mut self,
+        data: &mut Bitmap,
+        control: &Rc<RefCell<StyledControl<Bitmap>>>,
+    ) {
         self.event_subscriptions
             .push(data.texture_id.dirty_watching(control));
     }
@@ -78,12 +82,7 @@ impl Style<Bitmap> for BitmapDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &Bitmap,
-        _context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &Bitmap, _context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

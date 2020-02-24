@@ -17,7 +17,7 @@ pub struct Button {
 
 impl View for Button {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(self, ButtonDefaultStyle::new(), context)
+        StyledControl::new(self, ButtonDefaultStyle::new(), context)
     }
 }
 
@@ -49,7 +49,11 @@ impl ButtonDefaultStyle {
 }
 
 impl Style<Button> for ButtonDefaultStyle {
-    fn setup_dirty_watching(&mut self, _data: &mut Button, control: &Rc<RefCell<Control<Button>>>) {
+    fn setup_dirty_watching(
+        &mut self,
+        _data: &mut Button,
+        control: &Rc<RefCell<StyledControl<Button>>>,
+    ) {
         self.event_subscriptions
             .push(self.is_hover.dirty_watching(control));
         self.event_subscriptions
@@ -137,12 +141,7 @@ impl Style<Button> for ButtonDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &Button,
-        _context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &Button, _context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
