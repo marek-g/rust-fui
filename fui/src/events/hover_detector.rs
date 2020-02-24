@@ -1,8 +1,7 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::control::HitTestResult;
-use crate::control_object::*;
+use crate::control::*;
 use crate::events::*;
 
 pub struct HoverDetector {

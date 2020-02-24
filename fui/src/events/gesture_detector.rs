@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::Point;
-use crate::control_object::ControlObject;
+use crate::control::ControlObject;
 use crate::events::*;
 
 pub enum Gesture {

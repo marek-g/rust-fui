@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::children_source::*;
-use crate::control_context::*;
-use crate::control_object::*;
+use crate::control::*;
 use crate::observable::*;
 use crate::style::*;
 use crate::view::ViewContext;
@@ -40,8 +39,11 @@ impl<D: 'static> Control<D> {
             context: control_context,
         }));
 
-        let subscription = if let Some(mut changed_event) =
-            control.borrow_mut().get_context_mut().get_children().get_changed_event()
+        let subscription = if let Some(mut changed_event) = control
+            .borrow_mut()
+            .get_context_mut()
+            .get_children()
+            .get_changed_event()
         {
             let control_clone = control.clone();
             Some(changed_event.subscribe(move |changed_args| {
@@ -53,7 +55,10 @@ impl<D: 'static> Control<D> {
                     let (data, style) = control_mut.get_data_and_style_mut();
                     style.setup_dirty_watching(data, &control_clone);
                 }
-                control_clone.borrow_mut().get_context_mut().set_is_dirty(true);
+                control_clone
+                    .borrow_mut()
+                    .get_context_mut()
+                    .set_is_dirty(true);
             }))
         } else {
             None
@@ -63,7 +68,12 @@ impl<D: 'static> Control<D> {
             .context
             .children_collection_changed_event_subscription = subscription;
 
-        for child in control.borrow_mut().get_context_mut().get_children().into_iter() {
+        for child in control
+            .borrow_mut()
+            .get_context_mut()
+            .get_children()
+            .into_iter()
+        {
             let control_weak = Rc::downgrade(&control) as Weak<RefCell<dyn ControlObject>>;
             child.borrow_mut().set_parent(control_weak);
         }

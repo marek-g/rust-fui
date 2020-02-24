@@ -3,7 +3,7 @@ use std::cell::RefMut;
 use std::ops::Index;
 use std::rc::Rc;
 
-use crate::control_object::ControlObject;
+use crate::control::ControlObject;
 use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;

@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::common::Point;
-use crate::control::HitTestResult;
-use crate::control_object::*;
+use crate::control::*;
 use crate::events::*;
 
 #[derive(Clone, Debug, PartialEq)]

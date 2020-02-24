@@ -1,4 +1,4 @@
-use crate::control_context::ControlContext;
+use crate::control::ControlContext;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
@@ -13,12 +13,7 @@ use crate::resources::Resources;
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<Control<D>>>);
 
-    fn handle_event(
-        &mut self,
-        data: &mut D,
-        context: &mut ControlContext,
-        event: ControlEvent,
-    );
+    fn handle_event(&mut self, data: &mut D, context: &mut ControlContext, event: ControlEvent);
 
     fn measure(
         &mut self,
@@ -30,8 +25,7 @@ pub trait Style<D> {
     fn set_rect(&mut self, data: &mut D, context: &mut ControlContext, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, data: &D, context: &ControlContext, point: Point)
-        -> HitTestResult;
+    fn hit_test(&self, data: &D, context: &ControlContext, point: Point) -> HitTestResult;
 
     fn to_primitives(
         &self,
@@ -52,9 +46,11 @@ where
     fn dirty_watching(&mut self, control: &Rc<RefCell<Control<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {
-            weak_control
-                .upgrade()
-                .map(|control| (control.borrow_mut() as RefMut<Control<D>>).get_context_mut().set_is_dirty(true));
+            weak_control.upgrade().map(|control| {
+                (control.borrow_mut() as RefMut<Control<D>>)
+                    .get_context_mut()
+                    .set_is_dirty(true)
+            });
         })
     }
 }

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use typemap::TypeMap;
 
 use crate::children_source::*;
-use crate::control_object::ControlObject;
+use crate::control::ControlObject;
 
 pub struct ViewContext {
     pub attached_values: TypeMap,

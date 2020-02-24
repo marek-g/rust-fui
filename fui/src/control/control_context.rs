@@ -3,7 +3,7 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::children_source::*;
-use crate::control_object::*;
+use crate::control::*;
 use crate::observable::*;
 
 pub struct ControlContext {
@@ -12,7 +12,6 @@ pub struct ControlContext {
 
     pub parent: Option<Weak<RefCell<dyn ControlObject>>>,
     pub is_dirty: bool,
-    
     pub children_collection_changed_event_subscription: Option<EventSubscription>,
 }
 
