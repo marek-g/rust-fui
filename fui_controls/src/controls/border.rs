@@ -63,8 +63,11 @@ impl Style<Border> for BorderDefaultStyle {
         let children = context.get_children();
 
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
-            let rect = content.borrow().get_rect();
+            content
+                .borrow_mut()
+                .get_behavior_mut()
+                .measure(resources, size);
+            let rect = content.borrow().get_behavior().get_rect();
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
@@ -89,7 +92,10 @@ impl Style<Border> for BorderDefaultStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content
+                .borrow_mut()
+                .get_behavior_mut()
+                .set_rect(content_rect);
         }
     }
 
@@ -102,9 +108,9 @@ impl Style<Border> for BorderDefaultStyle {
             let children = context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
-                let rect = c.get_rect();
+                let rect = c.get_behavior().get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.hit_test(point);
+                    let child_hit_test = c.get_behavior().hit_test(point);
                     match child_hit_test {
                         HitTestResult::Current => return HitTestResult::Child(content.clone()),
                         HitTestResult::Child(..) => return child_hit_test,
@@ -135,7 +141,7 @@ impl Style<Border> for BorderDefaultStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let mut vec2 = content.borrow().get_behavior().to_primitives(resources);
             vec.append(&mut vec2);
         }
 

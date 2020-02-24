@@ -43,7 +43,7 @@ impl EventProcessor {
             .handle_event(root_view, event)
             .map(|ev| match ev {
                 Gesture::TapDown { position } => {
-                    let hit_test_result = root_view.borrow().hit_test(position);
+                    let hit_test_result = root_view.borrow().get_behavior().hit_test(position);
                     let hit_control = match hit_test_result {
                         HitTestResult::Current => Some(root_view.clone()),
                         HitTestResult::Child(control) => Some(control),
@@ -83,7 +83,10 @@ impl EventProcessor {
 
     fn send_event_to_captured_control(&mut self, event: ControlEvent) {
         if let Some(ref captured_control) = self.get_captured_control() {
-            captured_control.borrow_mut().handle_event(event);
+            captured_control
+                .borrow_mut()
+                .get_behavior_mut()
+                .handle_event(event);
         }
     }
 }

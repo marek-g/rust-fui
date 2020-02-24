@@ -93,7 +93,10 @@ impl RcView for MainViewModel {
             .set_vm(&view_model, move |vm, texture_id| {
                 vm.texture_id.set(texture_id);
                 // TODO: do it on bitmap control instead
-                root_control_copy.borrow_mut().set_is_dirty(true);
+                root_control_copy
+                    .borrow_mut()
+                    .get_context_mut()
+                    .set_is_dirty(true);
             });
 
         root_control

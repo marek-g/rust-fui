@@ -1,3 +1,6 @@
+mod control_behiavor;
+pub use control_behiavor::*;
+
 mod control_object;
 pub use control_object::*;
 

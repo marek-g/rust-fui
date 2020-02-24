@@ -22,6 +22,7 @@ impl HoverDetector {
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
+                .get_behavior_mut()
                 .handle_event(ControlEvent::HoverEnter);
         }
     }
@@ -31,6 +32,7 @@ impl HoverDetector {
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
+                .get_behavior_mut()
                 .handle_event(ControlEvent::HoverLeave);
         }
     }
@@ -40,7 +42,7 @@ impl HoverDetector {
             InputEvent::CursorMoved { position, .. } => {
                 //let physical_pos =
                 //    position.to_physical(window.get_drawing_target().get_window().hidpi_factor());
-                let hit_test_result = root_view.borrow().hit_test(*position);
+                let hit_test_result = root_view.borrow().get_behavior().hit_test(*position);
                 let hit_control = match hit_test_result {
                     HitTestResult::Current => Some(root_view.clone()),
                     HitTestResult::Child(control) => Some(control),
@@ -53,12 +55,14 @@ impl HoverDetector {
                             if self.is_running {
                                 hover_control
                                     .borrow_mut()
+                                    .get_behavior_mut()
                                     .handle_event(ControlEvent::HoverLeave);
                             }
                             self.hover_control = Some(Rc::downgrade(hit_control));
                             if self.is_running {
                                 hit_control
                                     .borrow_mut()
+                                    .get_behavior_mut()
                                     .handle_event(ControlEvent::HoverEnter);
                             }
                         }
@@ -67,6 +71,7 @@ impl HoverDetector {
                         if self.is_running {
                             hit_control
                                 .borrow_mut()
+                                .get_behavior_mut()
                                 .handle_event(ControlEvent::HoverEnter);
                         }
                     }
@@ -75,6 +80,7 @@ impl HoverDetector {
                         if self.is_running {
                             hover_control
                                 .borrow_mut()
+                                .get_behavior_mut()
                                 .handle_event(ControlEvent::HoverLeave);
                         }
                         self.hover_control = None;
@@ -87,6 +93,7 @@ impl HoverDetector {
                     if self.is_running {
                         hover_control
                             .borrow_mut()
+                            .get_behavior_mut()
                             .handle_event(ControlEvent::HoverLeave);
                     }
                     self.hover_control = None;

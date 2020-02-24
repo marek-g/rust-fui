@@ -2,7 +2,6 @@ use crate::events::ControlEvent;
 use crate::resources::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use typemap::TypeMap;
 
 use crate::children_source::*;
 use crate::common::*;
@@ -157,6 +156,16 @@ impl<D: 'static> ControlObject for StyledControl<D> {
         self.get_context_mut()
     }
 
+    fn get_behavior(&self) -> &dyn ControlBehavior {
+        self as &dyn ControlBehavior
+    }
+
+    fn get_behavior_mut(&mut self) -> &mut dyn ControlBehavior {
+        self as &mut dyn ControlBehavior
+    }
+}
+
+impl<D: 'static> ControlBehavior for StyledControl<D> {
     fn handle_event(&mut self, event: ControlEvent) {
         self.style
             .handle_event(&mut self.data, &mut self.context, event)

@@ -154,8 +154,10 @@ impl Application {
                                     );
                                     let mut root_control = root_view.borrow_mut();
                                     root_control.get_context_mut().set_is_dirty(true);
-                                    root_control.measure(drawing_context.deref_mut(), size);
-                                    root_control.set_rect(Rect::new(
+                                    root_control
+                                        .get_behavior_mut()
+                                        .measure(drawing_context.deref_mut(), size);
+                                    root_control.get_behavior_mut().set_rect(Rect::new(
                                         0f32,
                                         0f32,
                                         size.width,
@@ -229,10 +231,17 @@ impl Application {
             let mut root_control = root_view.borrow_mut();
 
             let size = Size::new(width as f32, height as f32);
-            root_control.measure(drawing_context, size);
-            root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+            root_control
+                .get_behavior_mut()
+                .measure(drawing_context, size);
+            root_control.get_behavior_mut().set_rect(Rect::new(
+                0f32,
+                0f32,
+                size.width,
+                size.height,
+            ));
 
-            let primitives = root_control.to_primitives(drawing_context);
+            let primitives = root_control.get_behavior().to_primitives(drawing_context);
 
             let res = drawing_context.begin(drawing_target);
             if let Err(err) = res {

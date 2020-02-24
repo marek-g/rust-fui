@@ -107,8 +107,9 @@ impl Style<Button> for ButtonDefaultStyle {
     ) {
         let children = context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
-            let rect = content.borrow().get_rect();
+            let mut c = content.borrow_mut();
+            c.get_behavior_mut().measure(resources, size);
+            let rect = c.get_behavior().get_rect();
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
@@ -133,7 +134,10 @@ impl Style<Button> for ButtonDefaultStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content
+                .borrow_mut()
+                .get_behavior_mut()
+                .set_rect(content_rect);
         }
     }
 
@@ -174,7 +178,7 @@ impl Style<Button> for ButtonDefaultStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let mut vec2 = content.borrow().get_behavior().to_primitives(resources);
             if self.is_pressed.get() {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
