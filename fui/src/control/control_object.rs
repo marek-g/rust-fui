@@ -83,3 +83,7 @@ impl<D: 'static> ControlObject for StyledControl<D> {
             .to_primitives(&self.data, &self.context, resources)
     }
 }
+
+pub trait WeakControlObject {
+    fn upgrade(&self) -> Option<Box<dyn ControlObject>>;
+}
