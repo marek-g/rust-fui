@@ -25,18 +25,10 @@ impl<D: 'static> StyledControl<D> {
         style: S,
         view_context: ViewContext,
     ) -> Rc<RefCell<Self>> {
-        let control_context = ControlContext {
-            attached_values: view_context.attached_values,
-            children: view_context.children,
-            parent: None,
-            is_dirty: true,
-            children_collection_changed_event_subscription: None,
-        };
-
         let control = Rc::new(RefCell::new(StyledControl {
             data: data,
             style: Box::new(style),
-            context: control_context,
+            context: ControlContext::new(view_context),
         }));
 
         let subscription = if let Some(mut changed_event) = control
@@ -50,7 +42,10 @@ impl<D: 'static> StyledControl<D> {
                 if let ChildrenSourceChangedEventArgs::Insert(child) = changed_args {
                     let control_weak =
                         Rc::downgrade(&control_clone) as Weak<RefCell<dyn ControlObject>>;
-                    child.borrow_mut().set_parent(control_weak);
+                    child
+                        .borrow_mut()
+                        .get_context_mut()
+                        .set_parent(control_weak);
                     let mut control_mut = control_clone.borrow_mut();
                     let (data, style) = control_mut.get_data_and_style_mut();
                     style.setup_dirty_watching(data, &control_clone);
@@ -65,8 +60,8 @@ impl<D: 'static> StyledControl<D> {
         };
         control
             .borrow_mut()
-            .context
-            .children_collection_changed_event_subscription = subscription;
+            .get_context_mut()
+            .set_children_collection_changed_event_subscription(subscription);
 
         for child in control
             .borrow_mut()
@@ -75,7 +70,10 @@ impl<D: 'static> StyledControl<D> {
             .into_iter()
         {
             let control_weak = Rc::downgrade(&control) as Weak<RefCell<dyn ControlObject>>;
-            child.borrow_mut().set_parent(control_weak);
+            child
+                .borrow_mut()
+                .get_context_mut()
+                .set_parent(control_weak);
         }
 
         {
@@ -151,28 +149,12 @@ impl<D: 'static> ControlExtensions<D> for Rc<RefCell<StyledControl<D>>> {
 }
 
 impl<D: 'static> ControlObject for StyledControl<D> {
-    fn is_dirty(&self) -> bool {
-        self.get_context().is_dirty()
+    fn get_context(&self) -> &ControlContext {
+        self.get_context()
     }
 
-    fn set_is_dirty(&mut self, is_dirty: bool) {
-        self.get_context_mut().set_is_dirty(is_dirty)
-    }
-
-    fn get_attached_values(&self) -> &TypeMap {
-        self.get_context().get_attached_values()
-    }
-
-    fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        self.get_context().get_parent()
-    }
-
-    fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>) {
-        self.get_context_mut().set_parent(parent);
-    }
-
-    fn get_children(&mut self) -> &Box<dyn ChildrenSource> {
-        self.get_context_mut().get_children()
+    fn get_context_mut(&mut self) -> &mut ControlContext {
+        self.get_context_mut()
     }
 
     fn handle_event(&mut self, event: ControlEvent) {

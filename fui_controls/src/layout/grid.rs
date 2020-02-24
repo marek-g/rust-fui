@@ -281,7 +281,7 @@ impl GridDefaultStyle {
         let mut max_column_from_attached = -1;
         for child in children.into_iter() {
             let child = child.borrow();
-            let map = child.get_attached_values();
+            let map = child.get_context().get_attached_values();
 
             let max_row = if let Some(row) = map.get::<Row>() {
                 if let Some(row_span) = map.get::<RowSpan>() {
@@ -431,7 +431,7 @@ impl GridDefaultStyle {
             let mut row_span = 1;
 
             let child = child.borrow();
-            let map = child.get_attached_values();
+            let map = child.get_context().get_attached_values();
             if let Some(row) = map.get::<Row>() {
                 row_index = *row;
             }
@@ -1453,7 +1453,12 @@ impl GridDefaultStyle {
 }
 
 impl Style<Grid> for GridDefaultStyle {
-    fn setup_dirty_watching(&mut self, _data: &mut Grid, _control: &Rc<RefCell<StyledControl<Grid>>>) {}
+    fn setup_dirty_watching(
+        &mut self,
+        _data: &mut Grid,
+        _control: &Rc<RefCell<StyledControl<Grid>>>,
+    ) {
+    }
 
     fn handle_event(
         &mut self,
@@ -1687,12 +1692,7 @@ impl Style<Grid> for GridDefaultStyle {
         self.rect
     }
 
-    fn hit_test(
-        &self,
-        _data: &Grid,
-        context: &ControlContext,
-        point: Point,
-    ) -> HitTestResult {
+    fn hit_test(&self, _data: &Grid, context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             let children = context.get_children();
             for child in children.into_iter().rev() {

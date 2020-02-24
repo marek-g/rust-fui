@@ -1,10 +1,9 @@
+use crate::control::control_context::ControlContext;
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
-use typemap::TypeMap;
+use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 
-use crate::children_source::*;
 use crate::common::*;
 use crate::events::*;
 use crate::resources::Resources;
@@ -16,14 +15,8 @@ pub enum HitTestResult {
 }
 
 pub trait ControlObject {
-    fn is_dirty(&self) -> bool;
-    fn set_is_dirty(&mut self, is_dirty: bool);
-
-    fn get_attached_values(&self) -> &TypeMap;
-
-    fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>>;
-    fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>);
-    fn get_children(&mut self) -> &Box<dyn ChildrenSource>;
+    fn get_context(&self) -> &ControlContext;
+    fn get_context_mut(&mut self) -> &mut ControlContext;
 
     // style related (cannot use Self /get_style() -> Style<Self::...>/ in trait object)
     fn handle_event(&mut self, event: ControlEvent);

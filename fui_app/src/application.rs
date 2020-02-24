@@ -153,7 +153,7 @@ impl Application {
                                         physical_size.height as f32,
                                     );
                                     let mut root_control = root_view.borrow_mut();
-                                    root_control.set_is_dirty(true);
+                                    root_control.get_context_mut().set_is_dirty(true);
                                     root_control.measure(drawing_context.deref_mut(), size);
                                     root_control.set_rect(Rect::new(
                                         0f32,
@@ -208,7 +208,7 @@ impl Application {
     fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
         if let Some(ref mut root_view) = window.get_root_view_mut() {
             let root_control = root_view.borrow();
-            if root_control.is_dirty() {
+            if root_control.get_context().is_dirty() {
                 true
             } else {
                 false
@@ -249,7 +249,7 @@ impl Application {
                 drawing_context.end(drawing_target);
             }
 
-            root_control.set_is_dirty(false);
+            root_control.get_context_mut().set_is_dirty(false);
         }
     }
 }
