@@ -542,7 +542,7 @@ impl GridDefaultStyle {
         for cell in cells {
             let child = children.index(cell.child_index);
 
-            let old_width = child.borrow().get_behavior().get_rect().width;
+            let old_width = child.borrow().get_rect().width;
             Self::measure_cell(
                 resources,
                 &cell,
@@ -551,7 +551,7 @@ impl GridDefaultStyle {
                 definitions_v,
                 force_infinity_v,
             );
-            let new_rect = child.borrow().get_behavior().get_rect();
+            let new_rect = child.borrow().get_rect();
             let new_width = new_rect.width;
             let new_height = new_rect.height;
             has_desired_size_u_changed |=
@@ -634,7 +634,7 @@ impl GridDefaultStyle {
                 Self::get_measure_size_for_range(definitions_v, cell.row_index, cell.row_span);
         }
 
-        child.borrow_mut().get_behavior_mut().measure(
+        child.borrow_mut().measure(
             resources,
             Size::new(cell_measure_width, cell_measure_height),
         );
@@ -1488,8 +1488,8 @@ impl Style<Grid> for GridDefaultStyle {
 
             for child in children.into_iter() {
                 let mut child = child.borrow_mut();
-                child.get_behavior_mut().measure(resources, size);
-                let child_rc = child.get_behavior().get_rect();
+                child.measure(resources, size);
+                let child_rc = child.get_rect();
                 grid_desired_size.width = grid_desired_size.width.max(child_rc.width);
                 grid_desired_size.height = grid_desired_size.height.max(child_rc.height);
             }
@@ -1647,7 +1647,7 @@ impl Style<Grid> for GridDefaultStyle {
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow_mut().get_behavior_mut().set_rect(rect);
+                child.borrow_mut().set_rect(rect);
             }
         } else {
             Self::set_final_size(&mut self.definitions_u, rect.width, true);
@@ -1683,7 +1683,7 @@ impl Style<Grid> for GridDefaultStyle {
                     ),
                     Self::get_final_size_for_range(&mut self.definitions_v, row_index, row_span),
                 );
-                child.borrow_mut().get_behavior_mut().set_rect(rc);
+                child.borrow_mut().set_rect(rc);
             }
         }
     }
@@ -1697,9 +1697,9 @@ impl Style<Grid> for GridDefaultStyle {
             let children = context.get_children();
             for child in children.into_iter().rev() {
                 let c = child.borrow();
-                let rect = c.get_behavior().get_rect();
+                let rect = c.get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.get_behavior().hit_test(point);
+                    let child_hit_test = c.hit_test(point);
                     match child_hit_test {
                         HitTestResult::Current => return HitTestResult::Child(child.clone()),
                         HitTestResult::Child(..) => return child_hit_test,
@@ -1723,7 +1723,7 @@ impl Style<Grid> for GridDefaultStyle {
 
         let children = context.get_children();
         for child in children.into_iter() {
-            vec.append(&mut child.borrow().get_behavior().to_primitives(resources));
+            vec.append(&mut child.borrow().to_primitives(resources));
         }
 
         vec

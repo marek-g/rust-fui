@@ -155,14 +155,6 @@ impl<D: 'static> ControlObject for StyledControl<D> {
     fn get_context_mut(&mut self) -> &mut ControlContext {
         self.get_context_mut()
     }
-
-    fn get_behavior(&self) -> &dyn ControlBehavior {
-        self as &dyn ControlBehavior
-    }
-
-    fn get_behavior_mut(&mut self) -> &mut dyn ControlBehavior {
-        self as &mut dyn ControlBehavior
-    }
 }
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {

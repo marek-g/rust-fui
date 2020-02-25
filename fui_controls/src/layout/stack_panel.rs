@@ -72,11 +72,8 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 let available_size = Size::new(f32::INFINITY, size.height);
 
                 for child in children.into_iter() {
-                    child
-                        .borrow_mut()
-                        .get_behavior_mut()
-                        .measure(resources, available_size);
-                    let child_size = child.borrow().get_behavior().get_rect();
+                    child.borrow_mut().measure(resources, available_size);
+                    let child_size = child.borrow().get_rect();
                     result.width += child_size.width;
                     result.height = result.height.max(child_size.height);
                 }
@@ -85,11 +82,8 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
                 for child in children.into_iter() {
-                    child
-                        .borrow_mut()
-                        .get_behavior_mut()
-                        .measure(resources, available_size);
-                    let child_size = child.borrow().get_behavior().get_rect();
+                    child.borrow_mut().measure(resources, available_size);
+                    let child_size = child.borrow().get_rect();
                     result.width = result.width.max(child_size.width);
                     result.height += child_size.height;
                 }
@@ -109,19 +103,19 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         match data.orientation {
             Orientation::Horizontal => {
                 for child in children.into_iter() {
-                    let child_size = child.borrow_mut().get_behavior_mut().get_rect();
+                    let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
-                    child.borrow_mut().get_behavior_mut().set_rect(child_rect);
+                    child.borrow_mut().set_rect(child_rect);
                     child_rect.x += child_rect.width;
                 }
             }
             Orientation::Vertical => {
                 for child in children.into_iter() {
-                    let child_size = child.borrow().get_behavior().get_rect();
+                    let child_size = child.borrow_mut().get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
-                    child.borrow_mut().get_behavior_mut().set_rect(child_rect);
+                    child.borrow_mut().set_rect(child_rect);
                     child_rect.y += child_rect.height;
                 }
             }
@@ -142,9 +136,9 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
             let children = context.get_children();
             for child in children.into_iter() {
                 let c = child.borrow();
-                let rect = c.get_behavior().get_rect();
+                let rect = c.get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.get_behavior().hit_test(point);
+                    let child_hit_test = c.hit_test(point);
                     match child_hit_test {
                         HitTestResult::Current => return HitTestResult::Child(child.clone()),
                         HitTestResult::Child(..) => return child_hit_test,
@@ -168,7 +162,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
 
         let children = context.get_children();
         for child in children.into_iter() {
-            vec.append(&mut child.borrow().get_behavior().to_primitives(resources));
+            vec.append(&mut child.borrow().to_primitives(resources));
         }
 
         vec

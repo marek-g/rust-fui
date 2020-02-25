@@ -107,9 +107,8 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
     ) {
         let children = context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {
-            let mut c = content.borrow_mut();
-            c.get_behavior_mut().measure(resources, size);
-            let rect = c.get_behavior().get_rect();
+            content.borrow_mut().measure(resources, size);
+            let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
@@ -136,7 +135,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
                 rect.width + data.offset_x.get().round(),
                 rect.height + data.offset_y.get().round(),
             );
-            content.borrow_mut().get_behavior_mut().set_rect(child_rect);
+            content.borrow_mut().set_rect(child_rect);
         }
     }
 
@@ -154,9 +153,9 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
             let children = context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
-                let rect = c.get_behavior().get_rect();
+                let rect = c.get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.get_behavior().hit_test(point);
+                    let child_hit_test = c.hit_test(point);
                     match child_hit_test {
                         HitTestResult::Current => return HitTestResult::Child(content.clone()),
                         HitTestResult::Child(..) => return child_hit_test,
@@ -185,7 +184,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let vec2 = content.borrow().get_behavior().to_primitives(resources);
+            let vec2 = content.borrow_mut().to_primitives(resources);
 
             let mut vec2 = vec2.clip(PixelRect::new(
                 PixelPoint::new(x, y),
