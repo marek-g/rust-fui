@@ -34,7 +34,7 @@ impl WindowManager {
             .windows
             .iter()
             .next()
-            .map(|(_id, window)| window.get_drawing_target());
+            .map(|(_id, window)| &window.drawing_window_target);
         let mut window_target = self.drawing_context.borrow_mut().create_window(
             window_builder,
             &event_loop,
@@ -46,7 +46,7 @@ impl WindowManager {
         let physical_size = logical_size.to_physical(window_target.get_window().hidpi_factor());
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         let mut window = Window::new(window_target);
-        window.set_root_view(view);
+        window.root_view = Some(view);
         self.windows.insert(window_id, window);
 
         if let None = self.main_window_id {

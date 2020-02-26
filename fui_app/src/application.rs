@@ -79,7 +79,6 @@ impl Application {
 
         let event_loop = self.event_loop.take().unwrap();
         let event_loop_iteration = self.event_loop_iteration.clone();
-        let mut event_processor = EventProcessor::new();
         let drawing_context = self.drawing_context.clone();
         let window_manager = self.window_manager.clone();
 
@@ -92,7 +91,7 @@ impl Application {
                 winit::event::Event::EventsCleared => {
                     for mut window in window_manager.borrow_mut().get_windows_mut().values_mut() {
                         if Application::is_dirty(&mut window) {
-                            window.get_drawing_target().get_window().request_redraw();
+                            window.drawing_window_target.get_window().request_redraw();
                         }
                     }
                 }
@@ -113,9 +112,9 @@ impl Application {
 
                             winit::event::WindowEvent::RedrawRequested => {
                                 let logical_size =
-                                    window.get_drawing_target().get_window().inner_size();
+                                    window.drawing_window_target.get_window().inner_size();
                                 let physical_size = logical_size.to_physical(
-                                    window.get_drawing_target().get_window().hidpi_factor(),
+                                    window.drawing_window_target.get_window().hidpi_factor(),
                                 );
                                 if physical_size.width > 0.0 && physical_size.height > 0.0 {
                                     let cpu_time = cpu_time::ProcessTime::now();
@@ -131,23 +130,23 @@ impl Application {
                                     frame_no += 1;
                                     println!("Frame no: {}, CPU time: {:?}", frame_no, cpu_time);
 
-                                    window.get_drawing_target_mut().swap_buffers();
+                                    window.drawing_window_target.swap_buffers();
                                 }
                             }
 
                             winit::event::WindowEvent::Resized(logical_size) => {
                                 let physical_size = logical_size.to_physical(
-                                    window.get_drawing_target().get_window().hidpi_factor(),
+                                    window.drawing_window_target.get_window().hidpi_factor(),
                                 );
 
                                 let drawing_context = &mut drawing_context.borrow_mut();
                                 drawing_context.update_size(
-                                    window.get_drawing_target_mut(),
+                                    &mut window.drawing_window_target,
                                     physical_size.width as u16,
                                     physical_size.height as u16,
                                 );
 
-                                if let Some(ref mut root_view) = window.get_root_view_mut() {
+                                if let Some(ref mut root_view) = window.root_view {
                                     let size = Size::new(
                                         physical_size.width as f32,
                                         physical_size.height as f32,
@@ -167,10 +166,10 @@ impl Application {
                             _ => (),
                         }
 
-                        if let Some(ref mut root_view) = window.get_root_view_mut() {
+                        if let Some(ref mut root_view) = window.root_view {
                             if let Some(input_event) = crate::event_converter::convert_event(event)
                             {
-                                event_processor.handle_event(root_view, &input_event);
+                                window.event_processor.handle_event(root_view, &input_event);
                             }
                         }
                     }
@@ -206,7 +205,7 @@ impl Application {
     }
 
     fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
-        if let Some(ref mut root_view) = window.get_root_view_mut() {
+        if let Some(ref mut root_view) = window.root_view {
             let root_control = root_view.borrow();
             if root_control.get_context().is_dirty() {
                 true
@@ -224,8 +223,7 @@ impl Application {
         width: u32,
         height: u32,
     ) {
-        let (drawing_target, root_view) = window.get_drawing_target_and_root_view_mut();
-        if let Some(ref mut root_view) = root_view {
+        if let Some(ref mut root_view) = window.root_view {
             let mut root_control = root_view.borrow_mut();
 
             let size = Size::new(width as f32, height as f32);
@@ -234,19 +232,22 @@ impl Application {
 
             let primitives = root_control.to_primitives(drawing_context);
 
-            let res = drawing_context.begin(drawing_target);
+            let res = drawing_context.begin(&mut window.drawing_window_target);
             if let Err(err) = res {
                 eprintln!("Render error on begin drawing: {}", err);
             } else {
                 drawing_context.clear(
-                    drawing_target.get_render_target(),
+                    window.drawing_window_target.get_render_target(),
                     &[0.3f32, 0.4f32, 0.3f32, 1.0f32],
                 );
-                let res = drawing_context.draw(drawing_target.get_render_target(), &primitives);
+                let res = drawing_context.draw(
+                    window.drawing_window_target.get_render_target(),
+                    &primitives,
+                );
                 if let Err(err) = res {
                     eprintln!("Render error: {}", err);
                 }
-                drawing_context.end(drawing_target);
+                drawing_context.end(&mut window.drawing_window_target);
             }
 
             root_control.get_context_mut().set_is_dirty(false);
