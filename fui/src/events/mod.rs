@@ -1,3 +1,6 @@
+mod control_event;
+pub use self::control_event::*;
+
 mod input_event;
 pub use self::input_event::*;
 

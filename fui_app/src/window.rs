@@ -3,8 +3,6 @@ use std::rc::Rc;
 
 use fui::ControlObject;
 use fui::EventProcessor;
-use fui::View;
-use fui::ViewContext;
 
 pub struct Window<DrawingWindowTarget> {
     pub drawing_window_target: DrawingWindowTarget,
