@@ -61,6 +61,7 @@ impl Style<Text> for TextDefaultStyle {
         &mut self,
         _data: &mut Text,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         _event: ControlEvent,
     ) {
     }

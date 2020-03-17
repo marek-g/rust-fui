@@ -52,6 +52,7 @@ impl Style<StackPanel> for StackPanelDefaultStyle {
         &mut self,
         _data: &mut StackPanel,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         _event: ControlEvent,
     ) {
     }

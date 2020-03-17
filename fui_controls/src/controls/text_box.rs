@@ -28,9 +28,13 @@ impl View for TextBox {
 
 pub struct TextBoxDefaultStyle {
     rect: Rect,
+    is_focused: bool,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
     font_size: u8,
+
+    cursor_pos_char: usize,
+    cursor_pos_px: f32,
 }
 
 impl TextBoxDefaultStyle {
@@ -42,10 +46,38 @@ impl TextBoxDefaultStyle {
                 width: 0f32,
                 height: 0f32,
             },
+            is_focused: false,
             event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
             font_size: 20u8,
+
+            cursor_pos_char: 0,
+            cursor_pos_px: 0.0f32,
         }
+    }
+
+    fn calc_cursor_pos(
+        &self,
+        text: &str,
+        pos: &Point,
+        resources: &mut dyn Resources,
+    ) -> (usize, f32) {
+        let (char_widths, text_height) = resources
+            .get_font_dimensions_each_char(self.font_name, self.font_size, &text)
+            .unwrap_or((Vec::new(), 0));
+
+        let pos = (pos.x - self.rect.x - 4.0f32) as i32;
+
+        let mut cursor_char = 0;
+        let mut cursor_px = 0;
+        while cursor_char < char_widths.len()
+            && pos >= cursor_px + char_widths[cursor_char] as i32 / 2
+        {
+            cursor_px += char_widths[cursor_char] as i32;
+            cursor_char += 1;
+        }
+
+        (cursor_char, cursor_px as f32)
     }
 }
 
@@ -61,10 +93,30 @@ impl Style<TextBox> for TextBoxDefaultStyle {
 
     fn handle_event(
         &mut self,
-        _data: &mut TextBox,
-        _context: &mut ControlContext,
-        _event: ControlEvent,
+        data: &mut TextBox,
+        context: &mut ControlContext,
+        resources: &mut dyn Resources,
+        event: ControlEvent,
     ) {
+        match event {
+            ControlEvent::FocusEnter => {
+                self.is_focused = true;
+                context.set_is_dirty(true);
+            }
+
+            ControlEvent::FocusLeave => {
+                self.is_focused = false;
+                context.set_is_dirty(true);
+            }
+
+            ControlEvent::TapDown { ref position } => {
+                let cursor_pos = self.calc_cursor_pos(&data.text.get(), position, resources);
+                self.cursor_pos_char = cursor_pos.0;
+                self.cursor_pos_px = cursor_pos.1;
+            }
+
+            _ => (),
+        }
     }
 
     fn measure(
@@ -138,7 +190,11 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             ),
             thickness: PixelThickness::new(1.0f32),
             brush: drawing::primitive::Brush::Color {
-                color: [0.4, 0.4, 0.4, 1.0],
+                color: if self.is_focused {
+                    [1.0, 1.0, 0.0, 1.0]
+                } else {
+                    [0.4, 0.4, 0.4, 1.0]
+                },
             },
         });
         gradient_rect(
@@ -159,6 +215,20 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             size: Length::new(self.font_size as f32),
             text: data.text.get(),
         });
+
+        // draw cursor
+        if self.is_focused {
+            vec.push(Primitive::Rectangle {
+                color: [1.0, 1.0, 0.0, 1.0],
+                rect: PixelRect::new(
+                    PixelPoint::new(
+                        x + 4.0f32 + self.cursor_pos_px,
+                        y + (height - text_height as f32) / 2.0,
+                    ),
+                    PixelSize::new(2.0f32, text_height as f32),
+                ),
+            });
+        }
 
         vec
     }

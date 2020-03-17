@@ -64,6 +64,7 @@ impl Style<Button> for ButtonDefaultStyle {
         &mut self,
         data: &mut Button,
         context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         event: ControlEvent,
     ) {
         match event {

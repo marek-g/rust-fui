@@ -94,6 +94,7 @@ impl Style<ScrollArea> for ScrollAreaDefaultStyle {
         &mut self,
         _data: &mut ScrollArea,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         _event: ControlEvent,
     ) {
     }

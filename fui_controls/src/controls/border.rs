@@ -49,6 +49,7 @@ impl Style<Border> for BorderDefaultStyle {
         &mut self,
         _data: &mut Border,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         _event: ControlEvent,
     ) {
     }

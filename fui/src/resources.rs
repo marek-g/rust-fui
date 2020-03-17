@@ -10,6 +10,13 @@ pub trait Resources {
         text: &str,
     ) -> Result<(u16, u16)>;
 
+    fn get_font_dimensions_each_char(
+        &mut self,
+        font_name: &'static str,
+        size: u8,
+        text: &str,
+    ) -> Result<(Vec<i16>, u16)>;
+
     fn create_texture(
         &mut self,
         memory: &[u8],

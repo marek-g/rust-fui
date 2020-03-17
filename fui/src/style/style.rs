@@ -13,7 +13,13 @@ use crate::resources::Resources;
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<StyledControl<D>>>);
 
-    fn handle_event(&mut self, data: &mut D, context: &mut ControlContext, event: ControlEvent);
+    fn handle_event(
+        &mut self,
+        data: &mut D,
+        context: &mut ControlContext,
+        resources: &mut dyn Resources,
+        event: ControlEvent,
+    );
 
     fn measure(
         &mut self,

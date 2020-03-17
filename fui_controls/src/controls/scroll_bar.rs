@@ -117,6 +117,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
         &mut self,
         data: &mut ScrollBar,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         event: ControlEvent,
     ) {
         match event {

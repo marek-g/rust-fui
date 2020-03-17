@@ -158,9 +158,9 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 }
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
-    fn handle_event(&mut self, event: ControlEvent) {
+    fn handle_event(&mut self, resources: &mut dyn Resources, event: ControlEvent) {
         self.style
-            .handle_event(&mut self.data, &mut self.context, event)
+            .handle_event(&mut self.data, &mut self.context, resources, event)
     }
 
     fn measure(&mut self, resources: &mut dyn Resources, size: Size) {

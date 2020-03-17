@@ -1,3 +1,4 @@
+use crate::resources::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -17,25 +18,30 @@ impl HoverDetector {
         }
     }
 
-    pub fn start(&mut self) {
+    pub fn start(&mut self, resources: &mut dyn Resources) {
         self.is_running = true;
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
-                .handle_event(ControlEvent::HoverEnter);
+                .handle_event(resources, ControlEvent::HoverEnter);
         }
     }
 
-    pub fn stop(&mut self) {
+    pub fn stop(&mut self, resources: &mut dyn Resources) {
         self.is_running = false;
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
-                .handle_event(ControlEvent::HoverLeave);
+                .handle_event(resources, ControlEvent::HoverLeave);
         }
     }
 
-    pub fn handle_event(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>, event: &InputEvent) {
+    pub fn handle_event(
+        &mut self,
+        root_view: &Rc<RefCell<dyn ControlObject>>,
+        resources: &mut dyn Resources,
+        event: &InputEvent,
+    ) {
         match event {
             InputEvent::CursorMoved { position, .. } => {
                 //let physical_pos =
@@ -53,13 +59,13 @@ impl HoverDetector {
                             if self.is_running {
                                 hover_control
                                     .borrow_mut()
-                                    .handle_event(ControlEvent::HoverLeave);
+                                    .handle_event(resources, ControlEvent::HoverLeave);
                             }
                             self.hover_control = Some(Rc::downgrade(hit_control));
                             if self.is_running {
                                 hit_control
                                     .borrow_mut()
-                                    .handle_event(ControlEvent::HoverEnter);
+                                    .handle_event(resources, ControlEvent::HoverEnter);
                             }
                         }
                     } else {
@@ -67,7 +73,7 @@ impl HoverDetector {
                         if self.is_running {
                             hit_control
                                 .borrow_mut()
-                                .handle_event(ControlEvent::HoverEnter);
+                                .handle_event(resources, ControlEvent::HoverEnter);
                         }
                     }
                 } else {
@@ -75,7 +81,7 @@ impl HoverDetector {
                         if self.is_running {
                             hover_control
                                 .borrow_mut()
-                                .handle_event(ControlEvent::HoverLeave);
+                                .handle_event(resources, ControlEvent::HoverLeave);
                         }
                         self.hover_control = None;
                     }
@@ -87,7 +93,7 @@ impl HoverDetector {
                     if self.is_running {
                         hover_control
                             .borrow_mut()
-                            .handle_event(ControlEvent::HoverLeave);
+                            .handle_event(resources, ControlEvent::HoverLeave);
                     }
                     self.hover_control = None;
                 }

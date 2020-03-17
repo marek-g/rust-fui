@@ -1464,6 +1464,7 @@ impl Style<Grid> for GridDefaultStyle {
         &mut self,
         _data: &mut Grid,
         _context: &mut ControlContext,
+        _resources: &mut dyn Resources,
         _event: ControlEvent,
     ) {
     }

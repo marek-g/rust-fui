@@ -109,6 +109,38 @@ impl DrawingContext {
         }
     }
 
+    pub fn get_font_dimensions_each_char(
+        &mut self,
+        font_name: &'static str,
+        size: u8,
+        text: &str,
+    ) -> Result<(Vec<i16>, u16)> {
+        if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
+            let font_path = find_folder::Search::ParentsThenKids(3, 3)
+                .for_folder("assets")
+                .unwrap()
+                .join(font_name)
+                .into_os_string()
+                .into_string()
+                .unwrap();
+            let mut file = File::open(font_path).unwrap();
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer)?;
+
+            let font = DrawingFont::create(&mut self.device, buffer)?;
+
+            self.resources
+                .fonts_mut()
+                .insert(font_name.to_string(), font);
+        }
+
+        if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
+            font.get_dimensions_each_char(&mut self.device, FontParams { size: size }, &text)
+        } else {
+            Ok((Vec::new(), size as u16))
+        }
+    }
+
     pub fn get_resources(&self) -> &Resources<DrawingDevice, DrawingFont> {
         &self.resources
     }
@@ -196,6 +228,15 @@ impl fui::Resources for DrawingContext {
         text: &str,
     ) -> Result<(u16, u16)> {
         self.get_font_dimensions(font_name, size, text)
+    }
+
+    fn get_font_dimensions_each_char(
+        &mut self,
+        font_name: &'static str,
+        size: u8,
+        text: &str,
+    ) -> Result<(Vec<i16>, u16)> {
+        self.get_font_dimensions_each_char(font_name, size, text)
     }
 
     fn create_texture(
