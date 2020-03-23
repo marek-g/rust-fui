@@ -86,8 +86,9 @@ impl TextBoxDefaultStyle {
         cursor_pos_char: usize,
         resources: &mut dyn Resources,
     ) -> f32 {
+        let subtext: String = text.chars().take(cursor_pos_char).collect();
         let (text_width, _) = resources
-            .get_font_dimensions(self.font_name, self.font_size, &text[..cursor_pos_char])
+            .get_font_dimensions(self.font_name, self.font_size, &subtext)
             .unwrap_or((0, 0));
         text_width as f32
     }
@@ -99,21 +100,28 @@ impl TextBoxDefaultStyle {
     }
 
     fn insert_str(&mut self, data: &mut TextBox, text: &str, resources: &mut dyn Resources) {
-        let mut t = data.text.get();
-        t.insert_str(self.cursor_pos_char, &text);
+        let t = data.text.get();
+        let t: String = t
+            .chars()
+            .take(self.cursor_pos_char)
+            .chain(text.chars())
+            .chain(t.chars().skip(self.cursor_pos_char))
+            .collect();
 
-        let new_cursor_pos_char = self.cursor_pos_char + text.len();
+        let new_cursor_pos_char = self.cursor_pos_char + text.chars().count();
 
         self.move_cursor(&t, new_cursor_pos_char, resources);
         data.text.set(t);
     }
 
     fn remove_char(&mut self, data: &mut TextBox, pos: usize, resources: &mut dyn Resources) {
-        let mut t = data.text.get();
-        t.remove(pos);
+        let t = data.text.get();
+        let t: String = t.chars().take(pos).chain(t.chars().skip(pos + 1)).collect();
+
         if pos < self.cursor_pos_char {
             self.move_cursor(&t, self.cursor_pos_char - 1, resources);
         }
+
         data.text.set(t);
     }
 }
@@ -164,7 +172,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
                             }
                             Keycode::Delete => {
                                 let text = data.text.get();
-                                if self.cursor_pos_char < text.len() {
+                                if self.cursor_pos_char < text.chars().count() {
                                     self.remove_char(data, self.cursor_pos_char, resources);
                                 }
                             }
@@ -176,7 +184,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
                             }
                             Keycode::End => {
                                 let text = data.text.get();
-                                let len = text.len();
+                                let len = text.chars().count();
                                 if self.cursor_pos_char + 1 <= len {
                                     self.move_cursor(&text, len, resources);
                                 }
@@ -189,7 +197,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
                             }
                             Keycode::Right => {
                                 let text = data.text.get();
-                                if self.cursor_pos_char + 1 <= text.len() {
+                                if self.cursor_pos_char + 1 <= text.chars().count() {
                                     self.move_cursor(&text, self.cursor_pos_char + 1, resources);
                                 }
                             }
