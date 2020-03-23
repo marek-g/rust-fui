@@ -1,4 +1,5 @@
 use crate::common::Point;
+use crate::events::key_event::KeyEvent;
 
 pub enum MouseButton {
     Left,
@@ -25,4 +26,6 @@ pub enum InputEvent {
         state: ElementState,
         button: MouseButton,
     },
+
+    KeyboardInput(KeyEvent),
 }

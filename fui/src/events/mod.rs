@@ -1,9 +1,6 @@
 mod control_event;
 pub use self::control_event::*;
 
-mod input_event;
-pub use self::input_event::*;
-
 mod event_processor;
 pub use self::event_processor::*;
 
@@ -12,3 +9,9 @@ pub use self::gesture_detector::*;
 
 mod hover_detector;
 pub use self::hover_detector::*;
+
+mod input_event;
+pub use self::input_event::*;
+
+mod key_event;
+pub use self::key_event::*;

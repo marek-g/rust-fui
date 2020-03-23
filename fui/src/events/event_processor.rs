@@ -35,6 +35,7 @@ impl EventProcessor {
         self.hover_detector
             .handle_event(root_view, resources, event);
         self.handle_gesture_event(root_view, resources, event);
+        self.handle_keyboard_event(root_view, resources, event);
     }
 
     pub fn handle_gesture_event(
@@ -87,6 +88,25 @@ impl EventProcessor {
                     );
                 }
             });
+    }
+
+    pub fn handle_keyboard_event(
+        &mut self,
+        _root_view: &Rc<RefCell<dyn ControlObject>>,
+        resources: &mut dyn Resources,
+        event: &InputEvent,
+    ) {
+        match event {
+            InputEvent::KeyboardInput(key_event) => {
+                self.send_event_to_control(
+                    &self.focused_control,
+                    resources,
+                    ControlEvent::KeyboardInput(key_event.clone()),
+                );
+            }
+
+            _ => (),
+        }
     }
 
     fn set_new_focused_control(

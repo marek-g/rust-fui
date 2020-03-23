@@ -62,7 +62,7 @@ impl TextBoxDefaultStyle {
         pos: &Point,
         resources: &mut dyn Resources,
     ) -> (usize, f32) {
-        let (char_widths, text_height) = resources
+        let (char_widths, _) = resources
             .get_font_dimensions_each_char(self.font_name, self.font_size, &text)
             .unwrap_or((Vec::new(), 0));
 
@@ -78,6 +78,43 @@ impl TextBoxDefaultStyle {
         }
 
         (cursor_char, cursor_px as f32)
+    }
+
+    fn calc_cursor_pos_px(
+        &self,
+        text: &str,
+        cursor_pos_char: usize,
+        resources: &mut dyn Resources,
+    ) -> f32 {
+        let (text_width, _) = resources
+            .get_font_dimensions(self.font_name, self.font_size, &text[..cursor_pos_char])
+            .unwrap_or((0, 0));
+        text_width as f32
+    }
+
+    fn move_cursor(&mut self, text: &str, cursor_pos_char: usize, resources: &mut dyn Resources) {
+        let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, resources);
+        self.cursor_pos_char = cursor_pos_char;
+        self.cursor_pos_px = cursor_pos_px;
+    }
+
+    fn insert_str(&mut self, data: &mut TextBox, text: &str, resources: &mut dyn Resources) {
+        let mut t = data.text.get();
+        t.insert_str(self.cursor_pos_char, &text);
+
+        let new_cursor_pos_char = self.cursor_pos_char + text.len();
+
+        self.move_cursor(&t, new_cursor_pos_char, resources);
+        data.text.set(t);
+    }
+
+    fn remove_char(&mut self, data: &mut TextBox, pos: usize, resources: &mut dyn Resources) {
+        let mut t = data.text.get();
+        t.remove(pos);
+        if pos < self.cursor_pos_char {
+            self.move_cursor(&t, self.cursor_pos_char - 1, resources);
+        }
+        data.text.set(t);
     }
 }
 
@@ -113,6 +150,59 @@ impl Style<TextBox> for TextBoxDefaultStyle {
                 let cursor_pos = self.calc_cursor_pos(&data.text.get(), position, resources);
                 self.cursor_pos_char = cursor_pos.0;
                 self.cursor_pos_px = cursor_pos.1;
+                context.set_is_dirty(true);
+            }
+
+            ControlEvent::KeyboardInput(ref key_event) => {
+                if key_event.state == KeyState::Pressed {
+                    if let Some(ref key_code) = key_event.keycode {
+                        match key_code {
+                            Keycode::Backspace => {
+                                if self.cursor_pos_char > 0 {
+                                    self.remove_char(data, self.cursor_pos_char - 1, resources);
+                                }
+                            }
+                            Keycode::Delete => {
+                                let text = data.text.get();
+                                if self.cursor_pos_char < text.len() {
+                                    self.remove_char(data, self.cursor_pos_char, resources);
+                                }
+                            }
+                            Keycode::Home => {
+                                let text = data.text.get();
+                                if self.cursor_pos_char > 0 {
+                                    self.move_cursor(&text, 0, resources);
+                                }
+                            }
+                            Keycode::End => {
+                                let text = data.text.get();
+                                let len = text.len();
+                                if self.cursor_pos_char + 1 <= len {
+                                    self.move_cursor(&text, len, resources);
+                                }
+                            }
+                            Keycode::Left => {
+                                let text = data.text.get();
+                                if self.cursor_pos_char > 0 {
+                                    self.move_cursor(&text, self.cursor_pos_char - 1, resources);
+                                }
+                            }
+                            Keycode::Right => {
+                                let text = data.text.get();
+                                if self.cursor_pos_char + 1 <= text.len() {
+                                    self.move_cursor(&text, self.cursor_pos_char + 1, resources);
+                                }
+                            }
+                            _ => (),
+                        }
+                    }
+
+                    if let Some(ref text) = key_event.text {
+                        self.insert_str(data, &text, resources);
+                    }
+
+                    context.set_is_dirty(true);
+                }
             }
 
             _ => (),
@@ -166,7 +256,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = resources
+        let (_, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
