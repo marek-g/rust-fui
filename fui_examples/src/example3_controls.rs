@@ -13,6 +13,7 @@ use winit::window::WindowBuilder;
 
 struct MainViewModel {
     pub text: Property<String>,
+    pub text2: Property<String>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
 }
@@ -21,6 +22,7 @@ impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
             text: Property::new("My text"),
+            text2: Property::new("ąęść"),
             counter: Property::new(10),
             counter2: Property::new(0),
         }))
@@ -48,13 +50,20 @@ impl RcView for MainViewModel {
         ui!(
             Grid {
                 columns: 2,
-                heights: vec![(0, Length::Auto)],
+                heights: vec![(0, Length::Auto), (1, Length::Auto)],
 
                 TextBox {
                     text: &mut vm.text,
                 },
                 Text {
-                    text: &mut vm.text,
+                    text: &vm.text,
+                },
+
+                TextBox {
+                    text: &mut vm.text2,
+                },
+                Text {
+                    text: &vm.text2,
                 },
 
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
