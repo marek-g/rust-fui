@@ -11,14 +11,15 @@ const BORDER_DARK: Color = [0.0, 0.0, 0.0, 1.0];
 
 const GRADIENT_TOP_NORMAL: Color = [0.35, 0.35, 0.35, 1.0];
 const GRADIENT_BOT_NORMAL: Color = [0.28, 0.28, 0.28, 1.0];
-const HOVER_HIGHLIGHT: f32 = 1.25f32;
-const PRESSED_HIGHLIGHT: f32 = 0.75f32;
+const HOVER_HIGHLIGHT: [f32; 3] = [1.25f32, 1.25f32, 1.25f32];
+const PRESSED_HIGHLIGHT: [f32; 3] = [0.75f32, 0.75f32, 0.75f32];
+const FOCUSED_HIGHLIGHT: [f32; 3] = [2.0f32, 2.0f32, 1.0f32];
 
-fn multiply_color(color: Color, factor: f32) -> Color {
+fn multiply_color(color: Color, factor: [f32; 3]) -> Color {
     [
-        (color[0] * factor).min(1.0f32),
-        (color[1] * factor).min(1.0f32),
-        (color[2] * factor).min(1.0f32),
+        (color[0] * factor[0]).min(1.0f32),
+        (color[1] * factor[1]).min(1.0f32),
+        (color[2] * factor[2]).min(1.0f32),
         color[3],
     ]
 }
@@ -31,6 +32,7 @@ pub fn border_3d_single(
     height: f32,
     is_pressed: bool,
     is_hover: bool,
+    is_focused: bool,
 ) {
     let line_thickness = 1.0f32;
 
@@ -40,7 +42,8 @@ pub fn border_3d_single(
     let grad_width = h2 / grad_len;
     let grad_height = width * height / grad_len;
 
-    let (border_color1, border_color2, border_color3, border_color4) = if is_pressed {
+    let (mut border_color1, mut border_color2, mut border_color3, mut border_color4) = if is_pressed
+    {
         (
             multiply_color(BORDER_MEDIUM2, PRESSED_HIGHLIGHT),
             multiply_color(BORDER_MEDIUM1, PRESSED_HIGHLIGHT),
@@ -59,6 +62,13 @@ pub fn border_3d_single(
             (BORDER_LIGHT1, BORDER_LIGHT2, BORDER_MEDIUM1, BORDER_MEDIUM2)
         }
     };
+
+    if is_focused {
+        border_color1 = multiply_color(border_color1, FOCUSED_HIGHLIGHT);
+        border_color2 = multiply_color(border_color2, FOCUSED_HIGHLIGHT);
+        border_color3 = multiply_color(border_color3, FOCUSED_HIGHLIGHT);
+        border_color4 = multiply_color(border_color4, FOCUSED_HIGHLIGHT);
+    }
 
     // border light
     vec.push(Primitive::Stroke {
@@ -113,6 +123,7 @@ pub fn border_3d(
     height: f32,
     is_pressed: bool,
     is_hover: bool,
+    is_focused: bool,
 ) {
     let line_thickness = 1.0f32;
 
@@ -124,6 +135,7 @@ pub fn border_3d(
         height - line_thickness * 2.0f32,
         is_pressed,
         is_hover,
+        is_focused,
     );
 
     // border dark
@@ -134,6 +146,44 @@ pub fn border_3d(
         ),
         thickness: PixelThickness::new(line_thickness),
         brush: Brush::Color { color: BORDER_DARK },
+    });
+}
+
+pub fn border_3d_edit(
+    vec: &mut Vec<Primitive>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    is_focused: bool,
+) {
+    border_3d_single(vec, x, y, width, height, false, false, is_focused);
+
+    border_3d_single(
+        vec,
+        x + 2.0f32,
+        y + 2.0f32,
+        width - 4.0f32,
+        height - 4.0f32,
+        true,
+        false,
+        is_focused,
+    );
+
+    let mut color = [0.4, 0.4, 0.4, 1.0];
+    if is_focused {
+        color = multiply_color(color, FOCUSED_HIGHLIGHT);
+    }
+    vec.push(Primitive::Stroke {
+        path: pixel_rect_path(
+            PixelRect::new(
+                PixelPoint::new(x + 1.0f32, y + 1.0f32),
+                PixelSize::new(width - 2.0f32, height - 2.0f32),
+            ),
+            PixelThickness::new(1.0f32),
+        ),
+        thickness: PixelThickness::new(1.0f32),
+        brush: drawing::primitive::Brush::Color { color: color },
     });
 }
 
@@ -200,6 +250,7 @@ pub fn button(
     height: f32,
     is_pressed: bool,
     is_hover: bool,
+    is_focused: bool,
 ) {
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (
@@ -227,7 +278,7 @@ pub fn button(
         gradient_bottom_color,
     );
 
-    border_3d(&mut vec, x, y, width, height, is_pressed, is_hover);
+    border_3d(&mut vec, x, y, width, height, is_pressed, is_hover, false);
 
     shadow_under_rect(
         &mut vec,

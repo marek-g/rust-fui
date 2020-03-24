@@ -132,7 +132,7 @@ impl Style<Border> for BorderDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false);
+        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {

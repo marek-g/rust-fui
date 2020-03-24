@@ -267,6 +267,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                 height - SIDE_MARGIN - SIDE_MARGIN,
                 self.is_thumb_pressed.get(),
                 self.is_thumb_hover.get(),
+                false,
             ),
             Orientation::Vertical => default_theme::button(
                 &mut vec,
@@ -276,6 +277,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
                 self.thumb_size_px,
                 self.is_thumb_pressed.get(),
                 self.is_thumb_hover.get(),
+                false,
             ),
         };
 
@@ -307,7 +309,7 @@ impl Style<ScrollBar> for ScrollBarDefaultStyle {
             });
         }
 
-        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false);
+        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
 
         vec
     }

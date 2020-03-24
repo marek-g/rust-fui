@@ -29,6 +29,7 @@ pub struct ButtonDefaultStyle {
     rect: Rect,
     is_hover: Property<bool>,
     is_pressed: Property<bool>,
+    is_focused: Property<bool>,
     event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -43,6 +44,7 @@ impl ButtonDefaultStyle {
             },
             is_hover: Property::new(false),
             is_pressed: Property::new(false),
+            is_focused: Property::new(false),
             event_subscriptions: Vec::new(),
         }
     }
@@ -58,6 +60,8 @@ impl Style<Button> for ButtonDefaultStyle {
             .push(self.is_hover.dirty_watching(control));
         self.event_subscriptions
             .push(self.is_pressed.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_focused.dirty_watching(control));
     }
 
     fn handle_event(
@@ -93,6 +97,14 @@ impl Style<Button> for ButtonDefaultStyle {
 
             ControlEvent::HoverLeave => {
                 self.is_hover.set(false);
+            }
+
+            ControlEvent::FocusEnter => {
+                self.is_focused.set(true);
+            }
+
+            ControlEvent::FocusLeave => {
+                self.is_focused.set(false);
             }
 
             _ => (),
@@ -171,6 +183,7 @@ impl Style<Button> for ButtonDefaultStyle {
             height,
             self.is_pressed.get(),
             self.is_hover.get(),
+            self.is_focused.get(),
         );
 
         let children = context.get_children();

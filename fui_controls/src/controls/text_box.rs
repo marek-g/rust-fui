@@ -268,41 +268,24 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
-        default_theme::border_3d_single(&mut vec, x, y, width, height, false, false);
-        default_theme::border_3d_single(
-            &mut vec,
-            x + 2.0f32,
-            y + 2.0f32,
-            width - 4.0f32,
-            height - 4.0f32,
-            true,
-            false,
-        );
-        vec.push(Primitive::Stroke {
-            path: pixel_rect_path(
-                PixelRect::new(
-                    PixelPoint::new(x + 1.0f32, y + 1.0f32),
-                    PixelSize::new(width - 2.0f32, height - 2.0f32),
-                ),
-                PixelThickness::new(1.0f32),
-            ),
-            thickness: PixelThickness::new(1.0f32),
-            brush: drawing::primitive::Brush::Color {
-                color: if self.is_focused {
-                    [1.0, 1.0, 0.0, 1.0]
-                } else {
-                    [0.4, 0.4, 0.4, 1.0]
-                },
-            },
-        });
+        default_theme::border_3d_edit(&mut vec, x, y, width, height, self.is_focused);
+
         gradient_rect(
             &mut vec,
             x + 3.0f32,
             y + 3.0f32,
             width - 6.0f32,
             height - 6.0f32,
-            [1.0, 1.0, 1.0, 0.6],
-            [0.9, 0.9, 0.9, 0.6],
+            if self.is_focused {
+                [1.0, 1.0, 1.0, 0.75]
+            } else {
+                [1.0, 1.0, 1.0, 0.6]
+            },
+            if self.is_focused {
+                [0.9, 0.9, 0.9, 0.75]
+            } else {
+                [0.9, 0.9, 0.9, 0.6]
+            },
         );
 
         vec.push(Primitive::Text {
