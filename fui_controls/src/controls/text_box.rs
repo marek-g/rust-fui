@@ -1,9 +1,11 @@
-use crate::style::default_theme::gradient_rect;
-use drawing::primitive_extensions::pixel_rect_path;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::style::default_theme::gradient_rect;
+use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
+use drawing::primitive_extensions::pixel_rect_path;
+use drawing::transformation::Transformation;
 use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use euclid::Length;
 use fui::*;
@@ -227,12 +229,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
         let (text_width, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            text_width as f32 + 8.0f32,
-            text_height as f32 + 8.0f32,
-        )
+        self.rect = Rect::new(0.0f32, 0.0f32, 8.0f32 + 8.0f32, text_height as f32 + 8.0f32)
     }
 
     fn set_rect(&mut self, _data: &mut TextBox, _context: &mut ControlContext, rect: Rect) {
@@ -264,7 +261,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (_, text_height) = resources
+        let (text_width, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
@@ -288,18 +285,31 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             },
         );
 
-        vec.push(Primitive::Text {
+        let mut vec2 = Vec::new();
+
+        vec2.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: [0.0, 0.0, 0.0, 1.0],
             position: PixelPoint::new(x + 4.0f32, y + (height - text_height as f32) / 2.0),
-            clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
+            clipping_rect: PixelRect::new(
+                PixelPoint::new(x + 4.0f32, y + 4.0f32),
+                PixelSize::new(text_width as f32, height),
+            ),
             size: Length::new(self.font_size as f32),
             text: data.text.get(),
         });
 
+        let mut offset_x = 0.0f32;
+
         // draw cursor
         if self.is_focused {
-            vec.push(Primitive::Rectangle {
+            if self.cursor_pos_px < 0.0f32 {
+                offset_x = self.cursor_pos_px;
+            } else if self.cursor_pos_px > width - 8.0f32 {
+                offset_x = self.cursor_pos_px - width + 8.0f32 + 2.0f32;
+            }
+
+            vec2.push(Primitive::Rectangle {
                 color: [1.0, 1.0, 0.0, 1.0],
                 rect: PixelRect::new(
                     PixelPoint::new(
@@ -310,6 +320,17 @@ impl Style<TextBox> for TextBoxDefaultStyle {
                 ),
             });
         }
+
+        if offset_x != 0.0f32 {
+            vec2.translate(PixelPoint::new(-offset_x, 0.0f32));
+        }
+
+        vec2 = vec2.clip(PixelRect::new(
+            PixelPoint::new(x + 4.0f32, y + 4.0f32),
+            PixelSize::new(width - 8.0f32, height - 8.0f32),
+        ));
+
+        vec.append(&mut vec2);
 
         vec
     }
