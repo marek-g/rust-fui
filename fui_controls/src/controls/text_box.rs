@@ -4,7 +4,6 @@ use std::rc::Rc;
 use crate::style::default_theme::gradient_rect;
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
-use drawing::primitive_extensions::pixel_rect_path;
 use drawing::transformation::Transformation;
 use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use euclid::Length;
@@ -37,6 +36,7 @@ pub struct TextBoxDefaultStyle {
 
     cursor_pos_char: usize,
     cursor_pos_px: f32,
+    offset_x: f32,
 }
 
 impl TextBoxDefaultStyle {
@@ -55,6 +55,7 @@ impl TextBoxDefaultStyle {
 
             cursor_pos_char: 0,
             cursor_pos_px: 0.0f32,
+            offset_x: 0.0f32,
         }
     }
 
@@ -99,6 +100,8 @@ impl TextBoxDefaultStyle {
         let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, resources);
         self.cursor_pos_char = cursor_pos_char;
         self.cursor_pos_px = cursor_pos_px;
+
+        self.update_offset_x();
     }
 
     fn insert_str(&mut self, data: &mut TextBox, text: &str, resources: &mut dyn Resources) {
@@ -125,6 +128,18 @@ impl TextBoxDefaultStyle {
         }
 
         data.text.set(t);
+    }
+
+    fn update_offset_x(&mut self) {
+        if self.is_focused {
+            if self.cursor_pos_px < self.offset_x {
+                self.offset_x = self.cursor_pos_px;
+            } else if self.cursor_pos_px > self.offset_x + self.rect.width - 8.0f32 {
+                self.offset_x = self.cursor_pos_px - self.rect.width + 8.0f32 + 2.0f32;
+            }
+        } else {
+            self.offset_x = 0.0f32;
+        }
     }
 }
 
@@ -226,7 +241,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
         resources: &mut dyn Resources,
         _size: Size,
     ) {
-        let (text_width, text_height) = resources
+        let (_text_width, text_height) = resources
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
         self.rect = Rect::new(0.0f32, 0.0f32, 8.0f32 + 8.0f32, text_height as f32 + 8.0f32)
@@ -234,6 +249,7 @@ impl Style<TextBox> for TextBoxDefaultStyle {
 
     fn set_rect(&mut self, _data: &mut TextBox, _context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
+        self.update_offset_x();
     }
 
     fn get_rect(&self) -> Rect {
@@ -299,16 +315,8 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             text: data.text.get(),
         });
 
-        let mut offset_x = 0.0f32;
-
         // draw cursor
         if self.is_focused {
-            if self.cursor_pos_px < 0.0f32 {
-                offset_x = self.cursor_pos_px;
-            } else if self.cursor_pos_px > width - 8.0f32 {
-                offset_x = self.cursor_pos_px - width + 8.0f32 + 2.0f32;
-            }
-
             vec2.push(Primitive::Rectangle {
                 color: [1.0, 1.0, 0.0, 1.0],
                 rect: PixelRect::new(
@@ -321,8 +329,8 @@ impl Style<TextBox> for TextBoxDefaultStyle {
             });
         }
 
-        if offset_x != 0.0f32 {
-            vec2.translate(PixelPoint::new(-offset_x, 0.0f32));
+        if self.offset_x != 0.0f32 {
+            vec2.translate(PixelPoint::new(-self.offset_x, 0.0f32));
         }
 
         vec2 = vec2.clip(PixelRect::new(
