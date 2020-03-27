@@ -14,6 +14,7 @@ use winit::window::WindowBuilder;
 struct MainViewModel {
     pub text: Property<String>,
     pub text2: Property<String>,
+    pub progress: Property<f32>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
 }
@@ -23,6 +24,7 @@ impl MainViewModel {
         Rc::new(RefCell::new(MainViewModel {
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
+            progress: Property::new(0.5f32),
             counter: Property::new(10),
             counter2: Property::new(0),
         }))
@@ -50,7 +52,8 @@ impl RcView for MainViewModel {
         ui!(
             Grid {
                 columns: 2,
-                heights: vec![(0, Length::Auto), (1, Length::Auto)],
+                heights: vec![(0, Length::Auto), (1, Length::Auto),
+                    (2, Length::Auto)],
 
                 TextBox {
                     text: &mut vm.text,
@@ -64,6 +67,14 @@ impl RcView for MainViewModel {
                 },
                 Text {
                     text: &vm.text2,
+                },
+
+                ScrollBar {
+                    orientation: Orientation::Horizontal,
+                    value: &mut vm.progress,
+                },
+                ProgressBar {
+                    value: &vm.progress,
                 },
 
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },

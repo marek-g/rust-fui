@@ -7,6 +7,9 @@ pub use self::border::*;
 mod button;
 pub use self::button::*;
 
+mod progress_bar;
+pub use self::progress_bar::*;
+
 mod scroll_area;
 pub use self::scroll_area::*;
 
