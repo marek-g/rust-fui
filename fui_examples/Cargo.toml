@@ -37,6 +37,10 @@ name = "example4_list"
 path = "src/example4_list.rs"
 
 [[bin]]
-name = "example5_video"
-path = "src/example5_video.rs"
+name = "example5_contentcontrol"
+path = "src/example5_contentcontrol.rs"
+
+[[bin]]
+name = "example6_video"
+path = "src/example6_video.rs"
 required-features = ["video"]
