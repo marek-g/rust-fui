@@ -18,4 +18,8 @@ impl<DrawingWindowTarget> Window<DrawingWindowTarget> {
             event_processor: EventProcessor::new(),
         }
     }
+
+    pub fn get_drawing_target(&self) -> &DrawingWindowTarget {
+        &self.drawing_window_target
+    }
 }
