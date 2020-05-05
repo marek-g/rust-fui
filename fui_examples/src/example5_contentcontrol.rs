@@ -15,7 +15,7 @@ struct MainViewModel {
     pub item1: Rc<RefCell<Item1ViewModel>>,
     pub item2: Rc<RefCell<Item2ViewModel>>,
 
-    pub content: Property<Rc<RefCell<ControlObject>>>,
+    pub content: Property<Rc<RefCell<dyn ControlObject>>>,
 }
 
 impl MainViewModel {
@@ -48,20 +48,20 @@ impl RcView for MainViewModel {
 
                 Horizontal {
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| {}),
                         Text { text: " - Content 1 - " },
+                        clicked: Callback::new(view_model, |vm, _| {
+                            vm.content.set(RcView::to_view(&vm.item1, ViewContext::empty()));
+                        }),
                     },
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| {}),
                         Text { text: " - Content 2 - " },
+                        clicked: Callback::new(view_model, |vm, _| {
+                            vm.content.set(RcView::to_view(&vm.item2, ViewContext::empty()));
+                        }),
                     },
                 },
 
-                /*ScrollViewer {
-                    Vertical {
-                        &vm.content,
-                    },
-                }*/
+                &vm.content,
             }
         )
     }

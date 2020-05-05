@@ -42,14 +42,14 @@ pub trait Style<D> {
 }
 
 pub trait PropertyDirtyExtension<D> {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription;
+    fn dirty_watching(&self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription;
 }
 
 impl<D: 'static, T> PropertyDirtyExtension<D> for Property<T>
 where
     T: 'static + Clone + PartialEq,
 {
-    fn dirty_watching(&mut self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription {
+    fn dirty_watching(&self, control: &Rc<RefCell<StyledControl<D>>>) -> EventSubscription {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {
             weak_control.upgrade().map(|control| {

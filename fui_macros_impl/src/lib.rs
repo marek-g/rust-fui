@@ -68,7 +68,7 @@ use crate::parser::CtrlProperty;
 //
 // <Vertical>::builder().build().to_view(ViewContext {
 //     attached_values: TypeMap::new(),
-//     children: Box::new(DynamicChildrenSource::new(&vm.items)),
+//     children: Box::new(DynamicChildrenSource::from(&vm.items)),
 // })
 //
 // StaticChildrenSource and DynamicChildrenSource can be aggregated with AggregatedChildrenSource.
@@ -143,7 +143,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
             }
 
             let reference = dynamic_child.reference;
-            sources.push(quote!(Box::new(DynamicChildrenSource::new(#reference))));
+            sources.push(quote!(Box::new(DynamicChildrenSource::from(#reference))));
         }
     }
 
