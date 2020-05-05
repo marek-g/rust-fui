@@ -9,7 +9,7 @@ pub struct Property<T> {
     binding_subscriptions: Vec<EventSubscription>,
 }
 
-impl<T: 'static + Clone + PartialEq + Default> Property<T> {
+impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
             data: Rc::new(RefCell::new(PropertyData::new(val.into()))),
@@ -18,34 +18,35 @@ impl<T: 'static + Clone + PartialEq + Default> Property<T> {
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
-        let mut property = Property::new(T::default());
+        let mut property = Property::new(src_property.get());
         property.bind(src_property);
         property
     }
 
     pub fn binded_c_from<
-        TSrc: 'static + Clone + PartialEq + Default,
+        TSrc: 'static + Clone + PartialEq,
         F: 'static + Fn(TSrc) -> T,
     >(
         src_property: &Property<TSrc>,
         f: F,
     ) -> Self {
-        let mut property = Property::new(T::default());
+        let mut property = Property::new(f(src_property.get()));
         property.bind_c(src_property, f);
         property
     }
 
-    pub fn binded_to(dst_property: &mut Property<T>) -> Self {
-        let property = Property::new(T::default());
+    pub fn binded_to(dst_property: &mut Property<T>, init_value: T) -> Self {
+        let property = Property::new(init_value);
         dst_property.bind(&property);
         property
     }
 
-    pub fn binded_c_to<TDst: 'static + Clone + PartialEq + Default, F: 'static + Fn(T) -> TDst>(
+    pub fn binded_c_to<TDst: 'static + Clone + PartialEq, F: 'static + Fn(T) -> TDst>(
         dst_property: &mut Property<TDst>,
         f: F,
+        init_value: T
     ) -> Self {
-        let mut property = Property::new(T::default());
+        let mut property = Property::new(init_value);
         dst_property.bind_c(&mut property, f);
         property
     }
@@ -62,7 +63,7 @@ impl<T: 'static + Clone + PartialEq + Default> Property<T> {
         f2: F2,
     ) -> Self
     where
-        TOther: 'static + Clone + PartialEq + Default,
+        TOther: 'static + Clone + PartialEq,
         F1: 'static + Fn(TOther) -> T,
         F2: 'static + Fn(T) -> TOther,
     {
@@ -102,7 +103,7 @@ impl<T: 'static + Clone + PartialEq + Default> Property<T> {
             );
     }
 
-    pub fn bind_c<TSrc: 'static + Clone + PartialEq + Default, F: 'static + Fn(TSrc) -> T>(
+    pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
         &mut self,
         src_property: &Property<TSrc>,
         f: F,
@@ -135,7 +136,7 @@ struct PropertyData<T> {
     changed: Event<T>,
 }
 
-impl<T: 'static + Clone + PartialEq + Default> PropertyData<T> {
+impl<T: 'static + Clone + PartialEq> PropertyData<T> {
     fn new(val: T) -> Self {
         PropertyData {
             value: val,
@@ -192,7 +193,7 @@ impl IntoProperty for f64 {}
 ///
 impl<T, U> From<U> for Property<T>
 where
-    T: 'static + Clone + PartialEq + Default,
+    T: 'static + Clone + PartialEq,
     U: Into<T> + IntoProperty,
 {
     fn from(value: U) -> Property<T> {
@@ -209,7 +210,7 @@ where
 ///
 impl<T> From<&Property<T>> for Property<T>
 where
-    T: 'static + Clone + PartialEq + Default,
+    T: 'static + Clone + PartialEq,
 {
     fn from(value: &Property<T>) -> Property<T> {
         Property::binded_from(value)
@@ -225,7 +226,7 @@ where
 ///
 impl<T> From<&mut Property<T>> for Property<T>
 where
-    T: 'static + Clone + PartialEq + Default,
+    T: 'static + Clone + PartialEq,
 {
     fn from(value: &mut Property<T>) -> Property<T> {
         Property::binded_two_way(value)
@@ -241,8 +242,8 @@ where
 ///
 impl<TSrc, TDest, F> From<(&Property<TSrc>, F)> for Property<TDest>
 where
-    TSrc: 'static + Clone + PartialEq + Default,
-    TDest: 'static + Clone + PartialEq + Default,
+    TSrc: 'static + Clone + PartialEq,
+    TDest: 'static + Clone + PartialEq,
     F: 'static + Fn(TSrc) -> TDest,
 {
     fn from(value: (&Property<TSrc>, F)) -> Property<TDest> {
@@ -260,8 +261,8 @@ where
 ///
 impl<TSrc, TDest, F1, F2> From<(&mut Property<TSrc>, F1, F2)> for Property<TDest>
 where
-    TSrc: 'static + Clone + PartialEq + Default,
-    TDest: 'static + Clone + PartialEq + Default,
+    TSrc: 'static + Clone + PartialEq,
+    TDest: 'static + Clone + PartialEq,
     F1: 'static + Fn(TSrc) -> TDest,
     F2: 'static + Fn(TDest) -> TSrc,
 {
