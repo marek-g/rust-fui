@@ -10,22 +10,24 @@ use std::rc::{Rc, Weak};
 
 use typemap::TypeMap;
 use winit::window::WindowBuilder;
+
 struct MainViewModel {
     pub item1: Rc<RefCell<Item1ViewModel>>,
     pub item2: Rc<RefCell<Item2ViewModel>>,
-    //pub content: Property<Weak<RefCell<dyn RcView>>>,
+
+    pub content: Property<Rc<RefCell<ControlObject>>>,
 }
 
 impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         let item1 = Item1ViewModel::new();
         let item2 = Item2ViewModel::new();
-        //let content = Property::new(item1.clone());
+        let content = Property::new(RcView::to_view(&item1, ViewContext::empty()));
 
         let main_vm = Rc::new(RefCell::new(MainViewModel {
             item1,
             item2,
-            //content,
+            content,
         }));
 
         main_vm
