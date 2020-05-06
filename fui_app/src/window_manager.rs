@@ -56,7 +56,7 @@ impl WindowManager {
         Ok(window_id)
     }
 
-    pub fn add_window_view_model<V: RcView>(
+    pub fn add_window_view_model<V: ViewModel>(
         &mut self,
         window_builder: winit::window::WindowBuilder,
         event_loop: &winit::event_loop::EventLoop<()>,
@@ -65,7 +65,7 @@ impl WindowManager {
         self.add_window(
             window_builder,
             &event_loop,
-            RcView::to_view(&view_model, ViewContext::empty()),
+            ViewModel::to_view(&view_model),
         )
     }
 

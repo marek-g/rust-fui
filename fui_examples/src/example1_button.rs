@@ -53,10 +53,9 @@ impl View for ButtonText {
     }
 }
 
-impl RcView for MainViewModel {
+impl ViewModel for MainViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
-        _context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 

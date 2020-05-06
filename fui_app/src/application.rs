@@ -62,7 +62,7 @@ impl Application {
         &self.event_loop_iteration
     }
 
-    pub fn add_window<V: RcView>(
+    pub fn add_window<V: ViewModel>(
         &mut self,
         window_builder: winit::window::WindowBuilder,
         view_model: Rc<RefCell<V>>,

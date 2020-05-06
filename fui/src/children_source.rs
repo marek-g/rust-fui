@@ -8,7 +8,7 @@ use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
-use crate::{Property, view::{RcView, ViewContext}};
+use crate::{Property, view::{ViewModel, ViewContext}};
 
 #[derive(Clone)]
 pub enum ChildrenSourceChangedEventArgs {
@@ -116,11 +116,11 @@ impl ChildrenSource for DynamicChildrenSource {
 }
 
 impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
-    where T: RcView {
+    where T: ViewModel {
     fn from(children: &ObservableVec<Rc<RefCell<T>>>) -> Self {
         let children_vec = children
             .into_iter()
-            .map(|vm| RcView::to_view(&vm, ViewContext::empty()))
+            .map(|vm| ViewModel::to_view(&vm))
             .collect();
 
         let children_rc = Rc::new(RefCell::new(children_vec));
@@ -135,7 +135,7 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
                     ObservableChangedEventArgs::Insert { index, value } => {
                         let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
                             children_rc_clone.borrow_mut();
-                        let control = RcView::to_view(&value, ViewContext::empty());
+                        let control = ViewModel::to_view(&value);
                         let control_clone = control.clone();
                         vec.insert(index, control);
 

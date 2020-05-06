@@ -22,7 +22,7 @@ impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         let item1 = Item1ViewModel::new();
         let item2 = Item2ViewModel::new();
-        let content = Property::new(RcView::to_view(&item1, ViewContext::empty()));
+        let content = Property::new(ViewModel::to_view(&item1));
 
         let main_vm = Rc::new(RefCell::new(MainViewModel {
             item1,
@@ -34,10 +34,9 @@ impl MainViewModel {
     }
 }
 
-impl RcView for MainViewModel {
+impl ViewModel for MainViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
-        _context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
@@ -50,13 +49,13 @@ impl RcView for MainViewModel {
                     Button {
                         Text { text: " - Content 1 - " },
                         clicked: Callback::new(view_model, |vm, _| {
-                            vm.content.set(RcView::to_view(&vm.item1, ViewContext::empty()));
+                            vm.content.set(ViewModel::to_view(&vm.item1));
                         }),
                     },
                     Button {
                         Text { text: " - Content 2 - " },
                         clicked: Callback::new(view_model, |vm, _| {
-                            vm.content.set(RcView::to_view(&vm.item2, ViewContext::empty()));
+                            vm.content.set(ViewModel::to_view(&vm.item2));
                         }),
                     },
                 },
@@ -75,10 +74,9 @@ impl Item1ViewModel {
     }
 }
 
-impl RcView for Item1ViewModel {
+impl ViewModel for Item1ViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
-        _context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
@@ -99,10 +97,9 @@ impl Item2ViewModel {
     }
 }
 
-impl RcView for Item2ViewModel {
+impl ViewModel for Item2ViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
-        _context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
