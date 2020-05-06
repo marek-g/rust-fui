@@ -19,8 +19,6 @@ impl ViewContext {
     }
 }
 
-//pub type View = 
-
 ///
 /// Used to convert controls to views.
 /// Controls can be consumed during conversion.
