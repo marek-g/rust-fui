@@ -13,7 +13,7 @@ pub struct Bitmap {
     pub texture_id: Property<i32>,
 }
 
-impl View for Bitmap {
+impl Control for Bitmap {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, BitmapDefaultStyle::new(), context)
     }

@@ -29,7 +29,7 @@ pub struct ScrollArea {
     pub viewport_info: Property<ViewportInfo>,
 }
 
-impl View for ScrollArea {
+impl Control for ScrollArea {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, ScrollAreaDefaultStyle::new(), context)
     }

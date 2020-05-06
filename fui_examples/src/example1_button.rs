@@ -42,7 +42,7 @@ pub struct ButtonText {
     pub clicked: Callback<()>,
 }
 
-impl View for ButtonText {
+impl Control for ButtonText {
     fn to_view(self, _context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {

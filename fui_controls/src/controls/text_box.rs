@@ -17,7 +17,7 @@ pub struct TextBox {
     pub text: Property<String>,
 }
 
-impl View for TextBox {
+impl Control for TextBox {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, TextBoxDefaultStyle::new(), context)
     }

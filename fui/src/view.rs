@@ -19,17 +19,20 @@ impl ViewContext {
     }
 }
 
+//pub type View = 
+
 ///
 /// Used to convert controls to views.
 /// Controls can be consumed during conversion.
 ///
-pub trait View {
+pub trait Control {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 ///
 /// Used to convert view models to views.
 /// Data from view models can be only borrowed (not consumed) during conversion.
+///
 pub trait ViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,

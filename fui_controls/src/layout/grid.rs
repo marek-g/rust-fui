@@ -228,7 +228,7 @@ pub struct Grid {
     pub max_heights: Vec<(i32, f32)>,
 }
 
-impl View for Grid {
+impl Control for Grid {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, GridDefaultStyle::new(), context)
     }

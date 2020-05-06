@@ -9,7 +9,7 @@ use fui::*;
 #[derive(TypedBuilder)]
 pub struct Vertical {}
 
-impl View for Vertical {
+impl Control for Vertical {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StackPanel::builder()
             .orientation(Orientation::Vertical)

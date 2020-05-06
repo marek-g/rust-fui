@@ -23,7 +23,7 @@ pub struct ProgressBar {
     pub value: Property<f32>,
 }
 
-impl View for ProgressBar {
+impl Control for ProgressBar {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, ProgressBarDefaultStyle::new(), context)
     }

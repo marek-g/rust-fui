@@ -28,7 +28,7 @@ pub struct ScrollViewer {
     pub vertical_scroll_bar_visibility: ScrollBarVisibility,
 }
 
-impl View for ScrollViewer {
+impl Control for ScrollViewer {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         let mut offset_x_prop1 = Property::new(0.0f32);
         let offset_x_prop2 = Property::binded_two_way(&mut offset_x_prop1);
