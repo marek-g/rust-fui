@@ -35,33 +35,54 @@ pub struct TabControl {
 
 impl Control for TabControl {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        let tabs_source = context.children;
+        let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.index(0))));
 
-        let data_rc = Rc::new(RefCell::new(
-            (tabs_source, selected_tab.clone())));
+        let mut tab_buttons = ObservableVec::new();
+        let len = tabs_source.len();
+        for i in 0..len {
+            tab_buttons.push(Rc::new(RefCell::new(TabButtonViewModel {
+                index: i,
+                title: format!("Tab {}", i + 1),
+                tabs_source: tabs_source.clone(),
+                selected_tab: selected_tab.clone(),
+            })));
+        }
 
         ui! {
             Grid {
-                rows: 2,
+                columns: 1,
                 heights: vec![(0, Length::Auto), (1, Length::Fill(1.0f32))],
 
                 Horizontal {
-                    Button {
-                        Text { text: "Tab 1" },
-                        clicked: Callback::new(&data_rc,
-                            |data, _| data.1.borrow_mut().set(data.0.index(0))),
-                    },
-                    Button {
-                        Text { text: "Tab 2" },
-                        clicked: Callback::new(&data_rc,
-                            |data, _| data.1.borrow_mut().set(data.0.index(1))),
-                    }
+                    &tab_buttons,
                 },
 
                 Border {
                     &selected_tab,
                 },
+            }
+        }
+    }
+}
+
+struct TabButtonViewModel {
+    pub index: usize,
+    pub title: String,
+    pub tabs_source: Rc<Box<dyn ChildrenSource>>,
+    pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+}
+
+impl ViewModel for TabButtonViewModel {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+    ) -> Rc<RefCell<dyn ControlObject>> {
+        ui! {
+            Button {
+                Text { text: view_model.borrow().title.clone() },
+                clicked: Callback::new(view_model,
+                    |vm, _| vm.selected_tab.borrow_mut().set(
+                        vm.tabs_source.index(vm.index))),
             }
         }
     }
