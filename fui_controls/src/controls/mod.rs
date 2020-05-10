@@ -19,6 +19,9 @@ pub use self::scroll_bar::*;
 mod scroll_viewer;
 pub use self::scroll_viewer::*;
 
+mod tab_control;
+pub use self::tab_control::*;
+
 mod text;
 pub use self::text::*;
 

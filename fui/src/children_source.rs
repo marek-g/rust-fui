@@ -198,6 +198,39 @@ impl From<&Property<Rc<RefCell<dyn ControlObject>>>> for DynamicChildrenSource {
     }
 }
 
+impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChildrenSource {
+    fn from(child: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
+        let children_rc = Rc::new(RefCell::new(
+            vec![child.borrow().get()]));
+        let changed_event_rc = Rc::new(RefCell::new(Event::new()));
+
+        let children_rc_clone = children_rc.clone();
+        let changed_event_rc_clone = changed_event_rc.clone();
+        let event_subscription =
+            child.borrow().on_changed(move |new_control| {
+                let mut vec = children_rc_clone.borrow_mut();
+
+                let old_control = vec.pop();
+                if let Some(old_control) = old_control {
+                    changed_event_rc_clone.borrow().emit(
+                        ChildrenSourceChangedEventArgs::Remove(old_control)
+                    );
+                }
+
+                vec.push(new_control.clone());
+                changed_event_rc_clone.borrow().emit(
+                    ChildrenSourceChangedEventArgs::Insert(new_control)
+                );
+            });
+
+        DynamicChildrenSource {
+            children: children_rc,
+            changed_event: changed_event_rc,
+            _children_changed_event_subscription: event_subscription,
+        }
+    }
+}
+
 ///
 /// AggregatedChildrenSource.
 ///

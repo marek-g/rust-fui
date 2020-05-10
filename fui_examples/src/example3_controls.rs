@@ -49,43 +49,49 @@ impl ViewModel for MainViewModel {
         vm.counter.bind(&mut vm.counter2);
 
         ui!(
-            Grid {
-                columns: 2,
-                heights: vec![(0, Length::Auto), (1, Length::Auto),
-                    (2, Length::Auto)],
+            TabControl {
+                Grid {
+                    columns: 2,
+                    heights: vec![(0, Length::Auto), (1, Length::Auto),
+                        (2, Length::Auto)],
 
-                TextBox {
-                    text: &mut vm.text,
-                },
-                Text {
-                    text: &vm.text,
+                    TextBox {
+                        text: &mut vm.text,
+                    },
+                    Text {
+                        text: &vm.text,
+                    },
+
+                    TextBox {
+                        text: &mut vm.text2,
+                    },
+                    Text {
+                        text: &vm.text2,
+                    },
+
+                    ScrollBar {
+                        orientation: Orientation::Horizontal,
+                        value: &mut vm.progress,
+                    },
+                    ProgressBar {
+                        value: &vm.progress,
+                    },
                 },
 
-                TextBox {
-                    text: &mut vm.text2,
-                },
-                Text {
-                    text: &vm.text2,
-                },
+                Grid {
+                    columns: 2,
 
-                ScrollBar {
-                    orientation: Orientation::Horizontal,
-                    value: &mut vm.progress,
-                },
-                ProgressBar {
-                    value: &vm.progress,
-                },
-
-                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.decrease()),
-                    Text { text: "Decrease" },
-                },
-                Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
-                    Text { text: "Increase" },
-                },
-                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
+                    Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.decrease()),
+                        Text { text: "Decrease" },
+                    },
+                    Button {
+                        clicked: Callback::new(view_model, |vm, _| vm.increase()),
+                        Text { text: "Increase" },
+                    },
+                    Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
+                }
             }
         )
     }
