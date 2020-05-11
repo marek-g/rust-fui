@@ -38,6 +38,8 @@ impl Control for TabControl {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
+        //tabs_source.map();
+
         let mut tab_buttons = ObservableVec::new();
         let len = tabs_source.len();
         for i in 0..len {

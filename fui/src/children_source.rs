@@ -10,66 +10,6 @@ use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
 use crate::{Property, view::ViewModel, ObservableCollection};
 
-pub struct ChildrenSourceIterator<'a> {
-    source: &'a dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>,
-    pos: usize,
-    len: usize,
-}
-
-impl<'a> Iterator for ChildrenSourceIterator<'a> {
-    type Item = Rc<RefCell<dyn ControlObject>>;
-
-    fn next(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        if self.pos < self.len {
-            self.pos += 1;
-            Some(self.source.get(self.pos - 1))
-        } else {
-            None
-        }
-    }
-}
-
-impl<'a> DoubleEndedIterator for ChildrenSourceIterator<'a> {
-    fn next_back(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        if self.len > self.pos {
-            self.len -= 1;
-            Some(self.source.get(self.len))
-        } else {
-            None
-        }
-    }
-}
-
-impl<'a> IntoIterator for &'a dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>> {
-    type Item = Rc<RefCell<dyn ControlObject>>;
-    type IntoIter = ChildrenSourceIterator<'a>;
-
-    fn into_iter(self) -> ChildrenSourceIterator<'a> {
-        ChildrenSourceIterator {
-            source: self,
-            pos: 0,
-            len: self.len(),
-        }
-    }
-}
-
-///
-/// ObservableCollection for Vec.
-///
-impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Vec<Rc<RefCell<dyn ControlObject>>> {
-    fn len(&self) -> usize {
-        self.len()
-    }
-
-    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
-        std::ops::Index::index(self, index).clone()
-    }
-
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
-        None
-    }
-}
-
 ///
 /// DynamicChildrenSource.
 ///
