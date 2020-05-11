@@ -14,7 +14,7 @@ impl ViewContext {
     pub fn empty() -> ViewContext {
         ViewContext {
             attached_values: TypeMap::new(),
-            children: Box::new(StaticChildrenSource::new(Vec::new())),
+            children: Box::new(Vec::new()),
         }
     }
 }

@@ -18,21 +18,11 @@ impl<'a> IntoIterator for &'a ChildrenSource {
 }
 
 ///
-/// StaticChildrenSource.
+/// ChildrenSource for Vec.
 /// 
-pub struct StaticChildrenSource {
-    children: Vec<Rc<RefCell<dyn ControlObject>>>,
-}
-
-impl StaticChildrenSource {
-    pub fn new(children: Vec<Rc<RefCell<dyn ControlObject>>>) -> Self {
-        StaticChildrenSource { children }
-    }
-}
-
-impl ChildrenSource for StaticChildrenSource {
+impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
     fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
-        self.children.iter()
+        self.iter()
     }
 }
 

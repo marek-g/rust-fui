@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
+use std::cell::Ref;
 use std::ops::Index;
 use std::rc::Rc;
 
@@ -8,7 +9,7 @@ use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
-use crate::{Property, view::{ViewModel, ViewContext}};
+use crate::{Property, view::ViewModel};
 
 #[derive(Clone)]
 pub enum ChildrenSourceChangedEventArgs {
@@ -18,7 +19,7 @@ pub enum ChildrenSourceChangedEventArgs {
 
 pub trait ChildrenSource {
     fn len(&self) -> usize;
-    fn index(&self, index: usize) -> Rc<RefCell<dyn ControlObject>>;
+    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>>;
     fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>>;
 }
 
@@ -34,7 +35,7 @@ impl<'a> Iterator for ChildrenSourceIterator<'a> {
     fn next(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if self.pos < self.len {
             self.pos += 1;
-            Some(self.source.index(self.pos - 1))
+            Some(self.source.get(self.pos - 1))
         } else {
             None
         }
@@ -45,7 +46,7 @@ impl<'a> DoubleEndedIterator for ChildrenSourceIterator<'a> {
     fn next_back(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if self.len > self.pos {
             self.len -= 1;
-            Some(self.source.index(self.len))
+            Some(self.source.get(self.len))
         } else {
             None
         }
@@ -66,25 +67,15 @@ impl<'a> IntoIterator for &'a dyn ChildrenSource {
 }
 
 ///
-/// StaticChildrenSource.
+/// ChildrenSource for Vec.
 ///
-pub struct StaticChildrenSource {
-    children: Vec<Rc<RefCell<dyn ControlObject>>>,
-}
-
-impl StaticChildrenSource {
-    pub fn new(children: Vec<Rc<RefCell<dyn ControlObject>>>) -> Self {
-        StaticChildrenSource { children }
-    }
-}
-
-impl ChildrenSource for StaticChildrenSource {
+impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
     fn len(&self) -> usize {
-        self.children.len()
+        self.len()
     }
 
-    fn index(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
-        self.children.index(index).clone()
+    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
+        std::ops::Index::index(self, index).clone()
     }
 
     fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
@@ -106,8 +97,8 @@ impl ChildrenSource for DynamicChildrenSource {
         self.children.borrow().len()
     }
 
-    fn index(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
-        self.children.borrow().index(index).clone()
+    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
+        (self.children.borrow() as Ref<Vec<Rc<RefCell<dyn ControlObject>>>>).index(index).clone()
     }
 
     fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
@@ -268,12 +259,12 @@ impl ChildrenSource for AggregatedChildrenSource {
         self.sources.iter().map(|s| s.len()).sum()
     }
 
-    fn index(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
+    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
         let mut new_index = index;
         for source in &self.sources {
             let len = source.len();
             if new_index < len {
-                return source.index(new_index);
+                return source.get(new_index);
             } else {
                 new_index -= len;
             }

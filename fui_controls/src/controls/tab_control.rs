@@ -36,7 +36,7 @@ pub struct TabControl {
 impl Control for TabControl {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         let tabs_source = Rc::new(context.children);
-        let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.index(0))));
+        let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
         let mut tab_buttons = ObservableVec::new();
         let len = tabs_source.len();
@@ -82,7 +82,7 @@ impl ViewModel for TabButtonViewModel {
                 Text { text: view_model.borrow().title.clone() },
                 clicked: Callback::new(view_model,
                     |vm, _| vm.selected_tab.borrow_mut().set(
-                        vm.tabs_source.index(vm.index))),
+                        vm.tabs_source.get(vm.index))),
             }
         }
     }

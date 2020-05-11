@@ -2,13 +2,8 @@ use std::cell::RefCell;
 use std::cell::RefMut;
 use std::iter::FromIterator;
 
+use crate::observable::observable_collection::ObservableChangedEventArgs;
 use crate::observable::event::Event;
-
-#[derive(Clone)]
-pub enum ObservableChangedEventArgs<T: 'static + Clone> {
-    Insert { index: usize, value: T },
-    Remove { index: usize, value: T },
-}
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,

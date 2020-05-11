@@ -30,32 +30,32 @@ use crate::parser::CtrlProperty;
 //
 // <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
 //     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
-//     children: Box::new(StaticChildrenSource::new(vec![
+//     children: Box::new(vec![
 //
 //         <Button>::builder().build().to_view(ViewContext {
 //             attached_values: TypeMap::new(),
-//             children: Box::new(StaticChildrenSource::new(vec![
+//             children: Box::new(vec![
 //
 //                 <Text::builder()
 //                     .text("Button".to_string())
 //                     .build().to_view(ViewContext {
 //                         attached_values: TypeMap::new(),
-//                         children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
+//                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new())
 //                     }),
 //
-//             )])),
+//             )]),
 //         }),
 //
 //         <Text>::builder()
 //             .text("Label".to_string())
 //             .build().to_view(ViewContext {
 //                 attached_values: TypeMap::new(),
-//                 children: Box::new(StaticChildrenSource::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
+//                 children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new())
 //             }),
 //         ),
 //
 //         control,
-//     ])),
+//     ]),
 // })
 //
 // ui!(
@@ -71,7 +71,7 @@ use crate::parser::CtrlProperty;
 //     children: Box::new(DynamicChildrenSource::from(&vm.items)),
 // })
 //
-// StaticChildrenSource and DynamicChildrenSource can be aggregated with AggregatedChildrenSource.
+// Vec and DynamicChildrenSource can be aggregated with AggregatedChildrenSource.
 //
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
@@ -136,9 +136,9 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
             static_children.push(quote!(#name));
         } else if let CtrlParam::Collection(dynamic_child) = child {
             if static_children.len() > 0 {
-                sources.push(quote!(Box::new(StaticChildrenSource::new(
+                sources.push(quote!(Box::new(
                     vec![#(#static_children,)*]
-                ))));
+                )));
                 static_children = Vec::new();
             }
 
@@ -148,16 +148,14 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
     }
 
     if static_children.len() > 0 {
-        sources.push(quote!(Box::new(StaticChildrenSource::new(
+        sources.push(quote!(Box::new(
             vec![#(#static_children,)*]
-        ))));
+        )));
     }
 
     let len = sources.len();
     if len == 0 {
-        quote!(Box::new(StaticChildrenSource::new(Vec::<
-            Rc<RefCell<ControlObject>>,
-        >::new())))
+        quote!(Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
     } else if len == 1 {
         sources.into_iter().next().unwrap()
     } else {
