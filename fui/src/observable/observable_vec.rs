@@ -18,6 +18,14 @@ impl<T: 'static + Clone> ObservableVec<T> {
         }
     }
 
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
+
+    pub fn get(&self, index: usize) -> T {
+        self.items[index].clone()
+    }
+
     pub fn get_changed_event(&self) -> RefMut<'_, Event<ObservableChangedEventArgs<T>>> {
         self.changed_event.borrow_mut()
     }
