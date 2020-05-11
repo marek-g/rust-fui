@@ -5,23 +5,14 @@ use typed_builder::TypedBuilder;
 use typemap::{Key, TypeMap};
 
 pub trait ObservableCollection<T: 'static + Clone> {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, T>;
-}
-
-impl<'a, T: 'static + Clone> IntoIterator for &'a ObservableCollection<T> {
-    type Item = &'a T;
-    type IntoIter = ::std::slice::Iter<'a, T>;
-
-    fn into_iter(self) -> ::std::slice::Iter<'a, T> {
-        self.iter()
-    }
+    fn iter1<'a>(&'a self) -> ::std::slice::Iter<'a, T>;
 }
 
 ///
 /// ObservableCollection for Vec.
 /// 
 impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Vec<Rc<RefCell<dyn ControlObject>>> {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
+    fn iter1<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
         self.iter()
     }
 }
@@ -42,7 +33,7 @@ pub struct ViewContext {
 }
 
 pub trait View {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>>;
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 pub trait Style<D> {
@@ -51,7 +42,7 @@ pub trait Style<D> {
 
 pub struct Control<D> {
     pub data: D,
-    pub style: Box<Style<D>>,
+    pub style: Box<dyn Style<D>>,
     pub attached_values: TypeMap,
     pub children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
@@ -83,7 +74,7 @@ impl<D: 'static> ControlObject for Control<D> {
         let children = {
             let vec: Vec<String> = self
                 .children
-                .iter()
+                .iter1()
                 .map(|c| c.borrow_mut().draw())
                 .collect();
             vec.join(",")
@@ -100,7 +91,7 @@ pub struct Horizontal {
 }
 
 impl View for Horizontal {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
             HorizontalDefaultStyle::new(),
@@ -128,7 +119,7 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 pub struct Button {}
 
 impl View for Button {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
             ButtonDefaultStyle::new(),
@@ -158,7 +149,7 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<ControlObject>> {
+    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
             TextDefaultStyle::new(),
@@ -193,7 +184,7 @@ fn test1() {
         }
     );
 
-    let mut control: std::cell::RefMut<ControlObject> = control.borrow_mut();
+    let mut control: std::cell::RefMut<dyn ControlObject> = control.borrow_mut();
     assert_eq!(
         "Horizontal(4).Row(1){Button{Text(\"Button\"){}},Text(\"Label\"){}}",
         control.draw()
