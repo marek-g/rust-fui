@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::cell::RefMut;
-use std::cell::Ref;
 use std::ops::Index;
 use std::rc::Rc;
 
@@ -11,16 +10,10 @@ use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
 use crate::{Property, view::ViewModel};
 
-#[derive(Clone)]
-pub enum ChildrenSourceChangedEventArgs {
-    Insert(Rc<RefCell<dyn ControlObject>>),
-    Remove(Rc<RefCell<dyn ControlObject>>),
-}
-
 pub trait ChildrenSource {
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>>;
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>>;
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>;
 }
 
 pub struct ChildrenSourceIterator<'a> {
@@ -78,7 +71,7 @@ impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
         std::ops::Index::index(self, index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
         None
     }
 }
@@ -88,7 +81,7 @@ impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
 ///
 pub struct DynamicChildrenSource {
     children: Rc<RefCell<Vec<Rc<RefCell<dyn ControlObject>>>>>,
-    changed_event: Rc<RefCell<Event<ChildrenSourceChangedEventArgs>>>,
+    changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>,
     _children_changed_event_subscription: EventSubscription,
 }
 
@@ -98,10 +91,10 @@ impl ChildrenSource for DynamicChildrenSource {
     }
 
     fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
-        (self.children.borrow() as Ref<Vec<Rc<RefCell<dyn ControlObject>>>>).index(index).clone()
+        self.children.borrow().index(index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
         Some(self.changed_event.borrow_mut())
     }
 }
@@ -132,7 +125,7 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
 
                         changed_event_rc_clone
                             .borrow()
-                            .emit(ChildrenSourceChangedEventArgs::Insert(control_clone));
+                            .emit(ObservableChangedEventArgs::Insert { index, value: control_clone });
                     }
                     ObservableChangedEventArgs::Remove {
                         index,
@@ -144,7 +137,7 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
 
                         changed_event_rc_clone
                             .borrow()
-                            .emit(ChildrenSourceChangedEventArgs::Remove(control));
+                            .emit(ObservableChangedEventArgs::Remove { index, value: control });
                     }
                 });
 
@@ -171,13 +164,13 @@ impl From<&Property<Rc<RefCell<dyn ControlObject>>>> for DynamicChildrenSource {
                 let old_control = vec.pop();
                 if let Some(old_control) = old_control {
                     changed_event_rc_clone.borrow().emit(
-                        ChildrenSourceChangedEventArgs::Remove(old_control)
+                        ObservableChangedEventArgs::Remove { index: 0, value: old_control }
                     );
                 }
 
                 vec.push(new_control.clone());
                 changed_event_rc_clone.borrow().emit(
-                    ChildrenSourceChangedEventArgs::Insert(new_control)
+                    ObservableChangedEventArgs::Insert { index: 0, value: new_control }
                 );
             });
 
@@ -204,13 +197,13 @@ impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChi
                 let old_control = vec.pop();
                 if let Some(old_control) = old_control {
                     changed_event_rc_clone.borrow().emit(
-                        ChildrenSourceChangedEventArgs::Remove(old_control)
+                        ObservableChangedEventArgs::Remove { index: 0, value: old_control }
                     );
                 }
 
                 vec.push(new_control.clone());
                 changed_event_rc_clone.borrow().emit(
-                    ChildrenSourceChangedEventArgs::Insert(new_control)
+                    ObservableChangedEventArgs::Insert { index: 0, value: new_control }
                 );
             });
 
@@ -227,7 +220,7 @@ impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChi
 ///
 pub struct AggregatedChildrenSource {
     sources: Vec<Box<dyn ChildrenSource>>,
-    changed_event: Option<Rc<RefCell<Event<ChildrenSourceChangedEventArgs>>>>,
+    changed_event: Option<Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>>,
     source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -277,7 +270,7 @@ impl ChildrenSource for AggregatedChildrenSource {
         ))
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ChildrenSourceChangedEventArgs>>> {
+    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
         match &self.changed_event {
             None => None,
             Some(ref changed_event) => Some(changed_event.borrow_mut()),

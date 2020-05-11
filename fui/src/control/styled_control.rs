@@ -38,7 +38,7 @@ impl<D: 'static> StyledControl<D> {
         {
             let control_clone = control.clone();
             Some(changed_event.subscribe(move |changed_args| {
-                if let ChildrenSourceChangedEventArgs::Insert(child) = changed_args {
+                if let ObservableChangedEventArgs::Insert { index: _, value: child } = changed_args {
                     let control_weak =
                         Rc::downgrade(&control_clone) as Weak<RefCell<dyn ControlObject>>;
                     child
