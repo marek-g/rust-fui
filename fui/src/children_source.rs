@@ -8,16 +8,10 @@ use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
-use crate::{Property, view::ViewModel};
-
-pub trait ChildrenSource {
-    fn len(&self) -> usize;
-    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>>;
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>;
-}
+use crate::{Property, view::ViewModel, ObservableCollection};
 
 pub struct ChildrenSourceIterator<'a> {
-    source: &'a dyn ChildrenSource,
+    source: &'a dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>,
     pos: usize,
     len: usize,
 }
@@ -46,7 +40,7 @@ impl<'a> DoubleEndedIterator for ChildrenSourceIterator<'a> {
     }
 }
 
-impl<'a> IntoIterator for &'a dyn ChildrenSource {
+impl<'a> IntoIterator for &'a dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>> {
     type Item = Rc<RefCell<dyn ControlObject>>;
     type IntoIter = ChildrenSourceIterator<'a>;
 
@@ -60,9 +54,9 @@ impl<'a> IntoIterator for &'a dyn ChildrenSource {
 }
 
 ///
-/// ChildrenSource for Vec.
+/// ObservableCollection for Vec.
 ///
-impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Vec<Rc<RefCell<dyn ControlObject>>> {
     fn len(&self) -> usize {
         self.len()
     }
@@ -85,7 +79,7 @@ pub struct DynamicChildrenSource {
     _children_changed_event_subscription: EventSubscription,
 }
 
-impl ChildrenSource for DynamicChildrenSource {
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for DynamicChildrenSource {
     fn len(&self) -> usize {
         self.children.borrow().len()
     }
@@ -219,13 +213,13 @@ impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChi
 /// AggregatedChildrenSource.
 ///
 pub struct AggregatedChildrenSource {
-    sources: Vec<Box<dyn ChildrenSource>>,
+    sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
     changed_event: Option<Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>>,
     source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
 impl AggregatedChildrenSource {
-    pub fn new(sources: Vec<Box<dyn ChildrenSource>>) -> Self {
+    pub fn new(sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
         let mut changed_event = None;
         let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
@@ -247,7 +241,7 @@ impl AggregatedChildrenSource {
     }
 }
 
-impl ChildrenSource for AggregatedChildrenSource {
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildrenSource {
     fn len(&self) -> usize {
         self.sources.iter().map(|s| s.len()).sum()
     }

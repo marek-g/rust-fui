@@ -2,12 +2,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use crate::children_source::*;
-use crate::control::ControlObject;
+use crate::{ObservableCollection, control::ControlObject};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
-    pub children: Box<dyn ChildrenSource>,
+    pub children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
 
 impl ViewContext {

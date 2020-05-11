@@ -69,7 +69,7 @@ impl Control for TabControl {
 struct TabButtonViewModel {
     pub index: usize,
     pub title: String,
-    pub tabs_source: Rc<Box<dyn ChildrenSource>>,
+    pub tabs_source: Rc<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
     pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
 }
 

@@ -275,7 +275,7 @@ impl GridDefaultStyle {
 
     fn decide_number_of_rows_and_columns(
         data: &Grid,
-        children: &Box<dyn ChildrenSource>,
+        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     ) -> (usize, usize) {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
@@ -340,7 +340,7 @@ impl GridDefaultStyle {
     fn prepare_definitions(
         &mut self,
         data: &Grid,
-        _children: &Box<dyn ChildrenSource>,
+        _children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
         number_of_rows: usize,
         number_of_columns: usize,
         size_to_content_u: bool,
@@ -412,7 +412,7 @@ impl GridDefaultStyle {
         }
     }
 
-    fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ChildrenSource>) {
+    fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
@@ -530,7 +530,7 @@ impl GridDefaultStyle {
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
-        children: &Box<dyn ChildrenSource>,
+        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
         ignore_desired_size_u: bool,
         force_infinity_v: bool,
     ) -> bool {

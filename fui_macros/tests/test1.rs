@@ -4,23 +4,23 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 use typemap::{Key, TypeMap};
 
-pub trait ChildrenSource {
-    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>>;
+pub trait ObservableCollection<T: 'static + Clone> {
+    fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, T>;
 }
 
-impl<'a> IntoIterator for &'a ChildrenSource {
-    type Item = &'a Rc<RefCell<dyn ControlObject>>;
-    type IntoIter = ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>>;
+impl<'a, T: 'static + Clone> IntoIterator for &'a ObservableCollection<T> {
+    type Item = &'a T;
+    type IntoIter = ::std::slice::Iter<'a, T>;
 
-    fn into_iter(self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
+    fn into_iter(self) -> ::std::slice::Iter<'a, T> {
         self.iter()
     }
 }
 
 ///
-/// ChildrenSource for Vec.
+/// ObservableCollection for Vec.
 /// 
-impl ChildrenSource for Vec<Rc<RefCell<dyn ControlObject>>> {
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Vec<Rc<RefCell<dyn ControlObject>>> {
     fn iter<'a>(&'a self) -> ::std::slice::Iter<'a, Rc<RefCell<dyn ControlObject>>> {
         self.iter()
     }
@@ -38,7 +38,7 @@ pub trait ControlObject {
 
 pub struct ViewContext {
     attached_values: TypeMap,
-    children: Box<dyn ChildrenSource>,
+    children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
 
 pub trait View {
@@ -53,7 +53,7 @@ pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
     pub attached_values: TypeMap,
-    pub children: Box<ChildrenSource>,
+    pub children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
 
 impl<D: 'static> Control<D> {
@@ -61,7 +61,7 @@ impl<D: 'static> Control<D> {
         data: D,
         style: S,
         attached_values: TypeMap,
-        children: Box<ChildrenSource>,
+        children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Control {
             data: data,

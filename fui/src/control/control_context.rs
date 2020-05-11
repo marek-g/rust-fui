@@ -3,13 +3,12 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
-use crate::children_source::*;
 use crate::control::*;
 use crate::observable::*;
 
 pub struct ControlContext {
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
-    children: Box<dyn ChildrenSource>,
+    children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     children_collection_changed_event_subscription: Option<EventSubscription>,
 
     attached_values: TypeMap,
@@ -40,7 +39,7 @@ impl ControlContext {
         self.parent = Some(parent);
     }
 
-    pub fn get_children(&self) -> &Box<dyn ChildrenSource> {
+    pub fn get_children(&self) -> &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
         &self.children
     }
 

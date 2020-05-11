@@ -129,7 +129,7 @@ Cons:
 pub struct Control<D> {
     pub data: D,
     pub style: Box<Style<D>>,
-    pub children: Box<dyn ChildrenSource>,
+    pub children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 
     parent: Option<Weak<RefCell<ControlObject>>>,
     is_dirty: bool,

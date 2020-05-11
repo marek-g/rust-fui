@@ -3,7 +3,6 @@ use crate::resources::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::children_source::*;
 use crate::common::*;
 use crate::control::*;
 use crate::observable::*;
