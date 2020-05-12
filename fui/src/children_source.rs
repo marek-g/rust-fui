@@ -9,6 +9,29 @@ use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
 use crate::{Property, view::ViewModel, ObservableCollection};
+use crate::observable::ObservableCollectionExt;
+
+/*impl<T> Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for &ObservableVec<Rc<RefCell<T>>>
+    where T: ViewModel {
+    fn into(self) -> Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+        Box::new((self as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+    }
+}*/
+
+/*impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    where T: ViewModel {
+    fn from(src: &ObservableVec<Rc<RefCell<T>>>) -> Self {
+        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+    }
+}*/
+
+impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    where T: 'static + ViewModel {
+    fn from(src: &Box<dyn ObservableCollection<Rc<RefCell<T>>>>) -> Self {
+        Box::new(src.map(|vm| { ViewModel::to_view(vm) }))
+    }
+}
+
 
 ///
 /// DynamicChildrenSource.
@@ -28,8 +51,8 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for DynamicChildrenSou
         self.children.borrow().index(index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
-        Some(self.changed_event.borrow_mut())
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>) -> Option<EventSubscription> {
+        Some(self.changed_event.borrow_mut().subscribe(f))
     }
 }
 
@@ -48,8 +71,7 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
         let changed_event_rc_clone = changed_event_rc.clone();
         let event_subscription =
             children
-                .get_changed_event()
-                .subscribe(move |changed_args| match changed_args {
+                .on_changed(move |changed_args| match changed_args {
                     ObservableChangedEventArgs::Insert { index, value } => {
                         let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
                             children_rc_clone.borrow_mut();
@@ -154,23 +176,19 @@ impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChi
 ///
 pub struct AggregatedChildrenSource {
     sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
-    changed_event: Option<Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>>,
+    changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>,
     source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
 impl AggregatedChildrenSource {
     pub fn new(sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        let mut changed_event = None;
+        let mut changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
-            if let Some(mut source_changed_event) = source.get_changed_event() {
-                let dest_event_rc = changed_event
-                    .get_or_insert_with(|| Rc::new(RefCell::new(Event::new())))
-                    .clone();
-                source_changed_event_subscriptions.push(
-                    source_changed_event
-                        .subscribe(move |changed_args| dest_event_rc.borrow().emit(changed_args)),
-                );
+            let changed_event_clone = changed_event.clone();
+            let handler = Box::new(move |changed_args| changed_event_clone.borrow().emit(changed_args));
+            if let Some(subscription) = source.on_changed(handler) {
+                source_changed_event_subscriptions.push(subscription);
             }
         }
         AggregatedChildrenSource {
@@ -204,10 +222,7 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildren
         ))
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>> {
-        match &self.changed_event {
-            None => None,
-            Some(ref changed_event) => Some(changed_event.borrow_mut()),
-        }
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>) -> Option<EventSubscription> {
+        self.on_changed(f)
     }
 }

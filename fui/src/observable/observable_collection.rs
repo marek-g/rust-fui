@@ -1,7 +1,7 @@
 use std::cell::RefMut;
 use std::cell::RefCell;
 use std::{ops::Index, rc::Rc};
-use crate::{EventSubscription, Event};
+use crate::{EventSubscription, Event, ObservableVec};
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {
@@ -12,7 +12,7 @@ pub enum ObservableChangedEventArgs<T: 'static + Clone> {
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> T;
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<T>>>>;
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription>;
 }
 
 ///
@@ -83,8 +83,8 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
         self.items.borrow().index(index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<T>>>> {
-        Some(self.changed_event.borrow_mut())
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription> {
+        Some(self.changed_event.borrow_mut().subscribe(f))
     }
 }
 
@@ -106,36 +106,36 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
 
         let items_rc_clone = items_rc.clone();
         let changed_event_rc_clone = changed_event_rc.clone();
+        let handler = Box::new(
+            move |changed_args| match changed_args {
+                ObservableChangedEventArgs::Insert { index, value } => {
+                    let mut vec: RefMut<'_, Vec<TDst>> =
+                        items_rc_clone.borrow_mut();
+                    let new_item = f(&value);
+                    let new_item_clone = new_item.clone();
+                    vec.insert(index, new_item);
+
+                    changed_event_rc_clone
+                        .borrow()
+                        .emit(ObservableChangedEventArgs::Insert { index, value: new_item_clone });
+                }
+
+                ObservableChangedEventArgs::Remove {
+                    index,
+                    value: _value,
+                } => {
+                    let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
+                    let old_item = vec.remove(index);
+
+                    changed_event_rc_clone
+                        .borrow()
+                        .emit(ObservableChangedEventArgs::Remove { index, value: old_item });
+                }
+            }
+        );
         let event_subscription =
             self
-                .get_changed_event()
-                .map(|mut event| {
-                    event.subscribe(move |changed_args| match changed_args {
-                        ObservableChangedEventArgs::Insert { index, value } => {
-                            let mut vec: RefMut<'_, Vec<TDst>> =
-                                items_rc_clone.borrow_mut();
-                            let new_item = f(&value);
-                            let new_item_clone = new_item.clone();
-                            vec.insert(index, new_item);
-
-                            changed_event_rc_clone
-                                .borrow()
-                                .emit(ObservableChangedEventArgs::Insert { index, value: new_item_clone });
-                        }
-
-                        ObservableChangedEventArgs::Remove {
-                            index,
-                            value: _value,
-                        } => {
-                            let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
-                            let old_item = vec.remove(index);
-
-                            changed_event_rc_clone
-                                .borrow()
-                                .emit(ObservableChangedEventArgs::Remove { index, value: old_item });
-                        }
-                    })
-                });
+                .on_changed(handler);
 
         ObservableCollectionMap {
             items: items_rc,
@@ -151,14 +151,32 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
 impl<T> ObservableCollection<T> for Vec<T>
     where T: 'static + Clone {
     fn len(&self) -> usize {
-        self.len()
+        Vec::len(self)
     }
 
     fn get(&self, index: usize) -> T {
-        std::ops::Index::index(self, index).clone()
+        Vec::index(self, index).clone()
     }
 
-    fn get_changed_event(&self) -> Option<RefMut<'_, Event<ObservableChangedEventArgs<T>>>> {
+    fn on_changed(&self, _: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription> {
         None
+    }
+}
+
+///
+/// ObservableCollection for ObservableVec.
+///
+impl<T> ObservableCollection<T> for ObservableVec<T>
+    where T: 'static + Clone {
+    fn len(&self) -> usize {
+        ObservableVec::len(self)
+    }
+
+    fn get(&self, index: usize) -> T {
+        ObservableVec::get(self, index)
+    }
+
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription> {
+        Some(ObservableVec::on_changed(self, f))
     }
 }

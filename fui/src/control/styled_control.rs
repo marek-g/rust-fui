@@ -29,14 +29,9 @@ impl<D: 'static> StyledControl<D> {
             context: ControlContext::new(view_context),
         }));
 
-        let subscription = if let Some(mut changed_event) = control
-            .borrow_mut()
-            .get_context_mut()
-            .get_children()
-            .get_changed_event()
-        {
-            let control_clone = control.clone();
-            Some(changed_event.subscribe(move |changed_args| {
+        let control_clone = control.clone();
+        let handler = Box::new(
+            move |changed_args: ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>| {
                 if let ObservableChangedEventArgs::Insert { index: _, value: child } = changed_args {
                     let control_weak =
                         Rc::downgrade(&control_clone) as Weak<RefCell<dyn ControlObject>>;
@@ -52,10 +47,14 @@ impl<D: 'static> StyledControl<D> {
                     .borrow_mut()
                     .get_context_mut()
                     .set_is_dirty(true);
-            }))
-        } else {
-            None
-        };
+            }
+        );
+        let subscription = control
+            .borrow_mut()
+            .get_context_mut()
+            .get_children()
+            .on_changed(handler);
+
         control
             .borrow_mut()
             .get_context_mut()

@@ -3,7 +3,7 @@ use std::cell::RefMut;
 use std::iter::FromIterator;
 
 use crate::observable::observable_collection::ObservableChangedEventArgs;
-use crate::observable::event::Event;
+use crate::{EventSubscription, observable::event::Event};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
@@ -26,8 +26,9 @@ impl<T: 'static + Clone> ObservableVec<T> {
         self.items[index].clone()
     }
 
-    pub fn get_changed_event(&self) -> RefMut<'_, Event<ObservableChangedEventArgs<T>>> {
-        self.changed_event.borrow_mut()
+    pub fn on_changed<F>(&self, f: F) -> EventSubscription
+        where F: 'static + Fn(ObservableChangedEventArgs<T>) {
+        self.changed_event.borrow_mut().subscribe(f)
     }
 
     pub fn push(&mut self, value: T) {

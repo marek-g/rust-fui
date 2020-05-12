@@ -38,7 +38,15 @@ impl Control for TabControl {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
-        //tabs_source.map();
+        /*let mut tab_buttons: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
+            Box::new(context.children.map(|c| {
+                Rc::new(RefCell::new(TabButtonViewModel {
+                    index: 0,
+                    title: format!("Tab {}", 0 + 1),
+                    tabs_source: tabs_source.clone(),
+                    selected_tab: selected_tab.clone(),
+                }))
+        }));*/
 
         let mut tab_buttons = ObservableVec::new();
         let len = tabs_source.len();
