@@ -28,19 +28,19 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
+// <Horizontal>::builder().spacing(4).build().to_view(None, ViewContext {
 //     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1.into()); map },
 //     children: Box::new(vec![
 //
-//         <Button>::builder().build().to_view(ViewContext {
+//         <Button>::builder().build().to_view(None, ViewContext {
 //             attached_values: TypeMap::new(),
 //             children: Box::new(vec![
 //
-//                 <Text::builder()
+//                 <Text>::builder()
 //                     .text("Button".to_string())
-//                     .build().to_view(ViewContext {
+//                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
-//                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new())
+//                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
 //                     }),
 //
 //             )]),
@@ -48,9 +48,9 @@ use crate::parser::CtrlProperty;
 //
 //         <Text>::builder()
 //             .text("Label".to_string())
-//             .build().to_view(ViewContext {
+//             .build().to_view(None, ViewContext {
 //                 attached_values: TypeMap::new(),
-//                 children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new())
+//                 children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
 //             }),
 //         ),
 //
@@ -66,12 +66,31 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Vertical>::builder().build().to_view(ViewContext {
+// <Vertical>::builder().build().to_view(None, ViewContext {
 //     attached_values: TypeMap::new(),
 //     children: Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(&vm.items),
 // })
 //
 // Vecs and ObservableCollections can be aggregated with AggregatedChildrenSource.
+//
+// ui!(
+//     Text {
+//         Style: Default {
+//             color: [1.0, 0.0, 0.0, 1.0],
+//         },
+//         text: "Text",
+//     }
+// )
+//
+// translates to:
+//
+// <Vertical>::builder().build().to_view(
+//     Some(Box::new(<DefaultTextStyle>::new(<DefaultTextStyleParams>::builder().build()))),
+//     ViewContext {
+//         attached_values: TypeMap::new(),
+//         children: Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(&vm.items),
+//     }
+// )
 //
 #[proc_macro_hack]
 pub fn ui(input: TokenStream) -> TokenStream {
@@ -95,7 +114,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
     let attached_values_typemap = get_attached_values_typemap(attached_values);
     let children_source = get_children_source(children);
 
-    quote! { #properties_builder.to_view(ViewContext {
+    quote! { #properties_builder.to_view(None, ViewContext {
         attached_values: #attached_values_typemap,
         children: #children_source,
     }) }

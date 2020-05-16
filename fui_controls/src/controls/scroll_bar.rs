@@ -27,9 +27,11 @@ pub struct ScrollBar {
 }
 
 impl Control for ScrollBar {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self,
-            Box::new(DefaultScrollBarStyle::new(DefaultScrollBarStyleParams::builder().build())),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultScrollBarStyle::new(DefaultScrollBarStyleParams::builder().build()))
+            }),
             context)
     }
 }

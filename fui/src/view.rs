@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use crate::{ObservableCollection, control::ControlObject};
+use crate::{ObservableCollection, control::ControlObject, Style};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
@@ -23,7 +23,7 @@ impl ViewContext {
 /// Controls can be consumed during conversion.
 ///
 pub trait Control {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 ///

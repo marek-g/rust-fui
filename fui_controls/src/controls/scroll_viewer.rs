@@ -29,7 +29,7 @@ pub struct ScrollViewer {
 }
 
 impl Control for ScrollViewer {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         let mut offset_x_prop1 = Property::new(0.0f32);
         let offset_x_prop2 = Property::binded_two_way(&mut offset_x_prop1);
 
@@ -60,7 +60,7 @@ impl Control for ScrollViewer {
             .offset_y(offset_y_prop1)
             .viewport_info(viewport_info_prop_src)
             .build()
-            .to_view(context);
+            .to_view(None, context);
 
         ui! {
             Grid {

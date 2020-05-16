@@ -10,10 +10,10 @@ use fui::*;
 pub struct Horizontal {}
 
 impl Control for Horizontal {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StackPanel::builder()
             .orientation(Orientation::Horizontal)
             .build()
-            .to_view(context)
+            .to_view(None, context)
     }
 }

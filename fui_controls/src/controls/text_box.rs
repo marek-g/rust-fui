@@ -18,9 +18,11 @@ pub struct TextBox {
 }
 
 impl Control for TextBox {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self, 
-            Box::new(DefaultTextBoxStyle::new(DefaultTextBoxStyleParams::builder().build())),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultTextBoxStyle::new(DefaultTextBoxStyleParams::builder().build()))
+            }),
             context)
     }
 }

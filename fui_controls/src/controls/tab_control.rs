@@ -34,7 +34,7 @@ pub struct TabControl {
 }
 
 impl Control for TabControl {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 

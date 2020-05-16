@@ -11,9 +11,11 @@ use crate::style::*;
 pub struct Border {}
 
 impl Control for Border {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self,
-            Box::new(DefaultBorderStyle::new(DefaultBorderStyleParams::builder().build())),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultBorderStyle::new(DefaultBorderStyleParams::builder().build()))
+            }),
             context)
     }
 }
