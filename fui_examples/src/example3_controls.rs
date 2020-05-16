@@ -51,6 +51,8 @@ impl ViewModel for MainViewModel {
         ui!(
             TabControl {
                 Grid {
+                    Title: "Tab 1",
+
                     columns: 2,
                     heights: vec![(0, Length::Auto), (1, Length::Auto),
                         (2, Length::Auto)],
@@ -79,6 +81,8 @@ impl ViewModel for MainViewModel {
                 },
 
                 Grid {
+                    Title: "Tab 2",
+
                     columns: 2,
 
                     Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },

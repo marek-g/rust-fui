@@ -20,7 +20,7 @@ use crate::layout::*;
 
 pub struct Title;
 impl typemap::Key for Title {
-    type Value = String;
+    type Value = Property<String>;
 }
 
 //
@@ -40,13 +40,9 @@ impl Control for TabControl {
 
         let selected_tab_clone = selected_tab.clone();
         let tab_buttons: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
-            Box::new(tabs_source.map(move |c| {
-                Rc::new(RefCell::new(TabButtonViewModel {
-                    title: "Tab".to_string(),
-                    content: c.clone(),
-                    selected_tab: selected_tab_clone.clone(),
-                }))
-        }));
+            Box::new(tabs_source.map(move |c|
+                TabButtonViewModel::new(&c, &selected_tab_clone)
+        ));
 
         ui! {
             Grid {
@@ -66,9 +62,25 @@ impl Control for TabControl {
 }
 
 struct TabButtonViewModel {
-    pub title: String,
+    pub title: Property<String>,
     pub content: Rc<RefCell<dyn ControlObject>>,
     pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+}
+
+impl TabButtonViewModel {
+    pub fn new(content: &Rc<RefCell<dyn ControlObject>>,
+        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Rc<RefCell<Self>> {
+        let title = content.borrow()
+            .get_context().get_attached_values()
+            .get::<Title>()
+            .map(|t| Property::binded_from(t))
+            .unwrap_or_else(|| Property::new("Tab"));
+        Rc::new(RefCell::new(TabButtonViewModel {
+            title,
+            content: content.clone(),
+            selected_tab: selected_tab.clone(),
+        }))
+    }
 }
 
 impl ViewModel for TabButtonViewModel {
@@ -77,7 +89,7 @@ impl ViewModel for TabButtonViewModel {
     ) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {
-                Text { text: view_model.borrow().title.clone() },
+                Text { text: &view_model.borrow().title },
                 clicked: Callback::new(view_model,
                     |vm, _| vm.selected_tab.borrow_mut().set(
                         vm.content.clone())),

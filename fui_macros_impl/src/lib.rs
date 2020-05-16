@@ -29,7 +29,7 @@ use crate::parser::CtrlProperty;
 // translates to:
 //
 // <Horizontal>::builder().spacing(4).build().to_view(ViewContext {
-//     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1); map },
+//     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1.into()); map },
 //     children: Box::new(vec![
 //
 //         <Button>::builder().build().to_view(ViewContext {
@@ -119,7 +119,7 @@ fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro
     for attached_value in attached_values {
         let name = attached_value.name;
         let expr = attached_value.expr;
-        insert_statements.push(quote!(map.insert::<#name>(#expr);))
+        insert_statements.push(quote!(map.insert::<#name>(#expr.into());))
     }
     quote!({ let mut map = TypeMap::new(); #(#insert_statements)* map })
 }
