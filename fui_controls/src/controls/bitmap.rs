@@ -15,22 +15,27 @@ pub struct Bitmap {
 
 impl Control for Bitmap {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(BitmapDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultBitmapStyle::new(DefaultBitmapStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// Bitmap Default Style
+// Default Bitmap Style
 //
 
-pub struct BitmapDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultBitmapStyleParams {}
+
+pub struct DefaultBitmapStyle {
     rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl BitmapDefaultStyle {
-    pub fn new() -> BitmapDefaultStyle {
-        BitmapDefaultStyle {
+impl DefaultBitmapStyle {
+    pub fn new(_params: DefaultBitmapStyleParams) -> Self {
+        DefaultBitmapStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -42,7 +47,7 @@ impl BitmapDefaultStyle {
     }
 }
 
-impl Style<Bitmap> for BitmapDefaultStyle {
+impl Style<Bitmap> for DefaultBitmapStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut Bitmap,

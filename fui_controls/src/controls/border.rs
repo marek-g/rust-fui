@@ -12,21 +12,26 @@ pub struct Border {}
 
 impl Control for Border {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(BorderDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultBorderStyle::new(DefaultBorderStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// Border Default Style
+// Default Border Style
 //
 
-pub struct BorderDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultBorderStyleParams {}
+
+pub struct DefaultBorderStyle {
     rect: Rect,
 }
 
-impl BorderDefaultStyle {
-    pub fn new() -> Self {
-        BorderDefaultStyle {
+impl DefaultBorderStyle {
+    pub fn new(_params: DefaultBorderStyleParams) -> Self {
+        DefaultBorderStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -37,7 +42,7 @@ impl BorderDefaultStyle {
     }
 }
 
-impl Style<Border> for BorderDefaultStyle {
+impl Style<Border> for DefaultBorderStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut Border,

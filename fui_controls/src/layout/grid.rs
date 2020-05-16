@@ -36,7 +36,7 @@ use fui::*;
 use typed_builder::TypedBuilder;
 
 //
-// Length.
+// Length
 //
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -52,7 +52,7 @@ pub enum Length {
 }
 
 //
-// DefinitionBase.
+// DefinitionBase
 //
 
 struct DefinitionBase {
@@ -140,7 +140,7 @@ impl DefinitionBase {
 }
 
 //
-// CellCache.
+// CellCache
 //
 
 struct CellCache {
@@ -156,7 +156,7 @@ struct CellCache {
 }
 
 //
-// Attached values.
+// Attached values
 //
 
 pub struct Row;
@@ -180,7 +180,7 @@ impl typemap::Key for ColumnSpan {
 }
 
 //
-// Grid.
+// Grid
 //
 
 #[derive(TypedBuilder)]
@@ -230,15 +230,20 @@ pub struct Grid {
 
 impl Control for Grid {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(GridDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultGridStyle::new(DefaultGridStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// GridDefaultStyle.
+// Default Grid Style
 //
 
-pub struct GridDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultGridStyleParams {}
+
+pub struct DefaultGridStyle {
     rect: Rect,
 
     definitions_u: Vec<DefinitionBase>,
@@ -252,9 +257,9 @@ pub struct GridDefaultStyle {
     has_group_3_cells_in_auto_rows: bool,
 }
 
-impl GridDefaultStyle {
-    pub fn new() -> Self {
-        GridDefaultStyle {
+impl DefaultGridStyle {
+    pub fn new(_params: DefaultGridStyleParams) -> Self {
+        DefaultGridStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -1452,7 +1457,7 @@ impl GridDefaultStyle {
     }
 }
 
-impl Style<Grid> for GridDefaultStyle {
+impl Style<Grid> for DefaultGridStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut Grid,

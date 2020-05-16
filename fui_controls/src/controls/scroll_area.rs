@@ -31,23 +31,28 @@ pub struct ScrollArea {
 
 impl Control for ScrollArea {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(ScrollAreaDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultScrollAreaStyle::new(DefaultScrollAreaStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// ScrollViewer Default Style
+// Default ScrollArea Style
 //
 
-pub struct ScrollAreaDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultScrollAreaStyleParams {}
+
+pub struct DefaultScrollAreaStyle {
     rect: Rect,
     content_size: Size,
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl ScrollAreaDefaultStyle {
-    pub fn new() -> Self {
-        ScrollAreaDefaultStyle {
+impl DefaultScrollAreaStyle {
+    pub fn new(_params: DefaultScrollAreaStyleParams) -> Self {
+        DefaultScrollAreaStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -78,7 +83,7 @@ impl ScrollAreaDefaultStyle {
     }
 }
 
-impl Style<ScrollArea> for ScrollAreaDefaultStyle {
+impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut ScrollArea,

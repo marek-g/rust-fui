@@ -19,15 +19,20 @@ pub struct TextBox {
 
 impl Control for TextBox {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(TextBoxDefaultStyle::new()), context)
+        StyledControl::new(self, 
+            Box::new(DefaultTextBoxStyle::new(DefaultTextBoxStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// TextBox Default Style
+// Default TextBox Style
 //
 
-pub struct TextBoxDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultTextBoxStyleParams {}
+
+pub struct DefaultTextBoxStyle {
     rect: Rect,
     is_focused: bool,
     event_subscriptions: Vec<EventSubscription>,
@@ -39,9 +44,9 @@ pub struct TextBoxDefaultStyle {
     offset_x: f32,
 }
 
-impl TextBoxDefaultStyle {
-    pub fn new() -> TextBoxDefaultStyle {
-        TextBoxDefaultStyle {
+impl DefaultTextBoxStyle {
+    pub fn new(_params: DefaultTextBoxStyleParams) -> Self {
+        DefaultTextBoxStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -143,7 +148,7 @@ impl TextBoxDefaultStyle {
     }
 }
 
-impl Style<TextBox> for TextBoxDefaultStyle {
+impl Style<TextBox> for DefaultTextBoxStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut TextBox,

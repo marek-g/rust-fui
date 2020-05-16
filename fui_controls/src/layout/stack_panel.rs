@@ -15,21 +15,27 @@ pub struct StackPanel {
 
 impl Control for StackPanel {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(StackPanelDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultStackPanelStyle::new(DefaultStackPanelStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// StackPanel Default Style
+// Default StackPanel Style
 //
 
-pub struct StackPanelDefaultStyle {
+
+#[derive(TypedBuilder)]
+pub struct DefaultStackPanelStyleParams {}
+
+pub struct DefaultStackPanelStyle {
     rect: Rect,
 }
 
-impl StackPanelDefaultStyle {
-    pub fn new() -> Self {
-        StackPanelDefaultStyle {
+impl DefaultStackPanelStyle {
+    pub fn new(_params: DefaultStackPanelStyleParams) -> Self {
+        DefaultStackPanelStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -40,7 +46,7 @@ impl StackPanelDefaultStyle {
     }
 }
 
-impl Style<StackPanel> for StackPanelDefaultStyle {
+impl Style<StackPanel> for DefaultStackPanelStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut StackPanel,

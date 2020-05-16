@@ -16,24 +16,29 @@ pub struct Text {
 
 impl Control for Text {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(TextDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultTextStyle::new(DefaultTextStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// Text Default Style
+// Default Text Style
 //
 
-pub struct TextDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultTextStyleParams {}
+
+pub struct DefaultTextStyle {
     rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
     font_size: u8,
 }
 
-impl TextDefaultStyle {
-    pub fn new() -> TextDefaultStyle {
-        TextDefaultStyle {
+impl DefaultTextStyle {
+    pub fn new(_params: DefaultTextStyleParams) -> Self {
+        DefaultTextStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -47,7 +52,7 @@ impl TextDefaultStyle {
     }
 }
 
-impl Style<Text> for TextDefaultStyle {
+impl Style<Text> for DefaultTextStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut Text,

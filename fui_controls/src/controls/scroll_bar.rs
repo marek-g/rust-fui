@@ -28,12 +28,14 @@ pub struct ScrollBar {
 
 impl Control for ScrollBar {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(ScrollBarDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultScrollBarStyle::new(DefaultScrollBarStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// ScrollBar Default Style
+// Default ScrollBar Style
 //
 
 const START_MARGIN: f32 = 1.0f32;
@@ -42,7 +44,10 @@ const SIDE_MARGIN: f32 = 1.0f32;
 const MIN_THUMB_SIZE: f32 = 20.0f32;
 const MIN_SIZE: f32 = MIN_THUMB_SIZE * 2.0f32;
 
-pub struct ScrollBarDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultScrollBarStyleParams {}
+
+pub struct DefaultScrollBarStyle {
     rect: Rect,
     thumb_pos_px: f32,
     thumb_size_px: f32,
@@ -54,9 +59,9 @@ pub struct ScrollBarDefaultStyle {
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl ScrollBarDefaultStyle {
-    pub fn new() -> Self {
-        ScrollBarDefaultStyle {
+impl DefaultScrollBarStyle {
+    pub fn new(_params: DefaultScrollBarStyleParams) -> Self {
+        DefaultScrollBarStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -92,7 +97,7 @@ impl ScrollBarDefaultStyle {
     }
 }
 
-impl Style<ScrollBar> for ScrollBarDefaultStyle {
+impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut ScrollBar,

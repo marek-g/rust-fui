@@ -17,15 +17,20 @@ pub struct Button {
 
 impl Control for Button {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(ButtonDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultButtonStyle::new(DefaultButtonStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// Button Default Style
+// Default Button Style
 //
 
-pub struct ButtonDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultButtonStyleParams {}
+
+pub struct DefaultButtonStyle {
     rect: Rect,
     is_hover: Property<bool>,
     is_pressed: Property<bool>,
@@ -33,9 +38,9 @@ pub struct ButtonDefaultStyle {
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl ButtonDefaultStyle {
-    pub fn new() -> Self {
-        ButtonDefaultStyle {
+impl DefaultButtonStyle {
+    pub fn new(_params: DefaultButtonStyleParams) -> Self {
+        DefaultButtonStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -50,7 +55,7 @@ impl ButtonDefaultStyle {
     }
 }
 
-impl Style<Button> for ButtonDefaultStyle {
+impl Style<Button> for DefaultButtonStyle {
     fn setup_dirty_watching(
         &mut self,
         _data: &mut Button,

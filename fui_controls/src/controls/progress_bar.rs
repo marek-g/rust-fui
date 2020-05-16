@@ -25,12 +25,14 @@ pub struct ProgressBar {
 
 impl Control for ProgressBar {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, Box::new(ProgressBarDefaultStyle::new()), context)
+        StyledControl::new(self,
+            Box::new(DefaultProgressBarStyle::new(DefaultProgressBarStyleParams::builder().build())),
+            context)
     }
 }
 
 //
-// ProgressBar Default Style
+// Default ProgressBar Style
 //
 
 const START_MARGIN: f32 = 1.0f32;
@@ -38,14 +40,17 @@ const END_MARGIN: f32 = 1.0f32;
 const SIDE_MARGIN: f32 = 1.0f32;
 const MIN_SIZE: f32 = 22.0f32;
 
-pub struct ProgressBarDefaultStyle {
+#[derive(TypedBuilder)]
+pub struct DefaultProgressBarStyleParams {}
+
+pub struct DefaultProgressBarStyle {
     rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl ProgressBarDefaultStyle {
-    pub fn new() -> Self {
-        ProgressBarDefaultStyle {
+impl DefaultProgressBarStyle {
+    pub fn new(_params: DefaultProgressBarStyleParams) -> Self {
+        DefaultProgressBarStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -57,7 +62,7 @@ impl ProgressBarDefaultStyle {
     }
 }
 
-impl Style<ProgressBar> for ProgressBarDefaultStyle {
+impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn setup_dirty_watching(
         &mut self,
         data: &mut ProgressBar,
