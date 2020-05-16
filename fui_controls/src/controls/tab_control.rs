@@ -38,26 +38,15 @@ impl Control for TabControl {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
-        /*let mut tab_buttons: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
-            Box::new(context.children.map(|c| {
+        let selected_tab_clone = selected_tab.clone();
+        let tab_buttons: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
+            Box::new(tabs_source.map(move |c| {
                 Rc::new(RefCell::new(TabButtonViewModel {
-                    index: 0,
-                    title: format!("Tab {}", 0 + 1),
-                    tabs_source: tabs_source.clone(),
-                    selected_tab: selected_tab.clone(),
+                    title: "Tab".to_string(),
+                    content: c.clone(),
+                    selected_tab: selected_tab_clone.clone(),
                 }))
-        }));*/
-
-        let mut tab_buttons = ObservableVec::new();
-        let len = tabs_source.len();
-        for i in 0..len {
-            tab_buttons.push(Rc::new(RefCell::new(TabButtonViewModel {
-                index: i,
-                title: format!("Tab {}", i + 1),
-                tabs_source: tabs_source.clone(),
-                selected_tab: selected_tab.clone(),
-            })));
-        }
+        }));
 
         ui! {
             Grid {
@@ -77,9 +66,8 @@ impl Control for TabControl {
 }
 
 struct TabButtonViewModel {
-    pub index: usize,
     pub title: String,
-    pub tabs_source: Rc<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
+    pub content: Rc<RefCell<dyn ControlObject>>,
     pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
 }
 
@@ -92,7 +80,7 @@ impl ViewModel for TabButtonViewModel {
                 Text { text: view_model.borrow().title.clone() },
                 clicked: Callback::new(view_model,
                     |vm, _| vm.selected_tab.borrow_mut().set(
-                        vm.tabs_source.get(vm.index))),
+                        vm.content.clone())),
             }
         }
     }
