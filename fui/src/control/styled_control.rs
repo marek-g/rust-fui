@@ -18,14 +18,14 @@ pub struct StyledControl<D> {
 }
 
 impl<D: 'static> StyledControl<D> {
-    pub fn new<S: 'static + Style<D>>(
+    pub fn new(
         data: D,
-        style: S,
+        style: Box<dyn Style<D>>,
         view_context: ViewContext,
     ) -> Rc<RefCell<Self>> {
         let control = Rc::new(RefCell::new(StyledControl {
-            data: data,
-            style: Box::new(style),
+            data,
+            style,
             context: ControlContext::new(view_context),
         }));
 

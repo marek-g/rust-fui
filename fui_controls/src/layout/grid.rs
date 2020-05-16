@@ -230,7 +230,7 @@ pub struct Grid {
 
 impl Control for Grid {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, GridDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(GridDefaultStyle::new()), context)
     }
 }
 

@@ -17,7 +17,7 @@ pub struct Button {
 
 impl Control for Button {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, ButtonDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(ButtonDefaultStyle::new()), context)
     }
 }
 

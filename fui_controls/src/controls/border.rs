@@ -12,7 +12,7 @@ pub struct Border {}
 
 impl Control for Border {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, BorderDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(BorderDefaultStyle::new()), context)
     }
 }
 

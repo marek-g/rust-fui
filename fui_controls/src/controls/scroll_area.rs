@@ -31,7 +31,7 @@ pub struct ScrollArea {
 
 impl Control for ScrollArea {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, ScrollAreaDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(ScrollAreaDefaultStyle::new()), context)
     }
 }
 

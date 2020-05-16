@@ -15,7 +15,7 @@ pub struct Bitmap {
 
 impl Control for Bitmap {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, BitmapDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(BitmapDefaultStyle::new()), context)
     }
 }
 

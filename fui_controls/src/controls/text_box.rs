@@ -19,7 +19,7 @@ pub struct TextBox {
 
 impl Control for TextBox {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, TextBoxDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(TextBoxDefaultStyle::new()), context)
     }
 }
 

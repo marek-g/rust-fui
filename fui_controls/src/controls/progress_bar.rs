@@ -25,7 +25,7 @@ pub struct ProgressBar {
 
 impl Control for ProgressBar {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, ProgressBarDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(ProgressBarDefaultStyle::new()), context)
     }
 }
 

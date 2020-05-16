@@ -15,7 +15,7 @@ pub struct StackPanel {
 
 impl Control for StackPanel {
     fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self, StackPanelDefaultStyle::new(), context)
+        StyledControl::new(self, Box::new(StackPanelDefaultStyle::new()), context)
     }
 }
 
