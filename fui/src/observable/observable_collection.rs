@@ -1,12 +1,12 @@
 use std::cell::RefMut;
 use std::cell::RefCell;
 use std::{ops::Index, rc::Rc};
-use crate::{EventSubscription, Event, ObservableVec};
+use crate::{EventSubscription, Event, ObservableVec, Property};
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {
     Insert { index: usize, value: T },
-    Remove { index: usize, value: T },
+    Remove { index: usize },
 }
 
 pub trait ObservableCollection<T: 'static + Clone> {
@@ -122,14 +122,13 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
 
                 ObservableChangedEventArgs::Remove {
                     index,
-                    value: _value,
                 } => {
                     let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
-                    let old_item = vec.remove(index);
+                    vec.remove(index);
 
                     changed_event_rc_clone
                         .borrow()
-                        .emit(ObservableChangedEventArgs::Remove { index, value: old_item });
+                        .emit(ObservableChangedEventArgs::Remove { index });
                 }
             }
         );
@@ -178,5 +177,26 @@ impl<T> ObservableCollection<T> for ObservableVec<T>
 
     fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription> {
         Some(ObservableVec::on_changed(self, f))
+    }
+}
+
+///
+/// ObservableCollection for Property.
+///
+impl<T> ObservableCollection<T> for Property<T>
+    where T: 'static + Clone + PartialEq {
+    fn len(&self) -> usize {
+        1
+    }
+
+    fn get(&self, _index: usize) -> T {
+        Property::get(self)
+    }
+
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<EventSubscription> {
+        Some(Property::on_changed(self, move |v| {
+            f(ObservableChangedEventArgs::Remove { index: 0 });
+            f(ObservableChangedEventArgs::Insert { index: 0, value: v });
+        }))
     }
 }

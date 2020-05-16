@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::cell::RefMut;
 use std::iter::FromIterator;
 
 use crate::observable::observable_collection::ObservableChangedEventArgs;
@@ -49,7 +48,6 @@ impl<T: 'static + Clone> ObservableVec<T> {
             if filter(&mut self.items[i]) {
                 let event_args = ObservableChangedEventArgs::Remove {
                     index: i,
-                    value: self.items[i].clone(),
                 };
                 self.items.remove(i);
                 self.changed_event.borrow().emit(event_args);

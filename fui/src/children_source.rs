@@ -18,9 +18,15 @@ use crate::observable::ObservableCollectionExt;
     }
 }*/
 
-/*impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
     where T: ViewModel {
     fn from(src: &ObservableVec<Rc<RefCell<T>>>) -> Self {
+        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+    }
+}
+
+/*impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+    fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
         Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
     }
 }*/
@@ -32,142 +38,15 @@ impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>> for Box<dyn Observa
     }
 }
 
-
-///
-/// DynamicChildrenSource.
-///
-pub struct DynamicChildrenSource {
-    children: Rc<RefCell<Vec<Rc<RefCell<dyn ControlObject>>>>>,
-    changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>,
-    _children_changed_event_subscription: EventSubscription,
-}
-
-impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for DynamicChildrenSource {
-    fn len(&self) -> usize {
-        self.children.borrow().len()
-    }
-
-    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
-        self.children.borrow().index(index).clone()
-    }
-
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>) -> Option<EventSubscription> {
-        Some(self.changed_event.borrow_mut().subscribe(f))
+impl From<&Property<Rc<RefCell<dyn ControlObject>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+    fn from(src: &Property<Rc<RefCell<dyn ControlObject>>>) -> Self {
+        Box::new(Property::binded_from(&src))
     }
 }
 
-impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for DynamicChildrenSource
-    where T: ViewModel {
-    fn from(children: &ObservableVec<Rc<RefCell<T>>>) -> Self {
-        let children_vec = children
-            .into_iter()
-            .map(|vm| ViewModel::to_view(&vm))
-            .collect();
-
-        let children_rc = Rc::new(RefCell::new(children_vec));
-        let changed_event_rc = Rc::new(RefCell::new(Event::new()));
-
-        let children_rc_clone = children_rc.clone();
-        let changed_event_rc_clone = changed_event_rc.clone();
-        let event_subscription =
-            children
-                .on_changed(move |changed_args| match changed_args {
-                    ObservableChangedEventArgs::Insert { index, value } => {
-                        let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
-                            children_rc_clone.borrow_mut();
-                        let control = ViewModel::to_view(&value);
-                        let control_clone = control.clone();
-                        vec.insert(index, control);
-
-                        changed_event_rc_clone
-                            .borrow()
-                            .emit(ObservableChangedEventArgs::Insert { index, value: control_clone });
-                    }
-                    ObservableChangedEventArgs::Remove {
-                        index,
-                        value: _value,
-                    } => {
-                        let mut vec: RefMut<'_, Vec<Rc<RefCell<dyn ControlObject>>>> =
-                            children_rc_clone.borrow_mut();
-                        let control = vec.remove(index);
-
-                        changed_event_rc_clone
-                            .borrow()
-                            .emit(ObservableChangedEventArgs::Remove { index, value: control });
-                    }
-                });
-
-        DynamicChildrenSource {
-            children: children_rc,
-            changed_event: changed_event_rc,
-            _children_changed_event_subscription: event_subscription,
-        }
-    }
-}
-
-impl From<&Property<Rc<RefCell<dyn ControlObject>>>> for DynamicChildrenSource {
-    fn from(child: &Property<Rc<RefCell<dyn ControlObject>>>) -> Self {
-        let children_rc = Rc::new(RefCell::new(
-            vec![child.get()]));
-        let changed_event_rc = Rc::new(RefCell::new(Event::new()));
-
-        let children_rc_clone = children_rc.clone();
-        let changed_event_rc_clone = changed_event_rc.clone();
-        let event_subscription =
-            child.on_changed(move |new_control| {
-                let mut vec = children_rc_clone.borrow_mut();
-
-                let old_control = vec.pop();
-                if let Some(old_control) = old_control {
-                    changed_event_rc_clone.borrow().emit(
-                        ObservableChangedEventArgs::Remove { index: 0, value: old_control }
-                    );
-                }
-
-                vec.push(new_control.clone());
-                changed_event_rc_clone.borrow().emit(
-                    ObservableChangedEventArgs::Insert { index: 0, value: new_control }
-                );
-            });
-
-        DynamicChildrenSource {
-            children: children_rc,
-            changed_event: changed_event_rc,
-            _children_changed_event_subscription: event_subscription,
-        }
-    }
-}
-
-impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for DynamicChildrenSource {
-    fn from(child: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        let children_rc = Rc::new(RefCell::new(
-            vec![child.borrow().get()]));
-        let changed_event_rc = Rc::new(RefCell::new(Event::new()));
-
-        let children_rc_clone = children_rc.clone();
-        let changed_event_rc_clone = changed_event_rc.clone();
-        let event_subscription =
-            child.borrow().on_changed(move |new_control| {
-                let mut vec = children_rc_clone.borrow_mut();
-
-                let old_control = vec.pop();
-                if let Some(old_control) = old_control {
-                    changed_event_rc_clone.borrow().emit(
-                        ObservableChangedEventArgs::Remove { index: 0, value: old_control }
-                    );
-                }
-
-                vec.push(new_control.clone());
-                changed_event_rc_clone.borrow().emit(
-                    ObservableChangedEventArgs::Insert { index: 0, value: new_control }
-                );
-            });
-
-        DynamicChildrenSource {
-            children: children_rc,
-            changed_event: changed_event_rc,
-            _children_changed_event_subscription: event_subscription,
-        }
+impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+    fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
+        Box::new(Property::binded_from(&src.borrow()))
     }
 }
 
@@ -223,6 +102,6 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildren
     }
 
     fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>) -> Option<EventSubscription> {
-        self.on_changed(f)
+        Some(self.changed_event.borrow_mut().subscribe(move |args| f(args)))
     }
 }
