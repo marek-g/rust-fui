@@ -63,8 +63,10 @@ impl Control for TabControl {
 
 struct TabButtonViewModel {
     pub title: Property<String>,
+    pub is_checked: Property<bool>,
     pub content: Rc<RefCell<dyn ControlObject>>,
     pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    pub event_subscription: Option<EventSubscription>,
 }
 
 impl TabButtonViewModel {
@@ -75,11 +77,30 @@ impl TabButtonViewModel {
             .get::<Title>()
             .map(|t| Property::binded_from(t))
             .unwrap_or_else(|| Property::new("Tab"));
-        Rc::new(RefCell::new(TabButtonViewModel {
+
+        let vm_rc = Rc::new(RefCell::new(TabButtonViewModel {
             title,
+            is_checked: Property::new(false),
             content: content.clone(),
             selected_tab: selected_tab.clone(),
-        }))
+            event_subscription: None,
+        }));
+
+        let vm_rc_clone = vm_rc.clone();
+        {
+            let mut vm = vm_rc.borrow_mut();
+            vm.event_subscription = Some(vm.is_checked.on_changed(
+                move |is_checked| {
+                    if is_checked {
+                        let vm = vm_rc_clone.borrow();
+                        vm.selected_tab.borrow_mut().set(
+                        vm.content.clone());
+                    }
+                }
+            ));
+        }
+
+        vm_rc
     }
 }
 
@@ -87,12 +108,12 @@ impl ViewModel for TabButtonViewModel {
     fn to_view(
         view_model: &Rc<RefCell<Self>>,
     ) -> Rc<RefCell<dyn ControlObject>> {
+        let mut vm = view_model.borrow_mut();
         ui! {
-            Button {
-                Text { text: &view_model.borrow().title },
-                clicked: Callback::new(view_model,
-                    |vm, _| vm.selected_tab.borrow_mut().set(
-                        vm.content.clone())),
+            ToggleButton {
+                is_checked: &mut vm.is_checked,
+
+                Text { text: &vm.title },
             }
         }
     }

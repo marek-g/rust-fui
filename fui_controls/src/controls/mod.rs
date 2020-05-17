@@ -27,3 +27,6 @@ pub use self::text::*;
 
 mod text_box;
 pub use self::text_box::*;
+
+mod toggle_button;
+pub use self::toggle_button::*;
