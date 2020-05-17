@@ -29,17 +29,21 @@ impl Control for Text {
 //
 
 #[derive(TypedBuilder)]
-pub struct DefaultTextStyleParams {}
+pub struct DefaultTextStyleParams {
+    #[builder(default = [1.0f32, 1.0f32, 1.0f32, 1.0f32])]
+    pub color: Color,
+}
 
 pub struct DefaultTextStyle {
     rect: Rect,
+    params: DefaultTextStyleParams,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
     font_size: u8,
 }
 
 impl DefaultTextStyle {
-    pub fn new(_params: DefaultTextStyleParams) -> Self {
+    pub fn new(params: DefaultTextStyleParams) -> Self {
         DefaultTextStyle {
             rect: Rect {
                 x: 0f32,
@@ -47,6 +51,7 @@ impl DefaultTextStyle {
                 width: 0f32,
                 height: 0f32,
             },
+            params,
             event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
             font_size: 20u8,
@@ -121,7 +126,7 @@ impl Style<Text> for DefaultTextStyle {
 
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
-            color: [1.0, 1.0, 1.0, 1.0],
+            color: self.params.color,
             position: PixelPoint::new(
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,

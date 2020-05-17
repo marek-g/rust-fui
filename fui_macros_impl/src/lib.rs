@@ -108,13 +108,18 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         name: control_name,
         params,
     } = ctrl;
-    let (properties, attached_values, children) = decouple_params(params);
+
+    let (style,
+        properties,
+        attached_values,
+        children) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
+    let style_builder = get_style_builder(control_name.clone(), style);
     let attached_values_typemap = get_attached_values_typemap(attached_values);
     let children_source = get_children_source(children);
 
-    quote! { #properties_builder.to_view(None, ViewContext {
+    quote! { #properties_builder.to_view(#style_builder, ViewContext {
         attached_values: #attached_values_typemap,
         children: #children_source,
     }) }
@@ -131,6 +136,29 @@ fn get_properties_builder(
         method_calls.push(quote!(.#name(#expr)))
     }
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
+}
+
+fn get_style_builder(control_name: Ident,
+    style: Option<Ctrl>) -> proc_macro2::TokenStream {
+    match style {
+        None => quote!(None),
+        Some(style) => {
+            let name = style.name;
+
+            let style_name = Ident::new(&format!("{}{}Style", name, control_name), name.span());
+            let params_name = Ident::new(&format!("{}{}StyleParams", name, control_name), name.span());
+
+            let (_style,
+                properties,
+                _attached_values,
+                _children) = decouple_params(style.params);
+            
+            let properties_builder = get_properties_builder(
+                params_name, properties);
+
+            quote!(Some(Box::new(<#style_name>::new(#properties_builder))))
+        }
+    }
 }
 
 fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro2::TokenStream {
@@ -184,7 +212,8 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
 
 fn decouple_params(
     params: Punctuated<CtrlParam, Token![,]>,
-) -> (Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<CtrlParam>) {
+) -> (Option<Ctrl>, Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<CtrlParam>) {
+    let mut style = None;
     let mut properties = Vec::new();
     let mut attached_values = Vec::new();
     let mut children = Vec::new();
@@ -192,10 +221,12 @@ fn decouple_params(
     for el in params.into_pairs() {
         let el = el.into_value();
 
-        if let CtrlParam::Property(property) = el {
+        if let CtrlParam::Style(s) = el {
+            style = Some(s);
+        } else if let CtrlParam::Property(property) = el {
             if let Some(first_char) = property.name.to_string().chars().next() {
                 if first_char.is_uppercase() {
-                    attached_values.push(property)
+                    attached_values.push(property);
                 } else {
                     properties.push(property);
                 }
@@ -209,5 +240,5 @@ fn decouple_params(
         }
     }
 
-    (properties, attached_values, children)
+    (style, properties, attached_values, children)
 }

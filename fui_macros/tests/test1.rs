@@ -33,7 +33,7 @@ pub struct ViewContext {
 }
 
 pub trait View {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 pub trait Style<D> {
@@ -48,16 +48,16 @@ pub struct Control<D> {
 }
 
 impl<D: 'static> Control<D> {
-    pub fn new<S: 'static + Style<D>>(
+    pub fn new(
         data: D,
-        style: S,
+        style: Box<dyn Style<D>>,
         attached_values: TypeMap,
         children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(Control {
             data: data,
             attached_values: attached_values,
-            style: Box::new(style),
+            style,
             children: children,
         }))
     }
@@ -91,25 +91,30 @@ pub struct Horizontal {
 }
 
 impl View for Horizontal {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
-            HorizontalDefaultStyle::new(),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultHorizontalStyle::new(DefaultHorizontalStyleParams::builder().build()))
+            }),
             context.attached_values,
             context.children,
         )
     }
 }
 
-pub struct HorizontalDefaultStyle {}
+#[derive(TypedBuilder)]
+pub struct DefaultHorizontalStyleParams {}
 
-impl HorizontalDefaultStyle {
-    pub fn new() -> Self {
-        HorizontalDefaultStyle {}
+pub struct DefaultHorizontalStyle {}
+
+impl DefaultHorizontalStyle {
+    pub fn new(_params: DefaultHorizontalStyleParams) -> Self {
+        DefaultHorizontalStyle {}
     }
 }
 
-impl Style<Horizontal> for HorizontalDefaultStyle {
+impl Style<Horizontal> for DefaultHorizontalStyle {
     fn draw(&self, data: &mut Horizontal) -> String {
         format!("Horizontal({})", data.spacing)
     }
@@ -119,25 +124,30 @@ impl Style<Horizontal> for HorizontalDefaultStyle {
 pub struct Button {}
 
 impl View for Button {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
-            ButtonDefaultStyle::new(),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultButtonStyle::new(DefaultButtonStyleParams::builder().build()))
+            }),
             context.attached_values,
             context.children,
         )
     }
 }
 
-pub struct ButtonDefaultStyle {}
+#[derive(TypedBuilder)]
+pub struct DefaultButtonStyleParams {}
 
-impl ButtonDefaultStyle {
-    pub fn new() -> Self {
-        ButtonDefaultStyle {}
+pub struct DefaultButtonStyle {}
+
+impl DefaultButtonStyle {
+    pub fn new(_params: DefaultButtonStyleParams) -> Self {
+        DefaultButtonStyle {}
     }
 }
 
-impl Style<Button> for ButtonDefaultStyle {
+impl Style<Button> for DefaultButtonStyle {
     fn draw(&self, _data: &mut Button) -> String {
         "Button".to_string()
     }
@@ -149,25 +159,30 @@ pub struct Text {
 }
 
 impl View for Text {
-    fn to_view(self, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         Control::new(
             self,
-            TextDefaultStyle::new(),
+            style.unwrap_or_else(|| {
+                Box::new(DefaultTextStyle::new(DefaultTextStyleParams::builder().build()))
+            }),
             context.attached_values,
             context.children,
         )
     }
 }
 
-pub struct TextDefaultStyle {}
+#[derive(TypedBuilder)]
+pub struct DefaultTextStyleParams {}
 
-impl TextDefaultStyle {
-    pub fn new() -> Self {
-        TextDefaultStyle {}
+pub struct DefaultTextStyle {}
+
+impl DefaultTextStyle {
+    pub fn new(_params: DefaultTextStyleParams) -> Self {
+        DefaultTextStyle {}
     }
 }
 
-impl Style<Text> for TextDefaultStyle {
+impl Style<Text> for DefaultTextStyle {
     fn draw(&self, data: &mut Text) -> String {
         format!("Text(\"{}\")", data.text)
     }

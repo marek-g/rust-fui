@@ -68,6 +68,9 @@ impl ViewModel for MainViewModel {
                         text: &mut vm.text2,
                     },
                     Text {
+                        Style: Default {
+                            color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
+                        },
                         text: &vm.text2,
                     },
 

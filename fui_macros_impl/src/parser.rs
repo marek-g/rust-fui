@@ -32,6 +32,11 @@ use syn::{braced, Error, Expr, ExprReference, Ident, Token};
 ///     }
 /// );
 /// ```
+
+mod keyword {
+    syn::custom_keyword!(Style);
+}
+
 pub struct Ctrl {
     pub name: Ident,
     pub params: Punctuated<CtrlParam, Token![,]>,
@@ -48,15 +53,29 @@ impl Parse for Ctrl {
 }
 
 pub enum CtrlParam {
+    // Style: Default { property: "Value", },
+    Style(Ctrl),
+
+    // property: "value",
     Property(CtrlProperty),
+
+    // Button { ... }
     Ctrl(Ctrl),
+
+    // @control,
     RawCtrl(RawCtrl),
+
+    // &expression,
     Collection(Collection),
 }
 
 impl Parse for CtrlParam {
     fn parse(input: ParseStream) -> Result<Self> {
-        if input.peek(Ident) && input.peek2(Token![:]) {
+        if input.peek(keyword::Style) && input.peek2(Token![:]) {
+            input.parse::<keyword::Style>()?;
+            input.parse::<Token![:]>()?;
+            input.parse().map(CtrlParam::Style)
+        } else if input.peek(Ident) && input.peek2(Token![:]) {
             input.parse().map(CtrlParam::Property)
         } else if input.peek(Token![@]) {
             input.parse().map(CtrlParam::RawCtrl)
@@ -114,10 +133,9 @@ impl Parse for Collection {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{Collection, Ctrl, CtrlParam, CtrlProperty};
+    use crate::parser::{Ctrl, CtrlParam, CtrlProperty};
     use proc_macro2::Span;
-    use quote::quote;
-    use syn::{parse_quote, ExprReference, Ident};
+    use syn::{parse_quote, Ident};
 
     #[test]
     fn test_property() {
@@ -213,6 +231,36 @@ mod tests {
             }
         } else {
             panic!("Expected Text CtrlParam::Ctrl");
+        }
+    }
+
+    #[test]
+    fn test_control_with_style() {
+        let ctrl: Ctrl = parse_quote!(Text {
+            Style: Default {
+                color: [1.0f32, 0.0f32, 0.0f32, 1.0f32],
+            },
+            property1: 5,
+        });
+        assert_eq!(ctrl.name, Ident::new("Text", Span::call_site()));
+        assert_eq!(ctrl.params.len(), 2);
+
+        let mut params = ctrl.params.into_iter();
+
+        let param = params.next().unwrap();
+        if let CtrlParam::Style(style) = param {
+            assert_eq!(style.name, Ident::new("Default", Span::call_site()));
+            assert_eq!(style.params.len(), 1);
+
+            let mut params = style.params.into_iter();
+            let param = params.next().unwrap();
+            if let CtrlParam::Property(param) = param {
+                assert_eq!(param.name, Ident::new("color", Span::call_site()));
+            } else {
+                panic!("Expected color CtrlParam::Property");
+            }
+        } else {
+            panic!("Expected CtrlParam::Style");
         }
     }
 }
