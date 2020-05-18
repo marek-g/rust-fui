@@ -29,7 +29,7 @@ pub trait Style<D> {
         size: Size,
     );
     fn set_rect(&mut self, data: &mut D, context: &mut ControlContext, rect: Rect);
-    fn get_rect(&self) -> Rect;
+    fn get_rect(&self, context: &ControlContext) -> Rect;
 
     fn hit_test(&self, data: &D, context: &ControlContext, point: Point) -> HitTestResult;
 

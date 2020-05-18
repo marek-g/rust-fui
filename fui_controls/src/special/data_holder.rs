@@ -30,20 +30,11 @@ impl<T: 'static> Control for DataHolder<T> {
 #[derive(TypedBuilder)]
 pub struct DefaultDataHolderStyleParams {}
 
-pub struct DefaultDataHolderStyle {
-    rect: Rect,
-}
+pub struct DefaultDataHolderStyle;
 
 impl DefaultDataHolderStyle {
     pub fn new(_params: DefaultDataHolderStyleParams) -> Self {
-        DefaultDataHolderStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
-        }
+        DefaultDataHolderStyle {}
     }
 }
 
@@ -74,22 +65,23 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         let children = context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().measure(resources, size);
-            self.rect = child.borrow().get_rect();
-        } else {
-            self.rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
         }
     }
 
     fn set_rect(&mut self, data: &mut DataHolder<T>, context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
         let children = context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().set_rect(rect);
         }
     }
 
-    fn get_rect(&self) -> Rect {
-        self.rect
+    fn get_rect(&self, context: &ControlContext) -> Rect {
+        let children = context.get_children();
+        if let Some(child) = children.into_iter().next() {
+            child.borrow().get_rect()
+        } else {
+            Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
+        }
     }
 
     fn hit_test(

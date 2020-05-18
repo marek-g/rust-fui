@@ -213,7 +213,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         self.calc_sizes(data);
     }
 
-    fn get_rect(&self) -> Rect {
+    fn get_rect(&self, _context: &ControlContext) -> Rect {
         self.rect
     }
 

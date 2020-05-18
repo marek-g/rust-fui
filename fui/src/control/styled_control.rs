@@ -171,7 +171,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn get_rect(&self) -> Rect {
-        self.style.get_rect()
+        self.style.get_rect(&self.context)
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {

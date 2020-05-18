@@ -86,7 +86,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         //self.rect = rect;
     }
 
-    fn get_rect(&self) -> Rect {
+    fn get_rect(&self, _context: &ControlContext) -> Rect {
         self.rect
     }
 

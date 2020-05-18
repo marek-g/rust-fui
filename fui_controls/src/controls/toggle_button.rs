@@ -159,7 +159,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self) -> Rect {
+    fn get_rect(&self, _context: &ControlContext) -> Rect {
         self.rect
     }
 
