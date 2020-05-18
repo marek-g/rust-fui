@@ -12,7 +12,7 @@ use crate::controls::*;
 use crate::controls::border::Border;
 use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
 use crate::controls::scroll_bar::ScrollBar;
-use crate::layout::*;
+use crate::{DataHolder, layout::*};
 
 //
 // Attached values.
@@ -44,7 +44,7 @@ impl Control for TabControl {
                 TabButtonViewModel::new(&c, &selected_tab_clone)
         ));
 
-        ui! {
+        let content = ui! {
             Grid {
                 columns: 1,
                 heights: vec![(0, Length::Auto), (1, Length::Fill(1.0f32))],
@@ -57,7 +57,15 @@ impl Control for TabControl {
                     &selected_tab,
                 },
             }
-        }
+        };
+
+        let data_holder = DataHolder {
+            data: (tab_buttons, selected_tab)
+        };
+        data_holder.to_view(None, ViewContext {
+            attached_values: context.attached_values,
+            children: Box::new(vec![content]),
+        })
     }
 }
 
@@ -86,15 +94,17 @@ impl TabButtonViewModel {
             event_subscription: None,
         }));
 
-        let vm_rc_clone = vm_rc.clone();
         {
+            let weak_vm = Rc::downgrade(&vm_rc);
             let mut vm = vm_rc.borrow_mut();
             vm.event_subscription = Some(vm.is_checked.on_changed(
                 move |is_checked| {
                     if is_checked {
-                        let vm = vm_rc_clone.borrow();
-                        vm.selected_tab.borrow_mut().set(
-                        vm.content.clone());
+                        weak_vm.upgrade().map(|vm| {
+                            let vm = vm.borrow();
+                            vm.selected_tab.borrow_mut().set(
+                                vm.content.clone());
+                        });
                     }
                 }
             ));
