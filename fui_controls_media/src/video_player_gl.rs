@@ -117,11 +117,12 @@ impl PlayerGl {
                         println!("client-draw! {:?}", args);
                         let sample = args[2]
                             .get::<gstreamer::Sample>()
+                            .unwrap()
                             .expect("Invalid argument - GstSample expected.");
                         if let (Some(buffer), Some(caps)) = (sample.get_buffer(), sample.get_caps())
                         {
                             println!("caps: {}", caps.to_string());
-                            if let Some(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
+                            if let Ok(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
                                 println!("video_info: {:?}", video_info);
 
                                 let texture_id = unsafe {
