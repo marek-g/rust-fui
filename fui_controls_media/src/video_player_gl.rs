@@ -310,7 +310,8 @@ impl PlayerGl {
 
                                     sender.lock().unwrap().send(texture_id).unwrap();
 
-                                    event_loop_proxy_clone.send_event(()).unwrap();
+                                    // TODO: why send_event() doesn't compile?!!
+                                    //event_loop_proxy_clone.send_event(()).unwrap();
                                     //dispatcher_clone.lock().unwrap().send_async(|| {});
                                 }
                             }
