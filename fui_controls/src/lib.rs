@@ -1,3 +1,6 @@
+mod controllers;
+pub use controllers::*;
+
 mod controls;
 pub use controls::*;
 

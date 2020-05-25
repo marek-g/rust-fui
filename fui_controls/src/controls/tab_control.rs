@@ -12,7 +12,7 @@ use crate::controls::*;
 use crate::controls::border::Border;
 use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
 use crate::controls::scroll_bar::ScrollBar;
-use crate::{DataHolder, layout::*};
+use crate::{DataHolder, layout::*, RadioController, RadioElement};
 
 //
 // Attached values.
@@ -39,10 +39,17 @@ impl Control for TabControl {
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
         let selected_tab_clone = selected_tab.clone();
-        let tab_buttons: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
+        let tab_button_vms: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
             Box::new(tabs_source.map(move |c|
                 TabButtonViewModel::new(&c, &selected_tab_clone)
         ));
+
+        let tab_radio_buttons =
+            Rc::new(RefCell::new(tab_button_vms.map(
+                |c| {
+                    let r: Rc<RefCell<dyn RadioElement>> = c.clone(); r
+                })));
+        let radio_controller = RadioController::new(tab_radio_buttons);
 
         let content = ui! {
             Grid {
@@ -50,7 +57,7 @@ impl Control for TabControl {
                 heights: vec![(0, Length::Auto), (1, Length::Fill(1.0f32))],
 
                 Horizontal {
-                    &tab_buttons,
+                    &tab_button_vms,
                 },
 
                 Border {
@@ -60,7 +67,7 @@ impl Control for TabControl {
         };
 
         let data_holder = DataHolder {
-            data: (tab_buttons, selected_tab)
+            data: (tab_button_vms, selected_tab, radio_controller)
         };
         data_holder.to_view(None, ViewContext {
             attached_values: context.attached_values,
@@ -126,5 +133,19 @@ impl ViewModel for TabButtonViewModel {
                 Text { text: &vm.title },
             }
         }
+    }
+}
+
+impl RadioElement for TabButtonViewModel {
+    fn is_checked(&self) -> bool {
+        self.is_checked.get()
+    }
+
+    fn set_is_checked(&mut self, is_checked: bool) {
+        self.is_checked.set(is_checked)
+    }
+
+    fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription {
+        self.is_checked.on_changed(move |is_checked| if is_checked { f(); })
     }
 }
