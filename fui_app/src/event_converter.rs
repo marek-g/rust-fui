@@ -84,10 +84,10 @@ pub fn convert_event(event: &winit::event::WindowEvent) -> Option<fui::InputEven
                 text: None,
 
                 modifiers: fui::KeyModifiers {
-                    shift: input.modifiers.shift,
-                    ctrl: input.modifiers.ctrl,
-                    alt: input.modifiers.alt,
-                    win: input.modifiers.logo,
+                    shift: input.modifiers.shift(),
+                    ctrl: input.modifiers.ctrl(),
+                    alt: input.modifiers.alt(),
+                    win: input.modifiers.logo(),
                 },
             }))
         }

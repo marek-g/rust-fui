@@ -28,7 +28,7 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Horizontal>::builder().spacing(4).build().to_view(None, ViewContext {
+// <Horizontal>::builder().spacing(4.into()).build().to_view(None, ViewContext {
 //     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1.into()); map },
 //     children: Box::new(vec![
 //
@@ -37,7 +37,7 @@ use crate::parser::CtrlProperty;
 //             children: Box::new(vec![
 //
 //                 <Text>::builder()
-//                     .text("Button".to_string())
+//                     .text("Button".to_string().into())
 //                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
 //                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
@@ -47,7 +47,7 @@ use crate::parser::CtrlProperty;
 //         }),
 //
 //         <Text>::builder()
-//             .text("Label".to_string())
+//             .text("Label".to_string().into())
 //             .build().to_view(None, ViewContext {
 //                 attached_values: TypeMap::new(),
 //                 children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
@@ -85,7 +85,8 @@ use crate::parser::CtrlProperty;
 // translates to:
 //
 // <Vertical>::builder().build().to_view(
-//     Some(Box::new(<DefaultTextStyle>::new(<DefaultTextStyleParams>::builder().build()))),
+//     Some(Box::new(<DefaultTextStyle>::new(<DefaultTextStyleParams>::builder()
+//         color([1.0, 0.0, 0.0, 1.0].into()).build()))),
 //     ViewContext {
 //         attached_values: TypeMap::new(),
 //         children: Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(&vm.items),
@@ -133,7 +134,7 @@ fn get_properties_builder(
     for property in properties {
         let name = property.name;
         let expr = property.expr;
-        method_calls.push(quote!(.#name(#expr)))
+        method_calls.push(quote!(.#name((#expr).into())))
     }
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
 }

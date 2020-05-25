@@ -11,7 +11,7 @@ use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct ToggleButton {
-    #[builder(default_code = "Property::new(false)")]
+    #[builder(default = Property::new(false))]
     pub is_checked: Property<bool>,
 }
 

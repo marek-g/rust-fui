@@ -197,10 +197,10 @@ pub struct Grid {
     #[builder(default = Length::Fill(1.0f32))]
     pub default_height: Length,
 
-    #[builder(default_code = "Vec::new()")]
+    #[builder(default = Vec::new())]
     pub widths: Vec<(i32, Length)>,
 
-    #[builder(default_code = "Vec::new()")]
+    #[builder(default = Vec::new())]
     pub heights: Vec<(i32, Length)>,
 
     #[builder(default = 0.0f32)]

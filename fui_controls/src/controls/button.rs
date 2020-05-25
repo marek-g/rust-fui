@@ -11,7 +11,7 @@ use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Button {
-    #[builder(default_code = "Callback::empty()")]
+    #[builder(default = Callback::empty())]
     pub clicked: Callback<()>,
 }
 

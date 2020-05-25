@@ -47,9 +47,9 @@ impl Player {
         video_app_sink.set_callbacks(
             gstreamer_app::AppSinkCallbacks::new()
                 .new_sample(move |app_sink| {
-                    let timespec = time::get_time();
+                    let timespec = time::Time::now();
                     let mills: f64 =
-                        timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                        timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                     println!(
                         "New sample thread id: {:?}, time: {:?}",
                         std::thread::current().id(),
@@ -57,14 +57,14 @@ impl Player {
                     );
 
                     let sample = match app_sink.pull_sample() {
-                        None => return Err(gstreamer::FlowError::Eos),
-                        Some(sample) => sample,
+                        Err(_) => return Err(gstreamer::FlowError::Eos),
+                        Ok(sample) => sample,
                     };
 
                     let caps = sample.get_caps().unwrap();
                     let s = caps.get_structure(0).unwrap();
-                    let width: i32 = s.get("width").unwrap();
-                    let height: i32 = s.get("height").unwrap();
+                    let width: i32 = s.get("width").unwrap().unwrap();
+                    let height: i32 = s.get("height").unwrap().unwrap();
                     let buffer = sample.get_buffer().unwrap();
                     let map = buffer.map_readable().unwrap();
                     let data = map.as_slice();
@@ -96,9 +96,9 @@ impl Player {
     pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
             while let Ok(buffer) = receiver.try_recv() {
-                let timespec = time::get_time();
+                let timespec = time::Time::now();
                 let mills: f64 =
-                    timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                    timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 println!(
                     "buffer size: {}, thread id: {:?}, time: {:?}",
                     buffer.len(),
@@ -145,8 +145,8 @@ impl PlayerTexture {
     }
 
     fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
-        let timespec = time::get_time();
-        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+        let timespec = time::Time::now();
+        let mills: f64 = timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(
             "Dispatcher, thread id: {:?}, time: {:?}",
             std::thread::current().id(),

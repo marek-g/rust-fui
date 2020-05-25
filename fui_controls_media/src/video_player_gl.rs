@@ -266,11 +266,12 @@ impl PlayerGl {
                         println!("client-draw! {:?}", args);
                         let sample = args[2]
                             .get::<gstreamer::Sample>()
+                            .unwrap()
                             .expect("Invalid argument - GstSample expected.");
                         if let (Some(buffer), Some(caps)) = (sample.get_buffer(), sample.get_caps())
                         {
                             println!("caps: {}", caps.to_string());
-                            if let Some(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
+                            if let Ok(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
                                 println!("video_info: {:?}", video_info);
 
                                 let texture_id = unsafe {
@@ -382,9 +383,9 @@ impl PlayerGl {
     pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
             while let Ok(texture_id) = receiver.try_recv() {
-                let timespec = time::get_time();
+                let timespec = time::Time::now();
                 let mills: f64 =
-                    timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+                    timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 //println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
                 self.texture.update_texture(texture_id)?
             }
@@ -426,8 +427,8 @@ impl PlayerTexture {
     }
 
     fn update_texture(&mut self, texture_id: GLuint) -> Result<()> {
-        let timespec = time::get_time();
-        let mills: f64 = timespec.sec as f64 + (timespec.nsec as f64 / 1000.0 / 1000.0 / 1000.0);
+        let timespec = time::Time::now();
+        let mills: f64 = timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(
             "Dispatcher, thread id: {:?}, time: {:?}",
             std::thread::current().id(),

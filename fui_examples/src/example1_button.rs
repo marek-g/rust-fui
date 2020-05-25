@@ -36,9 +36,9 @@ impl MainViewModel {
 
 #[derive(TypedBuilder)]
 pub struct ButtonText {
-    #[builder(default_code = "Property::new(\"\".to_string())")]
+    #[builder(default = Property::new("".to_string()))]
     pub text: Property<String>,
-    #[builder(default_code = "Callback::empty()")]
+    #[builder(default = Callback::empty())]
     pub clicked: Callback<()>,
 }
 

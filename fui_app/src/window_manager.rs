@@ -40,10 +40,9 @@ impl WindowManager {
             &event_loop,
             shared_window_target,
         )?;
-        let logical_size = window_target.get_window().inner_size();
+        let physical_size = window_target.get_window().inner_size();
         let window_id = window_target.get_window().id();
 
-        let physical_size = logical_size.to_physical(window_target.get_window().hidpi_factor());
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         let mut window = Window::new(window_target);
         window.root_view = Some(view);
