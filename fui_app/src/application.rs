@@ -178,31 +178,7 @@ impl Application {
                     }
                 }
 
-                _ => {
-                    // As of winit = "0.20.0-alpha4".
-                    //
-                    // The event loop should be in Wait mode to not waste CPU cycles,
-                    // however currently it's not working with the LMB pressed event,
-                    // the pressed event is received late - along with the LMB release event.
-                    //
-                    // As a workaround we are using WaitUntil here but it will be better
-                    // to go back to Wait mode when the bug in winit is fixed.
-                    //
-                    // What is probably happening is - winit is generating events:
-                    // - DeviceEvent LMB pressed
-                    // - EventsCleared
-                    // - NewEvents / WaitCancelled
-                    // - WindowEvent / MouseInput LMB pressed
-                    // Calling request_redraw() in EventsCleared puts the RedrawRequested
-                    // event before NewEvents
-                    //
-                    // More info: https://github.com/rust-windowing/winit/issues/1041
-                    //
-                    // *control_flow = winit::event_loop::ControlFlow::Wait,
-                    *control_flow = winit::event_loop::ControlFlow::WaitUntil(
-                        std::time::Instant::now() + std::time::Duration::from_millis(10),
-                    );
-                }
+                _ => *control_flow = winit::event_loop::ControlFlow::Wait,
             };
         });
     }
