@@ -18,6 +18,7 @@ use std::sync::{Arc, Mutex};
 //#[cfg(target_os = "linux")]
 //use self::winit::platform::unix::EventsLoopExt;
 
+#[cfg(target_os = "linux")]
 use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
@@ -54,9 +55,9 @@ impl PlayerGl {
     pub fn new(
         drawing_context: &Rc<RefCell<DrawingContext>>,
         window_manager: &Rc<RefCell<WindowManager>>,
-        event_loop: &winit::event_loop::EventLoop,
+        event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
-        gst::init()?;
+        gstreamer::init()?;
 
         Ok(PlayerGl {
             texture: PlayerTexture::new(drawing_context.clone()),
@@ -264,37 +265,41 @@ impl PlayerGl {
                     .connect("client-draw", false, move |args| {
                         println!("client-draw! {:?}", args);
                         let sample = args[2]
-                            .get::<gst::Sample>()
+                            .get::<gstreamer::Sample>()
                             .expect("Invalid argument - GstSample expected.");
                         if let (Some(buffer), Some(caps)) = (sample.get_buffer(), sample.get_caps())
                         {
                             println!("caps: {}", caps.to_string());
-                            if let Some(video_info) = gst_video::VideoInfo::from_caps(&caps) {
+                            if let Some(video_info) = gstreamer_video::VideoInfo::from_caps(&caps) {
                                 println!("video_info: {:?}", video_info);
 
                                 let texture_id = unsafe {
-                                    use self::glib::translate::from_glib;
+                                    use glib::translate::from_glib;
+                                    use glib::translate::ToGlibPtr;
                                     use std::mem;
-                                    use video_player_gl::glib::translate::ToGlibPtr;
                                     const GST_MAP_GL: u32 = 131072u32;
 
-                                    let mut frame: gst_video_ffi::GstVideoFrame = mem::zeroed();
-                                    let res: bool = from_glib(gst_video_ffi::gst_video_frame_map(
-                                        &mut frame,
-                                        video_info.to_glib_none().0 as *mut _,
-                                        buffer.to_glib_none().0,
-                                        mem::transmute(
-                                            gst_video_ffi::GST_VIDEO_FRAME_MAP_FLAG_NO_REF
-                                                | gst_ffi::GST_MAP_READ
-                                                | GST_MAP_GL,
-                                        ),
-                                    ));
+                                    // TODO: can we use from_buffer_readable_gl() instead?
+                                    // https://gitlab.freedesktop.org/sjakthol/gstreamer-rs/commit/43f5a10f9c75c69fadccdf9d88e0102bd0ecaa5b
+                                    let mut frame: gstreamer_video_sys::GstVideoFrame =
+                                        mem::zeroed();
+                                    let res: bool =
+                                        from_glib(gstreamer_video_sys::gst_video_frame_map(
+                                            &mut frame,
+                                            video_info.to_glib_none().0 as *mut _,
+                                            buffer.as_mut_ptr(),
+                                            mem::transmute(
+                                                gstreamer_video_sys::GST_VIDEO_FRAME_MAP_FLAG_NO_REF
+                                                    | gstreamer_sys::GST_MAP_READ
+                                                    | GST_MAP_GL,
+                                            ),
+                                        ));
 
                                     if !res {
                                         Err(buffer)
                                     } else {
                                         let texture_id = *(frame.data[0] as *const GLuint);
-                                        gst_video_ffi::gst_video_frame_unmap(&mut frame);
+                                        gstreamer_video_sys::gst_video_frame_unmap(&mut frame);
                                         Ok(texture_id)
                                     }
                                 };

@@ -40,7 +40,7 @@ type Result = result::Result<(), ()>;
 // The result of the callback is forwarded.
 #[cfg(windows)]
 fn try_get_function_pointer<F>(dll: &str, name: &str, callback: &Fn(&F) -> Result) -> Result {
-    use high_dpi::shared_library::dynamic_library::DynamicLibrary;
+    use shared_library::dynamic_library::DynamicLibrary;
     use std::path::Path;
 
     // Try to load the function dynamically.
