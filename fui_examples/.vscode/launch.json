@@ -16,25 +16,8 @@
             "preLaunchTask": "build_example1"
         },
         {
-            "name": "ex1 button (win32)",
-            "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example1_button",
-            "type": "gdb",
-            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example1_button.exe",
-            "cwd": "${workspaceRoot}",
-            "env": {
-                "RUST_BACKTRACE": "1"
-            },
-            "preLaunchTask": "build_example1_win32"
-        },
-        {
             "name": "ex2 multiwindow",
             "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example2_multiwindow",
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example2_multiwindow",
             "cwd": "${workspaceRoot}",
@@ -46,9 +29,6 @@
         {
             "name": "ex3 controls",
             "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example3_controls",
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example3_controls",
             "cwd": "${workspaceRoot}",
@@ -60,9 +40,6 @@
         {
             "name": "ex4 list",
             "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example4_list",
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example4_list",
             "cwd": "${workspaceRoot}",
@@ -74,9 +51,6 @@
         {
             "name": "ex5 contentcontrol",
             "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example5_contentcontrol",
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example5_contentcontrol",
             "cwd": "${workspaceRoot}",
@@ -88,9 +62,6 @@
         {
             "name": "ex6 video",
             "request": "launch",
-            //"type": "lldb",
-            //"sourceLanguages": ["rust"],
-            //"program": "${workspaceRoot}/target/debug/example6_video",
             "type": "gdb",
             "target": "${workspaceRoot}/target/debug/example6_video",
             "cwd": "${workspaceRoot}",
@@ -98,6 +69,72 @@
                 "RUST_BACKTRACE": "1"
             },
             "preLaunchTask": "build_example6"
+        },
+        {
+            "name": "win32: ex1 button",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example1_button.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example1_win32"
+        },
+        {
+            "name": "win32: ex2 multiwindow",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example2_multiwindow.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example2_win32"
+        },
+        {
+            "name": "win32: ex3 controls",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example3_controls.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example3_win32"
+        },
+        {
+            "name": "win32: ex4 list",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example4_list.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example4_win32"
+        },
+        {
+            "name": "win32: ex5 contentcontrol",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example5_contentcontrol.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example5_win32"
+        },
+        {
+            "name": "win32: ex6 video",
+            "request": "launch",
+            "type": "gdb",
+            "target": "${workspaceRoot}/target/i686-pc-windows-gnu/debug/example6_video.exe",
+            "cwd": "${workspaceRoot}",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            },
+            "preLaunchTask": "build_example6_win32"
         },
     ]
 }

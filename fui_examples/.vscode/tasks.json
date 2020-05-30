@@ -4,42 +4,103 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build_example1",
+            "label": "build_example1",
             "type": "shell",
-            "command": "cargo build --bin example1_button"
+            "command": "cargo build --bin example1_button",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example1_win32",
+            "label": "build_example1_win32",
             "type": "shell",
-            "command": "cargo build --bin example1_button --target i686-pc-windows-gnu"
+            "command": "cargo build --bin example1_button --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example2",
+            "label": "build_example2",
             "type": "shell",
-            "command": "cargo build --bin example2_multiwindow"
+            "command": "cargo build --bin example2_multiwindow",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example3",
+            "label": "build_example2_win32",
             "type": "shell",
-            "command": "cargo build --bin example3_controls"
+            "command": "cargo build --bin example2_multiwindow --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example4",
+            "label": "build_example3",
             "type": "shell",
-            "command": "cargo build --bin example4_list"
+            "command": "cargo build --bin example3_controls",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example5",
+            "label": "build_example3_win32",
             "type": "shell",
-            "command": "cargo build --bin example5_contentcontrol"
+            "command": "cargo build --bin example3_controls --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "build_example6",
+            "label": "build_example4",
             "type": "shell",
-            "command": "cargo build --bin example6_video --features video"
+            "command": "cargo build --bin example4_list",
+            "problemMatcher": [
+                "$rustc"
+            ]
         },
         {
-            "taskName": "format",
+            "label": "build_example4_win32",
+            "type": "shell",
+            "command": "cargo build --bin example4_list --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "build_example5",
+            "type": "shell",
+            "command": "cargo build --bin example5_contentcontrol",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "build_example5_win32",
+            "type": "shell",
+            "command": "cargo build --bin example5_contentcontrol --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "build_example6",
+            "type": "shell",
+            "command": "cargo build --bin example6_video --features video",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "build_example6_win32",
+            "type": "shell",
+            "command": "cargo build --bin example6_video --features video --target i686-pc-windows-gnu",
+            "problemMatcher": [
+                "$rustc"
+            ]
+        },
+        {
+            "label": "format",
             "type": "shell",
             "command": "cargo fmt",
             "problemMatcher": []
