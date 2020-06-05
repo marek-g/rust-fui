@@ -15,8 +15,8 @@ pub struct ToggleButton {
     pub is_checked: Property<bool>,
 }
 
-impl Control for ToggleButton {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl ToggleButton {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultToggleButtonStyle::new(DefaultToggleButtonStyleParams::builder().build()))

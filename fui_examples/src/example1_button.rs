@@ -42,8 +42,8 @@ pub struct ButtonText {
     pub clicked: Callback<()>,
 }
 
-impl Control for ButtonText {
-    fn to_view(self, _style: Option<Box<dyn Style<Self>>>, _context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl ButtonText {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, _context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {
                 clicked: self.clicked,

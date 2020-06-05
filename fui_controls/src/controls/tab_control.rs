@@ -33,8 +33,8 @@ pub struct TabControl {
     pub selected_index: Property<usize>,
 }
 
-impl Control for TabControl {
-    fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl TabControl {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
@@ -71,7 +71,7 @@ impl Control for TabControl {
         };
         data_holder.to_view(None, ViewContext {
             attached_values: context.attached_values,
-            children: Box::new(vec![content]),
+            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
         })
     }
 }

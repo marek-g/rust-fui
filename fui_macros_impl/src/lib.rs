@@ -41,7 +41,7 @@ use crate::parser::CtrlProperty;
 //                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
 //                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
-//                     }),
+//                     }) as Rc<RefCell<dyn ControlObject>>,
 //
 //             )]),
 //         }),
@@ -185,7 +185,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
         } else if let CtrlParam::Collection(dynamic_child) = child {
             if static_children.len() > 0 {
                 sources.push(quote!(Box::new(
-                    vec![#(#static_children,)*]
+                    vec![#(#static_children as Rc<RefCell<dyn ControlObject>>,)*]
                 )));
                 static_children = Vec::new();
             }
@@ -197,7 +197,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
 
     if static_children.len() > 0 {
         sources.push(quote!(Box::new(
-            vec![#(#static_children,)*]
+            vec![#(#static_children as Rc<RefCell<dyn ControlObject>>,)*]
         )));
     }
 

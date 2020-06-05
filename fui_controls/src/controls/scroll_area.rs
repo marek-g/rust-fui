@@ -29,8 +29,8 @@ pub struct ScrollArea {
     pub viewport_info: Property<ViewportInfo>,
 }
 
-impl Control for ScrollArea {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl ScrollArea {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultScrollAreaStyle::new(DefaultScrollAreaStyleParams::builder().build()))

@@ -26,8 +26,8 @@ pub struct ScrollBar {
     pub viewport_size: Property<f32>,
 }
 
-impl Control for ScrollBar {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl ScrollBar {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultScrollBarStyle::new(DefaultScrollBarStyleParams::builder().build()))

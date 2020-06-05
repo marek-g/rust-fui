@@ -13,8 +13,8 @@ pub struct Bitmap {
     pub texture_id: Property<i32>,
 }
 
-impl Control for Bitmap {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl Bitmap {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultBitmapStyle::new(DefaultBitmapStyleParams::builder().build()))

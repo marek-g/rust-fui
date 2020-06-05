@@ -10,8 +10,8 @@ use crate::style::*;
 #[derive(TypedBuilder)]
 pub struct Border {}
 
-impl Control for Border {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl Border {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultBorderStyle::new(DefaultBorderStyleParams::builder().build()))

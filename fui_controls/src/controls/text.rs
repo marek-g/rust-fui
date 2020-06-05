@@ -14,8 +14,8 @@ pub struct Text {
     pub text: Property<String>,
 }
 
-impl Control for Text {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl Text {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultTextStyle::new(DefaultTextStyleParams::builder().build()))

@@ -13,8 +13,8 @@ pub struct StackPanel {
     pub orientation: Orientation,
 }
 
-impl Control for StackPanel {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl StackPanel {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultStackPanelStyle::new(DefaultStackPanelStyleParams::builder().build()))

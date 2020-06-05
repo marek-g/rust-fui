@@ -12,8 +12,8 @@ pub struct DataHolder<T> {
     pub data: T,
 }
 
-impl<T: 'static> Control for DataHolder<T> {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl<T: 'static> DataHolder<T> {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultDataHolderStyle::new(DefaultDataHolderStyleParams::builder().build()))

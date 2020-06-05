@@ -32,29 +32,25 @@ pub struct ViewContext {
     children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
 
-pub trait View {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>>;
-}
-
 pub trait Style<D> {
     fn draw(&self, data: &mut D) -> String;
 }
 
-pub struct Control<D> {
+pub struct StyledControl<D> {
     pub data: D,
     pub style: Box<dyn Style<D>>,
     pub attached_values: TypeMap,
     pub children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
 }
 
-impl<D: 'static> Control<D> {
+impl<D: 'static> StyledControl<D> {
     pub fn new(
         data: D,
         style: Box<dyn Style<D>>,
         attached_values: TypeMap,
         children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     ) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Control {
+        Rc::new(RefCell::new(StyledControl {
             data: data,
             attached_values: attached_values,
             style,
@@ -63,7 +59,7 @@ impl<D: 'static> Control<D> {
     }
 }
 
-impl<D: 'static> ControlObject for Control<D> {
+impl<D: 'static> ControlObject for StyledControl<D> {
     fn draw(&mut self) -> String {
         let name = self.style.draw(&mut self.data);
         let mut attached_values = "".to_string();
@@ -90,9 +86,9 @@ pub struct Horizontal {
     pub spacing: i32,
 }
 
-impl View for Horizontal {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(
+impl Horizontal {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultHorizontalStyle::new(DefaultHorizontalStyleParams::builder().build()))
@@ -123,9 +119,9 @@ impl Style<Horizontal> for DefaultHorizontalStyle {
 #[derive(Debug, TypedBuilder)]
 pub struct Button {}
 
-impl View for Button {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(
+impl Button {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultButtonStyle::new(DefaultButtonStyleParams::builder().build()))
@@ -158,9 +154,9 @@ pub struct Text {
     pub text: String,
 }
 
-impl View for Text {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        Control::new(
+impl Text {
+    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultTextStyle::new(DefaultTextStyleParams::builder().build()))

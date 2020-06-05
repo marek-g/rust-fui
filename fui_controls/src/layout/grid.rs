@@ -228,8 +228,8 @@ pub struct Grid {
     pub max_heights: Vec<(i32, f32)>,
 }
 
-impl Control for Grid {
-    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+impl Grid {
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultGridStyle::new(DefaultGridStyleParams::builder().build()))
