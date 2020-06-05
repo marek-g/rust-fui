@@ -128,6 +128,8 @@ impl ViewModel for TabButtonViewModel {
         let mut vm = view_model.borrow_mut();
         ui! {
             ToggleButton {
+                Style: Tab {},
+
                 is_checked: &mut vm.is_checked,
 
                 Text { text: &vm.title },
