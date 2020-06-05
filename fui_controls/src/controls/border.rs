@@ -24,6 +24,8 @@ impl Control for Border {
 // Default Border Style
 //
 
+const BORDER_SIZE: f32 = 1.0f32;
+
 #[derive(TypedBuilder)]
 pub struct DefaultBorderStyleParams {}
 
@@ -71,17 +73,22 @@ impl Style<Border> for DefaultBorderStyle {
         let children = context.get_children();
 
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            let child_size = Size::new(
+                if size.width.is_finite() { 0f32.max(size.width - BORDER_SIZE * 2.0f32) } else { size.width },
+                if size.height.is_finite() { 0f32.max(size.height - BORDER_SIZE * 2.0f32) } else { size.height },
+            );
+            content.borrow_mut().measure(resources, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
             Size::new(0f32, 0f32)
         };
+
         self.rect = Rect::new(
             0.0f32,
             0.0f32,
-            content_size.width + 2.0f32,
-            content_size.height + 2.0f32,
+            content_size.width + BORDER_SIZE * 2.0f32,
+            content_size.height + BORDER_SIZE * 2.0f32,
         )
     }
 
@@ -89,10 +96,10 @@ impl Style<Border> for DefaultBorderStyle {
         self.rect = rect;
 
         let content_rect = Rect::new(
-            rect.x + 1.0f32,
-            rect.y + 1.0f32,
-            rect.width - 2.0f32,
-            rect.height - 2.0f32,
+            rect.x + BORDER_SIZE,
+            rect.y + BORDER_SIZE,
+            rect.width - BORDER_SIZE * 2.0f32,
+            rect.height - BORDER_SIZE * 2.0f32,
         );
 
         let children = context.get_children();
