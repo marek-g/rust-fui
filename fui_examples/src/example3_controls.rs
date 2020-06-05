@@ -48,6 +48,10 @@ impl ViewModel for MainViewModel {
         vm.counter2.bind(&mut vm.counter);
         vm.counter.bind(&mut vm.counter2);
 
+        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} });
+        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} });
+        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
+
         ui!(
             TabControl {
                 Grid {
@@ -81,6 +85,12 @@ impl ViewModel for MainViewModel {
                     ProgressBar {
                         value: &vm.progress,
                     },
+
+                    Horizontal {
+                        @radio1,
+                        @radio2,
+                        @radio3,
+                    }
                 },
 
                 Grid {
