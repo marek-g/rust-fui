@@ -39,17 +39,9 @@ impl TabControl {
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
         let selected_tab_clone = selected_tab.clone();
-        let tab_button_vms: Box<dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>> =
-            Box::new(tabs_source.map(move |c|
-                TabButtonViewModel::new(&c, &selected_tab_clone)
-        ));
-
-        let tab_radio_buttons =
-            Rc::new(RefCell::new(tab_button_vms.map(
-                |c| {
-                    let r: Rc<RefCell<dyn RadioElement>> = c.clone(); r
-                })));
-        let radio_controller = RadioController::new(tab_radio_buttons);
+        let tab_button_vms =
+            tabs_source.map(move |c|
+                TabButtonViewModel::new(&c, &selected_tab_clone));
 
         let content = ui! {
             Grid {
@@ -66,8 +58,10 @@ impl TabControl {
             }
         };
 
+        let radio_controller = RadioController::new(tab_button_vms);
+
         let data_holder = DataHolder {
-            data: (tab_button_vms, selected_tab, radio_controller)
+            data: (selected_tab, radio_controller)
         };
         data_holder.to_view(None, ViewContext {
             attached_values: context.attached_values,

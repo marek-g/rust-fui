@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::ops::{Deref, DerefMut};
 
-use fui::{ EventSubscription, ObservableCollection };
+use fui::{ EventSubscription, ObservableCollection, StyledControl };
+use crate::ToggleButton;
 
 pub trait RadioElement {
     fn is_checked(&self) -> bool;
@@ -10,14 +11,32 @@ pub trait RadioElement {
     fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription;
 }
 
-pub struct RadioController {
-    elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn RadioElement>>>>>,
+impl RadioElement for StyledControl<ToggleButton> {
+    fn is_checked(&self) -> bool {
+        self.data.is_checked.get()
+    }
+
+    fn set_is_checked(&mut self, is_checked: bool) {
+        self.data.is_checked.set(is_checked)
+    }
+
+    fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription {
+        self.data.is_checked.on_changed(move |is_checked| if is_checked { f(); })
+    }
+}
+
+pub struct RadioController<R>
+    where R: 'static + RadioElement {
+    elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>>,
     subscriptions: Rc<RefCell<Vec<EventSubscription>>>,
 }
 
-impl RadioController {
-    pub fn new(elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn RadioElement>>>>>) -> Self {
+impl<R> RadioController<R>
+    where R: 'static + RadioElement {
+    pub fn new<E>(elements: E) -> Self
+        where E: 'static + ObservableCollection<Rc<RefCell<R>>> {
         let mut subscriptions = Vec::new();
+        let elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>> = Rc::new(RefCell::new(elements));
 
         for radio_element in elements.borrow_mut().deref() {
             let elements_clone = elements.clone();

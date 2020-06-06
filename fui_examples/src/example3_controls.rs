@@ -51,8 +51,9 @@ impl ViewModel for MainViewModel {
         let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} });
         let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} });
         let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
+        let radio_controller = RadioController::new(vec![radio1.clone(), radio2.clone(), radio3.clone()]);
 
-        ui!(
+        let content = ui!(
             TabControl {
                 Grid {
                     Title: "Tab 1",
@@ -110,7 +111,15 @@ impl ViewModel for MainViewModel {
                     Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
                 }
             }
-        )
+        );
+
+        let data_holder = DataHolder {
+            data: radio_controller
+        };
+        data_holder.to_view(None, ViewContext {
+            attached_values: TypeMap::new(),
+            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+        })
     }
 }
 

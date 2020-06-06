@@ -9,7 +9,7 @@ use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
 use crate::{Property, view::ViewModel, ObservableCollection};
-use crate::observable::ObservableCollectionExt;
+use crate::{ObservableCollectionMap, observable::ObservableCollectionExt};
 
 /*impl<T> Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for &ObservableVec<Rc<RefCell<T>>>
     where T: ViewModel {
@@ -30,6 +30,13 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc
         Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
     }
 }*/
+
+impl<T> From<&ObservableCollectionMap<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    where T: 'static + ViewModel {
+    fn from(src: &ObservableCollectionMap<Rc<RefCell<T>>>) -> Self {
+        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+    }
+}
 
 impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
     where T: 'static + ViewModel {
