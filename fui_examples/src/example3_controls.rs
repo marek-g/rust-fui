@@ -53,14 +53,18 @@ impl ViewModel for MainViewModel {
         let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
         let radio_controller = RadioController::new(vec![radio1.clone(), radio2.clone(), radio3.clone()]);
 
+        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} });
+        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} });
+        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
+        let radio_controller2 = RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
+
         let content = ui!(
             TabControl {
                 Grid {
                     Title: "Tab 1",
 
                     columns: 2,
-                    heights: vec![(0, Length::Auto), (1, Length::Auto),
-                        (2, Length::Auto)],
+                    default_height: Length::Auto,
 
                     TextBox {
                         text: &mut vm.text,
@@ -87,11 +91,22 @@ impl ViewModel for MainViewModel {
                         value: &vm.progress,
                     },
 
-                    Horizontal {
+                    Vertical {
                         @radio1,
                         @radio2,
                         @radio3,
-                    }
+                    },
+                    Vertical {
+                        @radio4,
+                        @radio5,
+                        @radio6,
+                    },
+
+                    Vertical {
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
+                    },
                 },
 
                 Grid {
@@ -114,7 +129,7 @@ impl ViewModel for MainViewModel {
         );
 
         let data_holder = DataHolder {
-            data: radio_controller
+            data: (radio_controller, radio_controller2)
         };
         data_holder.to_view(None, ViewContext {
             attached_values: TypeMap::new(),

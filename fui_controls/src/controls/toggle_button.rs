@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
+use drawing::primitive::{Brush, Primitive, PathElement};
 use drawing::transformation::*;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::{primitive_extensions::circle_path, units::{PixelPoint, PixelRect, PixelSize, PixelThickness}};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -216,6 +216,226 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 
 
 //
+// CheckBox ToggleButton Style
+//
+
+const CHECKBOX_BUTTON_SIZE: f32 = 24.0f32;
+const CHECKBOX_MARGIN: f32 = 6.0f32;
+
+#[derive(TypedBuilder)]
+pub struct CheckBoxToggleButtonStyleParams {}
+
+pub struct CheckBoxToggleButtonStyle {
+    rect: Rect,
+    is_tapped: Property<bool>,
+    is_hover: Property<bool>,
+    is_focused: Property<bool>,
+    event_subscriptions: Vec<EventSubscription>,
+}
+
+impl CheckBoxToggleButtonStyle {
+    pub fn new(_params: CheckBoxToggleButtonStyleParams) -> Self {
+        CheckBoxToggleButtonStyle {
+            rect: Rect {
+                x: 0f32,
+                y: 0f32,
+                width: 0f32,
+                height: 0f32,
+            },
+            is_tapped: Property::new(false),
+            is_hover: Property::new(false),
+            is_focused: Property::new(false),
+            event_subscriptions: Vec::new(),
+        }
+    }
+}
+
+impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
+    fn setup_dirty_watching(
+        &mut self,
+        data: &mut ToggleButton,
+        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
+    ) {
+        self.event_subscriptions
+            .push(data.is_checked.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_tapped.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_hover.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_focused.dirty_watching(control));
+    }
+
+    fn handle_event(
+        &mut self,
+        data: &mut ToggleButton,
+        context: &mut ControlContext,
+        _resources: &mut dyn Resources,
+        event: ControlEvent,
+    ) {
+        match event {
+            ControlEvent::TapDown { .. } => {
+                self.is_tapped.set(true);
+            }
+
+            ControlEvent::TapUp { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                    data.is_checked.change(|val| !val);
+                }
+                self.is_tapped.set(false);
+            }
+
+            ControlEvent::TapMove { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                    self.is_tapped.set(true);
+                } else {
+                    self.is_tapped.set(false);
+                }
+            }
+
+            ControlEvent::HoverEnter => {
+                self.is_hover.set(true);
+            }
+
+            ControlEvent::HoverLeave => {
+                self.is_hover.set(false);
+            }
+
+            ControlEvent::FocusEnter => {
+                self.is_focused.set(true);
+            }
+
+            ControlEvent::FocusLeave => {
+                self.is_focused.set(false);
+            }
+
+            _ => (),
+        }
+    }
+
+    fn measure(
+        &mut self,
+        _data: &mut ToggleButton,
+        context: &mut ControlContext,
+        resources: &mut dyn Resources,
+        size: Size,
+    ) {
+        let children = context.get_children();
+        let content_size = if let Some(ref content) = children.into_iter().next() {
+            let child_size = Size::new(
+                if size.width.is_finite() { 0f32.max(size.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32) } else { size.width },
+                if size.height.is_finite() { CHECKBOX_BUTTON_SIZE.max(size.height) } else { size.height },
+            );
+            content.borrow_mut().measure(resources, child_size);
+            let rect = content.borrow().get_rect();
+            Size::new(rect.width, rect.height)
+        } else {
+            Size::new(0f32, 0f32)
+        };
+        self.rect = Rect::new(
+            0.0f32,
+            0.0f32,
+            content_size.width + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN * 2.0f32,
+            CHECKBOX_BUTTON_SIZE.max(content_size.height),
+        )
+    }
+
+    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+        self.rect = rect;
+
+        let content_rect = Rect::new(
+            rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
+            rect.y,
+            rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
+            rect.height,
+        );
+
+        let children = context.get_children();
+        if let Some(ref content) = children.into_iter().next() {
+            content.borrow_mut().set_rect(content_rect);
+        }
+    }
+
+    fn get_rect(&self, _context: &ControlContext) -> Rect {
+        self.rect
+    }
+
+    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+        if point.is_inside(&self.rect) {
+            HitTestResult::Current
+        } else {
+            HitTestResult::Nothing
+        }
+    }
+
+    fn to_primitives(
+        &self,
+        data: &ToggleButton,
+        context: &ControlContext,
+        resources: &mut dyn Resources,
+    ) -> Vec<Primitive> {
+        let mut vec = Vec::new();
+
+        let x = self.rect.x;
+        let y = self.rect.y;
+        let width = self.rect.width;
+        let height = self.rect.height;
+
+        let is_pressed = if self.is_tapped.get() {
+            true
+        } else {
+            data.is_checked.get()
+        };
+
+        default_theme::button_rounded(
+            &mut vec,
+            x,
+            y,
+            CHECKBOX_BUTTON_SIZE,
+            height,
+            3.0f32,
+            is_pressed,
+            self.is_hover.get(),
+            self.is_focused.get(),
+        );
+
+        if is_pressed {
+            let mut tick_path = Vec::with_capacity(3);
+            tick_path.push(PathElement::MoveTo(PixelPoint::new(
+                x + CHECKBOX_BUTTON_SIZE / 2.0f32 - 4.0f32,
+                y + height / 2.0f32 - 1.0f32,
+            )));
+            tick_path.push(PathElement::LineTo(PixelPoint::new(
+                x + CHECKBOX_BUTTON_SIZE / 2.0f32 - 1.0f32,
+                y + height / 2.0f32 + 5.0f32,
+            )));
+            tick_path.push(PathElement::LineTo(PixelPoint::new(
+                x + CHECKBOX_BUTTON_SIZE / 2.0f32 + 5.0f32,
+                y + height / 2.0f32 - 7.0f32,
+            )));
+
+            vec.push(Primitive::Stroke {
+                path: tick_path,
+                thickness: PixelThickness::new(2.0f32),
+                brush: Brush::Color { color: [1.0f32, 1.0f32, 1.0f32, 0.80f32 ]},
+            });
+        }
+
+        let children = context.get_children();
+        if let Some(ref content) = children.into_iter().next() {
+            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            if is_pressed {
+                vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
+            }
+            vec.append(&mut vec2);
+        }
+
+        vec
+    }
+}
+
+
+//
 // Tab ToggleButton Style
 // (cannot be unpressed).
 //
@@ -397,6 +617,213 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             let mut vec2 = content.borrow_mut().to_primitives(resources);
             if is_pressed {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
+            }
+            vec.append(&mut vec2);
+        }
+
+        vec
+    }
+}
+
+
+//
+// Radio ToggleButton Style
+// (cannot be unpressed).
+//
+
+const RADIO_BUTTON_SIZE: f32 = 24.0f32;
+const RADIO_BULLET_SIZE: f32 = 14.0f32;
+const RADIO_MARGIN: f32 = 6.0f32;
+
+#[derive(TypedBuilder)]
+pub struct RadioToggleButtonStyleParams {}
+
+pub struct RadioToggleButtonStyle {
+    rect: Rect,
+    is_tapped: Property<bool>,
+    is_hover: Property<bool>,
+    is_focused: Property<bool>,
+    event_subscriptions: Vec<EventSubscription>,
+}
+
+impl RadioToggleButtonStyle {
+    pub fn new(_params: RadioToggleButtonStyleParams) -> Self {
+        RadioToggleButtonStyle {
+            rect: Rect {
+                x: 0f32,
+                y: 0f32,
+                width: 0f32,
+                height: 0f32,
+            },
+            is_tapped: Property::new(false),
+            is_hover: Property::new(false),
+            is_focused: Property::new(false),
+            event_subscriptions: Vec::new(),
+        }
+    }
+}
+
+impl Style<ToggleButton> for RadioToggleButtonStyle {
+    fn setup_dirty_watching(
+        &mut self,
+        data: &mut ToggleButton,
+        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
+    ) {
+        self.event_subscriptions
+            .push(data.is_checked.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_tapped.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_hover.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_focused.dirty_watching(control));
+    }
+
+    fn handle_event(
+        &mut self,
+        data: &mut ToggleButton,
+        context: &mut ControlContext,
+        _resources: &mut dyn Resources,
+        event: ControlEvent,
+    ) {
+        match event {
+            ControlEvent::TapDown { .. } => {
+                self.is_tapped.set(true);
+            }
+
+            ControlEvent::TapUp { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                    data.is_checked.set(true);
+                }
+                self.is_tapped.set(false);
+            }
+
+            ControlEvent::TapMove { ref position } => {
+                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                    self.is_tapped.set(true);
+                } else {
+                    self.is_tapped.set(false);
+                }
+            }
+
+            ControlEvent::HoverEnter => {
+                self.is_hover.set(true);
+            }
+
+            ControlEvent::HoverLeave => {
+                self.is_hover.set(false);
+            }
+
+            ControlEvent::FocusEnter => {
+                self.is_focused.set(true);
+            }
+
+            ControlEvent::FocusLeave => {
+                self.is_focused.set(false);
+            }
+
+            _ => (),
+        }
+    }
+
+    fn measure(
+        &mut self,
+        _data: &mut ToggleButton,
+        context: &mut ControlContext,
+        resources: &mut dyn Resources,
+        size: Size,
+    ) {
+        let children = context.get_children();
+        let content_size = if let Some(ref content) = children.into_iter().next() {
+            let child_size = Size::new(
+                if size.width.is_finite() { 0f32.max(size.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32) } else { size.width },
+                if size.height.is_finite() { RADIO_BUTTON_SIZE.max(size.height) } else { size.height },
+            );
+            content.borrow_mut().measure(resources, child_size);
+            let rect = content.borrow().get_rect();
+            Size::new(rect.width, rect.height)
+        } else {
+            Size::new(0f32, 0f32)
+        };
+        self.rect = Rect::new(
+            0.0f32,
+            0.0f32,
+            content_size.width + RADIO_BUTTON_SIZE + RADIO_MARGIN * 2.0f32,
+            RADIO_BUTTON_SIZE.max(content_size.height),
+        )
+    }
+
+    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+        self.rect = rect;
+
+        let content_rect = Rect::new(
+            rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
+            rect.y,
+            rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
+            rect.height,
+        );
+
+        let children = context.get_children();
+        if let Some(ref content) = children.into_iter().next() {
+            content.borrow_mut().set_rect(content_rect);
+        }
+    }
+
+    fn get_rect(&self, _context: &ControlContext) -> Rect {
+        self.rect
+    }
+
+    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+        if point.is_inside(&self.rect) {
+            HitTestResult::Current
+        } else {
+            HitTestResult::Nothing
+        }
+    }
+
+    fn to_primitives(
+        &self,
+        data: &ToggleButton,
+        context: &ControlContext,
+        resources: &mut dyn Resources,
+    ) -> Vec<Primitive> {
+        let mut vec = Vec::new();
+
+        let x = self.rect.x;
+        let y = self.rect.y;
+        let width = self.rect.width;
+        let height = self.rect.height;
+
+        let is_pressed = if self.is_tapped.get() {
+            true
+        } else {
+            data.is_checked.get()
+        };
+
+        default_theme::button_rounded(
+            &mut vec,
+            x,
+            y,
+            RADIO_BUTTON_SIZE,
+            height,
+            3.0f32,
+            is_pressed,
+            self.is_hover.get(),
+            self.is_focused.get(),
+        );
+
+        if is_pressed {
+            vec.push(Primitive::Fill {
+                path: circle_path(PixelPoint::new(x + RADIO_BUTTON_SIZE / 2.0f32, y + height / 2.0f32), RADIO_BULLET_SIZE / 2.0f32),
+                brush: Brush::Color { color: [1.0f32, 1.0f32, 1.0f32, 0.80f32 ]},
+            });
+        }
+
+        let children = context.get_children();
+        if let Some(ref content) = children.into_iter().next() {
+            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            if is_pressed {
+                vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
         }
