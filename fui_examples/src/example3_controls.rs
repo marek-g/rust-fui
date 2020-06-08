@@ -91,7 +91,19 @@ impl ViewModel for MainViewModel {
                         value: &vm.progress,
                     },
 
+                    DropDown {
+                        Column: 0,
+                        Row: 3,
+
+                        Text { text: "Element 1"},
+                        Text { text: "Element 2"},
+                        Text { text: "Element 3"},
+                    },
+
                     Vertical {
+                        Column: 0,
+                        Row: 4,
+
                         @radio1,
                         @radio2,
                         @radio3,
