@@ -115,6 +115,9 @@ impl ViewModel for MainViewModel {
                     },
 
                     Vertical {
+                        Column: 0,
+                        Row: 5,
+
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
