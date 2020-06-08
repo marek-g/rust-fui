@@ -22,5 +22,8 @@ pub trait ControlBehavior {
 
     fn hit_test(&self, point: Point) -> HitTestResult;
 
-    fn to_primitives(&self, resources: &mut dyn Resources) -> Vec<Primitive>;
+    /// Returns primitives.
+    /// First vector contains primitives for normal layer (most controls).
+    /// Second vector contains primitives for overlay layer (used by popup / menu etc.).
+    fn to_primitives(&self, resources: &mut dyn Resources) -> (Vec<Primitive>, Vec<Primitive>);
 }

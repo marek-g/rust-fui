@@ -112,7 +112,7 @@ impl Style<Text> for DefaultTextStyle {
         data: &Text,
         _context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
         let x = self.rect.x;
@@ -136,6 +136,6 @@ impl Style<Text> for DefaultTextStyle {
             text: data.text.get(),
         });
 
-        vec
+        (vec, Vec::new())
     }
 }

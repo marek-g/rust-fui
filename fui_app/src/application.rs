@@ -209,7 +209,8 @@ impl Application {
             root_control.measure(drawing_context, size);
             root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
-            let primitives = root_control.to_primitives(drawing_context);
+            let (mut primitives, mut overlay) = root_control.to_primitives(drawing_context);
+            primitives.append(&mut overlay);
 
             let res = drawing_context.begin(&mut window.drawing_window_target);
             if let Err(err) = res {

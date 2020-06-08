@@ -178,7 +178,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         self.style.hit_test(&self.data, &self.context, point)
     }
 
-    fn to_primitives(&self, resources: &mut dyn Resources) -> Vec<Primitive> {
+    fn to_primitives(&self, resources: &mut dyn Resources) -> (Vec<Primitive>, Vec<Primitive>) {
         self.style
             .to_primitives(&self.data, &self.context, resources)
     }

@@ -107,12 +107,12 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         _data: &DataHolder<T>,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let children = context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow().to_primitives(resources)
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         }
     }
 }

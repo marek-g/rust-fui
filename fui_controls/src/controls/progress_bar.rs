@@ -140,7 +140,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         data: &ProgressBar,
         _context: &ControlContext,
         _resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let x = self.rect.x;
         let y = self.rect.y;
         let width = self.rect.width;
@@ -216,6 +216,6 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
             }
         }
 
-        vec
+        (vec, Vec::new())
     }
 }

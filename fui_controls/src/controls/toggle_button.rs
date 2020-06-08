@@ -176,8 +176,9 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         data: &ToggleButton,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let x = self.rect.x;
         let y = self.rect.y;
@@ -203,14 +204,15 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
             if is_pressed {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
-        vec
+        (vec, overlay)
     }
 }
 
@@ -373,8 +375,9 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         data: &ToggleButton,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let x = self.rect.x;
         let y = self.rect.y;
@@ -423,14 +426,15 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
             if is_pressed {
                 vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
-        vec
+        (vec, overlay)
     }
 }
 
@@ -587,8 +591,9 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         data: &ToggleButton,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let x = self.rect.x;
         let y = self.rect.y;
@@ -614,14 +619,15 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
             if is_pressed {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
-        vec
+        (vec, overlay)
     }
 }
 
@@ -786,8 +792,9 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         data: &ToggleButton,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let x = self.rect.x;
         let y = self.rect.y;
@@ -821,13 +828,14 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
             if is_pressed {
                 vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
-        vec
+        (vec, overlay)
     }
 }

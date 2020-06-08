@@ -103,7 +103,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         data: &Bitmap,
         _context: &ControlContext,
         _resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
         if self.rect.width > 0.0f32 && self.rect.height > 0.0f32 {
@@ -117,6 +117,6 @@ impl Style<Bitmap> for DefaultBitmapStyle {
             });
         }
 
-        vec
+        (vec, Vec::new())
     }
 }

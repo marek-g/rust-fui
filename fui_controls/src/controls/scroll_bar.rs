@@ -235,7 +235,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         data: &ScrollBar,
         _context: &ControlContext,
         _resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let x = self.rect.x;
         let y = self.rect.y;
         let width = self.rect.width;
@@ -318,6 +318,6 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
 
         default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
 
-        vec
+        (vec, Vec::new())
     }
 }

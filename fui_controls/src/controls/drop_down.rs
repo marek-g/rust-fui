@@ -193,8 +193,9 @@ impl Style<DropDown> for DefaultDropDownStyle {
         _data: &DropDown,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let x = self.rect.x;
         let y = self.rect.y;
@@ -214,24 +215,26 @@ impl Style<DropDown> for DefaultDropDownStyle {
 
         let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let mut vec2 = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
             if self.is_pressed.get() {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
             vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
         if self.is_popup_open.get() {
             let children = context.get_children();
             for child in children.into_iter() {
-                let mut vec2 = child.borrow_mut().to_primitives(resources);
+                let (mut vec2, mut overlay2) = child.borrow_mut().to_primitives(resources);
                 if self.is_pressed.get() {
                     vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
                 }
-                vec.append(&mut vec2);
+                overlay.append(&mut vec2);
+                overlay.append(&mut overlay2);
             }
         }
 
-        vec
+        (vec, overlay)
     }
 }

@@ -276,7 +276,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         data: &TextBox,
         _context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
         let x = self.rect.x;
@@ -347,6 +347,6 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
         vec.append(&mut vec2);
 
-        vec
+        (vec, Vec::new())
     }
 }

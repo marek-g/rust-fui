@@ -38,7 +38,7 @@ pub trait Style<D> {
         data: &D,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive>;
+    ) -> (Vec<Primitive>, Vec<Primitive>);
 }
 
 pub trait PropertyDirtyExtension<D> {

@@ -1726,14 +1726,17 @@ impl Style<Grid> for DefaultGridStyle {
         _data: &Grid,
         context: &ControlContext,
         resources: &mut dyn Resources,
-    ) -> Vec<Primitive> {
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
+        let mut overlay = Vec::new();
 
         let children = context.get_children();
         for child in children.into_iter() {
-            vec.append(&mut child.borrow().to_primitives(resources));
+            let (mut vec2, mut overlay2) = child.borrow().to_primitives(resources);
+            vec.append(&mut vec2);
+            overlay.append(&mut overlay2);
         }
 
-        vec
+        (vec, overlay)
     }
 }
