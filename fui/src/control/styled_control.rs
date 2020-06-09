@@ -1,5 +1,5 @@
 use crate::events::ControlEvent;
-use crate::resources::Resources;
+use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -7,14 +7,14 @@ use crate::common::*;
 use crate::control::*;
 use crate::observable::*;
 use crate::style::*;
-use crate::view::ViewContext;
+use crate::{DrawingContext, view::ViewContext};
 
 use drawing::primitive::Primitive;
 
 pub struct StyledControl<D> {
     pub data: D,
     pub style: Box<dyn Style<D>>,
-    pub context: ControlContext,
+    pub control_context: ControlContext,
 }
 
 impl<D: 'static> StyledControl<D> {
@@ -26,7 +26,7 @@ impl<D: 'static> StyledControl<D> {
         let control = Rc::new(RefCell::new(StyledControl {
             data,
             style,
-            context: ControlContext::new(view_context),
+            control_context: ControlContext::new(view_context),
         }));
 
         let control_clone = control.clone();
@@ -83,11 +83,11 @@ impl<D: 'static> StyledControl<D> {
     }
 
     pub fn get_context(&self) -> &ControlContext {
-        &self.context
+        &self.control_context
     }
 
     pub fn get_context_mut(&mut self) -> &mut ControlContext {
-        &mut self.context
+        &mut self.control_context
     }
 
     fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<dyn Style<D>>) {
@@ -156,30 +156,30 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 }
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
-    fn handle_event(&mut self, resources: &mut dyn Resources, event: ControlEvent) {
+    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext, event: ControlEvent) {
         self.style
-            .handle_event(&mut self.data, &mut self.context, resources, event)
+            .handle_event(&mut self.data, &mut self.control_context, drawing_context, event)
     }
 
-    fn measure(&mut self, resources: &mut dyn Resources, size: Size) {
+    fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size) {
         self.style
-            .measure(&mut self.data, &mut self.context, resources, size)
+            .measure(&mut self.data, &mut self.control_context, drawing_context, size)
     }
 
     fn set_rect(&mut self, rect: Rect) {
-        self.style.set_rect(&mut self.data, &mut self.context, rect);
+        self.style.set_rect(&mut self.data, &mut self.control_context, rect);
     }
 
     fn get_rect(&self) -> Rect {
-        self.style.get_rect(&self.context)
+        self.style.get_rect(&self.control_context)
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.style.hit_test(&self.data, &self.context, point)
+        self.style.hit_test(&self.data, &self.control_context, point)
     }
 
-    fn to_primitives(&self, resources: &mut dyn Resources) -> (Vec<Primitive>, Vec<Primitive>) {
+    fn to_primitives(&self, drawing_context: &mut dyn DrawingContext) -> (Vec<Primitive>, Vec<Primitive>) {
         self.style
-            .to_primitives(&self.data, &self.context, resources)
+            .to_primitives(&self.data, &self.control_context, drawing_context)
     }
 }

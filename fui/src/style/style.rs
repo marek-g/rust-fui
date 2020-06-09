@@ -8,7 +8,7 @@ use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
 use crate::observable::*;
-use crate::resources::Resources;
+use crate::{DrawingContext, drawing::Resources};
 
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<StyledControl<D>>>);
@@ -16,28 +16,28 @@ pub trait Style<D> {
     fn handle_event(
         &mut self,
         data: &mut D,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     );
 
     fn measure(
         &mut self,
         data: &mut D,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     );
-    fn set_rect(&mut self, data: &mut D, context: &mut ControlContext, rect: Rect);
-    fn get_rect(&self, context: &ControlContext) -> Rect;
+    fn set_rect(&mut self, data: &mut D, control_context: &mut ControlContext, rect: Rect);
+    fn get_rect(&self, control_context: &ControlContext) -> Rect;
 
-    fn hit_test(&self, data: &D, context: &ControlContext, point: Point) -> HitTestResult;
+    fn hit_test(&self, data: &D, control_context: &ControlContext, point: Point) -> HitTestResult;
 
     fn to_primitives(
         &self,
         data: &D,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>);
 }
 

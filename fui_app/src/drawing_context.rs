@@ -270,3 +270,26 @@ impl fui::Resources for DrawingContext {
         }
     }
 }
+
+pub struct FuiDrawingContext<'a> {
+    drawing_area_size: (u16, u16),
+    resources: &'a mut crate::DrawingContext,
+}
+
+impl<'a> FuiDrawingContext<'a> {
+    pub fn new(drawing_area_size: (u16, u16), resources: &'a mut crate::DrawingContext) -> Self {
+        FuiDrawingContext {
+            drawing_area_size,
+            resources,
+        }
+    }
+}
+
+impl<'a> fui::DrawingContext for FuiDrawingContext<'a> {
+    fn get_drawing_area_size(&self) -> (u16, u16) {
+        self.drawing_area_size
+    }
+    fn get_resources(&mut self) -> &mut dyn fui::Resources {
+        self.resources
+    }   
+}

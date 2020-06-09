@@ -74,8 +74,8 @@ impl Style<Button> for DefaultButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut Button,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -84,14 +84,14 @@ impl Style<Button> for DefaultButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     data.clicked.emit(());
                 }
                 self.is_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_pressed.set(true);
                 } else {
                     self.is_pressed.set(false);
@@ -121,13 +121,13 @@ impl Style<Button> for DefaultButtonStyle {
     fn measure(
         &mut self,
         _data: &mut Button,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -141,7 +141,7 @@ impl Style<Button> for DefaultButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Button, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Button, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -151,17 +151,17 @@ impl Style<Button> for DefaultButtonStyle {
             rect.height - 20.0f32,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Button, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Button, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -172,8 +172,8 @@ impl Style<Button> for DefaultButtonStyle {
     fn to_primitives(
         &self,
         _data: &Button,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -194,9 +194,9 @@ impl Style<Button> for DefaultButtonStyle {
             self.is_focused.get(),
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }

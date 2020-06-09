@@ -163,26 +163,26 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn handle_event(
         &mut self,
         data: &mut TextBox,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
             ControlEvent::FocusEnter => {
                 self.is_focused = true;
-                context.set_is_dirty(true);
+                control_context.set_is_dirty(true);
             }
 
             ControlEvent::FocusLeave => {
                 self.is_focused = false;
-                context.set_is_dirty(true);
+                control_context.set_is_dirty(true);
             }
 
             ControlEvent::TapDown { ref position } => {
-                let cursor_pos = self.calc_cursor_pos(&data.text.get(), position, resources);
+                let cursor_pos = self.calc_cursor_pos(&data.text.get(), position, drawing_context.get_resources());
                 self.cursor_pos_char = cursor_pos.0;
                 self.cursor_pos_px = cursor_pos.1;
-                context.set_is_dirty(true);
+                control_context.set_is_dirty(true);
             }
 
             ControlEvent::KeyboardInput(ref key_event) => {
@@ -191,38 +191,38 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                         match key_code {
                             Keycode::Backspace => {
                                 if self.cursor_pos_char > 0 {
-                                    self.remove_char(data, self.cursor_pos_char - 1, resources);
+                                    self.remove_char(data, self.cursor_pos_char - 1, drawing_context.get_resources());
                                 }
                             }
                             Keycode::Delete => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char < text.chars().count() {
-                                    self.remove_char(data, self.cursor_pos_char, resources);
+                                    self.remove_char(data, self.cursor_pos_char, drawing_context.get_resources());
                                 }
                             }
                             Keycode::Home => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char > 0 {
-                                    self.move_cursor(&text, 0, resources);
+                                    self.move_cursor(&text, 0, drawing_context.get_resources());
                                 }
                             }
                             Keycode::End => {
                                 let text = data.text.get();
                                 let len = text.chars().count();
                                 if self.cursor_pos_char + 1 <= len {
-                                    self.move_cursor(&text, len, resources);
+                                    self.move_cursor(&text, len, drawing_context.get_resources());
                                 }
                             }
                             Keycode::Left => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char > 0 {
-                                    self.move_cursor(&text, self.cursor_pos_char - 1, resources);
+                                    self.move_cursor(&text, self.cursor_pos_char - 1, drawing_context.get_resources());
                                 }
                             }
                             Keycode::Right => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char + 1 <= text.chars().count() {
-                                    self.move_cursor(&text, self.cursor_pos_char + 1, resources);
+                                    self.move_cursor(&text, self.cursor_pos_char + 1, drawing_context.get_resources());
                                 }
                             }
                             _ => (),
@@ -230,10 +230,10 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                     }
 
                     if let Some(ref text) = key_event.text {
-                        self.insert_str(data, &text, resources);
+                        self.insert_str(data, &text, drawing_context.get_resources());
                     }
 
-                    context.set_is_dirty(true);
+                    control_context.set_is_dirty(true);
                 }
             }
 
@@ -244,26 +244,27 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn measure(
         &mut self,
         data: &mut TextBox,
-        _context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
-        let (_text_width, text_height) = resources
+        let (_text_width, text_height) = drawing_context
+            .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
         self.rect = Rect::new(0.0f32, 0.0f32, 8.0f32 + 8.0f32, text_height as f32 + 8.0f32)
     }
 
-    fn set_rect(&mut self, _data: &mut TextBox, _context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut TextBox, _control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
         self.update_offset_x();
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &TextBox, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &TextBox, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -274,8 +275,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn to_primitives(
         &self,
         data: &TextBox,
-        _context: &ControlContext,
-        resources: &mut dyn Resources,
+        _control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
@@ -284,7 +285,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = resources
+        let (text_width, text_height) = drawing_context
+            .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 

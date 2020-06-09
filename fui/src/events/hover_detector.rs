@@ -1,9 +1,9 @@
-use crate::resources::Resources;
+use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::control::*;
-use crate::events::*;
+use crate::{DrawingContext, events::*};
 
 pub struct HoverDetector {
     hover_control: Option<Weak<RefCell<dyn ControlObject>>>,
@@ -18,28 +18,28 @@ impl HoverDetector {
         }
     }
 
-    pub fn start(&mut self, resources: &mut dyn Resources) {
+    pub fn start(&mut self, drawing_context: &mut dyn DrawingContext) {
         self.is_running = true;
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
-                .handle_event(resources, ControlEvent::HoverEnter);
+                .handle_event(drawing_context, ControlEvent::HoverEnter);
         }
     }
 
-    pub fn stop(&mut self, resources: &mut dyn Resources) {
+    pub fn stop(&mut self, drawing_context: &mut dyn DrawingContext) {
         self.is_running = false;
         if let Some(ref hover_control) = self.get_hover_control() {
             hover_control
                 .borrow_mut()
-                .handle_event(resources, ControlEvent::HoverLeave);
+                .handle_event(drawing_context, ControlEvent::HoverLeave);
         }
     }
 
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
         match event {
@@ -59,13 +59,13 @@ impl HoverDetector {
                             if self.is_running {
                                 hover_control
                                     .borrow_mut()
-                                    .handle_event(resources, ControlEvent::HoverLeave);
+                                    .handle_event(drawing_context, ControlEvent::HoverLeave);
                             }
                             self.hover_control = Some(Rc::downgrade(hit_control));
                             if self.is_running {
                                 hit_control
                                     .borrow_mut()
-                                    .handle_event(resources, ControlEvent::HoverEnter);
+                                    .handle_event(drawing_context, ControlEvent::HoverEnter);
                             }
                         }
                     } else {
@@ -73,7 +73,7 @@ impl HoverDetector {
                         if self.is_running {
                             hit_control
                                 .borrow_mut()
-                                .handle_event(resources, ControlEvent::HoverEnter);
+                                .handle_event(drawing_context, ControlEvent::HoverEnter);
                         }
                     }
                 } else {
@@ -81,7 +81,7 @@ impl HoverDetector {
                         if self.is_running {
                             hover_control
                                 .borrow_mut()
-                                .handle_event(resources, ControlEvent::HoverLeave);
+                                .handle_event(drawing_context, ControlEvent::HoverLeave);
                         }
                         self.hover_control = None;
                     }
@@ -93,7 +93,7 @@ impl HoverDetector {
                     if self.is_running {
                         hover_control
                             .borrow_mut()
-                            .handle_event(resources, ControlEvent::HoverLeave);
+                            .handle_event(drawing_context, ControlEvent::HoverLeave);
                     }
                     self.hover_control = None;
                 }

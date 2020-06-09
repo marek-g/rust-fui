@@ -12,7 +12,7 @@ use crate::Window;
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
     main_window_id: Option<winit::window::WindowId>,
-    windows: HashMap<winit::window::WindowId, Window<DrawingWindowTarget>>,
+    windows: HashMap<winit::window::WindowId, Window>,
 }
 
 impl WindowManager {
@@ -74,7 +74,7 @@ impl WindowManager {
 
     pub fn get_windows_mut(
         &mut self,
-    ) -> &mut HashMap<winit::window::WindowId, Window<DrawingWindowTarget>> {
+    ) -> &mut HashMap<winit::window::WindowId, Window> {
         &mut self.windows
     }
 

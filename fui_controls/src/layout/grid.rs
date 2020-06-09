@@ -533,7 +533,7 @@ impl DefaultGridStyle {
     }
 
     fn measure_cells_group(
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
@@ -551,7 +551,7 @@ impl DefaultGridStyle {
 
             let old_width = child.borrow().get_rect().width;
             Self::measure_cell(
-                resources,
+                drawing_context,
                 &cell,
                 &child,
                 definitions_u,
@@ -612,7 +612,7 @@ impl DefaultGridStyle {
     }
 
     fn measure_cell(
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         cell: &CellCache,
         child: &Rc<RefCell<dyn ControlObject>>,
         definitions_u: &mut Vec<DefinitionBase>,
@@ -642,7 +642,7 @@ impl DefaultGridStyle {
         }
 
         child.borrow_mut().measure(
-            resources,
+            drawing_context,
             Size::new(cell_measure_width, cell_measure_height),
         );
     }
@@ -1470,8 +1470,8 @@ impl Style<Grid> for DefaultGridStyle {
     fn handle_event(
         &mut self,
         _data: &mut Grid,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -1479,13 +1479,13 @@ impl Style<Grid> for DefaultGridStyle {
     fn measure(
         &mut self,
         data: &mut Grid,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
 
-        let children = context.get_children();
+        let children = control_context.get_children();
 
         let (number_of_rows, number_of_columns) =
             Self::decide_number_of_rows_and_columns(data, children);
@@ -1496,7 +1496,7 @@ impl Style<Grid> for DefaultGridStyle {
 
             for child in children.into_iter() {
                 let mut child = child.borrow_mut();
-                child.measure(resources, size);
+                child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
                 grid_desired_size.width = grid_desired_size.width.max(child_rc.width);
                 grid_desired_size.height = grid_desired_size.height.max(child_rc.height);
@@ -1516,7 +1516,7 @@ impl Style<Grid> for DefaultGridStyle {
             self.prepare_cell_cache(&data, &children);
 
             Self::measure_cells_group(
-                resources,
+                drawing_context,
                 &mut self.definitions_u,
                 &mut self.definitions_v,
                 &self.cell_group_1,
@@ -1530,7 +1530,7 @@ impl Style<Grid> for DefaultGridStyle {
                     Self::resolve_fill(&mut self.definitions_v, size.height);
                 }
                 Self::measure_cells_group(
-                    resources,
+                    drawing_context,
                     &mut self.definitions_u,
                     &mut self.definitions_v,
                     &self.cell_group_2,
@@ -1543,7 +1543,7 @@ impl Style<Grid> for DefaultGridStyle {
                     Self::resolve_fill(&mut self.definitions_u, size.width);
                 }
                 Self::measure_cells_group(
-                    resources,
+                    drawing_context,
                     &mut self.definitions_u,
                     &mut self.definitions_v,
                     &self.cell_group_3,
@@ -1557,7 +1557,7 @@ impl Style<Grid> for DefaultGridStyle {
                         Self::resolve_fill(&mut self.definitions_u, size.width);
                     }
                     Self::measure_cells_group(
-                        resources,
+                        drawing_context,
                         &mut self.definitions_u,
                         &mut self.definitions_v,
                         &self.cell_group_3,
@@ -1578,7 +1578,7 @@ impl Style<Grid> for DefaultGridStyle {
                         Self::cache_min_sizes(&self.definitions_v, &self.cell_group_3, true);
 
                     Self::measure_cells_group(
-                        resources,
+                        drawing_context,
                         &mut self.definitions_u,
                         &mut self.definitions_v,
                         &self.cell_group_2,
@@ -1599,7 +1599,7 @@ impl Style<Grid> for DefaultGridStyle {
                             Self::resolve_fill(&mut self.definitions_u, size.width);
                         }
                         Self::measure_cells_group(
-                            resources,
+                            drawing_context,
                             &mut self.definitions_u,
                             &mut self.definitions_v,
                             &self.cell_group_3,
@@ -1614,7 +1614,7 @@ impl Style<Grid> for DefaultGridStyle {
                             Self::resolve_fill(&mut self.definitions_v, size.height);
                         }
                         has_desired_size_u_changed = Self::measure_cells_group(
-                            resources,
+                            drawing_context,
                             &mut self.definitions_u,
                             &mut self.definitions_v,
                             &self.cell_group_2,
@@ -1632,7 +1632,7 @@ impl Style<Grid> for DefaultGridStyle {
             }
 
             Self::measure_cells_group(
-                resources,
+                drawing_context,
                 &mut self.definitions_u,
                 &mut self.definitions_v,
                 &self.cell_group_4,
@@ -1648,10 +1648,10 @@ impl Style<Grid> for DefaultGridStyle {
         self.rect = grid_desired_size;
     }
 
-    fn set_rect(&mut self, _data: &mut Grid, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Grid, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
-        let children = context.get_children();
+        let children = control_context.get_children();
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
@@ -1696,13 +1696,13 @@ impl Style<Grid> for DefaultGridStyle {
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Grid, context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Grid, control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            let children = context.get_children();
+            let children = control_context.get_children();
             for child in children.into_iter().rev() {
                 let c = child.borrow();
                 let rect = c.get_rect();
@@ -1724,15 +1724,15 @@ impl Style<Grid> for DefaultGridStyle {
     fn to_primitives(
         &self,
         _data: &Grid,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         for child in children.into_iter() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(resources);
+            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
             vec.append(&mut vec2);
             overlay.append(&mut overlay2);
         }

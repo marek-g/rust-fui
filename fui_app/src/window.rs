@@ -4,13 +4,18 @@ use std::rc::Rc;
 use fui::ControlObject;
 use fui::EventProcessor;
 
-pub struct Window<DrawingWindowTarget> {
+use drawing_gl::*;
+use drawing::backend::RenderTarget;
+
+use crate::DrawingWindowTarget;
+
+pub struct Window {
     pub drawing_window_target: DrawingWindowTarget,
     pub root_view: Option<Rc<RefCell<dyn ControlObject>>>,
     pub event_processor: EventProcessor,
 }
 
-impl<DrawingWindowTarget> Window<DrawingWindowTarget> {
+impl Window {
     pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
         Window {
             drawing_window_target,

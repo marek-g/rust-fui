@@ -62,8 +62,8 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn handle_event(
         &mut self,
         _data: &mut Bitmap,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -71,26 +71,26 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn measure(
         &mut self,
         data: &mut Bitmap,
-        _context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
-        self.rect = if let Ok(texture_size) = resources.get_texture_size(data.texture_id.get()) {
+        self.rect = if let Ok(texture_size) = drawing_context.get_resources().get_texture_size(data.texture_id.get()) {
             Rect::new(0.0f32, 0.0f32, texture_size.0 as f32, texture_size.1 as f32)
         } else {
             Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
         }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, _context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, rect: Rect) {
         //self.rect = rect;
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Bitmap, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Bitmap, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -101,8 +101,8 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn to_primitives(
         &self,
         data: &Bitmap,
-        _context: &ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 

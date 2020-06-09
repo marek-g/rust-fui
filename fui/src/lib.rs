@@ -9,8 +9,8 @@ pub use common::*;
 mod control;
 pub use control::*;
 
-mod resources;
-pub use resources::*;
+mod drawing;
+pub use crate::drawing::*;
 
 mod events;
 pub use events::*;

@@ -78,8 +78,8 @@ impl Style<DropDown> for DefaultDropDownStyle {
     fn handle_event(
         &mut self,
         data: &mut DropDown,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -88,14 +88,14 @@ impl Style<DropDown> for DefaultDropDownStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_popup_open.change(|v| !v);
                 }
                 self.is_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_pressed.set(true);
                 } else {
                     self.is_pressed.set(false);
@@ -125,13 +125,13 @@ impl Style<DropDown> for DefaultDropDownStyle {
     fn measure(
         &mut self,
         _data: &mut DropDown,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -140,7 +140,7 @@ impl Style<DropDown> for DefaultDropDownStyle {
 
         if self.is_popup_open.get() {
             for child in children.into_iter() {
-                child.borrow_mut().measure(resources, size);
+                child.borrow_mut().measure(drawing_context, size);
             }
         }
 
@@ -176,11 +176,11 @@ impl Style<DropDown> for DefaultDropDownStyle {
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &DropDown, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &DropDown, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -191,8 +191,8 @@ impl Style<DropDown> for DefaultDropDownStyle {
     fn to_primitives(
         &self,
         _data: &DropDown,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -213,9 +213,9 @@ impl Style<DropDown> for DefaultDropDownStyle {
             self.is_focused.get(),
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
@@ -224,9 +224,9 @@ impl Style<DropDown> for DefaultDropDownStyle {
         }
 
         if self.is_popup_open.get() {
-            let children = context.get_children();
+            let children = control_context.get_children();
             for child in children.into_iter() {
-                let (mut vec2, mut overlay2) = child.borrow_mut().to_primitives(resources);
+                let (mut vec2, mut overlay2) = child.borrow_mut().to_primitives(drawing_context);
                 if self.is_pressed.get() {
                     vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
                 }

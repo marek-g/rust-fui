@@ -9,7 +9,7 @@ use crate::Dispatcher;
 use crate::DrawingContext;
 use crate::DrawingWindowTarget;
 use crate::Window;
-use crate::WindowManager;
+use crate::{FuiDrawingContext, WindowManager};
 
 pub struct Application {
     title: &'static str,
@@ -152,7 +152,11 @@ impl Application {
                                     );
                                     let mut root_control = root_view.borrow_mut();
                                     root_control.get_context_mut().set_is_dirty(true);
-                                    root_control.measure(drawing_context.deref_mut(), size);
+
+                                    let mut fui_drawing_context = FuiDrawingContext::new(
+                                        (physical_size.width as u16, physical_size.height as u16), drawing_context.deref_mut());
+                                    root_control.measure(&mut fui_drawing_context, size);
+
                                     root_control.set_rect(Rect::new(
                                         0f32,
                                         0f32,
@@ -168,9 +172,15 @@ impl Application {
                         if let Some(ref mut root_view) = window.root_view {
                             if let Some(input_event) = crate::event_converter::convert_event(event)
                             {
+                                let physical_size =
+                                    window.drawing_window_target.get_window().inner_size();
+                                let mut drawing_context = drawing_context.borrow_mut();
+                                let mut fui_drawing_context = FuiDrawingContext::new(
+                                    (physical_size.width as u16, physical_size.height as u16),
+                                    drawing_context.deref_mut());
                                 window.event_processor.handle_event(
                                     root_view,
-                                    drawing_context.borrow_mut().deref_mut(),
+                                    &mut fui_drawing_context,
                                     &input_event,
                                 );
                             }
@@ -183,7 +193,7 @@ impl Application {
         });
     }
 
-    fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
+    fn is_dirty(window: &mut Window) -> bool {
         if let Some(ref mut root_view) = window.root_view {
             let root_control = root_view.borrow();
             if root_control.get_context().is_dirty() {
@@ -197,7 +207,7 @@ impl Application {
     }
 
     fn render(
-        window: &mut Window<DrawingWindowTarget>,
+        window: &mut Window,
         drawing_context: &mut DrawingContext,
         width: u32,
         height: u32,
@@ -206,10 +216,14 @@ impl Application {
             let mut root_control = root_view.borrow_mut();
 
             let size = Size::new(width as f32, height as f32);
-            root_control.measure(drawing_context, size);
+
+            let mut fui_drawing_context = FuiDrawingContext::new(
+                (size.width as u16, size.height as u16), drawing_context);
+            root_control.measure(&mut fui_drawing_context, size);
+            
             root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
 
-            let (mut primitives, mut overlay) = root_control.to_primitives(drawing_context);
+            let (mut primitives, mut overlay) = root_control.to_primitives(&mut fui_drawing_context);
             primitives.append(&mut overlay);
 
             let res = drawing_context.begin(&mut window.drawing_window_target);

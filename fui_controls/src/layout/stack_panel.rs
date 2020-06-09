@@ -59,8 +59,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     fn handle_event(
         &mut self,
         _data: &mut StackPanel,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -68,20 +68,20 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     fn measure(
         &mut self,
         data: &mut StackPanel,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
         let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
 
-        let children = context.get_children();
+        let children = control_context.get_children();
 
         match data.orientation {
             Orientation::Horizontal => {
                 let available_size = Size::new(f32::INFINITY, size.height);
 
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(resources, available_size);
+                    child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width += child_size.width;
                     result.height = result.height.max(child_size.height);
@@ -91,7 +91,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 let available_size = Size::new(size.width, f32::INFINITY);
 
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(resources, available_size);
+                    child.borrow_mut().measure(drawing_context, available_size);
                     let child_size = child.borrow().get_rect();
                     result.width = result.width.max(child_size.width);
                     result.height += child_size.height;
@@ -102,12 +102,12 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         self.rect = result;
     }
 
-    fn set_rect(&mut self, data: &mut StackPanel, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, data: &mut StackPanel, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let mut child_rect = rect;
 
-        let children = context.get_children();
+        let children = control_context.get_children();
 
         match data.orientation {
             Orientation::Horizontal => {
@@ -131,18 +131,18 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
     fn hit_test(
         &self,
         _data: &StackPanel,
-        context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            let children = context.get_children();
+            let children = control_context.get_children();
             for child in children.into_iter() {
                 let c = child.borrow();
                 let rect = c.get_rect();
@@ -164,15 +164,15 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     fn to_primitives(
         &self,
         _data: &StackPanel,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         for child in children.into_iter() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(resources);
+            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
             vec.append(&mut vec2);
             overlay.append(&mut overlay2);
         }

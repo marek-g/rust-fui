@@ -49,8 +49,8 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     fn handle_event(
         &mut self,
         _data: &mut DataHolder<T>,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -58,25 +58,25 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     fn measure(
         &mut self,
         data: &mut DataHolder<T>,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow_mut().measure(resources, size);
+            child.borrow_mut().measure(drawing_context, size);
         }
     }
 
-    fn set_rect(&mut self, data: &mut DataHolder<T>, context: &mut ControlContext, rect: Rect) {
-        let children = context.get_children();
+    fn set_rect(&mut self, data: &mut DataHolder<T>, control_context: &mut ControlContext, rect: Rect) {
+        let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().set_rect(rect);
         }
     }
 
-    fn get_rect(&self, context: &ControlContext) -> Rect {
-        let children = context.get_children();
+    fn get_rect(&self, control_context: &ControlContext) -> Rect {
+        let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow().get_rect()
         } else {
@@ -87,10 +87,10 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     fn hit_test(
         &self,
         _data: &DataHolder<T>,
-        context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             let child_hit_test = child.borrow_mut().hit_test(point);
             return match child_hit_test {
@@ -105,12 +105,12 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     fn to_primitives(
         &self,
         _data: &DataHolder<T>,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow().to_primitives(resources)
+            child.borrow().to_primitives(drawing_context)
         } else {
             (Vec::new(), Vec::new())
         }

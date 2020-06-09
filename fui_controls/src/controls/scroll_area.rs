@@ -100,8 +100,8 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn handle_event(
         &mut self,
         _data: &mut ScrollArea,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -109,13 +109,13 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn measure(
         &mut self,
         _data: &mut ScrollArea,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -130,12 +130,12 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         );
     }
 
-    fn set_rect(&mut self, data: &mut ScrollArea, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ScrollArea, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         self.update_properties(data);
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let child_rect = Rect::new(
                 rect.x - data.offset_x.get().round(),
@@ -147,18 +147,18 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
     fn hit_test(
         &self,
         _data: &ScrollArea,
-        context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            let children = context.get_children();
+            let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
@@ -180,8 +180,8 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn to_primitives(
         &self,
         data: &ScrollArea,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -191,9 +191,9 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
 
             let mut vec2 = vec2.clip(PixelRect::new(
                 PixelPoint::new(x, y),

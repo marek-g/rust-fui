@@ -76,8 +76,8 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -86,14 +86,14 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     data.is_checked.change(|val| !val);
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_tapped.set(true);
                 } else {
                     self.is_tapped.set(false);
@@ -123,13 +123,13 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -143,7 +143,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut ToggleButton, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -153,17 +153,17 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             rect.height - 20.0f32,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &ToggleButton, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -174,8 +174,8 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn to_primitives(
         &self,
         data: &ToggleButton,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -202,9 +202,9 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             self.is_focused.get(),
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if is_pressed {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
@@ -271,8 +271,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -281,14 +281,14 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     data.is_checked.change(|val| !val);
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_tapped.set(true);
                 } else {
                     self.is_tapped.set(false);
@@ -318,17 +318,17 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
                 if size.width.is_finite() { 0f32.max(size.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32) } else { size.width },
                 if size.height.is_finite() { CHECKBOX_BUTTON_SIZE.max(size.height) } else { size.height },
             );
-            content.borrow_mut().measure(resources, child_size);
+            content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -342,7 +342,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut ToggleButton, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -352,17 +352,17 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             rect.height,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &ToggleButton, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -373,8 +373,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn to_primitives(
         &self,
         data: &ToggleButton,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -424,9 +424,9 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             });
         }
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if is_pressed {
                 vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
             }
@@ -491,8 +491,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -501,14 +501,14 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     data.is_checked.set(true);
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_tapped.set(true);
                 } else {
                     self.is_tapped.set(false);
@@ -538,13 +538,13 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(resources, size);
+            content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -558,7 +558,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut ToggleButton, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -568,17 +568,17 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             rect.height - 20.0f32,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &ToggleButton, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -589,8 +589,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn to_primitives(
         &self,
         data: &ToggleButton,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -617,9 +617,9 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             self.is_focused.get(),
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if is_pressed {
                 vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
             }
@@ -688,8 +688,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         match event {
@@ -698,14 +698,14 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     data.is_checked.set(true);
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &context, *position) {
+                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
                     self.is_tapped.set(true);
                 } else {
                     self.is_tapped.set(false);
@@ -735,17 +735,17 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
                 if size.width.is_finite() { 0f32.max(size.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32) } else { size.width },
                 if size.height.is_finite() { RADIO_BUTTON_SIZE.max(size.height) } else { size.height },
             );
-            content.borrow_mut().measure(resources, child_size);
+            content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -759,7 +759,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut ToggleButton, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut ToggleButton, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -769,17 +769,17 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             rect.height,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &ToggleButton, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &ToggleButton, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -790,8 +790,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn to_primitives(
         &self,
         data: &ToggleButton,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -826,9 +826,9 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             });
         }
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if is_pressed {
                 vec2.translate(PixelPoint::new( 1.0f32, 1.0f32));
             }

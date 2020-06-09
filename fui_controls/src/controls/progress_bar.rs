@@ -81,8 +81,8 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn handle_event(
         &mut self,
         data: &mut ProgressBar,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
     }
@@ -90,8 +90,8 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn measure(
         &mut self,
         data: &mut ProgressBar,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
         match data.orientation {
@@ -114,18 +114,18 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &mut ProgressBar, _context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, data: &mut ProgressBar, _control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
     fn hit_test(
         &self,
         _data: &ProgressBar,
-        _context: &ControlContext,
+        _control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
@@ -138,8 +138,8 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn to_primitives(
         &self,
         data: &ProgressBar,
-        _context: &ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let x = self.rect.x;
         let y = self.rect.y;

@@ -72,8 +72,8 @@ impl Style<Text> for DefaultTextStyle {
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -81,25 +81,26 @@ impl Style<Text> for DefaultTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
-        let (text_width, text_height) = resources
+        let (text_width, text_height) = drawing_context
+            .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Text, _context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Text, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -110,8 +111,8 @@ impl Style<Text> for DefaultTextStyle {
     fn to_primitives(
         &self,
         data: &Text,
-        _context: &ControlContext,
-        resources: &mut dyn Resources,
+        _control_ontext: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
@@ -120,7 +121,8 @@ impl Style<Text> for DefaultTextStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        let (text_width, text_height) = resources
+        let (text_width, text_height) = drawing_context
+            .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 

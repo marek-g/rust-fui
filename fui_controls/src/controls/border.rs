@@ -57,8 +57,8 @@ impl Style<Border> for DefaultBorderStyle {
     fn handle_event(
         &mut self,
         _data: &mut Border,
-        _context: &mut ControlContext,
-        _resources: &mut dyn Resources,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _event: ControlEvent,
     ) {
     }
@@ -66,18 +66,18 @@ impl Style<Border> for DefaultBorderStyle {
     fn measure(
         &mut self,
         _data: &mut Border,
-        context: &mut ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let children = context.get_children();
+        let children = control_context.get_children();
 
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
                 if size.width.is_finite() { 0f32.max(size.width - BORDER_SIZE * 2.0f32) } else { size.width },
                 if size.height.is_finite() { 0f32.max(size.height - BORDER_SIZE * 2.0f32) } else { size.height },
             );
-            content.borrow_mut().measure(resources, child_size);
+            content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
         } else {
@@ -92,7 +92,7 @@ impl Style<Border> for DefaultBorderStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Border, context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
         let content_rect = Rect::new(
@@ -102,19 +102,19 @@ impl Style<Border> for DefaultBorderStyle {
             rect.height - BORDER_SIZE * 2.0f32,
         );
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
         }
     }
 
-    fn get_rect(&self, _context: &ControlContext) -> Rect {
+    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Border, context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &Border, control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
-            let children = context.get_children();
+            let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
@@ -136,8 +136,8 @@ impl Style<Border> for DefaultBorderStyle {
     fn to_primitives(
         &self,
         _data: &Border,
-        context: &ControlContext,
-        resources: &mut dyn Resources,
+        control_context: &ControlContext,
+        drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
@@ -149,9 +149,9 @@ impl Style<Border> for DefaultBorderStyle {
 
         default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
 
-        let children = context.get_children();
+        let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(resources);
+            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             vec.append(&mut vec2);
             overlay.append(&mut overlay2);
         }

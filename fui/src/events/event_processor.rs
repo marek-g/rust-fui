@@ -1,9 +1,9 @@
-use crate::resources::Resources;
+use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::control::*;
-use crate::events::*;
+use crate::{DrawingContext, events::*};
 
 pub struct EventProcessor {
     hover_detector: HoverDetector,
@@ -29,19 +29,19 @@ impl EventProcessor {
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
         self.hover_detector
-            .handle_event(root_view, resources, event);
-        self.handle_gesture_event(root_view, resources, event);
-        self.handle_keyboard_event(root_view, resources, event);
+            .handle_event(root_view, drawing_context, event);
+        self.handle_gesture_event(root_view, drawing_context, event);
+        self.handle_keyboard_event(root_view, drawing_context, event);
     }
 
     pub fn handle_gesture_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
         self.gesture_detector
@@ -56,14 +56,14 @@ impl EventProcessor {
                     };
 
                     if let Some(ref hit_control) = hit_control {
-                        self.set_new_focused_control(&hit_control, resources);
+                        self.set_new_focused_control(&hit_control, drawing_context);
 
                         self.captured_control = Some(Rc::downgrade(hit_control));
-                        self.hover_detector.stop(resources);
+                        self.hover_detector.stop(drawing_context);
 
                         self.send_event_to_control(
                             &self.captured_control,
-                            resources,
+                            drawing_context,
                             ControlEvent::TapDown { position: position },
                         );
                     }
@@ -72,18 +72,18 @@ impl EventProcessor {
                 Gesture::TapUp { position } => {
                     self.send_event_to_control(
                         &self.captured_control,
-                        resources,
+                        drawing_context,
                         ControlEvent::TapUp { position: position },
                     );
 
                     self.captured_control = None;
-                    self.hover_detector.start(resources);
+                    self.hover_detector.start(drawing_context);
                 }
 
                 Gesture::TapMove { position } => {
                     self.send_event_to_control(
                         &self.captured_control,
-                        resources,
+                        drawing_context,
                         ControlEvent::TapMove { position: position },
                     );
                 }
@@ -93,14 +93,14 @@ impl EventProcessor {
     pub fn handle_keyboard_event(
         &mut self,
         _root_view: &Rc<RefCell<dyn ControlObject>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
         match event {
             InputEvent::KeyboardInput(key_event) => {
                 self.send_event_to_control(
                     &self.focused_control,
-                    resources,
+                    drawing_context,
                     ControlEvent::KeyboardInput(key_event.clone()),
                 );
             }
@@ -112,22 +112,22 @@ impl EventProcessor {
     fn set_new_focused_control(
         &mut self,
         control: &Rc<RefCell<dyn ControlObject>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
     ) {
-        self.send_event_to_control(&self.focused_control, resources, ControlEvent::FocusLeave);
+        self.send_event_to_control(&self.focused_control, drawing_context, ControlEvent::FocusLeave);
         self.focused_control = Some(Rc::downgrade(control));
-        self.send_event_to_control(&self.focused_control, resources, ControlEvent::FocusEnter);
+        self.send_event_to_control(&self.focused_control, drawing_context, ControlEvent::FocusEnter);
     }
 
     fn send_event_to_control(
         &self,
         control: &Option<Weak<RefCell<dyn ControlObject>>>,
-        resources: &mut dyn Resources,
+        drawing_context: &mut dyn DrawingContext,
         event: ControlEvent,
     ) {
         if let Some(ref control) = control {
             if let Some(ref control) = control.upgrade() {
-                control.borrow_mut().handle_event(resources, event);
+                control.borrow_mut().handle_event(drawing_context, event);
             }
         };
     }
