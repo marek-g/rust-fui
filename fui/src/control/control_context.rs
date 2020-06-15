@@ -7,6 +7,7 @@ use crate::control::*;
 use crate::observable::*;
 
 pub struct ControlContext {
+    self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
     children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
     children_collection_changed_event_subscription: Option<EventSubscription>,
@@ -19,12 +20,21 @@ pub struct ControlContext {
 impl ControlContext {
     pub fn new(view_context: ViewContext) -> Self {
         ControlContext {
-            attached_values: view_context.attached_values,
-            children: view_context.children,
+            self_weak: None,
             parent: None,
-            is_dirty: true,
+            children: view_context.children,
             children_collection_changed_event_subscription: None,
+            attached_values: view_context.attached_values,
+            is_dirty: true,
         }
+    }
+
+    pub fn get_self_rc(&self) -> Rc<RefCell<dyn ControlObject>> {
+        self.self_weak.as_ref().unwrap().upgrade().unwrap()
+    }
+
+    pub fn set_self(&mut self, self_weak: Weak<RefCell<dyn ControlObject>>) {
+        self.self_weak = Some(self_weak);
     }
 
     pub fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {

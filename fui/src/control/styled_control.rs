@@ -29,6 +29,10 @@ impl<D: 'static> StyledControl<D> {
             control_context: ControlContext::new(view_context),
         }));
 
+        // set self
+        let control_weak = Rc::downgrade(&control);
+        control.borrow_mut().control_context.set_self(control_weak);
+
         let control_clone = control.clone();
         let handler = Box::new(
             move |changed_args: ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>| {
