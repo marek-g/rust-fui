@@ -1,4 +1,3 @@
-use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -18,28 +17,21 @@ impl HoverDetector {
         }
     }
 
-    pub fn start(&mut self, drawing_context: &mut dyn DrawingContext) {
+    pub fn start(&mut self, event_context: &mut EventContext, drawing_context: &mut dyn DrawingContext) {
         self.is_running = true;
-        if let Some(ref hover_control) = self.get_hover_control() {
-            hover_control
-                .borrow_mut()
-                .handle_event(drawing_context, ControlEvent::HoverEnter);
-        }
+        event_context.send_event_to_control(self.get_hover_control(), drawing_context, ControlEvent::HoverEnter);
     }
 
-    pub fn stop(&mut self, drawing_context: &mut dyn DrawingContext) {
+    pub fn stop(&mut self, event_context: &mut EventContext, drawing_context: &mut dyn DrawingContext) {
         self.is_running = false;
-        if let Some(ref hover_control) = self.get_hover_control() {
-            hover_control
-                .borrow_mut()
-                .handle_event(drawing_context, ControlEvent::HoverLeave);
-        }
+        event_context.send_event_to_control(self.get_hover_control(), drawing_context, ControlEvent::HoverLeave);
     }
 
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
         drawing_context: &mut dyn DrawingContext,
+        event_context: &mut EventContext,
         event: &InputEvent,
     ) {
         match event {
@@ -57,31 +49,18 @@ impl HoverDetector {
                     if let Some(ref hover_control) = self.get_hover_control() {
                         if !Rc::ptr_eq(hover_control, hit_control) {
                             if self.is_running {
-                                hover_control
-                                    .borrow_mut()
-                                    .handle_event(drawing_context, ControlEvent::HoverLeave);
-                            }
-                            self.hover_control = Some(Rc::downgrade(hit_control));
-                            if self.is_running {
-                                hit_control
-                                    .borrow_mut()
-                                    .handle_event(drawing_context, ControlEvent::HoverEnter);
+                                event_context.send_event_to_control(Some(hover_control.clone()), drawing_context, ControlEvent::HoverLeave);
                             }
                         }
-                    } else {
-                        self.hover_control = Some(Rc::downgrade(hit_control));
-                        if self.is_running {
-                            hit_control
-                                .borrow_mut()
-                                .handle_event(drawing_context, ControlEvent::HoverEnter);
-                        }
+                    }
+                    self.hover_control = Some(Rc::downgrade(hit_control));
+                    if self.is_running {
+                        event_context.send_event_to_control(Some(hit_control.clone()), drawing_context, ControlEvent::HoverEnter);
                     }
                 } else {
                     if let Some(ref hover_control) = self.get_hover_control() {
                         if self.is_running {
-                            hover_control
-                                .borrow_mut()
-                                .handle_event(drawing_context, ControlEvent::HoverLeave);
+                            event_context.send_event_to_control(Some(hover_control.clone()), drawing_context, ControlEvent::HoverLeave);
                         }
                         self.hover_control = None;
                     }
@@ -91,9 +70,7 @@ impl HoverDetector {
             InputEvent::CursorLeft { .. } => {
                 if let Some(ref hover_control) = self.get_hover_control() {
                     if self.is_running {
-                        hover_control
-                            .borrow_mut()
-                            .handle_event(drawing_context, ControlEvent::HoverLeave);
+                        event_context.send_event_to_control(Some(hover_control.clone()), drawing_context, ControlEvent::HoverLeave);
                     }
                     self.hover_control = None;
                 }

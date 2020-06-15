@@ -1,4 +1,3 @@
-use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -9,11 +8,7 @@ pub struct EventProcessor {
     hover_detector: HoverDetector,
     gesture_detector: GestureDetector,
 
-    // captures mouse after TapDown
-    captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
-
-    // control with focus
-    focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
+    event_context: EventContext,
 }
 
 impl EventProcessor {
@@ -21,8 +16,7 @@ impl EventProcessor {
         EventProcessor {
             hover_detector: HoverDetector::new(),
             gesture_detector: GestureDetector::new(),
-            captured_control: None,
-            focused_control: None,
+            event_context: EventContext::new(),
         }
     }
 
@@ -33,7 +27,7 @@ impl EventProcessor {
         event: &InputEvent,
     ) {
         self.hover_detector
-            .handle_event(root_view, drawing_context, event);
+            .handle_event(root_view, drawing_context, &mut self.event_context, event);
         self.handle_gesture_event(root_view, drawing_context, event);
         self.handle_keyboard_event(root_view, drawing_context, event);
     }
@@ -56,13 +50,13 @@ impl EventProcessor {
                     };
 
                     if let Some(ref hit_control) = hit_control {
-                        self.set_new_focused_control(&hit_control, drawing_context);
+                        self.event_context.set_new_focused_control(hit_control, drawing_context);
 
-                        self.captured_control = Some(Rc::downgrade(hit_control));
-                        self.hover_detector.stop(drawing_context);
+                        self.event_context.set_captured_control(Some(Rc::downgrade(hit_control)));
+                        self.hover_detector.stop(&mut self.event_context, drawing_context);
 
-                        self.send_event_to_control(
-                            &self.captured_control,
+                        self.event_context.send_event_to_control(
+                            self.event_context.get_captured_control(),
                             drawing_context,
                             ControlEvent::TapDown { position: position },
                         );
@@ -70,19 +64,19 @@ impl EventProcessor {
                 }
 
                 Gesture::TapUp { position } => {
-                    self.send_event_to_control(
-                        &self.captured_control,
+                    self.event_context.send_event_to_control(
+                        self.event_context.get_captured_control(),
                         drawing_context,
                         ControlEvent::TapUp { position: position },
                     );
 
-                    self.captured_control = None;
-                    self.hover_detector.start(drawing_context);
+                    self.event_context.set_captured_control(None);
+                    self.hover_detector.start(&mut self.event_context, drawing_context);
                 }
 
                 Gesture::TapMove { position } => {
-                    self.send_event_to_control(
-                        &self.captured_control,
+                    self.event_context.send_event_to_control(
+                        self.event_context.get_captured_control(),
                         drawing_context,
                         ControlEvent::TapMove { position: position },
                     );
@@ -98,8 +92,8 @@ impl EventProcessor {
     ) {
         match event {
             InputEvent::KeyboardInput(key_event) => {
-                self.send_event_to_control(
-                    &self.focused_control,
+                self.event_context.send_event_to_control(
+                    self.event_context.get_focused_control(),
                     drawing_context,
                     ControlEvent::KeyboardInput(key_event.clone()),
                 );
@@ -107,28 +101,5 @@ impl EventProcessor {
 
             _ => (),
         }
-    }
-
-    fn set_new_focused_control(
-        &mut self,
-        control: &Rc<RefCell<dyn ControlObject>>,
-        drawing_context: &mut dyn DrawingContext,
-    ) {
-        self.send_event_to_control(&self.focused_control, drawing_context, ControlEvent::FocusLeave);
-        self.focused_control = Some(Rc::downgrade(control));
-        self.send_event_to_control(&self.focused_control, drawing_context, ControlEvent::FocusEnter);
-    }
-
-    fn send_event_to_control(
-        &self,
-        control: &Option<Weak<RefCell<dyn ControlObject>>>,
-        drawing_context: &mut dyn DrawingContext,
-        event: ControlEvent,
-    ) {
-        if let Some(ref control) = control {
-            if let Some(ref control) = control.upgrade() {
-                control.borrow_mut().handle_event(drawing_context, event);
-            }
-        };
     }
 }
