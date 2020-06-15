@@ -1,5 +1,5 @@
-mod control_behiavor;
-pub use control_behiavor::*;
+mod control_behavior;
+pub use control_behavior::*;
 
 mod control_object;
 pub use control_object::*;

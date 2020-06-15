@@ -1,4 +1,4 @@
-use crate::control::control_behiavor::ControlBehavior;
+use crate::control::control_behavior::ControlBehavior;
 use crate::control::control_context::ControlContext;
 
 pub trait ControlObject: ControlBehavior {
