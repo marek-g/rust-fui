@@ -125,6 +125,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         data: &mut ScrollBar,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         event: ControlEvent,
     ) {
         match event {

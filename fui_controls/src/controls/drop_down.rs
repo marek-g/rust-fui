@@ -80,6 +80,7 @@ impl Style<DropDown> for DefaultDropDownStyle {
         data: &mut DropDown,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         event: ControlEvent,
     ) {
         match event {

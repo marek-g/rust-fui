@@ -1472,6 +1472,7 @@ impl Style<Grid> for DefaultGridStyle {
         _data: &mut Grid,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         _event: ControlEvent,
     ) {
     }

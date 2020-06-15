@@ -76,6 +76,7 @@ impl Style<Button> for DefaultButtonStyle {
         data: &mut Button,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         event: ControlEvent,
     ) {
         match event {

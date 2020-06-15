@@ -83,6 +83,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         data: &mut ProgressBar,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         event: ControlEvent,
     ) {
     }

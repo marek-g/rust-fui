@@ -64,6 +64,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         _data: &mut Bitmap,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         _event: ControlEvent,
     ) {
     }

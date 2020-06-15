@@ -7,7 +7,7 @@ use crate::common::*;
 use crate::control::*;
 use crate::observable::*;
 use crate::style::*;
-use crate::{DrawingContext, view::ViewContext};
+use crate::{DrawingContext, view::ViewContext, EventContext};
 
 use drawing::primitive::Primitive;
 
@@ -156,9 +156,10 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 }
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
-    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext, event: ControlEvent) {
+    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext,
+        event_context: &mut EventContext, event: ControlEvent) {
         self.style
-            .handle_event(&mut self.data, &mut self.control_context, drawing_context, event)
+            .handle_event(&mut self.data, &mut self.control_context, drawing_context, event_context, event)
     }
 
     fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size) {

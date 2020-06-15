@@ -165,6 +165,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         data: &mut TextBox,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
+        _event_context: &mut EventContext,
         event: ControlEvent,
     ) {
         match event {

@@ -57,7 +57,7 @@ impl EventContext {
         event: ControlEvent,
     ) {
         if let Some(ref control) = control {
-            control.borrow_mut().handle_event(drawing_context, event);
+            control.borrow_mut().handle_event(drawing_context, self, event);
         };
     }
 }

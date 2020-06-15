@@ -8,7 +8,7 @@ use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
 use crate::observable::*;
-use crate::{DrawingContext, drawing::Resources};
+use crate::{DrawingContext, EventContext};
 
 pub trait Style<D> {
     fn setup_dirty_watching(&mut self, data: &mut D, control: &Rc<RefCell<StyledControl<D>>>);
@@ -18,6 +18,7 @@ pub trait Style<D> {
         data: &mut D,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
+        event_context: &mut EventContext,
         event: ControlEvent,
     );
 
