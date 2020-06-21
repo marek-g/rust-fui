@@ -59,7 +59,7 @@ impl Style<Border> for DefaultBorderStyle {
         _data: &mut Border,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
     }

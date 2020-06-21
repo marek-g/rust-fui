@@ -1,5 +1,4 @@
 use crate::events::ControlEvent;
-use crate::drawing::Resources;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
@@ -161,7 +160,7 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
     fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext,
-        event_context: &mut EventContext, event: ControlEvent) {
+        event_context: &mut dyn EventContext, event: ControlEvent) {
         self.style
             .handle_event(&mut self.data, &mut self.control_context, drawing_context, event_context, event)
     }

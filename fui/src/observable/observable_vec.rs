@@ -51,7 +51,6 @@ impl<T: 'static + Clone> ObservableVec<T> {
                 };
                 self.items.remove(i);
                 self.changed_event.borrow().emit(event_args);
-                println!("Removed {}!", i);
             } else {
                 i += 1;
             }

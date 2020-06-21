@@ -15,7 +15,7 @@ pub enum HitTestResult {
 }
 
 pub trait ControlBehavior {
-    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext, event_context: &mut EventContext, event: ControlEvent);
+    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext, event_context: &mut dyn EventContext, event: ControlEvent);
     fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size);
     fn set_rect(&mut self, rect: Rect);
     fn get_rect(&self) -> Rect;

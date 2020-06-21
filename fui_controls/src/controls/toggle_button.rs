@@ -78,7 +78,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         data: &mut ToggleButton,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
@@ -274,7 +274,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         data: &mut ToggleButton,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
@@ -495,7 +495,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         data: &mut ToggleButton,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
@@ -693,7 +693,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         data: &mut ToggleButton,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {

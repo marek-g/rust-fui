@@ -1,105 +1,250 @@
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::{collections::VecDeque, rc::{Rc, Weak}};
 
 use crate::control::*;
 use crate::{DrawingContext, events::*};
 
+struct QueuedEvent {
+    pub control: Rc<RefCell<dyn ControlObject>>,
+    pub event: ControlEvent,
+}
+
 pub struct EventProcessor {
-    hover_detector: HoverDetector,
+    hovered_control: Option<Weak<RefCell<dyn ControlObject>>>,
+    captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
+    focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
+
+    is_hover_enabled: bool,
+
     gesture_detector: GestureDetector,
 
-    event_context: EventContext,
+    event_queue: VecDeque<QueuedEvent>,
 }
 
 impl EventProcessor {
     pub fn new() -> Self {
         EventProcessor {
-            hover_detector: HoverDetector::new(),
+            hovered_control: None,
+            captured_control: None,
+            focused_control: None,
+
+            is_hover_enabled: true,
+
             gesture_detector: GestureDetector::new(),
-            event_context: EventContext::new(),
+
+            event_queue: VecDeque::new(),
         }
     }
-
+  
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
         drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
-        self.hover_detector
-            .handle_event(root_view, drawing_context, &mut self.event_context, event);
-        self.handle_gesture_event(root_view, drawing_context, event);
-        self.handle_keyboard_event(root_view, drawing_context, event);
+        self.handle_keyboard_event(root_view, event);
+        self.handle_gesture_event(root_view, event);
+        self.handle_hover_event(root_view, event);
+
+        while let Some(queue_event) = self.event_queue.pop_front() {
+            self.send_event_to_control(Some(queue_event.control), drawing_context, queue_event.event);
+        }
     }
 
-    pub fn handle_gesture_event(
+    fn handle_keyboard_event(
+        &mut self,
+        _root_view: &Rc<RefCell<dyn ControlObject>>,
+        event: &InputEvent,
+    ) {
+        match event {
+            InputEvent::KeyboardInput(key_event) => {
+                self.queue_event(
+                    self.get_focused_control(),
+                    ControlEvent::KeyboardInput(key_event.clone()),
+                );
+            }
+
+            _ => (),
+        }
+    }
+
+    fn handle_gesture_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        drawing_context: &mut dyn DrawingContext,
         event: &InputEvent,
     ) {
         self.gesture_detector
             .handle_event(root_view, event)
             .map(|ev| match ev {
                 Gesture::TapDown { position } => {
-                    let hit_test_result = root_view.borrow().hit_test(position);
-                    let hit_control = match hit_test_result {
-                        HitTestResult::Current => Some(root_view.clone()),
-                        HitTestResult::Child(control) => Some(control),
-                        HitTestResult::Nothing => None,
-                    };
-
-                    if let Some(ref hit_control) = hit_control {
-                        self.event_context.set_new_focused_control(hit_control, drawing_context);
-
-                        self.event_context.set_captured_control(Some(Rc::downgrade(hit_control)));
-                        self.hover_detector.stop(&mut self.event_context, drawing_context);
-
-                        self.event_context.send_event_to_control(
-                            self.event_context.get_captured_control(),
-                            drawing_context,
+                    let captured_control = self.get_captured_control();
+                    if let Some(captured_control) = captured_control {
+                        self.queue_event(
+                            Some(captured_control),
                             ControlEvent::TapDown { position: position },
                         );
+                    } else {
+                        let hit_test_result = root_view.borrow().hit_test(position);
+                        let hit_control = match hit_test_result {
+                            HitTestResult::Current => Some(root_view.clone()),
+                            HitTestResult::Child(control) => Some(control),
+                            HitTestResult::Nothing => None,
+                        };
+
+                        if let Some(ref hit_control) = hit_control {
+                            self.set_focused_control(Some(hit_control.clone()));
+
+                            self.set_captured_control(Some(hit_control.clone()));
+
+                            self.queue_event(
+                                self.get_captured_control(),
+                                ControlEvent::TapDown { position: position },
+                            );
+                        }
                     }
                 }
 
                 Gesture::TapUp { position } => {
-                    self.event_context.send_event_to_control(
-                        self.event_context.get_captured_control(),
-                        drawing_context,
+                    let captured_control = self.get_captured_control();
+                    self.set_captured_control(None);
+                    self.queue_event(
+                        captured_control,
                         ControlEvent::TapUp { position: position },
                     );
-
-                    self.event_context.set_captured_control(None);
-                    self.hover_detector.start(&mut self.event_context, drawing_context);
                 }
 
                 Gesture::TapMove { position } => {
-                    self.event_context.send_event_to_control(
-                        self.event_context.get_captured_control(),
-                        drawing_context,
+                    self.queue_event(
+                        self.get_captured_control(),
                         ControlEvent::TapMove { position: position },
                     );
                 }
             });
     }
 
-    pub fn handle_keyboard_event(
+    fn disable_hover(&mut self) {
+        self.queue_event(self.get_hovered_control(), ControlEvent::HoverLeave);
+        self.is_hover_enabled = false;
+    }
+
+    fn enable_hover(&mut self) {
+        self.is_hover_enabled = true;
+        self.queue_event(self.get_hovered_control(), ControlEvent::HoverEnter);
+    }
+
+    fn handle_hover_event(
         &mut self,
-        _root_view: &Rc<RefCell<dyn ControlObject>>,
-        drawing_context: &mut dyn DrawingContext,
+        root_view: &Rc<RefCell<dyn ControlObject>>,
         event: &InputEvent,
     ) {
         match event {
-            InputEvent::KeyboardInput(key_event) => {
-                self.event_context.send_event_to_control(
-                    self.event_context.get_focused_control(),
-                    drawing_context,
-                    ControlEvent::KeyboardInput(key_event.clone()),
-                );
+            InputEvent::CursorMoved { position, .. } => {
+                let hit_test_result = root_view.borrow().hit_test(*position);
+                let hit_control = match hit_test_result {
+                    HitTestResult::Current => Some(root_view.clone()),
+                    HitTestResult::Child(control) => Some(control),
+                    HitTestResult::Nothing => None,
+                };
+
+                self.set_hovered_control(hit_control);
+            }
+
+            InputEvent::CursorLeft { .. } => {
+                self.set_hovered_control(None);
             }
 
             _ => (),
+        }
+    }
+
+    /// Sends event to the control.
+    ///
+    /// As it borrows mutably the control object,
+    /// it can only be safely called from within handle_event().
+    ///
+    /// Please use the queue_event() in all the other places.
+    fn send_event_to_control(
+        &mut self,
+        control: Option<Rc<RefCell<dyn ControlObject>>>,
+        drawing_context: &mut dyn DrawingContext,
+        event: ControlEvent,
+    ) {
+        if let Some(ref control) = control {
+            control.borrow_mut().handle_event(drawing_context, self, event);
+        };
+    }
+}
+
+impl EventContext for EventProcessor {
+    fn get_hovered_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        if self.is_hover_enabled {
+            if let Some(ref control) = self.hovered_control {
+                control.upgrade()
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    fn set_hovered_control(&mut self,control: Option<Rc<RefCell<dyn ControlObject>>>) {
+        if let Some(ref hovered_control) = self.get_hovered_control() {
+            if let Some(control) = control.clone() {
+                if !Rc::ptr_eq(hovered_control, &control) {
+                    self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
+                }
+            } else {
+                self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
+            }
+        }
+
+        self.hovered_control = control.clone().map(|ref c| Rc::downgrade(c));
+
+        if self.is_hover_enabled {
+            if let Some(control) = control {
+                self.queue_event(Some(control), ControlEvent::HoverEnter);
+            }
+        }
+    }
+
+    fn get_captured_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        if let Some(ref control) = self.captured_control {
+            control.upgrade()
+        } else {
+            None
+        }
+    }
+
+    fn set_captured_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
+        if let Some(_) = control {
+            self.disable_hover();
+        } else {
+            self.enable_hover();
+        }
+        self.captured_control = control.map(|ref c| Rc::downgrade(c));
+    }
+
+    fn get_focused_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        if let Some(ref control) = self.focused_control {
+            control.upgrade()
+        } else {
+            None
+        }
+    }
+
+    fn set_focused_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
+        self.queue_event(self.get_focused_control(), ControlEvent::FocusLeave);
+        self.focused_control = control.clone().map(|ref c| Rc::downgrade(c));
+        self.queue_event(control, ControlEvent::FocusEnter);
+    }
+
+    fn queue_event(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>, event: ControlEvent) {
+        if let Some(control) = control {
+            self.event_queue.push_back(QueuedEvent {
+                control,
+                event,
+            })
         }
     }
 }

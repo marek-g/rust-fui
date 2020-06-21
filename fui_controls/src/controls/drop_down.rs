@@ -80,7 +80,7 @@ impl Style<DropDown> for DefaultDropDownStyle {
         data: &mut DropDown,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut EventContext,
+        event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
@@ -90,7 +90,14 @@ impl Style<DropDown> for DefaultDropDownStyle {
 
             ControlEvent::TapUp { ref position } => {
                 if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
+                    if !self.is_popup_open.get() {
+                        event_context.set_captured_control(Some(control_context.get_self_rc()));
+                    }
                     self.is_popup_open.change(|v| !v);
+                } else {
+                    if self.is_popup_open.get() {
+                        self.is_popup_open.set(false);
+                    }
                 }
                 self.is_pressed.set(false);
             }

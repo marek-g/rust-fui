@@ -18,7 +18,7 @@ pub trait Style<D> {
         data: &mut D,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        event_context: &mut EventContext,
+        event_context: &mut dyn EventContext,
         event: ControlEvent,
     );
 
