@@ -1,6 +1,6 @@
 use crate::events::ControlEvent;
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
 use crate::common::*;
 use crate::control::*;
@@ -32,19 +32,14 @@ impl<D: 'static> StyledControl<D> {
         let control_weak = Rc::downgrade(&control);
         control.borrow_mut().control_context.set_self(control_weak);
 
-        let control_clone = control.clone();
+        let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
         let handler = Box::new(
             move |changed_args: ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>| {
                 if let ObservableChangedEventArgs::Insert { index: _, value: child } = changed_args {
-                    let control_weak =
-                        Rc::downgrade(&control_clone) as Weak<RefCell<dyn ControlObject>>;
                     child
                         .borrow_mut()
                         .get_context_mut()
-                        .set_parent(control_weak);
-                    let mut control_mut = control_clone.borrow_mut();
-                    let (data, style) = control_mut.get_data_and_style_mut();
-                    style.setup_dirty_watching(data, &control_clone);
+                        .set_parent(&control_clone);
                 }
                 control_clone
                     .borrow_mut()
@@ -63,24 +58,25 @@ impl<D: 'static> StyledControl<D> {
             .get_context_mut()
             .set_children_collection_changed_event_subscription(subscription);
 
-        for child in control
-            .borrow_mut()
+        // make copy of children to release mutable reference to control
+        let children: Vec<_> = control.borrow_mut()
             .get_context_mut()
             .get_children()
             .into_iter()
-        {
-            let control_weak = Rc::downgrade(&control) as Weak<RefCell<dyn ControlObject>>;
+            .collect();
+
+        for child in children {
+            let control: Rc<RefCell<dyn ControlObject>> = control.clone();
+
+            // make sure that parent control of `child`
+            // nor children of `child` are not borrowed
             child
                 .borrow_mut()
                 .get_context_mut()
-                .set_parent(control_weak);
+                .set_parent(&control);
         }
 
-        {
-            let mut control_mut = control.borrow_mut();
-            let (data, style) = control_mut.get_data_and_style_mut();
-            style.setup_dirty_watching(data, &control);
-        }
+        control.borrow_mut().setup();
 
         control
     }
@@ -159,6 +155,10 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 }
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
+    fn setup(&mut self) {
+        self.style.setup(&mut self.data, &mut self.control_context);
+    }
+
     fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext,
         event_context: &mut dyn EventContext, event: ControlEvent) {
         self.style

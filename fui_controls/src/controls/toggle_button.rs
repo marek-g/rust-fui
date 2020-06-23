@@ -58,19 +58,15 @@ impl DefaultToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for DefaultToggleButtonStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ToggleButton,
-        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
-    ) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.is_checked.dirty_watching(control));
+            .push(data.is_checked.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_tapped.dirty_watching(control));
+            .push(self.is_tapped.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
+            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_focused.dirty_watching(control));
+            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(
@@ -254,19 +250,15 @@ impl CheckBoxToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ToggleButton,
-        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
-    ) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.is_checked.dirty_watching(control));
+            .push(data.is_checked.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_tapped.dirty_watching(control));
+            .push(self.is_tapped.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
+            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_focused.dirty_watching(control));
+            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(
@@ -475,19 +467,15 @@ impl TabToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for TabToggleButtonStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ToggleButton,
-        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
-    ) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.is_checked.dirty_watching(control));
+            .push(data.is_checked.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_tapped.dirty_watching(control));
+            .push(self.is_tapped.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
+            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_focused.dirty_watching(control));
+            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(
@@ -673,19 +661,15 @@ impl RadioToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for RadioToggleButtonStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ToggleButton,
-        control: &Rc<RefCell<StyledControl<ToggleButton>>>,
-    ) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.is_checked.dirty_watching(control));
+            .push(data.is_checked.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_tapped.dirty_watching(control));
+            .push(self.is_tapped.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
+            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_focused.dirty_watching(control));
+            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

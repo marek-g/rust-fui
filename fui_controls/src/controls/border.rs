@@ -47,11 +47,7 @@ impl DefaultBorderStyle {
 }
 
 impl Style<Border> for DefaultBorderStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        _data: &mut Border,
-        _control: &Rc<RefCell<StyledControl<Border>>>,
-    ) {
+    fn setup(&mut self, _data: &mut Border, _control_context: &mut ControlContext) {
     }
 
     fn handle_event(

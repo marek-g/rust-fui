@@ -49,11 +49,7 @@ impl DefaultStackPanelStyle {
 }
 
 impl Style<StackPanel> for DefaultStackPanelStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        _data: &mut StackPanel,
-        _control: &Rc<RefCell<StyledControl<StackPanel>>>,
-    ) {
+    fn setup(&mut self, _data: &mut StackPanel, _control_context: &mut ControlContext) {
     }
 
     fn handle_event(

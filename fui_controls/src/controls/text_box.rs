@@ -151,13 +151,9 @@ impl DefaultTextBoxStyle {
 }
 
 impl Style<TextBox> for DefaultTextBoxStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut TextBox,
-        control: &Rc<RefCell<StyledControl<TextBox>>>,
-    ) {
+    fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.text.dirty_watching(control));
+            .push(data.text.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

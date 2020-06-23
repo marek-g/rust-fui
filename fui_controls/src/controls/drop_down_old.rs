@@ -10,45 +10,47 @@ use typed_builder::TypedBuilder;
 use crate::style::*;
 
 #[derive(TypedBuilder)]
-pub struct Button {
-    #[builder(default = Callback::empty())]
-    pub clicked: Callback<()>,
+pub struct DropDown {
+    #[builder(default = Property::new(0usize))]
+    pub selected_index: Property<usize>,
 }
 
-impl Button {
+impl DropDown {
     pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
         StyledControl::new(self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultButtonStyle::new(DefaultButtonStyleParams::builder().build()))
+                Box::new(DefaultDropDownStyle::new(DefaultDropDownStyleParams::builder().build()))
             }),
             context)
     }
 }
 
 //
-// Default Button Style
+// Default DropDown Style
 //
 
 #[derive(TypedBuilder)]
-pub struct DefaultButtonStyleParams {}
+pub struct DefaultDropDownStyleParams {}
 
-pub struct DefaultButtonStyle {
+pub struct DefaultDropDownStyle {
     rect: Rect,
+    is_popup_open: Property<bool>,
     is_hover: Property<bool>,
     is_pressed: Property<bool>,
     is_focused: Property<bool>,
     event_subscriptions: Vec<EventSubscription>,
 }
 
-impl DefaultButtonStyle {
-    pub fn new(_params: DefaultButtonStyleParams) -> Self {
-        DefaultButtonStyle {
+impl DefaultDropDownStyle {
+    pub fn new(_params: DefaultDropDownStyleParams) -> Self {
+        DefaultDropDownStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
                 width: 0f32,
                 height: 0f32,
             },
+            is_popup_open: Property::new(false),
             is_hover: Property::new(false),
             is_pressed: Property::new(false),
             is_focused: Property::new(false),
@@ -57,22 +59,28 @@ impl DefaultButtonStyle {
     }
 }
 
-impl Style<Button> for DefaultButtonStyle {
-    fn setup(&mut self, data: &mut Button, control_context: &mut ControlContext) {
+impl Style<DropDown> for DefaultDropDownStyle {
+    fn setup_dirty_watching(
+        &mut self,
+        _data: &mut DropDown,
+        control: &Rc<RefCell<StyledControl<DropDown>>>,
+    ) {
         self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
+            .push(self.is_popup_open.dirty_watching(control));
         self.event_subscriptions
-            .push(self.is_pressed.dirty_watching(&control_context.get_self_rc()));
+            .push(self.is_hover.dirty_watching(control));
         self.event_subscriptions
-            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
+            .push(self.is_pressed.dirty_watching(control));
+        self.event_subscriptions
+            .push(self.is_focused.dirty_watching(control));
     }
 
     fn handle_event(
         &mut self,
-        data: &mut Button,
+        data: &mut DropDown,
         control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        _event_context: &mut dyn EventContext,
+        event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
@@ -82,7 +90,14 @@ impl Style<Button> for DefaultButtonStyle {
 
             ControlEvent::TapUp { ref position } => {
                 if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.clicked.emit(());
+                    if !self.is_popup_open.get() {
+                        event_context.set_captured_control(Some(control_context.get_self_rc()));
+                    }
+                    self.is_popup_open.change(|v| !v);
+                } else {
+                    if self.is_popup_open.get() {
+                        self.is_popup_open.set(false);
+                    }
                 }
                 self.is_pressed.set(false);
             }
@@ -117,7 +132,7 @@ impl Style<Button> for DefaultButtonStyle {
 
     fn measure(
         &mut self,
-        _data: &mut Button,
+        _data: &mut DropDown,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
@@ -130,6 +145,13 @@ impl Style<Button> for DefaultButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
+
+        if self.is_popup_open.get() {
+            for child in children.into_iter() {
+                child.borrow_mut().measure(drawing_context, size);
+            }
+        }
+
         self.rect = Rect::new(
             0.0f32,
             0.0f32,
@@ -138,19 +160,27 @@ impl Style<Button> for DefaultButtonStyle {
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Button, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut DropDown, context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
-        let content_rect = Rect::new(
+        let mut content_rect = Rect::new(
             rect.x + 10.0f32,
             rect.y + 10.0f32,
             rect.width - 20.0f32,
             rect.height - 20.0f32,
         );
 
-        let children = control_context.get_children();
+        let children = context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(content_rect);
+        }
+
+        if self.is_popup_open.get() {
+            for child in children.into_iter() {
+                child.borrow_mut().set_rect(content_rect);
+
+                content_rect.y += content_rect.height;
+            }
         }
     }
 
@@ -158,7 +188,7 @@ impl Style<Button> for DefaultButtonStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Button, _control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(&self, _data: &DropDown, _control_context: &ControlContext, point: Point) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
@@ -168,7 +198,7 @@ impl Style<Button> for DefaultButtonStyle {
 
     fn to_primitives(
         &self,
-        _data: &Button,
+        _data: &DropDown,
         control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
@@ -199,6 +229,18 @@ impl Style<Button> for DefaultButtonStyle {
             }
             vec.append(&mut vec2);
             overlay.append(&mut overlay2);
+        }
+
+        if self.is_popup_open.get() {
+            let children = control_context.get_children();
+            for child in children.into_iter() {
+                let (mut vec2, mut overlay2) = child.borrow_mut().to_primitives(drawing_context);
+                if self.is_pressed.get() {
+                    vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
+                }
+                overlay.append(&mut vec2);
+                overlay.append(&mut overlay2);
+            }
         }
 
         (vec, overlay)

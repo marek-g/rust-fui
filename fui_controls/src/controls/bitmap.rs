@@ -50,13 +50,9 @@ impl DefaultBitmapStyle {
 }
 
 impl Style<Bitmap> for DefaultBitmapStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut Bitmap,
-        control: &Rc<RefCell<StyledControl<Bitmap>>>,
-    ) {
+    fn setup(&mut self, data: &mut Bitmap, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.texture_id.dirty_watching(control));
+            .push(data.texture_id.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

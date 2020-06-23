@@ -60,13 +60,9 @@ impl DefaultTextStyle {
 }
 
 impl Style<Text> for DefaultTextStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut Text,
-        control: &Rc<RefCell<StyledControl<Text>>>,
-    ) {
+    fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.text.dirty_watching(control));
+            .push(data.text.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

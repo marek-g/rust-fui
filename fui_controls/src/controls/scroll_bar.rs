@@ -100,24 +100,20 @@ impl DefaultScrollBarStyle {
 }
 
 impl Style<ScrollBar> for DefaultScrollBarStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ScrollBar,
-        control: &Rc<RefCell<StyledControl<ScrollBar>>>,
-    ) {
+    fn setup(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(self.is_thumb_hover.dirty_watching(control));
+            .push(self.is_thumb_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(self.is_thumb_pressed.dirty_watching(control));
+            .push(self.is_thumb_pressed.dirty_watching(&control_context.get_self_rc()));
 
         self.event_subscriptions
-            .push(data.min_value.dirty_watching(control));
+            .push(data.min_value.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.max_value.dirty_watching(control));
+            .push(data.max_value.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.value.dirty_watching(control));
+            .push(data.value.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.viewport_size.dirty_watching(control));
+            .push(data.viewport_size.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

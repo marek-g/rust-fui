@@ -65,17 +65,13 @@ impl DefaultProgressBarStyle {
 }
 
 impl Style<ProgressBar> for DefaultProgressBarStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ProgressBar,
-        control: &Rc<RefCell<StyledControl<ProgressBar>>>,
-    ) {
+    fn setup(&mut self, data: &mut ProgressBar, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.min_value.dirty_watching(control));
+            .push(data.min_value.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.max_value.dirty_watching(control));
+            .push(data.max_value.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.value.dirty_watching(control));
+            .push(data.value.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

@@ -1460,11 +1460,7 @@ impl DefaultGridStyle {
 }
 
 impl Style<Grid> for DefaultGridStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        _data: &mut Grid,
-        _control: &Rc<RefCell<StyledControl<Grid>>>,
-    ) {
+    fn setup(&mut self, _data: &mut Grid, _control_context: &mut ControlContext) {
     }
 
     fn handle_event(

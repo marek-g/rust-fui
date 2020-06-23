@@ -1,13 +1,22 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::ops::Deref;
 
-use drawing::primitive::Primitive;
-use drawing::transformation::*;
 use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
+use fui_macros::ui;
 use typed_builder::TypedBuilder;
+use typemap::TypeMap;
 
-use crate::style::*;
+use crate::controls::*;
+use crate::controls::border::Border;
+use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
+use crate::controls::scroll_bar::ScrollBar;
+use crate::{DataHolder, layout::*, RadioController, RadioElement};
+
+//
+// DropDown.
+//
 
 #[derive(TypedBuilder)]
 pub struct DropDown {
@@ -16,233 +25,99 @@ pub struct DropDown {
 }
 
 impl DropDown {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
-            style.unwrap_or_else(|| {
-                Box::new(DefaultDropDownStyle::new(DefaultDropDownStyleParams::builder().build()))
-            }),
-            context)
-    }
-}
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+        let items_source = Rc::new(context.children);
+        let selected_item = Rc::new(RefCell::new(Property::new(items_source.get(0))));
 
-//
-// Default DropDown Style
-//
+        /*let selected_item_clone = selected_item.clone();
+        let tab_button_vms =
+            items_source.map(move |c|
+                TabButtonViewModel::new(&c, &selected_item_clone));*/
 
-#[derive(TypedBuilder)]
-pub struct DefaultDropDownStyleParams {}
-
-pub struct DefaultDropDownStyle {
-    rect: Rect,
-    is_popup_open: Property<bool>,
-    is_hover: Property<bool>,
-    is_pressed: Property<bool>,
-    is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
-}
-
-impl DefaultDropDownStyle {
-    pub fn new(_params: DefaultDropDownStyleParams) -> Self {
-        DefaultDropDownStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
-            is_popup_open: Property::new(false),
-            is_hover: Property::new(false),
-            is_pressed: Property::new(false),
-            is_focused: Property::new(false),
-            event_subscriptions: Vec::new(),
-        }
-    }
-}
-
-impl Style<DropDown> for DefaultDropDownStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        _data: &mut DropDown,
-        control: &Rc<RefCell<StyledControl<DropDown>>>,
-    ) {
-        self.event_subscriptions
-            .push(self.is_popup_open.dirty_watching(control));
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(control));
-        self.event_subscriptions
-            .push(self.is_pressed.dirty_watching(control));
-        self.event_subscriptions
-            .push(self.is_focused.dirty_watching(control));
-    }
-
-    fn handle_event(
-        &mut self,
-        data: &mut DropDown,
-        control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
-        event_context: &mut dyn EventContext,
-        event: ControlEvent,
-    ) {
-        match event {
-            ControlEvent::TapDown { .. } => {
-                self.is_pressed.set(true);
+        let content = ui! {
+            Button {
+                &selected_item,
             }
-
-            ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    if !self.is_popup_open.get() {
-                        event_context.set_captured_control(Some(control_context.get_self_rc()));
-                    }
-                    self.is_popup_open.change(|v| !v);
-                } else {
-                    if self.is_popup_open.get() {
-                        self.is_popup_open.set(false);
-                    }
-                }
-                self.is_pressed.set(false);
-            }
-
-            ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_pressed.set(true);
-                } else {
-                    self.is_pressed.set(false);
-                }
-            }
-
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
-            }
-
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
-            }
-
-            _ => (),
-        }
-    }
-
-    fn measure(
-        &mut self,
-        _data: &mut DropDown,
-        control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-        size: Size,
-    ) {
-        let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().measure(drawing_context, size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } else {
-            Size::new(0f32, 0f32)
         };
 
-        if self.is_popup_open.get() {
-            for child in children.into_iter() {
-                child.borrow_mut().measure(drawing_context, size);
-            }
-        }
+        /*let popup = ui! {
+            ModalPopup {
+                is_open: true,
 
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        )
-    }
+                Vertical {
 
-    fn set_rect(&mut self, _data: &mut DropDown, context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
-
-        let mut content_rect = Rect::new(
-            rect.x + 10.0f32,
-            rect.y + 10.0f32,
-            rect.width - 20.0f32,
-            rect.height - 20.0f32,
-        );
-
-        let children = context.get_children();
-        if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
-        }
-
-        if self.is_popup_open.get() {
-            for child in children.into_iter() {
-                child.borrow_mut().set_rect(content_rect);
-
-                content_rect.y += content_rect.height;
-            }
-        }
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
-    fn hit_test(&self, _data: &DropDown, _control_context: &ControlContext, point: Point) -> HitTestResult {
-        if point.is_inside(&self.rect) {
-            HitTestResult::Current
-        } else {
-            HitTestResult::Nothing
-        }
-    }
-
-    fn to_primitives(
-        &self,
-        _data: &DropDown,
-        control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
-
-        default_theme::button(
-            &mut vec,
-            x,
-            y,
-            width,
-            height,
-            self.is_pressed.get(),
-            self.is_hover.get(),
-            self.is_focused.get(),
-        );
-
-        let children = control_context.get_children();
-        if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
-            if self.is_pressed.get() {
-                vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
-            }
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
-        }
-
-        if self.is_popup_open.get() {
-            let children = control_context.get_children();
-            for child in children.into_iter() {
-                let (mut vec2, mut overlay2) = child.borrow_mut().to_primitives(drawing_context);
-                if self.is_pressed.get() {
-                    vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
                 }
-                overlay.append(&mut vec2);
-                overlay.append(&mut overlay2);
             }
-        }
+        };*/
 
-        (vec, overlay)
+        let data_holder = DataHolder {
+            data: (selected_item)
+        };
+        data_holder.to_view(None, ViewContext {
+            attached_values: context.attached_values,
+            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+        })
     }
 }
+
+/*struct TabButtonViewModel {
+    pub title: Property<String>,
+    pub is_checked: Property<bool>,
+    pub content: Rc<RefCell<dyn ControlObject>>,
+    pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    pub event_subscription: Option<EventSubscription>,
+}
+
+impl TabButtonViewModel {
+    pub fn new(content: &Rc<RefCell<dyn ControlObject>>,
+        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Rc<RefCell<Self>> {
+        let title = content.borrow()
+            .get_context().get_attached_values()
+            .get::<Title>()
+            .map(|t| Property::binded_from(t))
+            .unwrap_or_else(|| Property::new("Tab"));
+
+        let vm_rc = Rc::new(RefCell::new(TabButtonViewModel {
+            title,
+            is_checked: Property::new(false),
+            content: content.clone(),
+            selected_tab: selected_tab.clone(),
+            event_subscription: None,
+        }));
+
+        {
+            let weak_vm = Rc::downgrade(&vm_rc);
+            let mut vm = vm_rc.borrow_mut();
+            vm.event_subscription = Some(vm.is_checked.on_changed(
+                move |is_checked| {
+                    if is_checked {
+                        weak_vm.upgrade().map(|vm| {
+                            let vm = vm.borrow();
+                            vm.selected_tab.borrow_mut().set(
+                                vm.content.clone());
+                        });
+                    }
+                }
+            ));
+        }
+
+        vm_rc
+    }
+}
+
+impl ViewModel for TabButtonViewModel {
+    fn to_view(
+        view_model: &Rc<RefCell<Self>>,
+    ) -> Rc<RefCell<dyn ControlObject>> {
+        let mut vm = view_model.borrow_mut();
+        ui! {
+            ToggleButton {
+                Style: Tab {},
+
+                is_checked: &mut vm.is_checked,
+
+                Text { text: &vm.title },
+            }
+        }
+    }
+}*/

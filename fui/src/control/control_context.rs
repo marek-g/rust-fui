@@ -4,7 +4,7 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::observable::*;
+use crate::{Services, observable::*};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
@@ -13,6 +13,8 @@ pub struct ControlContext {
     children_collection_changed_event_subscription: Option<EventSubscription>,
 
     attached_values: TypeMap,
+
+    services: Option<Weak<RefCell<Services>>>,
 
     is_dirty: bool,
 }
@@ -25,6 +27,7 @@ impl ControlContext {
             children: view_context.children,
             children_collection_changed_event_subscription: None,
             attached_values: view_context.attached_values,
+            services: None,
             is_dirty: true,
         }
     }
@@ -45,8 +48,10 @@ impl ControlContext {
         }
     }
 
-    pub fn set_parent(&mut self, parent: Weak<RefCell<dyn ControlObject>>) {
-        self.parent = Some(parent);
+    pub fn set_parent(&mut self, parent_rc: &Rc<RefCell<dyn ControlObject>>) {
+        self.parent = Some(Rc::downgrade(parent_rc));
+        let services = parent_rc.borrow_mut().get_context().get_services();
+        self.set_services(services);
     }
 
     pub fn get_children(&self) -> &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
@@ -62,6 +67,17 @@ impl ControlContext {
 
     pub fn get_attached_values(&self) -> &TypeMap {
         &self.attached_values
+    }
+
+    pub fn get_services(&self) -> Option<Weak<RefCell<Services>>> {
+        self.services.clone()
+    }
+
+    pub fn set_services(&mut self, services: Option<Weak<RefCell<Services>>>) {
+        for child in self.children.into_iter() {
+            child.borrow_mut().get_context_mut().set_services(services.clone());
+        }
+        self.services = services;
     }
 
     pub fn is_dirty(&self) -> bool {

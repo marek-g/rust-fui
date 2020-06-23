@@ -89,26 +89,26 @@ impl Application {
 
             match event {
                 winit::event::Event::MainEventsCleared => {
-                    for mut window in window_manager.borrow_mut().get_windows_mut().values_mut() {
-                        if Application::is_dirty(&mut window) {
-                            window.drawing_window_target.get_window().request_redraw();
+                    for mut window_entry in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                        if Application::is_dirty(&mut window_entry.window.borrow_mut()) {
+                            window_entry.window.borrow_mut().drawing_window_target.get_window().request_redraw();
                         }
                     }
                 }
 
                 winit::event::Event::RedrawRequested(ref window_id) => {
-                    if let Some(window) = window_manager
+                    if let Some(window_entry) = window_manager
                         .borrow_mut()
                         .get_windows_mut()
                         .get_mut(window_id)
                     {
                         let physical_size =
-                            window.drawing_window_target.get_window().inner_size();
+                            window_entry.window.borrow_mut().drawing_window_target.get_window().inner_size();
                         if physical_size.width > 0 && physical_size.height > 0 {
                             let cpu_time = cpu_time::ProcessTime::now();
 
                             Application::render(
-                                window,
+                                &mut window_entry.window.borrow_mut(),
                                 &mut drawing_context.borrow_mut(),
                                 physical_size.width as u32,
                                 physical_size.height as u32,
@@ -118,7 +118,7 @@ impl Application {
                             frame_no += 1;
                             println!("Frame no: {}, CPU time: {:?}", frame_no, cpu_time);
 
-                            window.drawing_window_target.swap_buffers();
+                            window_entry.window.borrow_mut().drawing_window_target.swap_buffers();
                         }
                     }
                 }
@@ -127,7 +127,7 @@ impl Application {
                     ref window_id,
                     ref event,
                 } => {
-                    if let Some(window) = window_manager
+                    if let Some(window_entry) = window_manager
                         .borrow_mut()
                         .get_windows_mut()
                         .get_mut(window_id)
@@ -140,12 +140,12 @@ impl Application {
                             winit::event::WindowEvent::Resized(physical_size) => {
                                 let drawing_context = &mut drawing_context.borrow_mut();
                                 drawing_context.update_size(
-                                    &mut window.drawing_window_target,
+                                    &mut window_entry.window.borrow_mut().drawing_window_target,
                                     physical_size.width as u16,
                                     physical_size.height as u16,
                                 );
 
-                                if let Some(ref mut root_view) = window.root_view {
+                                if let Some(ref mut root_view) = window_entry.window.borrow_mut().get_root_view() {
                                     let size = Size::new(
                                         physical_size.width as f32,
                                         physical_size.height as f32,
@@ -169,7 +169,8 @@ impl Application {
                             _ => (),
                         }
 
-                        if let Some(ref mut root_view) = window.root_view {
+                        let mut window = window_entry.window.borrow_mut();
+                        if let Some(ref mut root_view) = window.get_root_view() {
                             if let Some(input_event) = crate::event_converter::convert_event(event)
                             {
                                 let physical_size =
@@ -194,7 +195,7 @@ impl Application {
     }
 
     fn is_dirty(window: &mut Window) -> bool {
-        if let Some(ref mut root_view) = window.root_view {
+        if let Some(ref mut root_view) = window.get_root_view() {
             let root_control = root_view.borrow();
             if root_control.get_context().is_dirty() {
                 true
@@ -212,7 +213,7 @@ impl Application {
         width: u32,
         height: u32,
     ) {
-        if let Some(ref mut root_view) = window.root_view {
+        if let Some(ref mut root_view) = window.get_root_view() {
             let mut root_control = root_view.borrow_mut();
 
             let size = Size::new(width as f32, height as f32);

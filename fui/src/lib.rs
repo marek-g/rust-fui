@@ -18,6 +18,9 @@ pub use events::*;
 mod observable;
 pub use observable::*;
 
+mod services;
+pub use services::*;
+
 mod style;
 pub use style::*;
 

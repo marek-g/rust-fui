@@ -39,11 +39,7 @@ impl DefaultDataHolderStyle {
 }
 
 impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        _data: &mut DataHolder<T>,
-        _control: &Rc<RefCell<StyledControl<DataHolder<T>>>>,
-    ) {
+    fn setup(&mut self, _data: &mut DataHolder<T>, _control_context: &mut ControlContext) {
     }
 
     fn handle_event(

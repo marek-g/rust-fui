@@ -86,15 +86,11 @@ impl DefaultScrollAreaStyle {
 }
 
 impl Style<ScrollArea> for DefaultScrollAreaStyle {
-    fn setup_dirty_watching(
-        &mut self,
-        data: &mut ScrollArea,
-        control: &Rc<RefCell<StyledControl<ScrollArea>>>,
-    ) {
+    fn setup(&mut self, data: &mut ScrollArea, control_context: &mut ControlContext) {
         self.event_subscriptions
-            .push(data.offset_x.dirty_watching(control));
+            .push(data.offset_x.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions
-            .push(data.offset_y.dirty_watching(control));
+            .push(data.offset_y.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(
