@@ -34,21 +34,30 @@ impl DropDown {
             items_source.map(move |c|
                 TabButtonViewModel::new(&c, &selected_item_clone));*/
 
+        let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
+        let is_popup_open_property2 = Property::binded_from(&is_popup_open_property_rc.borrow_mut());
+
+        let mut click_callback = Callback::empty();
+        click_callback.set(move |_| {
+            is_popup_open_property_rc.borrow_mut().change(|val: bool| !val);
+        });
+
         let content = ui! {
             Button {
+                clicked: click_callback,
                 &selected_item,
             }
         };
 
-        /*let popup = ui! {
+        let popup = ui! {
             Popup {
-                is_open: true,
+                is_open: is_popup_open_property2,
 
                 Vertical {
-
+                    Text { text: "Ojej ale popup!!" },
                 }
             }
-        };*/
+        };
 
         let data_holder = DataHolder {
             data: (selected_item)
