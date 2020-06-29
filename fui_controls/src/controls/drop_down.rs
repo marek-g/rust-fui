@@ -41,7 +41,7 @@ impl DropDown {
         };
 
         /*let popup = ui! {
-            ModalPopup {
+            Popup {
                 is_open: true,
 
                 Vertical {

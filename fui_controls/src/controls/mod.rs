@@ -10,6 +10,9 @@ pub use self::button::*;
 mod drop_down;
 pub use self::drop_down::*;
 
+mod popup;
+pub use self::popup::*;
+
 mod progress_bar;
 pub use self::progress_bar::*;
 
