@@ -69,6 +69,10 @@ impl ControlContext {
         &self.attached_values
     }
 
+    ///
+    /// Available only when control is added to the window.
+    /// Not yet set during control setup().
+    ///
     pub fn get_services(&self) -> Option<Weak<RefCell<Services>>> {
         self.services.clone()
     }
