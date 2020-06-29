@@ -63,8 +63,8 @@ impl WindowManager {
 
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
         let mut window = Window::new(window_target);
-        window.set_root_view(Some(view));
-        
+        window.add_layer(view);
+
         let window_rc = Rc::new(RefCell::new(window));
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_rc.clone();
 

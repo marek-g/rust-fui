@@ -12,14 +12,14 @@ use crate::DrawingWindowTarget;
 pub struct Window {
     pub drawing_window_target: DrawingWindowTarget,
     pub event_processor: EventProcessor,
-    root_view: Option<Rc<RefCell<dyn ControlObject>>>,
+    control_layers: Vec<Rc<RefCell<dyn ControlObject>>>,
 }
 
 impl Window {
     pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
         Window {
             drawing_window_target,
-            root_view: None,
+            control_layers: Vec::new(),
             event_processor: EventProcessor::new(),
         }
     }
@@ -28,23 +28,24 @@ impl Window {
         &self.drawing_window_target
     }
 
-    pub fn set_root_view(&mut self, root_view: Option<Rc<RefCell<dyn ControlObject>>>) {
-        if let Some(ref root_view) = root_view {
-            //root_view.borrow_mut().setup(services);
-        }
-        self.root_view = root_view;
-    }
-
-    pub fn get_root_view(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        self.root_view.clone()
+    pub fn get_layers(&self) -> &Vec<Rc<RefCell<dyn ControlObject>>> {
+        &self.control_layers
     }
 }
 
 impl WindowService for Window {
-    fn add_new_layer(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        todo!()
+    fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
+        self.control_layers.push(control);
     }
-    fn remove_layer(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        todo!()
+
+    fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
+        let mut i = 0;
+        while i != self.control_layers.len() {
+            if Rc::ptr_eq(&self.control_layers[i], control) {
+                self.control_layers.remove(i);
+            } else {
+                i += 1;
+            }
+        }
     }
 }
