@@ -1,6 +1,4 @@
 use std::cell::RefCell;
-use std::cell::RefMut;
-use std::ops::Index;
 use std::rc::Rc;
 
 use crate::control::ControlObject;
@@ -68,7 +66,7 @@ pub struct AggregatedChildrenSource {
 
 impl AggregatedChildrenSource {
     pub fn new(sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        let mut changed_event = Rc::new(RefCell::new(Event::new()));
+        let changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
             let changed_event_clone = changed_event.clone();

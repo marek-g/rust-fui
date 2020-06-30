@@ -1,12 +1,10 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::{Weak, Rc};
-use winit::dpi::LogicalSize;
+use std::rc::Rc;
 
 use fui::*;
 
 use crate::DrawingContext;
-use crate::DrawingWindowTarget;
 use crate::Window;
 
 pub struct WindowEntry {
@@ -62,7 +60,7 @@ impl WindowManager {
         let window_id = window_target.get_window().id();
 
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
-        let mut window = Window::new(window_target);
+        let window = Window::new(window_target);
 
         let window_rc = Rc::new(RefCell::new(window));
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_rc.clone();

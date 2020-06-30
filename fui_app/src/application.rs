@@ -3,11 +3,9 @@ use fui::*;
 use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
-use winit::dpi::LogicalSize;
 
 use crate::Dispatcher;
 use crate::DrawingContext;
-use crate::DrawingWindowTarget;
 use crate::Window;
 use crate::{FuiDrawingContext, WindowManager};
 
@@ -89,7 +87,7 @@ impl Application {
 
             match event {
                 winit::event::Event::MainEventsCleared => {
-                    for mut window_entry in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                    for window_entry in window_manager.borrow_mut().get_windows_mut().values_mut() {
                         if Application::is_dirty(&mut window_entry.window.borrow_mut()) {
                             window_entry.window.borrow_mut().drawing_window_target.get_window().request_redraw();
                         }

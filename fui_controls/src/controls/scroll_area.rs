@@ -3,11 +3,9 @@ use std::rc::Rc;
 
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui::*;
 use typed_builder::TypedBuilder;
-
-use crate::style::*;
 
 #[derive(PartialEq, Clone, Default)]
 pub struct ViewportInfo {
@@ -176,7 +174,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
 
     fn to_primitives(
         &self,
-        data: &ScrollArea,
+        _data: &ScrollArea,
         control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {

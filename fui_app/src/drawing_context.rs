@@ -4,12 +4,10 @@ use fui::*;
 
 use drawing::backend::Device;
 use drawing::backend::Texture;
-use drawing::color::*;
 use drawing::font::*;
 use drawing::primitive::Primitive;
 use drawing::renderer::Renderer;
 use drawing::resources::Resources;
-use drawing::units::*;
 use drawing::TextureFont;
 use drawing_gl::*;
 

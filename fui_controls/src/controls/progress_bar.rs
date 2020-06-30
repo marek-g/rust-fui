@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -76,11 +76,11 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
 
     fn handle_event(
         &mut self,
-        data: &mut ProgressBar,
+        _data: &mut ProgressBar,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _event_context: &mut dyn EventContext,
-        event: ControlEvent,
+        _event: ControlEvent,
     ) {
     }
 
@@ -111,7 +111,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &mut ProgressBar, _control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut ProgressBar, _control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
     }
 

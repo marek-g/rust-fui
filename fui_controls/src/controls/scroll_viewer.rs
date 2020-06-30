@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;

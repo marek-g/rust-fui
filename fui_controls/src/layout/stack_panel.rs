@@ -3,7 +3,6 @@ use std::f32;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
 

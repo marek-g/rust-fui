@@ -1,9 +1,7 @@
 use std::cell::RefCell;
-use std::f32;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -54,7 +52,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
 
     fn measure(
         &mut self,
-        data: &mut DataHolder<T>,
+        _data: &mut DataHolder<T>,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
@@ -65,7 +63,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &mut DataHolder<T>, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut DataHolder<T>, control_context: &mut ControlContext, rect: Rect) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().set_rect(rect);

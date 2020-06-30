@@ -430,7 +430,7 @@ pub fn button(
     height: f32,
     is_pressed: bool,
     is_hover: bool,
-    is_focused: bool,
+    _is_focused: bool,
 ) {
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (
@@ -479,7 +479,7 @@ pub fn button_rounded(
     radius: f32,
     is_pressed: bool,
     is_hover: bool,
-    is_focused: bool,
+    _is_focused: bool,
 ) {
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (

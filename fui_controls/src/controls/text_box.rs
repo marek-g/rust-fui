@@ -5,7 +5,7 @@ use crate::style::default_theme::gradient_rect;
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
 use drawing::transformation::Transformation;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
 use fui::*;
 use typed_builder::TypedBuilder;

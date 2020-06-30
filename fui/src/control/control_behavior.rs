@@ -6,7 +6,7 @@ use drawing::primitive::Primitive;
 use crate::common::*;
 use crate::control::ControlObject;
 use crate::events::*;
-use crate::{Services, DrawingContext};
+use crate::DrawingContext;
 
 pub enum HitTestResult {
     Nothing,

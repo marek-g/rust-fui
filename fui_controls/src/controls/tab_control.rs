@@ -1,8 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::ops::Deref;
 
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
@@ -10,8 +8,6 @@ use typemap::TypeMap;
 
 use crate::controls::*;
 use crate::controls::border::Border;
-use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
-use crate::controls::scroll_bar::ScrollBar;
 use crate::{DataHolder, layout::*, RadioController, RadioElement};
 
 //

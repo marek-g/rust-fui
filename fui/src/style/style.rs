@@ -1,14 +1,11 @@
 use crate::control::ControlContext;
-use std::cell::{RefCell, RefMut};
-use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 
 use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
-use crate::observable::*;
-use crate::{DrawingContext, EventContext, Services};
+use crate::{DrawingContext, EventContext};
 
 pub trait Style<D> {
     fn setup(&mut self, data: &mut D, control_context: &mut ControlContext);

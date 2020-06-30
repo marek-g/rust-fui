@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -136,7 +136,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 }
             }
 
-            ControlEvent::TapUp { ref position } => {
+            ControlEvent::TapUp { .. } => {
                 self.is_thumb_pressed.set(false);
             }
 

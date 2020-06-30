@@ -2,12 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::transformation::*;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
 use fui::*;
 use typed_builder::TypedBuilder;
-
-use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Popup {

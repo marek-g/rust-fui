@@ -86,10 +86,6 @@ impl<D: 'static> StyledControl<D> {
     pub fn get_context_mut(&mut self) -> &mut ControlContext {
         &mut self.control_context
     }
-
-    fn get_data_and_style_mut(&mut self) -> (&mut D, &mut Box<dyn Style<D>>) {
-        (&mut self.data, &mut self.style)
-    }
 }
 
 pub trait ControlExtensions<D> {

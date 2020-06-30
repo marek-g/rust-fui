@@ -4,9 +4,6 @@ use std::rc::Rc;
 use fui::ControlObject;
 use fui::{WindowService, EventProcessor};
 
-use drawing_gl::*;
-use drawing::backend::RenderTarget;
-
 use crate::DrawingWindowTarget;
 
 pub struct Window {

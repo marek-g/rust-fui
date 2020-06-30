@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::{Brush, Primitive, PathElement};
 use drawing::transformation::*;
-use drawing::{primitive_extensions::circle_path, units::{PixelPoint, PixelRect, PixelSize, PixelThickness}};
+use drawing::{primitive_extensions::circle_path, units::{PixelPoint, PixelThickness}};
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -375,7 +375,6 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 
         let x = self.rect.x;
         let y = self.rect.y;
-        let width = self.rect.width;
         let height = self.rect.height;
 
         let is_pressed = if self.is_tapped.get() {
@@ -786,7 +785,6 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
 
         let x = self.rect.x;
         let y = self.rect.y;
-        let width = self.rect.width;
         let height = self.rect.height;
 
         let is_pressed = if self.is_tapped.get() {

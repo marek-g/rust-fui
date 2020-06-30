@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::transformation::*;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::PixelPoint;
 use fui::*;
 use typed_builder::TypedBuilder;
 
@@ -58,7 +58,7 @@ impl DefaultButtonStyle {
 }
 
 impl Style<Button> for DefaultButtonStyle {
-    fn setup(&mut self, data: &mut Button, control_context: &mut ControlContext) {
+    fn setup(&mut self, _data: &mut Button, control_context: &mut ControlContext) {
         self.event_subscriptions
             .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
         self.event_subscriptions

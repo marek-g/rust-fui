@@ -2,12 +2,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
 use fui::*;
 use typed_builder::TypedBuilder;
-
-use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Text {

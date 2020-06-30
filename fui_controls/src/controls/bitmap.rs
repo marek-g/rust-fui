@@ -2,11 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize, PixelThickness};
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui::*;
 use typed_builder::TypedBuilder;
-
-use crate::style::*;
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
@@ -79,7 +77,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, _rect: Rect) {
         //self.rect = rect;
     }
 

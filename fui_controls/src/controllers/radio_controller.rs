@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use fui::{ EventSubscription, ObservableCollection, StyledControl };
 use crate::ToggleButton;
