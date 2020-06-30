@@ -33,19 +33,12 @@ impl Popup {
 pub struct DefaultPopupStyleParams {}
 
 pub struct DefaultPopupStyle {
-    rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
 }
 
 impl DefaultPopupStyle {
     pub fn new(_params: DefaultPopupStyleParams) -> Self {
         DefaultPopupStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             event_subscriptions: Vec::new(),
         }
     }
@@ -64,10 +57,13 @@ impl Style<Popup> for DefaultPopupStyle {
                     .unwrap_or(None);
 
                 if let Some(window_service) = window_service {
-                    if is_open {
-                        window_service.borrow_mut().add_layer(self_rc.clone());
-                    } else {
-                        window_service.borrow_mut().remove_layer(&self_rc);
+                    if let Some(first_child) = self_rc
+                        .borrow().get_context().get_children().into_iter().next() {
+                        if is_open {
+                            window_service.borrow_mut().add_layer(first_child);
+                        } else {
+                            window_service.borrow_mut().remove_layer(&first_child);
+                        }
                     }
                 }
             })
@@ -76,74 +72,40 @@ impl Style<Popup> for DefaultPopupStyle {
 
     fn handle_event(
         &mut self,
-        data: &mut Popup,
-        control_context: &mut ControlContext,
+        _data: &mut Popup,
+        _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _event_context: &mut dyn EventContext,
-        event: ControlEvent,
+        _event: ControlEvent,
     ) {
     }
 
     fn measure(
         &mut self,
         _data: &mut Popup,
-        control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        _size: Size,
     ) {
-        if let Some(child) = control_context.get_children().into_iter().next() {
-            child.borrow_mut().measure(drawing_context, size);
-            self.rect = child.borrow().get_rect();
-        } else {
-            self.rect = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
-        }
     }
 
-    fn set_rect(&mut self, _data: &mut Popup, control_context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
-
-        if let Some(child) = control_context.get_children().into_iter().next() {
-            child.borrow_mut().set_rect(rect);
-        }
+    fn set_rect(&mut self, _data: &mut Popup, _control_context: &mut ControlContext, _rect: Rect) {
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
+        Rect::new(0.0f32, 0.0f32, 0f32, 0f32)
     }
 
-    fn hit_test(&self, _data: &Popup, control_context: &ControlContext, point: Point) -> HitTestResult {
-        if let Some(child) = control_context.get_children().into_iter().next() {
-            let c = child.borrow();
-            let rect = c.get_rect();
-            if point.is_inside(&rect) {
-                let child_hit_test = c.hit_test(point);
-                match child_hit_test {
-                    HitTestResult::Current => return HitTestResult::Child(child.clone()),
-                    HitTestResult::Child(..) => return child_hit_test,
-                    HitTestResult::Nothing => (),
-                }
-            }
-            HitTestResult::Nothing
-        } else {
-            HitTestResult::Nothing
-        }
+    fn hit_test(&self, _data: &Popup, _control_context: &ControlContext, _point: Point) -> HitTestResult {
+        HitTestResult::Nothing
     }
 
     fn to_primitives(
         &self,
         _data: &Popup,
-        control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        _control_context: &ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
-        if let Some(child) = control_context.get_children().into_iter().next() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
-            vec = vec2;
-            overlay = overlay2;
-        }
-
-        (vec, overlay)
+        (Vec::new(), Vec::new())
     }
 }
