@@ -64,7 +64,8 @@ impl DropDown {
         };
         data_holder.to_view(None, ViewContext {
             attached_values: context.attached_values,
-            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>,
+                popup as Rc<RefCell<dyn ControlObject>>]),
         })
     }
 }

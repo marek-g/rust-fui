@@ -40,6 +40,10 @@ impl<D: 'static> StyledControl<D> {
                         .borrow_mut()
                         .get_context_mut()
                         .set_parent(&control_clone);
+                    
+                    // dynamically created controls require to set services
+                    let services = control_clone.borrow_mut().get_context().get_services();
+                    child.borrow_mut().get_context_mut().set_services(services);
                 }
                 control_clone
                     .borrow_mut()
@@ -58,18 +62,12 @@ impl<D: 'static> StyledControl<D> {
             .get_context_mut()
             .set_children_collection_changed_event_subscription(subscription);
 
-        // make copy of children to release mutable reference to control
-        let children: Vec<_> = control.borrow_mut()
+        for child in control.borrow_mut()
             .get_context_mut()
             .get_children()
-            .into_iter()
-            .collect();
-
-        for child in children {
+            .into_iter() {
             let control: Rc<RefCell<dyn ControlObject>> = control.clone();
 
-            // make sure that parent control of `child`
-            // nor children of `child` are not borrowed
             child
                 .borrow_mut()
                 .get_context_mut()

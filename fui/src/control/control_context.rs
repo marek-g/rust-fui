@@ -50,8 +50,6 @@ impl ControlContext {
 
     pub fn set_parent(&mut self, parent_rc: &Rc<RefCell<dyn ControlObject>>) {
         self.parent = Some(Rc::downgrade(parent_rc));
-        let services = parent_rc.borrow_mut().get_context().get_services();
-        self.set_services(services);
     }
 
     pub fn get_children(&self) -> &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
