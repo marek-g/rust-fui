@@ -1,0 +1,11 @@
+[workspace]
+
+members = [
+    "fui",
+    "fui_app",
+    "fui_controls",
+    "fui_controls_media",
+    "fui_examples",
+    "fui_macros",
+    "fui_macros_impl",
+]
