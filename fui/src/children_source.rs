@@ -6,8 +6,8 @@ use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
-use crate::{Property, view::ViewModel, ObservableCollection};
-use crate::{ObservableCollectionMap, observable::ObservableCollectionExt};
+use crate::{observable::ObservableCollectionExt, ObservableCollectionMap};
+use crate::{view::ViewModel, ObservableCollection, Property};
 
 /*impl<T> Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for &ObservableVec<Rc<RefCell<T>>>
     where T: ViewModel {
@@ -16,10 +16,15 @@ use crate::{ObservableCollectionMap, observable::ObservableCollectionExt};
     }
 }*/
 
-impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-    where T: ViewModel {
+impl<T> From<&ObservableVec<Rc<RefCell<T>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    T: ViewModel,
+{
     fn from(src: &ObservableVec<Rc<RefCell<T>>>) -> Self {
-        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| ViewModel::create_view(vm)),
+        )
     }
 }
 
@@ -29,27 +34,39 @@ impl<T> From<&ObservableVec<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc
     }
 }*/
 
-impl<T> From<&ObservableCollectionMap<Rc<RefCell<T>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-    where T: 'static + ViewModel {
+impl<T> From<&ObservableCollectionMap<Rc<RefCell<T>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    T: 'static + ViewModel,
+{
     fn from(src: &ObservableCollectionMap<Rc<RefCell<T>>>) -> Self {
-        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| ViewModel::create_view(vm)),
+        )
     }
 }
 
-impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-    where T: 'static + ViewModel {
+impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    T: 'static + ViewModel,
+{
     fn from(src: &Box<dyn ObservableCollection<Rc<RefCell<T>>>>) -> Self {
-        Box::new(src.map(|vm| { ViewModel::to_view(vm) }))
+        Box::new(src.map(|vm| ViewModel::create_view(vm)))
     }
 }
 
-impl From<&Property<Rc<RefCell<dyn ControlObject>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+impl From<&Property<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+{
     fn from(src: &Property<Rc<RefCell<dyn ControlObject>>>) -> Self {
         Box::new(Property::binded_from(&src))
     }
 }
 
-impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+{
     fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
         Box::new(Property::binded_from(&src.borrow()))
     }
@@ -65,12 +82,15 @@ pub struct AggregatedChildrenSource {
 }
 
 impl AggregatedChildrenSource {
-    pub fn new(sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
+    pub fn new(
+        sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
+    ) -> Self {
         let changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
             let changed_event_clone = changed_event.clone();
-            let handler = Box::new(move |changed_args| changed_event_clone.borrow().emit(changed_args));
+            let handler =
+                Box::new(move |changed_args| changed_event_clone.borrow().emit(changed_args));
             if let Some(subscription) = source.on_changed(handler) {
                 source_changed_event_subscriptions.push(subscription);
             }
@@ -106,7 +126,14 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildren
         ))
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>) -> Option<EventSubscription> {
-        Some(self.changed_event.borrow_mut().subscribe(move |args| f(args)))
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>,
+    ) -> Option<EventSubscription> {
+        Some(
+            self.changed_event
+                .borrow_mut()
+                .subscribe(move |args| f(args)),
+        )
     }
 }

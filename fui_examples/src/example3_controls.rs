@@ -40,9 +40,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);
@@ -51,12 +49,14 @@ impl ViewModel for MainViewModel {
         let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} });
         let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} });
         let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
-        let radio_controller = RadioController::new(vec![radio1.clone(), radio2.clone(), radio3.clone()]);
+        let radio_controller =
+            RadioController::new(vec![radio1.clone(), radio2.clone(), radio3.clone()]);
 
         let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} });
         let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} });
         let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
-        let radio_controller2 = RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
+        let radio_controller2 =
+            RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
 
         let content = ui!(
             TabControl {
@@ -144,12 +144,15 @@ impl ViewModel for MainViewModel {
         );
 
         let data_holder = DataHolder {
-            data: (radio_controller, radio_controller2)
+            data: (radio_controller, radio_controller2),
         };
-        data_holder.to_view(None, ViewContext {
-            attached_values: TypeMap::new(),
-            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
-        })
+        data_holder.to_view(
+            None,
+            ViewContext {
+                attached_values: TypeMap::new(),
+                children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+            },
+        )
     }
 }
 

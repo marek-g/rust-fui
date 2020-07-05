@@ -110,7 +110,7 @@ impl MenuItemViewModel {
 }
 
 impl ViewModel for MenuItemViewModel {
-    fn to_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let mut vm = view_model.borrow_mut();
         let content = vm.content.clone();
         ui! {

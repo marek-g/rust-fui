@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use crate::{ObservableCollection, control::ControlObject};
+use crate::{control::ControlObject, ObservableCollection};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
@@ -41,7 +41,5 @@ impl ViewContext {
 /// Data from view models can be only borrowed (not consumed) during conversion.
 ///
 pub trait ViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>>;
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>>;
 }

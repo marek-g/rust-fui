@@ -61,9 +61,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         let root_control = ui!(

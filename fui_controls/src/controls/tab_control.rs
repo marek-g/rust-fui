@@ -6,9 +6,9 @@ use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
-use crate::controls::*;
 use crate::controls::border::Border;
-use crate::{DataHolder, layout::*, RadioController, RadioElement};
+use crate::controls::*;
+use crate::{layout::*, DataHolder, RadioController, RadioElement};
 
 //
 // Attached values.
@@ -30,14 +30,17 @@ pub struct TabControl {
 }
 
 impl TabControl {
-    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(
+        self,
+        _style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let tabs_source = Rc::new(context.children);
         let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
 
         let selected_tab_clone = selected_tab.clone();
         let tab_button_vms =
-            tabs_source.map(move |c|
-                TabButtonViewModel::new(&c, &selected_tab_clone));
+            tabs_source.map(move |c| TabButtonViewModel::new(&c, &selected_tab_clone));
 
         let content = ui! {
             Grid {
@@ -57,12 +60,15 @@ impl TabControl {
         let radio_controller = RadioController::new(tab_button_vms);
 
         let data_holder = DataHolder {
-            data: (selected_tab, radio_controller)
+            data: (selected_tab, radio_controller),
         };
-        data_holder.to_view(None, ViewContext {
-            attached_values: context.attached_values,
-            children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
-        })
+        data_holder.to_view(
+            None,
+            ViewContext {
+                attached_values: context.attached_values,
+                children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+            },
+        )
     }
 }
 
@@ -75,10 +81,14 @@ struct TabButtonViewModel {
 }
 
 impl TabButtonViewModel {
-    pub fn new(content: &Rc<RefCell<dyn ControlObject>>,
-        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Rc<RefCell<Self>> {
-        let title = content.borrow()
-            .get_context().get_attached_values()
+    pub fn new(
+        content: &Rc<RefCell<dyn ControlObject>>,
+        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    ) -> Rc<RefCell<Self>> {
+        let title = content
+            .borrow()
+            .get_context()
+            .get_attached_values()
             .get::<Title>()
             .map(|t| Property::binded_from(t))
             .unwrap_or_else(|| Property::new("Tab"));
@@ -94,17 +104,14 @@ impl TabButtonViewModel {
         {
             let weak_vm = Rc::downgrade(&vm_rc);
             let mut vm = vm_rc.borrow_mut();
-            vm.event_subscription = Some(vm.is_checked.on_changed(
-                move |is_checked| {
-                    if is_checked {
-                        weak_vm.upgrade().map(|vm| {
-                            let vm = vm.borrow();
-                            vm.selected_tab.borrow_mut().set(
-                                vm.content.clone());
-                        });
-                    }
+            vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
+                if is_checked {
+                    weak_vm.upgrade().map(|vm| {
+                        let vm = vm.borrow();
+                        vm.selected_tab.borrow_mut().set(vm.content.clone());
+                    });
                 }
-            ));
+            }));
         }
 
         vm_rc
@@ -112,9 +119,7 @@ impl TabButtonViewModel {
 }
 
 impl ViewModel for TabButtonViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let mut vm = view_model.borrow_mut();
         ui! {
             ToggleButton {
@@ -138,6 +143,10 @@ impl RadioElement for TabButtonViewModel {
     }
 
     fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription {
-        self.is_checked.on_changed(move |is_checked| if is_checked { f(); })
+        self.is_checked.on_changed(move |is_checked| {
+            if is_checked {
+                f();
+            }
+        })
     }
 }

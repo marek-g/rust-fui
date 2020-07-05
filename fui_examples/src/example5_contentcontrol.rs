@@ -22,7 +22,7 @@ impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         let item1 = Item1ViewModel::new();
         let item2 = Item2ViewModel::new();
-        let content = Property::new(ViewModel::to_view(&item1));
+        let content = Property::new(ViewModel::create_view(&item1));
 
         let main_vm = Rc::new(RefCell::new(MainViewModel {
             item1,
@@ -35,9 +35,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -69,15 +67,12 @@ struct Item1ViewModel;
 
 impl Item1ViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Item1ViewModel {
-        }))
+        Rc::new(RefCell::new(Item1ViewModel {}))
     }
 }
 
 impl ViewModel for Item1ViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -92,15 +87,12 @@ struct Item2ViewModel;
 
 impl Item2ViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(Item2ViewModel {
-        }))
+        Rc::new(RefCell::new(Item2ViewModel {}))
     }
 }
 
 impl ViewModel for Item2ViewModel {
-    fn to_view(
-        view_model: &Rc<RefCell<Self>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(

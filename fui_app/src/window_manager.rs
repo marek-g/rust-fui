@@ -33,14 +33,13 @@ impl WindowManager {
         event_loop: &winit::event_loop::EventLoop<()>,
         view: Rc<RefCell<dyn ControlObject>>,
     ) -> Result<winit::window::WindowId> {
-
         let mut window_target = {
             let first_window = self
                 .windows
                 .iter()
                 .next()
                 .map(|(_id, entry)| entry.window.clone());
-            
+
             if let Some(first_window) = first_window {
                 self.drawing_context.borrow_mut().create_window(
                     window_builder,
@@ -67,7 +66,9 @@ impl WindowManager {
 
         let services = Rc::new(RefCell::new(Services::new(&window_service_rc)));
 
-        view.borrow_mut().get_context_mut().set_services(Some(Rc::downgrade(&services)));
+        view.borrow_mut()
+            .get_context_mut()
+            .set_services(Some(Rc::downgrade(&services)));
         window_rc.borrow_mut().add_layer(view);
 
         let window_entry = WindowEntry {
@@ -92,7 +93,7 @@ impl WindowManager {
         self.add_window(
             window_builder,
             &event_loop,
-            ViewModel::to_view(&view_model),
+            ViewModel::create_view(&view_model),
         )
     }
 
@@ -100,9 +101,7 @@ impl WindowManager {
         self.main_window_id
     }
 
-    pub fn get_windows_mut(
-        &mut self,
-    ) -> &mut HashMap<winit::window::WindowId, WindowEntry> {
+    pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::window::WindowId, WindowEntry> {
         &mut self.windows
     }
 
