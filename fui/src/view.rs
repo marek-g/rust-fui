@@ -43,3 +43,16 @@ impl ViewContext {
 pub trait ViewModel {
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>>;
 }
+
+///
+/// Object safe version of ViewModel's trait.
+///
+pub trait ViewModelObject {
+    fn create_view(&self) -> Rc<RefCell<dyn ControlObject>>;
+}
+
+impl<T: ViewModel> ViewModelObject for Rc<RefCell<T>> {
+    fn create_view(&self) -> Rc<RefCell<dyn ControlObject>> {
+        ViewModel::create_view(self)
+    }
+}
