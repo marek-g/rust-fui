@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::{control::ControlObject, ObservableCollection};
@@ -38,7 +38,13 @@ impl ViewContext {
 
 ///
 /// Used to convert view models to views.
-/// Data from view models can be only borrowed (not consumed) during conversion.
+///
+/// This is a trait with static methods. In Rust 2018 you cannot
+/// use Rc<RefCell<Self>> as a self type (feature: arbitrary self types).
+/// Rc<Self> could work but it would give us more troubles with handling
+/// mutable state in View Models.
+/// So we use static methods here but we declare additional ViewModelObject
+/// trait which is an object safe trait.
 ///
 pub trait ViewModel {
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>>;
@@ -49,10 +55,30 @@ pub trait ViewModel {
 ///
 pub trait ViewModelObject {
     fn create_view(&self) -> Rc<RefCell<dyn ControlObject>>;
+
+    fn downgrade(&self) -> Box<dyn WeakViewModelObject>;
 }
 
-impl<T: ViewModel> ViewModelObject for Rc<RefCell<T>> {
+impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
     fn create_view(&self) -> Rc<RefCell<dyn ControlObject>> {
         ViewModel::create_view(self)
+    }
+
+    fn downgrade(&self) -> Box<dyn WeakViewModelObject> {
+        Box::new(Rc::downgrade(&self))
+    }
+}
+
+///
+/// Object safe trait for weak ViewModel's reference.
+///
+pub trait WeakViewModelObject {
+    fn upgrade(&self) -> Option<Box<dyn ViewModelObject>>;
+}
+
+impl<T: ViewModel + 'static> WeakViewModelObject for Weak<RefCell<T>> {
+    fn upgrade(&self) -> Option<Box<dyn ViewModelObject>> {
+        self.upgrade()
+            .map(|rc| Box::new(rc) as Box<(dyn ViewModelObject + 'static)>)
     }
 }
