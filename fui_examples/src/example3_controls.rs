@@ -11,12 +11,31 @@ use std::rc::Rc;
 use typemap::TypeMap;
 use winit::window::WindowBuilder;
 
+struct DropDownItemViewModel {
+    pub text: String,
+}
+
+impl DropDownItemViewModel {
+    pub fn new<T: Into<String>>(text: T) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(DropDownItemViewModel { text: text.into() }))
+    }
+}
+
+impl ViewModel for DropDownItemViewModel {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+        ui! {
+            Text { text: &*view_model.borrow().text }
+        }
+    }
+}
+
 struct MainViewModel {
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
+    pub drop_down_items: Vec<Rc<RefCell<DropDownItemViewModel>>>,
 }
 
 impl MainViewModel {
@@ -27,6 +46,11 @@ impl MainViewModel {
             progress: Property::new(0.5f32),
             counter: Property::new(10),
             counter2: Property::new(0),
+            drop_down_items: vec![
+                DropDownItemViewModel::new("Element 1"),
+                DropDownItemViewModel::new("Element 2"),
+                DropDownItemViewModel::new("Element 3"),
+            ],
         }))
     }
 
@@ -95,6 +119,8 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
+                        //items: Box::new(vec![
+                        //])
                         Text { text: "Element 1"},
                         Text { text: "Element 2"},
                         Text { text: "Element 3"},

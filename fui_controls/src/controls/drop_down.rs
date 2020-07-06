@@ -17,6 +17,8 @@ use crate::{layout::*, DataHolder, RadioController, RadioElement};
 pub struct DropDown {
     #[builder(default = Property::new(0usize))]
     pub selected_index: Property<usize>,
+    #[builder(default = Box::new(Vec::<Box<dyn WeakViewModelObject + 'static>>::new()))]
+    pub items: Box<dyn ObservableCollection<Box<dyn WeakViewModelObject>>>,
 }
 
 impl DropDown {

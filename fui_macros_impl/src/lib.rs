@@ -40,7 +40,7 @@ use crate::parser::CtrlProperty;
 //                     .text("Button".to_string().into())
 //                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
-//                         children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
+//                         children: Box::new(Vec::<Rc<RefCell<dyn ControlObject>>>::new()),
 //                     }) as Rc<RefCell<dyn ControlObject>>,
 //
 //             )]),
@@ -50,7 +50,7 @@ use crate::parser::CtrlProperty;
 //             .text("Label".to_string().into())
 //             .build().to_view(None, ViewContext {
 //                 attached_values: TypeMap::new(),
-//                 children: Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()),
+//                 children: Box::new(Vec::<Rc<RefCell<dyn ControlObject>>>::new()),
 //             }),
 //         ),
 //
@@ -84,7 +84,7 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Vertical>::builder().build().to_view(
+// <Text>::builder().build().to_view(
 //     Some(Box::new(<DefaultTextStyle>::new(<DefaultTextStyleParams>::builder()
 //         color([1.0, 0.0, 0.0, 1.0].into()).build()))),
 //     ViewContext {
@@ -110,10 +110,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         params,
     } = ctrl;
 
-    let (style,
-        properties,
-        attached_values,
-        children) = decouple_params(params);
+    let (style, properties, attached_values, children) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
     let style_builder = get_style_builder(control_name.clone(), style);
@@ -139,23 +136,19 @@ fn get_properties_builder(
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
 }
 
-fn get_style_builder(control_name: Ident,
-    style: Option<Ctrl>) -> proc_macro2::TokenStream {
+fn get_style_builder(control_name: Ident, style: Option<Ctrl>) -> proc_macro2::TokenStream {
     match style {
         None => quote!(None),
         Some(style) => {
             let name = style.name;
 
             let style_name = Ident::new(&format!("{}{}Style", name, control_name), name.span());
-            let params_name = Ident::new(&format!("{}{}StyleParams", name, control_name), name.span());
+            let params_name =
+                Ident::new(&format!("{}{}StyleParams", name, control_name), name.span());
 
-            let (_style,
-                properties,
-                _attached_values,
-                _children) = decouple_params(style.params);
-            
-            let properties_builder = get_properties_builder(
-                params_name, properties);
+            let (_style, properties, _attached_values, _children) = decouple_params(style.params);
+
+            let properties_builder = get_properties_builder(params_name, properties);
 
             quote!(Some(Box::new(<#style_name>::new(#properties_builder))))
         }
@@ -213,7 +206,12 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
 
 fn decouple_params(
     params: Punctuated<CtrlParam, Token![,]>,
-) -> (Option<Ctrl>, Vec<CtrlProperty>, Vec<CtrlProperty>, Vec<CtrlParam>) {
+) -> (
+    Option<Ctrl>,
+    Vec<CtrlProperty>,
+    Vec<CtrlProperty>,
+    Vec<CtrlParam>,
+) {
     let mut style = None;
     let mut properties = Vec::new();
     let mut attached_values = Vec::new();

@@ -65,7 +65,13 @@ impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
     }
 
     fn downgrade(&self) -> Box<dyn WeakViewModelObject> {
-        Box::new(Rc::downgrade(&self))
+        Box::new(Rc::downgrade(self))
+    }
+}
+
+impl Clone for Box<dyn ViewModelObject> {
+    fn clone(&self) -> Self {
+        self.clone()
     }
 }
 
@@ -80,5 +86,11 @@ impl<T: ViewModel + 'static> WeakViewModelObject for Weak<RefCell<T>> {
     fn upgrade(&self) -> Option<Box<dyn ViewModelObject>> {
         self.upgrade()
             .map(|rc| Box::new(rc) as Box<(dyn ViewModelObject + 'static)>)
+    }
+}
+
+impl Clone for Box<dyn WeakViewModelObject> {
+    fn clone(&self) -> Self {
+        self.clone()
     }
 }
