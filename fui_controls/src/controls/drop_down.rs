@@ -17,8 +17,8 @@ use crate::{layout::*, DataHolder, RadioController, RadioElement};
 pub struct DropDown {
     #[builder(default = Property::new(0usize))]
     pub selected_index: Property<usize>,
-    #[builder(default = Box::new(Vec::<Box<dyn WeakViewModelObject + 'static>>::new()))]
-    pub items: Box<dyn ObservableCollection<Box<dyn WeakViewModelObject>>>,
+    #[builder(default = Box::new(Vec::<Box<dyn ViewModelObject>>::new()))]
+    pub items: Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>,
 }
 
 impl DropDown {
@@ -27,12 +27,12 @@ impl DropDown {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let items_source = Rc::new(context.children);
-        let selected_item = Rc::new(RefCell::new(Property::new(items_source.get(0))));
+        let selected_item = Rc::new(RefCell::new(Property::new(self.items.get(0).create_view())));
 
         let selected_item_clone = selected_item.clone();
-        let menu_item_vms =
-            items_source.map(move |c| MenuItemViewModel::new(&c, &selected_item_clone));
+        let menu_item_vms = self
+            .items
+            .map(move |c| MenuItemViewModel::new(c, &selected_item_clone));
 
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
@@ -77,19 +77,19 @@ impl DropDown {
 
 struct MenuItemViewModel {
     pub is_checked: Property<bool>,
-    pub content: Rc<RefCell<dyn ControlObject>>,
+    pub source_vm: Box<dyn ViewModelObject>,
     pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
     pub event_subscription: Option<EventSubscription>,
 }
 
 impl MenuItemViewModel {
     pub fn new(
-        content: &Rc<RefCell<dyn ControlObject>>,
+        source_vm: &Box<dyn ViewModelObject>,
         selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
     ) -> Rc<RefCell<Self>> {
         let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
             is_checked: Property::new(false),
-            content: content.clone(),
+            source_vm: source_vm.clone(),
             selected_tab: selected_tab.clone(),
             event_subscription: None,
         }));
@@ -101,7 +101,7 @@ impl MenuItemViewModel {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
                         let vm = vm.borrow();
-                        vm.selected_tab.borrow_mut().set(vm.content.clone());
+                        vm.selected_tab.borrow_mut().set(vm.source_vm.create_view());
                     });
                 }
             }));
@@ -114,7 +114,7 @@ impl MenuItemViewModel {
 impl ViewModel for MenuItemViewModel {
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let mut vm = view_model.borrow_mut();
-        let content = vm.content.clone();
+        let content = vm.source_vm.create_view();
         ui! {
             ToggleButton {
                 Style: Tab {},

@@ -56,6 +56,7 @@ pub trait ViewModel {
 pub trait ViewModelObject {
     fn create_view(&self) -> Rc<RefCell<dyn ControlObject>>;
 
+    fn box_clone(&self) -> Box<dyn ViewModelObject>;
     fn downgrade(&self) -> Box<dyn WeakViewModelObject>;
 }
 
@@ -64,6 +65,9 @@ impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
         ViewModel::create_view(self)
     }
 
+    fn box_clone(&self) -> Box<dyn ViewModelObject> {
+        Box::new(std::clone::Clone::clone(self))
+    }
     fn downgrade(&self) -> Box<dyn WeakViewModelObject> {
         Box::new(Rc::downgrade(self))
     }
@@ -71,7 +75,7 @@ impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
 
 impl Clone for Box<dyn ViewModelObject> {
     fn clone(&self) -> Self {
-        self.clone()
+        (*self).box_clone()
     }
 }
 
@@ -79,10 +83,15 @@ impl Clone for Box<dyn ViewModelObject> {
 /// Object safe trait for weak ViewModel's reference.
 ///
 pub trait WeakViewModelObject {
+    fn box_clone(&self) -> Box<dyn WeakViewModelObject>;
     fn upgrade(&self) -> Option<Box<dyn ViewModelObject>>;
 }
 
 impl<T: ViewModel + 'static> WeakViewModelObject for Weak<RefCell<T>> {
+    fn box_clone(&self) -> Box<dyn WeakViewModelObject> {
+        Box::new(std::clone::Clone::clone(self))
+    }
+
     fn upgrade(&self) -> Option<Box<dyn ViewModelObject>> {
         self.upgrade()
             .map(|rc| Box::new(rc) as Box<(dyn ViewModelObject + 'static)>)
@@ -91,6 +100,6 @@ impl<T: ViewModel + 'static> WeakViewModelObject for Weak<RefCell<T>> {
 
 impl Clone for Box<dyn WeakViewModelObject> {
     fn clone(&self) -> Self {
-        self.clone()
+        (*self).box_clone()
     }
 }

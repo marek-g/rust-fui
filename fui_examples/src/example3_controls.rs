@@ -47,8 +47,8 @@ impl MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
             drop_down_items: vec![
-                DropDownItemViewModel::new("Element 1"),
-                DropDownItemViewModel::new("Element 2"),
+                DropDownItemViewModel::new("Element A"),
+                DropDownItemViewModel::new("Element B"),
                 DropDownItemViewModel::new("Element 3"),
             ],
         }))
@@ -119,11 +119,14 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
-                        //items: Box::new(vec![
-                        //])
-                        Text { text: "Element 1"},
-                        Text { text: "Element 2"},
-                        Text { text: "Element 3"},
+                        items: (
+                            Box::new(
+                                vm.drop_down_items.iter().map(
+                                    |el| Box::new(el.clone()) as Box<dyn ViewModelObject>
+                                )
+                                .collect::<Vec<_>>()
+                            )
+                            as Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>),
                     },
 
                     Vertical {
