@@ -11,31 +11,13 @@ use std::rc::Rc;
 use typemap::TypeMap;
 use winit::window::WindowBuilder;
 
-struct DropDownItemViewModel {
-    pub text: String,
-}
-
-impl DropDownItemViewModel {
-    pub fn new<T: Into<String>>(text: T) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(DropDownItemViewModel { text: text.into() }))
-    }
-}
-
-impl ViewModel for DropDownItemViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        ui! {
-            Text { text: &*view_model.borrow().text }
-        }
-    }
-}
-
 struct MainViewModel {
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
-    pub drop_down_items: Vec<Rc<RefCell<DropDownItemViewModel>>>,
+    pub drop_down_items: Vec<Rc<RefCell<StringViewModel>>>,
 }
 
 impl MainViewModel {
@@ -47,9 +29,9 @@ impl MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
             drop_down_items: vec![
-                DropDownItemViewModel::new("Element A"),
-                DropDownItemViewModel::new("Element B"),
-                DropDownItemViewModel::new("Element 3"),
+                StringViewModel::new("Element A"),
+                StringViewModel::new("Element B"),
+                StringViewModel::new("Element C"),
             ],
         }))
     }
@@ -119,14 +101,12 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
-                        items: (
-                            Box::new(
-                                vm.drop_down_items.iter().map(
-                                    |el| Box::new(el.clone()) as Box<dyn ViewModelObject>
-                                )
-                                .collect::<Vec<_>>()
-                            )
-                            as Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>),
+                        items: &vm.drop_down_items,
+                        /*items: vec![
+                            StringViewModel::new("Element A"),
+                            StringViewModel::new("Element B"),
+                            StringViewModel::new("Element C"),
+                        ],*/
                     },
 
                     Vertical {

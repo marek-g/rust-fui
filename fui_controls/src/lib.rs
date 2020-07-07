@@ -11,3 +11,6 @@ mod special;
 pub use special::*;
 
 mod style;
+
+mod view_models;
+pub use view_models::*;

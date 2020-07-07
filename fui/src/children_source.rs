@@ -6,8 +6,37 @@ use crate::observable::Event;
 use crate::observable::EventSubscription;
 use crate::observable::ObservableChangedEventArgs;
 use crate::observable::ObservableVec;
-use crate::{observable::ObservableCollectionExt, ObservableCollectionMap};
+use crate::{observable::ObservableCollectionExt, ObservableCollectionMap, ViewModelObject};
 use crate::{view::ViewModel, ObservableCollection, Property};
+
+///
+/// Converts vector of view models to observable collection.
+///
+impl<V: ViewModel + 'static> From<&Vec<Rc<RefCell<V>>>>
+    for Box<dyn ObservableCollection<Box<(dyn ViewModelObject)>>>
+{
+    fn from(collection: &Vec<Rc<RefCell<V>>>) -> Self {
+        Box::new(
+            collection
+                .iter()
+                .map(|el| Box::new(el.clone()) as Box<dyn ViewModelObject>)
+                .collect::<Vec<_>>(),
+        ) as Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>
+    }
+}
+
+impl<V: ViewModel + 'static> From<Vec<Rc<RefCell<V>>>>
+    for Box<dyn ObservableCollection<Box<(dyn ViewModelObject)>>>
+{
+    fn from(collection: Vec<Rc<RefCell<V>>>) -> Self {
+        Box::new(
+            collection
+                .into_iter()
+                .map(|el| Box::new(el) as Box<dyn ViewModelObject>)
+                .collect::<Vec<_>>(),
+        ) as Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>
+    }
+}
 
 /*impl<T> Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for &ObservableVec<Rc<RefCell<T>>>
     where T: ViewModel {
