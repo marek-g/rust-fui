@@ -52,6 +52,7 @@ impl DropDown {
 
                 Popup {
                     is_open: is_popup_open_property2,
+                    placement: PopupPlacement::BelowParent,
 
                     Vertical {
                         &menu_item_vms,
@@ -78,19 +79,19 @@ impl DropDown {
 struct MenuItemViewModel {
     pub is_checked: Property<bool>,
     pub source_vm: Box<dyn ViewModelObject>,
-    pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    pub selected_item: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
     pub event_subscription: Option<EventSubscription>,
 }
 
 impl MenuItemViewModel {
     pub fn new(
         source_vm: &Box<dyn ViewModelObject>,
-        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+        selected_item: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
     ) -> Rc<RefCell<Self>> {
         let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
             is_checked: Property::new(false),
             source_vm: source_vm.clone(),
-            selected_tab: selected_tab.clone(),
+            selected_item: selected_item.clone(),
             event_subscription: None,
         }));
 
@@ -101,7 +102,9 @@ impl MenuItemViewModel {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
                         let vm = vm.borrow();
-                        vm.selected_tab.borrow_mut().set(vm.source_vm.create_view());
+                        vm.selected_item
+                            .borrow_mut()
+                            .set(vm.source_vm.create_view());
                     });
                 }
             }));

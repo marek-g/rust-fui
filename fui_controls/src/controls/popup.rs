@@ -1,23 +1,44 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
+use crate::layout::RelativeLayout;
+use crate::RelativePlacement;
 use drawing::primitive::Primitive;
 use fui::*;
+use fui_macros::ui;
 use typed_builder::TypedBuilder;
+use typemap::TypeMap;
+
+#[derive(Copy, Clone)]
+pub enum PopupPlacement {
+    FullWindow,
+    BelowParent,
+}
 
 #[derive(TypedBuilder)]
 pub struct Popup {
     #[builder(default = Property::new(false))]
     pub is_open: Property<bool>,
+
+    #[builder(default = PopupPlacement::FullWindow)]
+    pub placement: PopupPlacement,
 }
 
 impl Popup {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultPopupStyle::new(DefaultPopupStyleParams::builder().build()))
+                Box::new(DefaultPopupStyle::new(
+                    DefaultPopupStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -29,12 +50,14 @@ impl Popup {
 pub struct DefaultPopupStyleParams {}
 
 pub struct DefaultPopupStyle {
+    popup_content: Rc<Cell<Option<Rc<RefCell<dyn ControlObject>>>>>,
     event_subscriptions: Vec<EventSubscription>,
 }
 
 impl DefaultPopupStyle {
     pub fn new(_params: DefaultPopupStyleParams) -> Self {
         DefaultPopupStyle {
+            popup_content: Rc::new(Cell::new(None)),
             event_subscriptions: Vec::new(),
         }
     }
@@ -43,27 +66,55 @@ impl DefaultPopupStyle {
 impl Style<Popup> for DefaultPopupStyle {
     fn setup(&mut self, data: &mut Popup, control_context: &mut ControlContext) {
         let self_rc = control_context.get_self_rc();
-        self.event_subscriptions.push(
-            data.is_open.on_changed(move |is_open| {
-                let window_service = self_rc
-                    .borrow().get_context().get_services()
-                    .map(|services| services.upgrade())
-                    .unwrap_or(None)
-                    .map(|services| services.borrow_mut().get_window_service())
-                    .unwrap_or(None);
+        let popup_content_rc = self.popup_content.clone();
+        let placement = data.placement;
 
-                if let Some(window_service) = window_service {
-                    if let Some(first_child) = self_rc
-                        .borrow().get_context().get_children().into_iter().next() {
-                        if is_open {
-                            window_service.borrow_mut().add_layer(first_child);
-                        } else {
-                            window_service.borrow_mut().remove_layer(&first_child);
-                        }
+        let is_open_handler = move |is_open| {
+            let window_service = self_rc
+                .borrow()
+                .get_context()
+                .get_services()
+                .map(|services| services.upgrade())
+                .unwrap_or(None)
+                .map(|services| services.borrow_mut().get_window_service())
+                .unwrap_or(None);
+
+            if let Some(window_service) = window_service {
+                let self_popup = self_rc.borrow_mut();
+                if let Some(first_child) =
+                    self_popup.get_context().get_children().into_iter().next()
+                {
+                    if is_open {
+                        let relative_placement = match placement {
+                            PopupPlacement::FullWindow => RelativePlacement::FullWindow,
+
+                            PopupPlacement::BelowParent => {
+                                let parent_weak =
+                                    Rc::downgrade(&self_popup.get_context().get_parent().unwrap());
+                                RelativePlacement::BelowControl(parent_weak)
+                            }
+                        };
+
+                        let content = ui! {
+                            RelativeLayout {
+                                placement: relative_placement,
+
+                                @first_child,
+                            }
+                        };
+
+                        popup_content_rc.set(Some(content.clone()));
+                        window_service.borrow_mut().add_layer(content);
+                    } else {
+                        let content = popup_content_rc.replace(None).unwrap();
+                        window_service.borrow_mut().remove_layer(&content);
                     }
                 }
-            })
-        );
+            }
+        };
+
+        self.event_subscriptions
+            .push(data.is_open.on_changed(is_open_handler));
     }
 
     fn handle_event(
@@ -85,14 +136,18 @@ impl Style<Popup> for DefaultPopupStyle {
     ) {
     }
 
-    fn set_rect(&mut self, _data: &mut Popup, _control_context: &mut ControlContext, _rect: Rect) {
-    }
+    fn set_rect(&mut self, _data: &mut Popup, _control_context: &mut ControlContext, _rect: Rect) {}
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {
         Rect::new(0.0f32, 0.0f32, 0f32, 0f32)
     }
 
-    fn hit_test(&self, _data: &Popup, _control_context: &ControlContext, _point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Popup,
+        _control_context: &ControlContext,
+        _point: Point,
+    ) -> HitTestResult {
         HitTestResult::Nothing
     }
 
