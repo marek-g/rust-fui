@@ -20,7 +20,7 @@ pub enum RelativePlacement {
 /// Because layout phase is recursive it is safe to reference
 /// controls in a different layer only.
 ///
-/// So far, the only safe way of use it is as in the Popup control.
+/// So far, the only safe way to use it is as in the Popup control.
 ///
 #[derive(TypedBuilder)]
 pub struct RelativeLayout {
