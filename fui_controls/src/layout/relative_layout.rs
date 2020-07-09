@@ -11,6 +11,17 @@ pub enum RelativePlacement {
     BelowControl(Weak<RefCell<dyn ControlObject>>),
 }
 
+///
+/// Warning!
+///
+/// RelativeLayout is currently of limited use and dangerous.
+///
+/// During the layout phase it borrows referenced control.
+/// Because layout phase is recursive it is safe to reference
+/// controls in a different layer only.
+///
+/// So far, the only safe way of use it is as in the Popup control.
+///
 #[derive(TypedBuilder)]
 pub struct RelativeLayout {
     #[builder(default = Orientation::Vertical)]
@@ -120,7 +131,22 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         self.rect = rect;
 
+        let offset = match &data.placement {
+            RelativePlacement::FullWindow => (0f32, 0f32),
+
+            RelativePlacement::BelowControl(control) => {
+                if let Some(control) = control.upgrade() {
+                    let rect = control.borrow_mut().get_rect();
+                    (rect.x + rect.width, rect.y + rect.height)
+                } else {
+                    (0f32, 0f32)
+                }
+            }
+        };
+
         let mut child_rect = rect;
+        child_rect.x += offset.0;
+        child_rect.y += offset.1;
 
         let children = control_context.get_children();
 
