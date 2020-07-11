@@ -29,30 +29,36 @@ impl DropDown {
     ) -> Rc<RefCell<dyn ControlObject>> {
         let selected_item = Rc::new(RefCell::new(Property::new(self.items.get(0).create_view())));
 
-        let selected_item_clone = selected_item.clone();
-        let menu_item_vms = self
-            .items
-            .map(move |c| MenuItemViewModel::new(c, &selected_item_clone));
-
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
             Property::binded_from(&is_popup_open_property_rc.borrow_mut());
 
-        let mut click_callback = Callback::empty();
-        click_callback.set(move |_| {
+        let mut clicked_callback = Callback::empty();
+        clicked_callback.set(move |_| {
             is_popup_open_property_rc
                 .borrow_mut()
                 .change(|val: bool| !val);
         });
 
+        let selected_item_clone = selected_item.clone();
+        let clicked_callback_clone = clicked_callback.clone();
+        let menu_item_vms = self.items.map(move |c| {
+            MenuItemViewModel::new(
+                c.clone(),
+                selected_item_clone.clone(),
+                clicked_callback_clone.clone(),
+            )
+        });
+
         let content = ui! {
             Button {
-                clicked: click_callback,
+                clicked: clicked_callback.clone(),
                 &selected_item,
 
                 Popup {
                     is_open: is_popup_open_property2,
                     placement: PopupPlacement::BelowOrAboveParent,
+                    clicked_outside: clicked_callback,
 
                     Grid {
                         columns: 1,
@@ -80,6 +86,7 @@ impl DropDown {
 
 struct MenuItemViewModel {
     pub is_checked: Property<bool>,
+    pub clicked_callback: Callback<()>,
     pub source_vm: Box<dyn ViewModelObject>,
     pub selected_item: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
     pub event_subscription: Option<EventSubscription>,
@@ -87,19 +94,22 @@ struct MenuItemViewModel {
 
 impl MenuItemViewModel {
     pub fn new(
-        source_vm: &Box<dyn ViewModelObject>,
-        selected_item: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+        source_vm: Box<dyn ViewModelObject>,
+        selected_item: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+        clicked_callback: Callback<()>,
     ) -> Rc<RefCell<Self>> {
         let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
             is_checked: Property::new(false),
-            source_vm: source_vm.clone(),
-            selected_item: selected_item.clone(),
+            clicked_callback: clicked_callback,
+            source_vm: source_vm,
+            selected_item: selected_item,
             event_subscription: None,
         }));
 
         {
             let weak_vm = Rc::downgrade(&vm_rc);
             let mut vm = vm_rc.borrow_mut();
+            let clicked_callback = vm.clicked_callback.clone();
             vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
@@ -108,6 +118,7 @@ impl MenuItemViewModel {
                             .borrow_mut()
                             .set(vm.source_vm.create_view());
                     });
+                    clicked_callback.emit(());
                 }
             }));
         }
@@ -122,10 +133,7 @@ impl ViewModel for MenuItemViewModel {
         let content = vm.source_vm.create_view();
         ui! {
             ToggleButton {
-                Style: Tab {},
-
                 is_checked: &mut vm.is_checked,
-
                 @content,
             }
         }

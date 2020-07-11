@@ -1,5 +1,5 @@
 use crate::Text;
-use fui::{ControlObject, ObservableCollection, ViewContext, ViewModel, ViewModelObject};
+use fui::{ControlObject, ViewContext, ViewModel};
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;

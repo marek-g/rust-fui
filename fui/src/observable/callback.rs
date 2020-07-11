@@ -14,6 +14,7 @@ thread_local! {
 ///
 /// Callback is the owner of the listener clousure.
 ///
+#[derive(Clone)]
 pub struct Callback<A> {
     callback: Option<Rc<dyn 'static + Fn(A)>>,
 }

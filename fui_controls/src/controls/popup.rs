@@ -22,6 +22,9 @@ pub struct Popup {
 
     #[builder(default = PopupPlacement::FullSize)]
     pub placement: PopupPlacement,
+
+    #[builder(default = Callback::empty())]
+    pub clicked_outside: Callback<()>,
 }
 
 impl Popup {
@@ -68,6 +71,7 @@ impl Style<Popup> for DefaultPopupStyle {
         let self_rc = control_context.get_self_rc();
         let popup_content_rc = self.popup_content.clone();
         let placement = data.placement;
+        let clicked_outside_callback = data.clicked_outside.clone();
 
         let is_open_handler = move |is_open| {
             let window_service = self_rc
@@ -98,6 +102,7 @@ impl Style<Popup> for DefaultPopupStyle {
                         let content = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
+                                clicked_outside: clicked_outside_callback.clone(),
 
                                 @first_child,
                             }

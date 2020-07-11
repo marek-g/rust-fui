@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::f32;
 use std::rc::{Rc, Weak};
 
 use drawing::primitive::Primitive;
@@ -28,6 +27,9 @@ pub enum RelativePlacement {
 pub struct RelativeLayout {
     #[builder(default = RelativePlacement::FullSize)]
     pub placement: RelativePlacement,
+
+    #[builder(default = Callback::empty())]
+    pub clicked_outside: Callback<()>,
 }
 
 impl RelativeLayout {
@@ -77,12 +79,19 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
     fn handle_event(
         &mut self,
-        _data: &mut RelativeLayout,
+        data: &mut RelativeLayout,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _event_context: &mut dyn EventContext,
-        _event: ControlEvent,
+        event: ControlEvent,
     ) {
+        match event {
+            ControlEvent::TapDown { .. } => {
+                data.clicked_outside.emit(());
+            }
+
+            _ => (),
+        }
     }
 
     fn measure(
@@ -190,9 +199,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     }
                 }
             }
-            HitTestResult::Nothing
+            HitTestResult::Current
         } else {
-            HitTestResult::Nothing
+            HitTestResult::Current
         }
     }
 

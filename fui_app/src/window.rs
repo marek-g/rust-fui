@@ -2,13 +2,14 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui::ControlObject;
-use fui::{WindowService, EventProcessor};
+use fui::{EventProcessor, WindowService};
 
 use crate::DrawingWindowTarget;
 
 pub struct Window {
     pub drawing_window_target: DrawingWindowTarget,
     pub event_processor: EventProcessor,
+    pub is_dirty: bool,
     control_layers: Vec<Rc<RefCell<dyn ControlObject>>>,
 }
 
@@ -16,8 +17,9 @@ impl Window {
     pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
         Window {
             drawing_window_target,
-            control_layers: Vec::new(),
             event_processor: EventProcessor::new(),
+            is_dirty: false,
+            control_layers: Vec::new(),
         }
     }
 
@@ -33,6 +35,7 @@ impl Window {
 impl WindowService for Window {
     fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.push(control);
+        self.is_dirty = true;
     }
 
     fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
@@ -44,5 +47,6 @@ impl WindowService for Window {
                 i += 1;
             }
         }
+        self.is_dirty = true;
     }
 }
