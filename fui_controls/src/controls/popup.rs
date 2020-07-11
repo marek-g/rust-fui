@@ -11,8 +11,8 @@ use typemap::TypeMap;
 
 #[derive(Copy, Clone)]
 pub enum PopupPlacement {
-    FullWindow,
-    BelowParent,
+    FullSize,
+    BelowOrAboveParent,
 }
 
 #[derive(TypedBuilder)]
@@ -20,7 +20,7 @@ pub struct Popup {
     #[builder(default = Property::new(false))]
     pub is_open: Property<bool>,
 
-    #[builder(default = PopupPlacement::FullWindow)]
+    #[builder(default = PopupPlacement::FullSize)]
     pub placement: PopupPlacement,
 }
 
@@ -86,12 +86,12 @@ impl Style<Popup> for DefaultPopupStyle {
                 {
                     if is_open {
                         let relative_placement = match placement {
-                            PopupPlacement::FullWindow => RelativePlacement::FullWindow,
+                            PopupPlacement::FullSize => RelativePlacement::FullSize,
 
-                            PopupPlacement::BelowParent => {
+                            PopupPlacement::BelowOrAboveParent => {
                                 let parent_weak =
                                     Rc::downgrade(&self_popup.get_context().get_parent().unwrap());
-                                RelativePlacement::BelowControl(parent_weak)
+                                RelativePlacement::BelowOrAboveControl(parent_weak)
                             }
                         };
 

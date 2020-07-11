@@ -7,27 +7,26 @@ use fui::*;
 use typed_builder::TypedBuilder;
 
 pub enum RelativePlacement {
-    FullWindow,
-    BelowControl(Weak<RefCell<dyn ControlObject>>),
+    FullSize,
+    BelowOrAboveControl(Weak<RefCell<dyn ControlObject>>),
 }
 
 ///
 /// Warning!
 ///
-/// RelativeLayout is currently of limited use and dangerous.
+/// RelativeLayout is designed to work with Popup control.
 ///
-/// During the layout phase it borrows referenced control.
-/// Because layout phase is recursive it is safe to reference
-/// controls in a different layer only.
+/// It works correctly only when:
+/// 1. Placed as a top control (covers whole window).
+/// 2. References to controls on lower layouts.
 ///
-/// So far, the only safe way to use it is as in the Popup control.
+/// Referencing controls placed on the same layout
+/// can cause panics because of recursive borrowing
+/// controls during layout phase.
 ///
 #[derive(TypedBuilder)]
 pub struct RelativeLayout {
-    #[builder(default = Orientation::Vertical)]
-    pub orientation: Orientation,
-
-    #[builder(default = RelativePlacement::FullWindow)]
+    #[builder(default = RelativePlacement::FullSize)]
     pub placement: RelativePlacement,
 }
 
@@ -93,82 +92,69 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
-        let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
-
         let children = control_context.get_children();
 
-        match data.orientation {
-            Orientation::Horizontal => {
-                let available_size = Size::new(f32::INFINITY, size.height);
+        let mut is_above = false;
+        let mut relative_control_rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
+        let available_size = match &data.placement {
+            RelativePlacement::FullSize => size,
 
-                for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
-                    let child_size = child.borrow().get_rect();
-                    result.width += child_size.width;
-                    result.height = result.height.max(child_size.height);
-                }
-            }
-            Orientation::Vertical => {
-                let available_size = Size::new(size.width, f32::INFINITY);
+            RelativePlacement::BelowOrAboveControl(relative_control) => {
+                if let Some(relative_control) = relative_control.upgrade() {
+                    relative_control_rect = relative_control.borrow().get_rect();
 
-                for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
-                    let child_size = child.borrow().get_rect();
-                    result.width = result.width.max(child_size.width);
-                    result.height += child_size.height;
-                }
-            }
-        }
+                    let height_above = relative_control_rect.y;
+                    let height_below =
+                        size.height - (relative_control_rect.y + relative_control_rect.height);
 
-        self.rect = result;
-    }
-
-    fn set_rect(
-        &mut self,
-        data: &mut RelativeLayout,
-        control_context: &mut ControlContext,
-        rect: Rect,
-    ) {
-        self.rect = rect;
-
-        let offset = match &data.placement {
-            RelativePlacement::FullWindow => (0f32, 0f32),
-
-            RelativePlacement::BelowControl(control) => {
-                if let Some(control) = control.upgrade() {
-                    let rect = control.borrow_mut().get_rect();
-                    (rect.x + rect.width, rect.y + rect.height)
+                    if height_above > height_below {
+                        is_above = true;
+                        Size::new(relative_control_rect.width, height_above)
+                    } else {
+                        Size::new(relative_control_rect.width, height_below)
+                    }
                 } else {
-                    (0f32, 0f32)
+                    size
                 }
             }
         };
 
-        let mut child_rect = rect;
-        child_rect.x += offset.0;
-        child_rect.y += offset.1;
+        let content_size = if let Some(ref content) = children.into_iter().next() {
+            content
+                .borrow_mut()
+                .measure(drawing_context, available_size);
+            let rect = content.borrow().get_rect();
+            Size::new(rect.width, rect.height)
+        } else {
+            Size::new(0f32, 0f32)
+        };
 
+        if is_above {
+            self.rect = Rect::new(
+                relative_control_rect.x,
+                relative_control_rect.y - content_size.height,
+                content_size.width,
+                content_size.height,
+            );
+        } else {
+            self.rect = Rect::new(
+                relative_control_rect.x,
+                relative_control_rect.y + relative_control_rect.height,
+                content_size.width,
+                content_size.height,
+            );
+        }
+    }
+
+    fn set_rect(
+        &mut self,
+        _data: &mut RelativeLayout,
+        control_context: &mut ControlContext,
+        _rect: Rect,
+    ) {
         let children = control_context.get_children();
-
-        match data.orientation {
-            Orientation::Horizontal => {
-                for child in children.into_iter() {
-                    let child_size = child.borrow_mut().get_rect();
-                    child_rect.width = child_size.width;
-                    child_rect.height = child_size.height;
-                    child.borrow_mut().set_rect(child_rect);
-                    child_rect.x += child_rect.width;
-                }
-            }
-            Orientation::Vertical => {
-                for child in children.into_iter() {
-                    let child_size = child.borrow_mut().get_rect();
-                    child_rect.width = child_size.width;
-                    child_rect.height = child_size.height;
-                    child.borrow_mut().set_rect(child_rect);
-                    child_rect.y += child_rect.height;
-                }
-            }
+        if let Some(ref content) = children.into_iter().next() {
+            content.borrow_mut().set_rect(self.rect);
         }
     }
 
@@ -184,13 +170,13 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
-            for child in children.into_iter() {
-                let c = child.borrow();
+            if let Some(ref content) = children.into_iter().next() {
+                let c = content.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let child_hit_test = c.hit_test(point);
                     match child_hit_test {
-                        HitTestResult::Current => return HitTestResult::Child(child.clone()),
+                        HitTestResult::Current => return HitTestResult::Child(content.clone()),
                         HitTestResult::Child(..) => return child_hit_test,
                         HitTestResult::Nothing => (),
                     }
@@ -208,16 +194,11 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
         let children = control_context.get_children();
-        for child in children.into_iter() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+        if let Some(child) = children.into_iter().next() {
+            child.borrow().to_primitives(drawing_context)
+        } else {
+            (Vec::new(), Vec::new())
         }
-
-        (vec, overlay)
     }
 }
