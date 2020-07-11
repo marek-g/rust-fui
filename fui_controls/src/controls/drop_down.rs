@@ -54,7 +54,7 @@ impl DropDown {
                     is_open: is_popup_open_property2,
                     placement: PopupPlacement::BelowOrAboveParent,
 
-                    Vertical {
+                    Grid {
                         columns: 1,
 
                         &menu_item_vms,
