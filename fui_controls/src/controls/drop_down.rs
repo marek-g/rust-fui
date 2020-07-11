@@ -33,32 +33,36 @@ impl DropDown {
         let is_popup_open_property2 =
             Property::binded_from(&is_popup_open_property_rc.borrow_mut());
 
-        let mut clicked_callback = Callback::empty();
-        clicked_callback.set(move |_| {
-            is_popup_open_property_rc
-                .borrow_mut()
-                .change(|val: bool| !val);
+        let is_popup_open_property_rc_clone = is_popup_open_property_rc.clone();
+        let mut show_callback = Callback::empty();
+        show_callback.set(move |_| {
+            is_popup_open_property_rc_clone.borrow_mut().set(true);
+        });
+
+        let mut hide_callback = Callback::empty();
+        hide_callback.set(move |_| {
+            is_popup_open_property_rc.clone().borrow_mut().set(false);
         });
 
         let selected_item_clone = selected_item.clone();
-        let clicked_callback_clone = clicked_callback.clone();
+        let hide_callback_clone = hide_callback.clone();
         let menu_item_vms = self.items.map(move |c| {
             MenuItemViewModel::new(
                 c.clone(),
                 selected_item_clone.clone(),
-                clicked_callback_clone.clone(),
+                hide_callback_clone.clone(),
             )
         });
 
         let content = ui! {
             Button {
-                clicked: clicked_callback.clone(),
+                clicked: show_callback.clone(),
                 &selected_item,
 
                 Popup {
                     is_open: is_popup_open_property2,
                     placement: PopupPlacement::BelowOrAboveParent,
-                    clicked_outside: clicked_callback,
+                    clicked_outside: hide_callback,
 
                     Grid {
                         columns: 1,
@@ -133,6 +137,7 @@ impl ViewModel for MenuItemViewModel {
         let content = vm.source_vm.create_view();
         ui! {
             ToggleButton {
+                Style: Tab {},
                 is_checked: &mut vm.is_checked,
                 @content,
             }
