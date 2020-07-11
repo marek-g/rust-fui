@@ -133,14 +133,14 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             self.rect = Rect::new(
                 relative_control_rect.x,
                 relative_control_rect.y - content_size.height,
-                content_size.width,
+                content_size.width.max(available_size.width),
                 content_size.height,
             );
         } else {
             self.rect = Rect::new(
                 relative_control_rect.x,
                 relative_control_rect.y + relative_control_rect.height,
-                content_size.width,
+                content_size.width.max(available_size.width),
                 content_size.height,
             );
         }

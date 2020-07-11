@@ -55,6 +55,8 @@ impl DropDown {
                     placement: PopupPlacement::BelowOrAboveParent,
 
                     Vertical {
+                        columns: 1,
+
                         &menu_item_vms,
                     }
                 }
