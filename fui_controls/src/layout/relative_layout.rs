@@ -129,20 +129,28 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             Size::new(0f32, 0f32)
         };
 
-        if is_above {
-            self.rect = Rect::new(
-                relative_control_rect.x,
-                relative_control_rect.y - content_size.height,
-                content_size.width.max(available_size.width),
-                content_size.height,
-            );
-        } else {
-            self.rect = Rect::new(
-                relative_control_rect.x,
-                relative_control_rect.y + relative_control_rect.height,
-                content_size.width.max(available_size.width),
-                content_size.height,
-            );
+        self.rect = match &data.placement {
+            RelativePlacement::FullSize => {
+                Rect::new(0f32, 0f32, available_size.width, available_size.height)
+            }
+
+            RelativePlacement::BelowOrAboveControl(_) => {
+                if is_above {
+                    Rect::new(
+                        relative_control_rect.x,
+                        relative_control_rect.y - content_size.height,
+                        content_size.width.max(available_size.width),
+                        content_size.height,
+                    )
+                } else {
+                    Rect::new(
+                        relative_control_rect.x,
+                        relative_control_rect.y + relative_control_rect.height,
+                        content_size.width.max(available_size.width),
+                        content_size.height,
+                    )
+                }
+            }
         }
     }
 
