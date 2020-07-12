@@ -27,7 +27,9 @@ impl DropDown {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let selected_item = Rc::new(RefCell::new(Property::new(self.items.get(0).create_view())));
+        let selected_item = Rc::new(RefCell::new(Property::new(
+            self.items.get(self.selected_index.get()).create_view(),
+        )));
 
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
@@ -53,6 +55,11 @@ impl DropDown {
                 hide_callback_clone.clone(),
             )
         });
+        menu_item_vms
+            .get(self.selected_index.get())
+            .borrow_mut()
+            .is_checked
+            .set(true);
 
         let content = ui! {
             Button {

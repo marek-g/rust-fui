@@ -18,6 +18,7 @@ struct MainViewModel {
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
     pub drop_down_items: Vec<Rc<RefCell<StringViewModel>>>,
+    pub drop_down_selected_index: Property<usize>,
 }
 
 impl MainViewModel {
@@ -32,7 +33,10 @@ impl MainViewModel {
                 StringViewModel::new("Element A"),
                 StringViewModel::new("Element B"),
                 StringViewModel::new("Element C"),
+                StringViewModel::new("Element D"),
+                StringViewModel::new("Element E"),
             ],
+            drop_down_selected_index: Property::new(2usize),
         }))
     }
 
@@ -102,11 +106,30 @@ impl ViewModel for MainViewModel {
                         Row: 3,
 
                         items: &vm.drop_down_items,
+                        selected_index: &mut vm.drop_down_selected_index,
                         /*items: vec![
                             StringViewModel::new("Element A"),
                             StringViewModel::new("Element B"),
                             StringViewModel::new("Element C"),
                         ],*/
+                    },
+                    Grid {
+                        rows: 1,
+                        default_width: Length::Exact(40.0f32),
+                        widths: vec![(0, Length::Fill(1.0f32))],
+
+                        Text {
+                            text: (&vm.drop_down_selected_index, |index| format!("Selected index: {}", index)),
+                        },
+                        Button {
+                            Text { text: "-" },
+                            clicked: Callback::new(view_model, |vm, _| vm.drop_down_selected_index.change(
+                                |val| if val > 0 { val - 1 } else { 0 })),
+                        },
+                        Button {
+                            Text { text: "+" },
+                            clicked: Callback::new(view_model, |vm, _| vm.drop_down_selected_index.change(|val| val + 1)),
+                        },
                     },
 
                     Vertical {
