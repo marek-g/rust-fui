@@ -134,10 +134,13 @@ impl MenuItemViewModel {
 impl ViewModel for MenuItemViewModel {
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let mut vm = view_model.borrow_mut();
+        let clicked_callback = vm.clicked_callback.clone();
         let content = vm.source_vm.create_view();
         ui! {
             ToggleButton {
-                Style: Tab {},
+                Style: DropDown {
+                    clicked: clicked_callback,
+                },
                 is_checked: &mut vm.is_checked,
                 @content,
             }
