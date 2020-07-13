@@ -71,9 +71,14 @@ where
                     placement: PopupPlacement::BelowOrAboveParent,
                     clicked_outside: hide_callback,
 
-                    Grid {
-                        columns: 1,
-                        &menu_item_vms,
+                    ScrollViewer {
+                        horizontal_scroll_bar_visibility: ScrollBarVisibility::Hidden,
+                        vertical_scroll_bar_visibility: ScrollBarVisibility::Auto,
+
+                        Grid {
+                            columns: 1,
+                            &menu_item_vms,
+                        }
                     }
                 }
             }
