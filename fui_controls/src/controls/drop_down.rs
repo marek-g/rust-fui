@@ -33,15 +33,6 @@ where
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let selected_item_rc = Rc::new(RefCell::new(Property::binded_two_way(
-            &mut self.selected_item,
-        )));
-
-        //selected_item_rc.borrow_mut().set(Some(self.items.get(1)));
-
-        //let mut selected_item_prop = Property::binded_from(&mut self.selected_item);
-        //selected_item_prop.set(Some(self.items.get(2)));
-
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
             Property::binded_from(&is_popup_open_property_rc.borrow_mut());
@@ -57,6 +48,10 @@ where
             is_popup_open_property_rc.clone().borrow_mut().set(false);
         });
 
+        let selected_item_rc = Rc::new(RefCell::new(Property::binded_two_way(
+            &mut self.selected_item,
+        )));
+
         let hide_callback_clone = hide_callback.clone();
         let menu_item_vms = self.items.map(move |v| {
             MenuItemViewModel::new(
@@ -65,9 +60,6 @@ where
                 hide_callback_clone.clone(),
             )
         });
-        /*self.selected_item
-        .get()
-        .map(|ref a| a.borrow_mut().is_checked.set(true));*/
 
         let content = ui! {
             Button {
@@ -87,13 +79,10 @@ where
             }
         };
 
-        //self.selected_item.set(Some(self.items.get(1)));
-        //self.selected_item.set(Some(self.items.get(0)));
-
-        //let radio_controller = RadioController::new(menu_item_vms);
+        let radio_controller = RadioController::new(menu_item_vms);
 
         let data_holder = DataHolder {
-            data: (self.selected_item, menu_item_vms, self.items), //, radio_controller),
+            data: (self.selected_item, self.items, radio_controller),
         };
         data_holder.to_view(
             None,
@@ -125,8 +114,12 @@ where
         selected_item: Rc<RefCell<Property<Option<Rc<RefCell<V>>>>>>,
         clicked_callback: Callback<()>,
     ) -> Rc<RefCell<Self>> {
+        let is_checked = match &selected_item.borrow().get() {
+            None => false,
+            Some(vm) => vm == &source_vm,
+        };
         let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
-            is_checked: Property::new(false),
+            is_checked: Property::new(is_checked),
             clicked_callback,
             source_vm,
             selected_item,

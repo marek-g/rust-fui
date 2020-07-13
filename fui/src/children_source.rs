@@ -38,6 +38,14 @@ impl<V: ViewModel + 'static> From<Vec<Rc<RefCell<V>>>>
     }
 }
 
+impl<V: ViewModel + 'static> From<Vec<Rc<RefCell<V>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<V>>>>
+{
+    fn from(collection: Vec<Rc<RefCell<V>>>) -> Self {
+        Box::new(collection) as Box<dyn ObservableCollection<Rc<RefCell<V>>>>
+    }
+}
+
 impl<V> From<&ObservableVec<Rc<RefCell<V>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
 where

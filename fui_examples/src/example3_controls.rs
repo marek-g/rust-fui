@@ -17,7 +17,6 @@ struct MainViewModel {
     pub progress: Property<f32>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
-    pub drop_down_items: Box<dyn ObservableCollection<Rc<RefCell<StringViewModel>>>>,
     pub drop_down_selected_item: Property<Option<Rc<RefCell<StringViewModel>>>>,
 }
 
@@ -29,13 +28,6 @@ impl MainViewModel {
             progress: Property::new(0.5f32),
             counter: Property::new(10),
             counter2: Property::new(0),
-            drop_down_items: Box::new(vec![
-                StringViewModel::new("Element A"),
-                StringViewModel::new("Element B"),
-                StringViewModel::new("Element C"),
-                StringViewModel::new("Element D"),
-                StringViewModel::new("Element E"),
-            ]),
             drop_down_selected_item: Property::new(None),
         }))
     }
@@ -69,14 +61,6 @@ impl ViewModel for MainViewModel {
         let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
         let radio_controller2 =
             RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
-
-        let items1: Box<dyn ObservableCollection<Rc<RefCell<StringViewModel>>>> = Box::new(vec![
-            StringViewModel::new("Element A"),
-            StringViewModel::new("Element B"),
-            StringViewModel::new("Element C"),
-        ]);
-
-        vm.drop_down_selected_item.set(Some(items1.get(0)));
 
         let content = ui!(
             TabControl {
@@ -115,14 +99,14 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
-                        //items: vm.drop_down_items.clone(),
                         selected_item: &mut vm.drop_down_selected_item,
-                        items: items1,
-                        /*items: Box::new(vec![
+                        items: vec![
                             StringViewModel::new("Element A"),
                             StringViewModel::new("Element B"),
                             StringViewModel::new("Element C"),
-                        ]),*/
+                            StringViewModel::new("Element D"),
+                            StringViewModel::new("Element E"),
+                        ],
                     },
                     Text {
                         text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
