@@ -10,6 +10,7 @@ use typemap::TypeMap;
 /// to represent simple static text.
 /// For example as an text item for DropDown's items collection.
 ///
+#[derive(PartialEq)]
 pub struct StringViewModel {
     pub text: String,
 }

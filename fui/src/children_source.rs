@@ -38,50 +38,65 @@ impl<V: ViewModel + 'static> From<Vec<Rc<RefCell<V>>>>
     }
 }
 
-/*impl<T> Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for &ObservableVec<Rc<RefCell<T>>>
-    where T: ViewModel {
-    fn into(self) -> Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
-        Box::new((self as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
-    }
-}*/
-
-impl<T> From<&ObservableVec<Rc<RefCell<T>>>>
+impl<V> From<&ObservableVec<Rc<RefCell<V>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
 where
-    T: ViewModel,
+    V: ViewModel,
 {
-    fn from(src: &ObservableVec<Rc<RefCell<T>>>) -> Self {
+    fn from(src: &ObservableVec<Rc<RefCell<V>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| ViewModel::create_view(vm)),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
     }
 }
 
-/*impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
-    fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        Box::new((src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| { ViewModel::to_view(vm) }))
-    }
-}*/
-
-impl<T> From<&ObservableCollectionMap<Rc<RefCell<T>>>>
+impl From<&ObservableVec<Rc<RefCell<dyn ControlObject>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-where
-    T: 'static + ViewModel,
 {
-    fn from(src: &ObservableCollectionMap<Rc<RefCell<T>>>) -> Self {
+    fn from(src: &ObservableVec<Rc<RefCell<dyn ControlObject>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<T>>>).map(|vm| ViewModel::create_view(vm)),
+            (src as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>).map(|el| el.clone()),
         )
     }
 }
 
-impl<T> From<&Box<dyn ObservableCollection<Rc<RefCell<T>>>>>
+impl<V> From<&ObservableCollectionMap<Rc<RefCell<V>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
 where
-    T: 'static + ViewModel,
+    V: 'static + ViewModel,
 {
-    fn from(src: &Box<dyn ObservableCollection<Rc<RefCell<T>>>>) -> Self {
+    fn from(src: &ObservableCollectionMap<Rc<RefCell<V>>>) -> Self {
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
+        )
+    }
+}
+
+impl<V> From<&Box<dyn ObservableCollection<Rc<RefCell<V>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    V: 'static + ViewModel,
+{
+    fn from(src: &Box<dyn ObservableCollection<Rc<RefCell<V>>>>) -> Self {
         Box::new(src.map(|vm| ViewModel::create_view(vm)))
+    }
+}
+
+impl<V> From<&Rc<RefCell<dyn ObservableCollection<Rc<RefCell<V>>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    V: 'static + ViewModel,
+{
+    fn from(src: &Rc<RefCell<dyn ObservableCollection<Rc<RefCell<V>>>>>) -> Self {
+        Box::new(src.borrow().map(|vm| ViewModel::create_view(vm)))
+    }
+}
+
+impl From<&Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+{
+    fn from(src: &Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
+        Box::new(src.borrow().map(|el| el.clone()))
     }
 }
 
@@ -98,6 +113,30 @@ impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>>
 {
     fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
         Box::new(Property::binded_from(&src.borrow()))
+    }
+}
+
+impl<V> From<&Property<Rc<RefCell<V>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    V: 'static + ViewModel + PartialEq,
+{
+    fn from(src: &Property<Rc<RefCell<V>>>) -> Self {
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
+        )
+    }
+}
+
+impl<V> From<&Property<Option<Rc<RefCell<V>>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+where
+    V: 'static + ViewModel + PartialEq,
+{
+    fn from(src: &Property<Option<Rc<RefCell<V>>>>) -> Self {
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
+        )
     }
 }
 

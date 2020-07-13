@@ -227,3 +227,34 @@ where
         }))
     }
 }
+
+impl<T> ObservableCollection<T> for Property<Option<T>>
+where
+    T: 'static + Clone + PartialEq,
+{
+    fn len(&self) -> usize {
+        if self.get().is_some() {
+            1
+        } else {
+            0
+        }
+    }
+
+    fn get(&self, _index: usize) -> T {
+        Property::get(&self).unwrap()
+    }
+
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
+    ) -> Option<EventSubscription> {
+        Some(Property::on_changed(self, move |v| {
+            // TODO: should only emit Remove(0) if previous value wasn't None
+            //f(ObservableChangedEventArgs::Remove { index: 0 });
+            f(ObservableChangedEventArgs::Insert {
+                index: 0,
+                value: v.unwrap(),
+            });
+        }))
+    }
+}

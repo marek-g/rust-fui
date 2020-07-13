@@ -14,22 +14,33 @@ use crate::{layout::*, DataHolder, RadioController, RadioElement};
 //
 
 #[derive(TypedBuilder)]
-pub struct DropDown {
-    #[builder(default = Property::new(0usize))]
-    pub selected_index: Property<usize>,
-    #[builder(default = Box::new(Vec::<Box<dyn ViewModelObject>>::new()))]
-    pub items: Box<dyn ObservableCollection<Box<dyn ViewModelObject>>>,
+pub struct DropDown<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
+    #[builder(default = Property::new(None))]
+    pub selected_item: Property<Option<Rc<RefCell<V>>>>,
+    #[builder(default = Box::new(Vec::<Rc<RefCell<V>>>::new()))]
+    pub items: Box<dyn ObservableCollection<Rc<RefCell<V>>>>,
 }
 
-impl DropDown {
+impl<V> DropDown<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
     pub fn to_view(
-        self,
+        mut self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let selected_item = Rc::new(RefCell::new(Property::new(
-            self.items.get(self.selected_index.get()).create_view(),
+        let selected_item_rc = Rc::new(RefCell::new(Property::binded_two_way(
+            &mut self.selected_item,
         )));
+
+        //selected_item_rc.borrow_mut().set(Some(self.items.get(1)));
+
+        //let mut selected_item_prop = Property::binded_from(&mut self.selected_item);
+        //selected_item_prop.set(Some(self.items.get(2)));
 
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
@@ -46,25 +57,22 @@ impl DropDown {
             is_popup_open_property_rc.clone().borrow_mut().set(false);
         });
 
-        let selected_item_clone = selected_item.clone();
         let hide_callback_clone = hide_callback.clone();
-        let menu_item_vms = self.items.map(move |c| {
+        let menu_item_vms = self.items.map(move |v| {
             MenuItemViewModel::new(
-                c.clone(),
-                selected_item_clone.clone(),
+                v.clone(),
+                selected_item_rc.clone(),
                 hide_callback_clone.clone(),
             )
         });
-        menu_item_vms
-            .get(self.selected_index.get())
-            .borrow_mut()
-            .is_checked
-            .set(true);
+        /*self.selected_item
+        .get()
+        .map(|ref a| a.borrow_mut().is_checked.set(true));*/
 
         let content = ui! {
             Button {
                 clicked: show_callback.clone(),
-                &selected_item,
+                &self.selected_item,
 
                 Popup {
                     is_open: is_popup_open_property2,
@@ -73,17 +81,19 @@ impl DropDown {
 
                     Grid {
                         columns: 1,
-
                         &menu_item_vms,
                     }
                 }
             }
         };
 
-        let radio_controller = RadioController::new(menu_item_vms);
+        //self.selected_item.set(Some(self.items.get(1)));
+        //self.selected_item.set(Some(self.items.get(0)));
+
+        //let radio_controller = RadioController::new(menu_item_vms);
 
         let data_holder = DataHolder {
-            data: (selected_item, radio_controller),
+            data: (self.selected_item, menu_item_vms, self.items), //, radio_controller),
         };
         data_holder.to_view(
             None,
@@ -95,25 +105,31 @@ impl DropDown {
     }
 }
 
-struct MenuItemViewModel {
+struct MenuItemViewModel<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
     pub is_checked: Property<bool>,
     pub clicked_callback: Callback<()>,
-    pub source_vm: Box<dyn ViewModelObject>,
-    pub selected_item: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    pub source_vm: Rc<RefCell<V>>,
+    pub selected_item: Rc<RefCell<Property<Option<Rc<RefCell<V>>>>>>,
     pub event_subscription: Option<EventSubscription>,
 }
 
-impl MenuItemViewModel {
+impl<V> MenuItemViewModel<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
     pub fn new(
-        source_vm: Box<dyn ViewModelObject>,
-        selected_item: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+        source_vm: Rc<RefCell<V>>,
+        selected_item: Rc<RefCell<Property<Option<Rc<RefCell<V>>>>>>,
         clicked_callback: Callback<()>,
     ) -> Rc<RefCell<Self>> {
         let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
             is_checked: Property::new(false),
-            clicked_callback: clicked_callback,
-            source_vm: source_vm,
-            selected_item: selected_item,
+            clicked_callback,
+            source_vm,
+            selected_item,
             event_subscription: None,
         }));
 
@@ -127,7 +143,7 @@ impl MenuItemViewModel {
                         let vm = vm.borrow();
                         vm.selected_item
                             .borrow_mut()
-                            .set(vm.source_vm.create_view());
+                            .set(Some(vm.source_vm.clone()));
                     });
                     clicked_callback.emit(());
                 }
@@ -138,7 +154,10 @@ impl MenuItemViewModel {
     }
 }
 
-impl ViewModel for MenuItemViewModel {
+impl<V> ViewModel for MenuItemViewModel<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let mut vm = view_model.borrow_mut();
         let clicked_callback = vm.clicked_callback.clone();
@@ -155,7 +174,10 @@ impl ViewModel for MenuItemViewModel {
     }
 }
 
-impl RadioElement for MenuItemViewModel {
+impl<V> RadioElement for MenuItemViewModel<V>
+where
+    V: ViewModel + PartialEq + 'static,
+{
     fn is_checked(&self) -> bool {
         self.is_checked.get()
     }

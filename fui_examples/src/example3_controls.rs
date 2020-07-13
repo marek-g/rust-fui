@@ -17,8 +17,8 @@ struct MainViewModel {
     pub progress: Property<f32>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
-    pub drop_down_items: Vec<Rc<RefCell<StringViewModel>>>,
-    pub drop_down_selected_index: Property<usize>,
+    pub drop_down_items: Box<dyn ObservableCollection<Rc<RefCell<StringViewModel>>>>,
+    pub drop_down_selected_item: Property<Option<Rc<RefCell<StringViewModel>>>>,
 }
 
 impl MainViewModel {
@@ -29,14 +29,14 @@ impl MainViewModel {
             progress: Property::new(0.5f32),
             counter: Property::new(10),
             counter2: Property::new(0),
-            drop_down_items: vec![
+            drop_down_items: Box::new(vec![
                 StringViewModel::new("Element A"),
                 StringViewModel::new("Element B"),
                 StringViewModel::new("Element C"),
                 StringViewModel::new("Element D"),
                 StringViewModel::new("Element E"),
-            ],
-            drop_down_selected_index: Property::new(2usize),
+            ]),
+            drop_down_selected_item: Property::new(None),
         }))
     }
 
@@ -48,6 +48,8 @@ impl MainViewModel {
         self.counter.change(|c| c - 1);
     }
 }
+
+type DropDown1 = DropDown<StringViewModel>;
 
 impl ViewModel for MainViewModel {
     fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
@@ -67,6 +69,14 @@ impl ViewModel for MainViewModel {
         let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
         let radio_controller2 =
             RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
+
+        let items1: Box<dyn ObservableCollection<Rc<RefCell<StringViewModel>>>> = Box::new(vec![
+            StringViewModel::new("Element A"),
+            StringViewModel::new("Element B"),
+            StringViewModel::new("Element C"),
+        ]);
+
+        vm.drop_down_selected_item.set(Some(items1.get(0)));
 
         let content = ui!(
             TabControl {
@@ -101,35 +111,24 @@ impl ViewModel for MainViewModel {
                         value: &vm.progress,
                     },
 
-                    DropDown {
+                    DropDown1 {
                         Column: 0,
                         Row: 3,
 
-                        items: &vm.drop_down_items,
-                        selected_index: &mut vm.drop_down_selected_index,
-                        /*items: vec![
+                        //items: vm.drop_down_items.clone(),
+                        selected_item: &mut vm.drop_down_selected_item,
+                        items: items1,
+                        /*items: Box::new(vec![
                             StringViewModel::new("Element A"),
                             StringViewModel::new("Element B"),
                             StringViewModel::new("Element C"),
-                        ],*/
+                        ]),*/
                     },
-                    Grid {
-                        rows: 1,
-                        default_width: Length::Exact(40.0f32),
-                        widths: vec![(0, Length::Fill(1.0f32))],
-
-                        Text {
-                            text: (&vm.drop_down_selected_index, |index| format!("Selected index: {}", index)),
-                        },
-                        Button {
-                            Text { text: "-" },
-                            clicked: Callback::new(view_model, |vm, _| vm.drop_down_selected_index.change(
-                                |val| if val > 0 { val - 1 } else { 0 })),
-                        },
-                        Button {
-                            Text { text: "+" },
-                            clicked: Callback::new(view_model, |vm, _| vm.drop_down_selected_index.change(|val| val + 1)),
-                        },
+                    Text {
+                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
+                            None => "-".to_string(),
+                            Some(vm) => vm.borrow().text.clone(),
+                        }),
                     },
 
                     Vertical {
