@@ -10,7 +10,7 @@ fui_controls = { path = "../../rust-fui/fui_controls", version = "*" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
 fui_app = { path = "../../rust-fui/fui_app", version = "*" }
 winit = "0.22"
-failure = "0.1"
+anyhow = "1.0"
 time = "0.2"
 typed-builder = "0.6"
 typemap = "0.3"

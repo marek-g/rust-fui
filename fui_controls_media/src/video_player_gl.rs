@@ -1,5 +1,4 @@
-pub type Result<T> = std::result::Result<T, failure::Error>;
-
+use anyhow::{format_err, Result};
 use fui::*;
 use fui_app::*;
 use gl::types::*;
@@ -23,7 +22,7 @@ use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
-    drawing_context: Rc<RefCell<DrawingContext>>,
+    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<gstreamer::Pipeline>,
     dispatcher: Arc<Mutex<Dispatcher>>,
@@ -34,7 +33,7 @@ pub struct PlayerGl {
 impl PlayerGl {
     #[cfg(target_os = "linux")]
     pub fn new(
-        drawing_context: &Rc<RefCell<DrawingContext>>,
+        drawing_context: &Rc<RefCell<fui_app::DrawingContext>>,
         window_manager: &Rc<RefCell<WindowManager>>,
         event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
@@ -53,7 +52,7 @@ impl PlayerGl {
 
     #[cfg(target_os = "windows")]
     pub fn new(
-        drawing_context: &Rc<RefCell<DrawingContext>>,
+        drawing_context: &Rc<RefCell<fui_app::DrawingContext>>,
         window_manager: &Rc<RefCell<WindowManager>>,
         event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
@@ -86,7 +85,8 @@ impl PlayerGl {
                 .get_windows_mut()
                 .get(&main_window_id)
             {
-                let window_drawing_target = main_window.get_drawing_target();
+                let window = main_window.window.borrow();
+                let window_drawing_target = window.get_drawing_target();
                 let context = window_drawing_target.get_context();
 
                 let window = window_drawing_target.get_window();
@@ -212,14 +212,10 @@ impl PlayerGl {
 
                 Ok(())
             } else {
-                Err(::failure::err_msg(
-                    "Cannot find GL Context for the main window!",
-                ))
+                Err(format_err!("Cannot find GL Context for the main window!",))
             }
         } else {
-            Err(::failure::err_msg(
-                "Cannot find GL Context. There is no window!",
-            ))
+            Err(format_err!("Cannot find GL Context. There is no window!",))
         }
     }
 
@@ -363,14 +359,10 @@ impl PlayerGl {
 
                 Ok(())
             } else {
-                Err(::failure::err_msg(
-                    "Cannot find GL Context for the main window!",
-                ))
+                Err(format_err!("Cannot find GL Context for the main window!",))
             }
         } else {
-            Err(::failure::err_msg(
-                "Cannot find GL Context. There is no window!",
-            ))
+            Err(format_err!("Cannot find GL Context. There is no window!",))
         }
     }
 
@@ -386,8 +378,8 @@ impl PlayerGl {
         if let Some(ref receiver) = self.receiver {
             while let Ok(texture_id) = receiver.try_recv() {
                 let timespec = time::Time::now();
-                let mills: f64 =
-                    timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
+                let mills: f64 = timespec.second() as f64
+                    + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 //println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
                 self.texture.update_texture(texture_id)?
             }
@@ -409,11 +401,11 @@ pub struct PlayerTexture {
     texture_id: i32,
     width: u16,
     height: u16,
-    drawing_context: Rc<RefCell<DrawingContext>>,
+    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
 }
 
 impl PlayerTexture {
-    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::empty(),
             texture_id: -1,
@@ -430,7 +422,8 @@ impl PlayerTexture {
 
     fn update_texture(&mut self, texture_id: GLuint) -> Result<()> {
         let timespec = time::Time::now();
-        let mills: f64 = timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
+        let mills: f64 =
+            timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(
             "Dispatcher, thread id: {:?}, time: {:?}",
             std::thread::current().id(),
@@ -444,7 +437,7 @@ impl PlayerTexture {
                 self.height,
                 ColorFormat::RGBA,
             );
-            let drawing_context = &mut self.drawing_context.borrow_mut();
+            let mut drawing_context = self.drawing_context.borrow_mut();
             let resources = drawing_context.get_resources_mut();
             if self.texture_id == -1 {
                 self.texture_id = resources.get_next_texture_id();

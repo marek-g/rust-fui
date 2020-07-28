@@ -1,6 +1,6 @@
 pub use drawing::color::ColorFormat;
 
-use fui::*;
+use anyhow::{format_err, Result};
 
 use drawing::backend::Device;
 use drawing::backend::Texture;
@@ -264,7 +264,7 @@ impl fui::Resources for DrawingContext {
         if let Some(texture) = self.get_resources().textures().get(&texture_id) {
             Ok(texture.get_size())
         } else {
-            Err(failure::format_err!("Texture not found!"))
+            Err(format_err!("Texture not found!"))
         }
     }
 }
@@ -289,5 +289,5 @@ impl<'a> fui::DrawingContext for FuiDrawingContext<'a> {
     }
     fn get_resources(&mut self) -> &mut dyn fui::Resources {
         self.resources
-    }   
+    }
 }

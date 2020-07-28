@@ -8,7 +8,7 @@ edition = "2018"
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
 fui = { path = "../fui", version = "*" }
-failure = "0.1"
+anyhow = "1.0"
 winit = "0.22"
 shared_library = "0.1"
 find_folder = "0.3"

@@ -1,6 +1,6 @@
 pub use drawing::color::ColorFormat;
 
-use crate::Result;
+use anyhow::Result;
 
 pub trait Resources {
     fn get_font_dimensions(

@@ -42,6 +42,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8052e2d8aabbb8d556d6abbcce2a22b9590996c5f849b9c7ce4544a2e3b984e"
 
 [[package]]
+name = "anyhow"
+version = "1.0.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b602bfe940d21c130f3895acd65221e8a61270debe89d628b9cb4e3ccb8569b"
+
+[[package]]
 name = "approx"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -264,21 +270,22 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 name = "drawing"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bitflags",
  "clamped",
  "euclid",
- "failure",
  "freetype-rs",
  "rawpointer",
+ "thiserror",
 ]
 
 [[package]]
 name = "drawing_gl"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "drawing",
  "euclid",
- "failure",
  "gl",
  "glutin",
  "winit",
@@ -378,8 +385,8 @@ checksum = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 name = "fui"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "drawing",
- "failure",
  "typed-builder",
  "typemap",
 ]
@@ -388,10 +395,10 @@ dependencies = [
 name = "fui_app"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "cpu-time",
  "drawing",
  "drawing_gl",
- "failure",
  "find_folder",
  "fui",
  "shared_library",
@@ -416,9 +423,9 @@ dependencies = [
 name = "fui_controls_media"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "drawing",
  "drawing_gl",
- "failure",
  "fui",
  "fui_app",
  "gl",
@@ -438,7 +445,7 @@ dependencies = [
 name = "fui_examples"
 version = "0.1.0"
 dependencies = [
- "failure",
+ "anyhow",
  "fui",
  "fui_app",
  "fui_controls",
@@ -1581,6 +1588,26 @@ dependencies = [
  "quote 1.0.7",
  "syn",
  "unicode-xid 0.2.1",
+]
+
+[[package]]
+name = "thiserror"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7dfdd070ccd8ccb78f4ad66bf1982dc37f620ef696c6b5028fe2ed83dd3d0d08"
+dependencies = [
+ "thiserror-impl",
+]
+
+[[package]]
+name = "thiserror-impl"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd80fc12f73063ac132ac92aceea36734f04a1d93c1240c6944e23a3b8841793"
+dependencies = [
+ "proc-macro2 1.0.18",
+ "quote 1.0.7",
+ "syn",
 ]
 
 [[package]]

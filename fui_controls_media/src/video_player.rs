@@ -1,5 +1,4 @@
-pub type Result<T> = std::result::Result<T, failure::Error>;
-
+use anyhow::Result;
 use fui::*;
 use fui_app::*;
 use gstreamer::prelude::*;
@@ -17,7 +16,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
         gstreamer::init().unwrap();
 
         Player {
@@ -48,8 +47,8 @@ impl Player {
             gstreamer_app::AppSinkCallbacks::new()
                 .new_sample(move |app_sink| {
                     let timespec = time::Time::now();
-                    let mills: f64 =
-                        timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
+                    let mills: f64 = timespec.second() as f64
+                        + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                     println!(
                         "New sample thread id: {:?}, time: {:?}",
                         std::thread::current().id(),
@@ -97,8 +96,8 @@ impl Player {
         if let Some(ref receiver) = self.receiver {
             while let Ok(buffer) = receiver.try_recv() {
                 let timespec = time::Time::now();
-                let mills: f64 =
-                    timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
+                let mills: f64 = timespec.second() as f64
+                    + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 println!(
                     "buffer size: {}, thread id: {:?}, time: {:?}",
                     buffer.len(),
@@ -125,11 +124,11 @@ pub struct PlayerTexture {
     texture_id: i32,
     width: u16,
     height: u16,
-    drawing_context: Rc<RefCell<DrawingContext>>,
+    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
 }
 
 impl PlayerTexture {
-    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::empty(),
             texture_id: -1,
@@ -146,7 +145,8 @@ impl PlayerTexture {
 
     fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
         let timespec = time::Time::now();
-        let mills: f64 = timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
+        let mills: f64 =
+            timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(
             "Dispatcher, thread id: {:?}, time: {:?}",
             std::thread::current().id(),
@@ -154,7 +154,7 @@ impl PlayerTexture {
         );
 
         if self.texture_id == -1 {
-            let drawing_context = &mut self.drawing_context.borrow_mut();
+            let mut drawing_context = self.drawing_context.borrow_mut();
             self.texture_id = drawing_context.create_texture(
                 &buffer,
                 self.width,
@@ -163,7 +163,7 @@ impl PlayerTexture {
                 true,
             )?;
         } else {
-            let drawing_context = &mut self.drawing_context.borrow_mut();
+            let mut drawing_context = self.drawing_context.borrow_mut();
             drawing_context.update_texture(
                 self.texture_id,
                 &buffer,

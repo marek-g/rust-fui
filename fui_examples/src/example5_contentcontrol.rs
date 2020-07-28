@@ -1,5 +1,6 @@
 #![windows_subsystem = "windows"]
 
+use anyhow::Result;
 use fui::*;
 use fui_app::*;
 use fui_controls::*;
@@ -47,13 +48,13 @@ impl ViewModel for MainViewModel {
                     Button {
                         Text { text: " - Content 1 - " },
                         clicked: Callback::new(view_model, |vm, _| {
-                            vm.content.set(ViewModel::to_view(&vm.item1));
+                            vm.content.set(ViewModel::create_view(&vm.item1));
                         }),
                     },
                     Button {
                         Text { text: " - Content 2 - " },
                         clicked: Callback::new(view_model, |vm, _| {
-                            vm.content.set(ViewModel::to_view(&vm.item2));
+                            vm.content.set(ViewModel::create_view(&vm.item2));
                         }),
                     },
                 },

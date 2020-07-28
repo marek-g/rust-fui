@@ -1,5 +1,3 @@
-pub type Result<T> = std::result::Result<T, failure::Error>;
-
 mod children_source;
 pub use children_source::*;
 

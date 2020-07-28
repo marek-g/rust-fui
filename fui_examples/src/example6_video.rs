@@ -1,5 +1,6 @@
 #![windows_subsystem = "windows"]
 
+use anyhow::Result;
 use fui::*;
 use fui_app::*;
 use fui_controls::*;
