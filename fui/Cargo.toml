@@ -7,5 +7,5 @@ edition = "2018"
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 anyhow = "1.0"
-typed-builder = "0.6"
+typed-builder = "0.7"
 typemap = "0.3"

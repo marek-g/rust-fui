@@ -44,7 +44,7 @@ impl Player {
 
         let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(
-            gstreamer_app::AppSinkCallbacks::new()
+            gstreamer_app::AppSinkCallbacks::builder()
                 .new_sample(move |app_sink| {
                     let timespec = time::Time::now();
                     let mills: f64 = timespec.second() as f64
