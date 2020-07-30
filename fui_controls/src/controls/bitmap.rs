@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
@@ -12,12 +12,20 @@ pub struct Bitmap {
 }
 
 impl Bitmap {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultBitmapStyle::new(DefaultBitmapStyleParams::builder().build()))
+                Box::new(DefaultBitmapStyle::new(
+                    DefaultBitmapStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -49,8 +57,10 @@ impl DefaultBitmapStyle {
 
 impl Style<Bitmap> for DefaultBitmapStyle {
     fn setup(&mut self, data: &mut Bitmap, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.texture_id.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            data.texture_id
+                .dirty_watching(&control_context.get_self_rc()),
+        );
     }
 
     fn handle_event(
@@ -70,7 +80,10 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
-        self.rect = if let Ok(texture_size) = drawing_context.get_resources().get_texture_size(data.texture_id.get()) {
+        self.rect = if let Ok(texture_size) = drawing_context
+            .get_resources()
+            .get_texture_size(data.texture_id.get())
+        {
             Rect::new(0.0f32, 0.0f32, texture_size.0 as f32, texture_size.1 as f32)
         } else {
             Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
@@ -85,7 +98,12 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Bitmap, _control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Bitmap,
+        _control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

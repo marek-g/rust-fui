@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 pub enum RelativePlacement {

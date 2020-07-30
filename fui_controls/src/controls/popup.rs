@@ -4,7 +4,7 @@ use std::rc::Rc;
 use crate::layout::RelativeLayout;
 use crate::RelativePlacement;
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;

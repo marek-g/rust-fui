@@ -7,7 +7,7 @@ use drawing::primitive::Primitive;
 use drawing::transformation::Transformation;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -18,12 +18,20 @@ pub struct TextBox {
 }
 
 impl TextBox {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self, 
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultTextBoxStyle::new(DefaultTextBoxStyleParams::builder().build()))
+                Box::new(DefaultTextBoxStyle::new(
+                    DefaultTextBoxStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -176,7 +184,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             }
 
             ControlEvent::TapDown { ref position } => {
-                let cursor_pos = self.calc_cursor_pos(&data.text.get(), position, drawing_context.get_resources());
+                let cursor_pos = self.calc_cursor_pos(
+                    &data.text.get(),
+                    position,
+                    drawing_context.get_resources(),
+                );
                 self.cursor_pos_char = cursor_pos.0;
                 self.cursor_pos_px = cursor_pos.1;
                 control_context.set_is_dirty(true);
@@ -188,13 +200,21 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                         match key_code {
                             Keycode::Backspace => {
                                 if self.cursor_pos_char > 0 {
-                                    self.remove_char(data, self.cursor_pos_char - 1, drawing_context.get_resources());
+                                    self.remove_char(
+                                        data,
+                                        self.cursor_pos_char - 1,
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             Keycode::Delete => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char < text.chars().count() {
-                                    self.remove_char(data, self.cursor_pos_char, drawing_context.get_resources());
+                                    self.remove_char(
+                                        data,
+                                        self.cursor_pos_char,
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             Keycode::Home => {
@@ -213,13 +233,21 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             Keycode::Left => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char > 0 {
-                                    self.move_cursor(&text, self.cursor_pos_char - 1, drawing_context.get_resources());
+                                    self.move_cursor(
+                                        &text,
+                                        self.cursor_pos_char - 1,
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             Keycode::Right => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char + 1 <= text.chars().count() {
-                                    self.move_cursor(&text, self.cursor_pos_char + 1, drawing_context.get_resources());
+                                    self.move_cursor(
+                                        &text,
+                                        self.cursor_pos_char + 1,
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             _ => (),
@@ -261,7 +289,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &TextBox, _control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &TextBox,
+        _control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

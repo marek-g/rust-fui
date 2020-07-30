@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use fui::*;
+use fui_core::*;
 
 use crate::DrawingContext;
 use crate::Window;

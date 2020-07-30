@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -24,12 +24,20 @@ pub struct ProgressBar {
 }
 
 impl ProgressBar {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultProgressBarStyle::new(DefaultProgressBarStyleParams::builder().build()))
+                Box::new(DefaultProgressBarStyle::new(
+                    DefaultProgressBarStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -66,10 +74,14 @@ impl DefaultProgressBarStyle {
 
 impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn setup(&mut self, data: &mut ProgressBar, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.min_value.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(data.max_value.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            data.min_value
+                .dirty_watching(&control_context.get_self_rc()),
+        );
+        self.event_subscriptions.push(
+            data.max_value
+                .dirty_watching(&control_context.get_self_rc()),
+        );
         self.event_subscriptions
             .push(data.value.dirty_watching(&control_context.get_self_rc()));
     }
@@ -111,7 +123,12 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut ProgressBar, _control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &mut ProgressBar,
+        _control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
         self.rect = rect;
     }
 

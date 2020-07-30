@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
-fui = { path = "../fui", version = "*" }
+fui_core = { path = "../fui_core", version = "*" }
 anyhow = "1.0"
 winit = "0.22"
 shared_library = "0.1"

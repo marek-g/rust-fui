@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -11,12 +11,20 @@ use crate::style::*;
 pub struct Border {}
 
 impl Border {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultBorderStyle::new(DefaultBorderStyleParams::builder().build()))
+                Box::new(DefaultBorderStyle::new(
+                    DefaultBorderStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -47,8 +55,7 @@ impl DefaultBorderStyle {
 }
 
 impl Style<Border> for DefaultBorderStyle {
-    fn setup(&mut self, _data: &mut Border, _control_context: &mut ControlContext) {
-    }
+    fn setup(&mut self, _data: &mut Border, _control_context: &mut ControlContext) {}
 
     fn handle_event(
         &mut self,
@@ -71,8 +78,16 @@ impl Style<Border> for DefaultBorderStyle {
 
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
-                if size.width.is_finite() { 0f32.max(size.width - BORDER_SIZE * 2.0f32) } else { size.width },
-                if size.height.is_finite() { 0f32.max(size.height - BORDER_SIZE * 2.0f32) } else { size.height },
+                if size.width.is_finite() {
+                    0f32.max(size.width - BORDER_SIZE * 2.0f32)
+                } else {
+                    size.width
+                },
+                if size.height.is_finite() {
+                    0f32.max(size.height - BORDER_SIZE * 2.0f32)
+                } else {
+                    size.height
+                },
             );
             content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
@@ -109,7 +124,12 @@ impl Style<Border> for DefaultBorderStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Border, control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Border,
+        control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {

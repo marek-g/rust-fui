@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -27,12 +27,20 @@ pub struct ScrollBar {
 }
 
 impl ScrollBar {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultScrollBarStyle::new(DefaultScrollBarStyleParams::builder().build()))
+                Box::new(DefaultScrollBarStyle::new(
+                    DefaultScrollBarStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -101,19 +109,29 @@ impl DefaultScrollBarStyle {
 
 impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn setup(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(self.is_thumb_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(self.is_thumb_pressed.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            self.is_thumb_hover
+                .dirty_watching(&control_context.get_self_rc()),
+        );
+        self.event_subscriptions.push(
+            self.is_thumb_pressed
+                .dirty_watching(&control_context.get_self_rc()),
+        );
 
-        self.event_subscriptions
-            .push(data.min_value.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(data.max_value.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            data.min_value
+                .dirty_watching(&control_context.get_self_rc()),
+        );
+        self.event_subscriptions.push(
+            data.max_value
+                .dirty_watching(&control_context.get_self_rc()),
+        );
         self.event_subscriptions
             .push(data.value.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(data.viewport_size.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            data.viewport_size
+                .dirty_watching(&control_context.get_self_rc()),
+        );
     }
 
     fn handle_event(
@@ -205,7 +223,12 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         }
     }
 
-    fn set_rect(&mut self, data: &mut ScrollBar, _control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        data: &mut ScrollBar,
+        _control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
         self.rect = rect;
         self.calc_sizes(data);
     }

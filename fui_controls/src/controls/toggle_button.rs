@@ -7,7 +7,7 @@ use drawing::{
     primitive_extensions::circle_path,
     units::{PixelPoint, PixelThickness},
 };
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;

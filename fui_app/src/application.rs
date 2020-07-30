@@ -1,4 +1,4 @@
-use fui::*;
+use fui_core::*;
 
 use anyhow::Result;
 

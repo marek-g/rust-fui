@@ -4,7 +4,7 @@ use std::rc::Rc;
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 #[derive(PartialEq, Clone, Default)]
@@ -28,12 +28,20 @@ pub struct ScrollArea {
 }
 
 impl ScrollArea {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultScrollAreaStyle::new(DefaultScrollAreaStyleParams::builder().build()))
+                Box::new(DefaultScrollAreaStyle::new(
+                    DefaultScrollAreaStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -125,7 +133,12 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         );
     }
 
-    fn set_rect(&mut self, data: &mut ScrollArea, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        data: &mut ScrollArea,
+        control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
         self.rect = rect;
 
         self.update_properties(data);

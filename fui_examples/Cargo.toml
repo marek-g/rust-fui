@@ -5,7 +5,7 @@ authors = ["Marek G <no@mail.com>"]
 edition = "2018"
 
 [dependencies]
-fui = { path = "../../rust-fui/fui", version = "*" }
+fui_core = { path = "../fui_core", version = "*" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "*" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
 fui_app = { path = "../../rust-fui/fui_app", version = "*" }

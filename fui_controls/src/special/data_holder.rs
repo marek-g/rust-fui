@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
@@ -11,19 +11,26 @@ pub struct DataHolder<T> {
 }
 
 impl<T: 'static> DataHolder<T> {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultDataHolderStyle::new(DefaultDataHolderStyleParams::builder().build()))
+                Box::new(DefaultDataHolderStyle::new(
+                    DefaultDataHolderStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
 //
 // Default DataHolder Style
 //
-
 
 #[derive(TypedBuilder)]
 pub struct DefaultDataHolderStyleParams {}
@@ -37,8 +44,7 @@ impl DefaultDataHolderStyle {
 }
 
 impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
-    fn setup(&mut self, _data: &mut DataHolder<T>, _control_context: &mut ControlContext) {
-    }
+    fn setup(&mut self, _data: &mut DataHolder<T>, _control_context: &mut ControlContext) {}
 
     fn handle_event(
         &mut self,
@@ -63,7 +69,12 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut DataHolder<T>, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &mut DataHolder<T>,
+        control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().set_rect(rect);
@@ -92,7 +103,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
                 HitTestResult::Current => HitTestResult::Child(child.clone()),
                 HitTestResult::Child(..) => child_hit_test,
                 HitTestResult::Nothing => HitTestResult::Nothing,
-            }
+            };
         }
         HitTestResult::Nothing
     }

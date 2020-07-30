@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use fui::*;
+use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
@@ -28,7 +28,11 @@ pub struct ScrollViewer {
 }
 
 impl ScrollViewer {
-    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(
+        self,
+        _style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
         let mut offset_x_prop1 = Property::new(0.0f32);
         let offset_x_prop2 = Property::binded_two_way(&mut offset_x_prop1);
 

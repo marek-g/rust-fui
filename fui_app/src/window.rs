@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use fui::ControlObject;
-use fui::{EventProcessor, WindowService};
+use fui_core::ControlObject;
+use fui_core::{EventProcessor, WindowService};
 
 use crate::DrawingWindowTarget;
 

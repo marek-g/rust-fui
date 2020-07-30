@@ -1,6 +1,6 @@
 use anyhow::{format_err, Result};
-use fui::*;
 use fui_app::*;
+use fui_core::*;
 use gl::types::*;
 use glib::Value;
 use gstreamer::prelude::*;

@@ -1,7 +1,7 @@
 use drawing::primitive::*;
 use drawing::primitive_extensions::*;
 use drawing::units::*;
-use fui::*;
+use fui_core::*;
 
 const BORDER_LIGHT1: Color = [0.65, 0.65, 0.65, 1.0];
 const BORDER_LIGHT2: Color = [0.35, 0.35, 0.35, 1.0];
@@ -340,10 +340,10 @@ pub fn gradient_rect_rounded(
     color_bottom: Color,
 ) {
     vec.push(Primitive::Fill {
-        path: rect_path_rounded(PixelRect::new(
-            PixelPoint::new(x, y),
-            PixelSize::new(width, height),
-        ), radius),
+        path: rect_path_rounded(
+            PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
+            radius,
+        ),
         brush: Brush::LinearGradient {
             start_point: PixelPoint::new(x, y),
             end_point: PixelPoint::new(x + width, y + height),
@@ -518,5 +518,7 @@ pub fn button_rounded(
         gradient_bottom_color,
     );
 
-    border_3d_rounded(&mut vec, x, y, width, height, radius, is_pressed, is_hover, false);
+    border_3d_rounded(
+        &mut vec, x, y, width, height, radius, is_pressed, is_hover, false,
+    );
 }

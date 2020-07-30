@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 drawing = { path = "../../rust-drawing/drawing", version = "*" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
-fui = { path = "../../rust-fui/fui", version = "*" }
+fui_core = { path = "../fui_core", version = "*" }
 fui_app = { path = "../../rust-fui/fui_app", version = "*" }
 gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
 anyhow = "1.0"

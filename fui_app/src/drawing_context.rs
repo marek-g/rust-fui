@@ -194,7 +194,7 @@ impl DrawingContext {
     pub fn clear(
         &mut self,
         render_target: &<DrawingDevice as Device>::RenderTarget,
-        color: &fui::Color,
+        color: &fui_core::Color,
     ) {
         self.device.clear(render_target, color)
     }
@@ -218,7 +218,7 @@ impl DrawingContext {
     }
 }
 
-impl fui::Resources for DrawingContext {
+impl fui_core::Resources for DrawingContext {
     fn get_font_dimensions(
         &mut self,
         font_name: &'static str,
@@ -283,11 +283,11 @@ impl<'a> FuiDrawingContext<'a> {
     }
 }
 
-impl<'a> fui::DrawingContext for FuiDrawingContext<'a> {
+impl<'a> fui_core::DrawingContext for FuiDrawingContext<'a> {
     fn get_drawing_area_size(&self) -> (u16, u16) {
         self.drawing_area_size
     }
-    fn get_resources(&mut self) -> &mut dyn fui::Resources {
+    fn get_resources(&mut self) -> &mut dyn fui_core::Resources {
         self.resources
     }
 }

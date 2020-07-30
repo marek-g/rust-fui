@@ -1,6 +1,6 @@
 use anyhow::Result;
-use fui::*;
 use fui_app::*;
+use fui_core::*;
 use gstreamer::prelude::*;
 use gstreamer_media;
 use std::cell::RefCell;

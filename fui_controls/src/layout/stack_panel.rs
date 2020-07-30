@@ -3,7 +3,7 @@ use std::f32;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
@@ -13,19 +13,26 @@ pub struct StackPanel {
 }
 
 impl StackPanel {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultStackPanelStyle::new(DefaultStackPanelStyleParams::builder().build()))
+                Box::new(DefaultStackPanelStyle::new(
+                    DefaultStackPanelStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
 //
 // Default StackPanel Style
 //
-
 
 #[derive(TypedBuilder)]
 pub struct DefaultStackPanelStyleParams {}
@@ -48,8 +55,7 @@ impl DefaultStackPanelStyle {
 }
 
 impl Style<StackPanel> for DefaultStackPanelStyle {
-    fn setup(&mut self, _data: &mut StackPanel, _control_context: &mut ControlContext) {
-    }
+    fn setup(&mut self, _data: &mut StackPanel, _control_context: &mut ControlContext) {}
 
     fn handle_event(
         &mut self,
@@ -98,7 +104,12 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         self.rect = result;
     }
 
-    fn set_rect(&mut self, data: &mut StackPanel, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        data: &mut StackPanel,
+        control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
         self.rect = rect;
 
         let mut child_rect = rect;

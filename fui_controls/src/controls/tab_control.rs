@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use fui::*;
+use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;

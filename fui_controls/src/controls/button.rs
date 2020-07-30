@@ -4,7 +4,7 @@ use std::rc::Rc;
 use drawing::primitive::Primitive;
 use drawing::transformation::*;
 use drawing::units::PixelPoint;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -16,12 +16,20 @@ pub struct Button {
 }
 
 impl Button {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultButtonStyle::new(DefaultButtonStyleParams::builder().build()))
+                Box::new(DefaultButtonStyle::new(
+                    DefaultButtonStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -61,10 +69,14 @@ impl Style<Button> for DefaultButtonStyle {
     fn setup(&mut self, _data: &mut Button, control_context: &mut ControlContext) {
         self.event_subscriptions
             .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(self.is_pressed.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(self.is_focused.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            self.is_pressed
+                .dirty_watching(&control_context.get_self_rc()),
+        );
+        self.event_subscriptions.push(
+            self.is_focused
+                .dirty_watching(&control_context.get_self_rc()),
+        );
     }
 
     fn handle_event(
@@ -158,7 +170,12 @@ impl Style<Button> for DefaultButtonStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Button, _control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Button,
+        _control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {

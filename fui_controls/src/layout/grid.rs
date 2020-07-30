@@ -31,7 +31,7 @@ use std::f32;
 use std::rc::Rc;
 
 use drawing::primitive::Primitive;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 //
@@ -228,12 +228,20 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultGridStyle::new(DefaultGridStyleParams::builder().build()))
+                Box::new(DefaultGridStyle::new(
+                    DefaultGridStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -418,7 +426,11 @@ impl DefaultGridStyle {
         }
     }
 
-    fn prepare_cell_cache(&mut self, data: &Grid, children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>) {
+    fn prepare_cell_cache(
+        &mut self,
+        data: &Grid,
+        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+    ) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
@@ -1459,8 +1471,7 @@ impl DefaultGridStyle {
 }
 
 impl Style<Grid> for DefaultGridStyle {
-    fn setup(&mut self, _data: &mut Grid, _control_context: &mut ControlContext) {
-    }
+    fn setup(&mut self, _data: &mut Grid, _control_context: &mut ControlContext) {}
 
     fn handle_event(
         &mut self,
@@ -1696,7 +1707,12 @@ impl Style<Grid> for DefaultGridStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Grid, control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Grid,
+        control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
             for child in children.into_iter().rev() {

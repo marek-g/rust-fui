@@ -1,9 +1,9 @@
 #![windows_subsystem = "windows"]
 
 use anyhow::Result;
-use fui::*;
 use fui_app::*;
 use fui_controls::*;
+use fui_core::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;

@@ -337,16 +337,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 
 [[package]]
-name = "fui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "drawing",
- "typed-builder",
- "typemap",
-]
-
-[[package]]
 name = "fui_app"
 version = "0.1.0"
 dependencies = [
@@ -355,7 +345,7 @@ dependencies = [
  "drawing",
  "drawing_gl",
  "find_folder",
- "fui",
+ "fui_core",
  "shared_library",
  "typed-builder",
  "typemap",
@@ -368,7 +358,7 @@ version = "0.1.0"
 dependencies = [
  "drawing",
  "euclid",
- "fui",
+ "fui_core",
  "fui_macros",
  "typed-builder",
  "typemap",
@@ -381,8 +371,8 @@ dependencies = [
  "anyhow",
  "drawing",
  "drawing_gl",
- "fui",
  "fui_app",
+ "fui_core",
  "gl",
  "glib",
  "glutin",
@@ -397,14 +387,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "fui_core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "drawing",
+ "typed-builder",
+ "typemap",
+]
+
+[[package]]
 name = "fui_examples"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "fui",
  "fui_app",
  "fui_controls",
  "fui_controls_media",
+ "fui_core",
  "fui_macros",
  "time",
  "typed-builder",

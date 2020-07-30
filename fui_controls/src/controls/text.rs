@@ -4,7 +4,7 @@ use std::rc::Rc;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
-use fui::*;
+use fui_core::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
@@ -13,12 +13,20 @@ pub struct Text {
 }
 
 impl Text {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>> {
-        StyledControl::new(self,
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<StyledControl<Self>>> {
+        StyledControl::new(
+            self,
             style.unwrap_or_else(|| {
-                Box::new(DefaultTextStyle::new(DefaultTextStyleParams::builder().build()))
+                Box::new(DefaultTextStyle::new(
+                    DefaultTextStyleParams::builder().build(),
+                ))
             }),
-            context)
+            context,
+        )
     }
 }
 
@@ -95,7 +103,12 @@ impl Style<Text> for DefaultTextStyle {
         self.rect
     }
 
-    fn hit_test(&self, _data: &Text, _control_context: &ControlContext, point: Point) -> HitTestResult {
+    fn hit_test(
+        &self,
+        _data: &Text,
+        _control_context: &ControlContext,
+        point: Point,
+    ) -> HitTestResult {
         if point.is_inside(&self.rect) {
             HitTestResult::Current
         } else {
