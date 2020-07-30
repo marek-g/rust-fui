@@ -1,11 +1,18 @@
 [package]
 name = "fui_core"
 version = "0.1.0"
-authors = ["Marek G <no@mail.com>"]
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Core library of FUI MVVM UI Framework"
+keywords = ["gui", "ui", "toolkit", "framework", "mvvm", "widgets"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_core"
+readme = "../README.md"
 edition = "2018"
 
 [dependencies]
-drawing = { path = "../../rust-drawing/drawing", version = "*" }
+drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
 anyhow = "1.0"
 typed-builder = "0.7"
 typemap = "0.3"

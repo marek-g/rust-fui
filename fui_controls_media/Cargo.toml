@@ -1,15 +1,22 @@
 [package]
 name = "fui_controls_media"
 version = "0.1.0"
-authors = ["Marek G <no@mail.com>"]
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Media controls for FUI UI Framework"
+keywords = ["gui", "ui", "toolkit", "framework", "mvvm", "widgets"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_media"
+readme = "README.md"
 edition = "2018"
 
 [dependencies]
-drawing = { path = "../../rust-drawing/drawing", version = "*" }
-drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "*" }
-fui_core = { path = "../fui_core", version = "*" }
-fui_app = { path = "../../rust-fui/fui_app", version = "*" }
-gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "*" }
+drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
+drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.1" }
+fui_core = { path = "../fui_core", version = "0.1" }
+fui_app = { path = "../../rust-fui/fui_app", version = "0.1" }
+gstreamer_media = { path = "../../rust-media/gstreamer_media", version = "0.1" }
 anyhow = "1.0"
 gstreamer = "0.16"
 gstreamer-sys = "0.9"

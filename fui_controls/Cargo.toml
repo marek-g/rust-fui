@@ -1,13 +1,20 @@
 [package]
 name = "fui_controls"
 version = "0.1.0"
-authors = ["Marek G <no@mail.com>"]
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Standard controls for FUI UI Framework"
+keywords = ["gui", "ui", "toolkit", "framework", "mvvm", "widgets"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_controls"
+readme = "README.md"
 edition = "2018"
 
 [dependencies]
-drawing = { path = "../../rust-drawing/drawing", version = "*" }
-fui_core = { path = "../fui_core", version = "*" }
-fui_macros = { path = "../../rust-fui/fui_macros", version = "*" }
+drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
+fui_core = { path = "../fui_core", version = "0.1" }
+fui_macros = { path = "../../rust-fui/fui_macros", version = "0.1" }
 euclid = "0.21"
 typed-builder = "0.7"
 typemap = "0.3"

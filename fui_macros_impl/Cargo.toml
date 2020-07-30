@@ -1,7 +1,14 @@
 [package]
 name = "fui_macros_impl"
 version = "0.1.0"
-authors = ["Marek G <marek@nomail.com>"]
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Macros for FUI UI Framework"
+keywords = ["gui", "ui", "toolkit", "framework", "mvvm", "widgets"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_macros_impl"
+readme = "README.md"
 edition = "2018"
 
 [lib]
