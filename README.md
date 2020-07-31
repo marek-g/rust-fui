@@ -16,10 +16,6 @@ Core library of FUI MVVM UI Framework.
 
 Macros for FUI UI Framework.
 
-### `fui_macros_impl` [![Crates.io Version](https://img.shields.io/crates/v/fui_macros_impl.svg)](https://crates.io/crates/fui_macros_impl)
-
-Macros for FUI UI Framework.
-
 ### `fui_controls` [![Crates.io Version](https://img.shields.io/crates/v/fui_controls.svg)](https://crates.io/crates/fui_controls)
 
 Standard controls for FUI UI Framework.

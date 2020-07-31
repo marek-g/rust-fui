@@ -416,20 +416,11 @@ dependencies = [
 name = "fui_macros"
 version = "0.1.0"
 dependencies = [
- "fui_macros_impl",
- "proc-macro-hack",
- "typed-builder",
- "typemap",
-]
-
-[[package]]
-name = "fui_macros_impl"
-version = "0.1.0"
-dependencies = [
- "proc-macro-hack",
  "proc-macro2 1.0.19",
  "quote 1.0.7",
  "syn",
+ "typed-builder",
+ "typemap",
 ]
 
 [[package]]

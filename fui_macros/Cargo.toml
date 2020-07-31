@@ -11,8 +11,14 @@ documentation = "https://docs.rs/fui_macros"
 readme = "README.md"
 edition = "2018"
 
+[lib]
+proc-macro = true
+
 [dependencies]
-fui_macros_impl = { path = "../fui_macros_impl" }
-proc-macro-hack = "0.5"
+syn = { version = "1", features=["full"] }
+quote = "1"
+proc-macro2 = "1"
+
+[dev-dependencies]
 typed-builder = "0.7"
 typemap = "0.3"
