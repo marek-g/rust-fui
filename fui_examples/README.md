@@ -1,3 +1,7 @@
+# fui_examples
+
+Examples for FUI UI Framework.
+
 Required folder structure:
 
 +-- rust-drawing
