@@ -6,6 +6,10 @@
 
 MVVM Rust UI Framework Library.
 
+![FUI Logo](./doc/images/fui_logo_shadow.png)
+
+[Documentation](./doc/SUMMARY.md)
+
 ## Crates
 
 ### `fui_core` [![Crates.io Version](https://img.shields.io/crates/v/fui_core.svg)](https://crates.io/crates/fui_core)
