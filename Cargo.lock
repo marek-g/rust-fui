@@ -738,16 +738,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "gstreamer-gl"
+version = "0.16.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e42d03311ea96773b80fb231bc9cfc3aad70e85d1ddfd966329f5f0da1273de"
+dependencies = [
+ "bitflags",
+ "byteorder",
+ "glib",
+ "glib-sys",
+ "gobject-sys",
+ "gstreamer",
+ "gstreamer-base",
+ "gstreamer-gl-sys",
+ "gstreamer-sys",
+ "gstreamer-video",
+ "gstreamer-video-sys",
+ "libc",
+ "once_cell",
+]
+
+[[package]]
 name = "gstreamer-gl-sys"
-version = "0.1.0"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a06166ad4bb5fb0343d11062d0bae1a2d0c3f0ab6aa0201702f7d881946d34c"
 dependencies = [
  "glib-sys",
+ "gobject-sys",
  "gstreamer-base-sys",
  "gstreamer-sys",
- "gtypes",
+ "gstreamer-video-sys",
  "libc",
- "pkg-config",
- "x11-dl",
+ "system-deps",
 ]
 
 [[package]]
@@ -805,19 +828,12 @@ dependencies = [
  "glutin",
  "gstreamer",
  "gstreamer-app",
+ "gstreamer-gl",
  "gstreamer-gl-sys",
+ "gstreamer-sys",
  "pkg-config",
  "winit",
  "x11-dl",
-]
-
-[[package]]
-name = "gtypes"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8852d77575edf1670e115f3144950fc78754cef78ef0d8453e1e62bb0ec3c41"
-dependencies = [
- "libc",
 ]
 
 [[package]]
