@@ -2,7 +2,7 @@ use anyhow::Result;
 use fui_app::*;
 use fui_core::*;
 use gstreamer::prelude::*;
-use gstreamer_media;
+use media_gstreamer;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::mpsc::*;
@@ -37,7 +37,7 @@ impl Player {
         // Create the elements
         //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
         //self.texture.set_size(320, 240);
-        let (pipeline, video_app_sink) = gstreamer_media::create_appsink_pipeline_url(
+        let (pipeline, video_app_sink) = media_gstreamer::create_appsink_pipeline_url(
             "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv",
         );
         self.texture.set_size(1280, 544);

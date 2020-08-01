@@ -381,7 +381,7 @@ dependencies = [
  "gstreamer-sys",
  "gstreamer-video",
  "gstreamer-video-sys",
- "gstreamer_media",
+ "media_gstreamer",
  "time",
  "winit",
 ]
@@ -821,22 +821,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gstreamer_media"
-version = "0.1.0"
-dependencies = [
- "glib",
- "glutin",
- "gstreamer",
- "gstreamer-app",
- "gstreamer-gl",
- "gstreamer-gl-sys",
- "gstreamer-sys",
- "pkg-config",
- "winit",
- "x11-dl",
-]
-
-[[package]]
 name = "heck"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -975,6 +959,22 @@ name = "maybe-uninit"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
+
+[[package]]
+name = "media_gstreamer"
+version = "0.1.0"
+dependencies = [
+ "glib",
+ "glutin",
+ "gstreamer",
+ "gstreamer-app",
+ "gstreamer-gl",
+ "gstreamer-gl-sys",
+ "gstreamer-sys",
+ "pkg-config",
+ "winit",
+ "x11-dl",
+]
 
 [[package]]
 name = "memmap"

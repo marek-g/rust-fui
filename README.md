@@ -4,11 +4,13 @@
 [![Docs.rs Version](https://docs.rs/fui_core/badge.svg)](https://docs.rs/fui_core)
 [![LGPL-2.1-or-later WITH WxWindows-exception-3.1](https://img.shields.io/crates/l/fui_core.svg)](https://github.com/marek-g/rust-fui/blob/master/LICENSE.md)
 
-MVVM Rust UI Framework Library.
-
 ![FUI Logo](./doc/images/fui_logo_shadow.png)
 
-[Documentation](./doc/SUMMARY.md)
+MVVM Rust UI Framework Library.
+
+## Documentation
+
+[FUI's documentation](./doc/SUMMARY.md)
 
 ## Crates
 
@@ -31,6 +33,87 @@ Media controls for FUI UI Framework.
 ### `fui_app` [![Crates.io Version](https://img.shields.io/crates/v/fui_app.svg)](https://crates.io/crates/fui_app)
 
 Application backend of FUI UI Framework.
+
+## Screenshots
+
+Note! The visual aspect of the library is a subject to change. Margins are missing. You can also write your own styles and make it look completely different.
+
+![Screenshot1](./doc/images/screenshot1.png)
+![Screenshot2](./doc/images/screenshot2.png)
+
+## Features
+
+- cross-platform (currently: Windows, Linux)
+- renderer agnostic (sample integration with OpenGL)
+- MVVM model with properties, bindings, observable collections
+- you do not care about redraw calls
+- `ui!` macro for easier view creation
+- extensive styling (style can change behavior)
+
+## Example
+
+```rust
+#![windows_subsystem = "windows"]
+
+use fui_app::*;
+use fui_controls::*;
+use fui_core::*;
+use fui_macros::ui;
+
+use std::cell::RefCell;
+use std::rc::Rc;
+
+use typed_builder::TypedBuilder;
+use typemap::TypeMap;
+use winit::window::WindowBuilder;
+
+struct MainViewModel {
+    pub counter: Property<i32>,
+}
+
+impl MainViewModel {
+    pub fn new() -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(MainViewModel {
+            counter: Property::new(0),
+        }))
+    }
+
+    pub fn increase(&mut self) {
+        self.counter.change(|c| c + 1);
+    }
+}
+
+impl ViewModel for MainViewModel {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
+
+        ui!(
+            Horizontal {
+                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
+                    Text { text: "Increase" }
+                },
+            }
+        )
+    }
+}
+
+fn main() -> anyhow::Result<()> {
+    let mut app = Application::new("Example: button").unwrap();
+
+    app.add_window(
+        WindowBuilder::new().with_title("Example: button"),
+        MainViewModel::new(),
+    )?;
+
+    app.run();
+
+    Ok(())
+}
+```
+
+[More examples](./fui_examples)
 
 ## License
 
