@@ -12,9 +12,11 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
-drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.1" }
 fui_core = { path = "../fui_core", version = "0.1" }
+#drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
+#drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.1" }
+drawing = "0.1"
+drawing_gl = "0.1"
 anyhow = "1.0"
 winit = "0.22"
 shared_library = "0.1"

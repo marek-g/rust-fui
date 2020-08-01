@@ -240,6 +240,8 @@ checksum = "9ea835d29036a4087793836fa931b08837ad5e957da9e23886b29586fb9b6650"
 [[package]]
 name = "drawing"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d43f9f42de845165a1d9d2dec484818fc4a3f62f17385ceb0e16e60b91619d7c"
 dependencies = [
  "anyhow",
  "bitflags",
@@ -253,6 +255,8 @@ dependencies = [
 [[package]]
 name = "drawing_gl"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1193b4a691da7d50dbc589a66f6aea8aafb870122c784e90254bbdb2b9931f78"
 dependencies = [
  "anyhow",
  "drawing",
@@ -963,6 +967,8 @@ checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
 [[package]]
 name = "media_gstreamer"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f813650f16dd18b9b4d219a1debfea2c468f18ac9375df1de1c290098b47557a"
 dependencies = [
  "glib",
  "glutin",
