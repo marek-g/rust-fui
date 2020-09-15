@@ -1,3 +1,9 @@
+TODO:
+
+- [2020-09-15] I have found two interesting projects to investigate:
+  - https://github.com/ogoffart/propertybindings-rs (QML inspired macros)
+  - https://github.com/d9n/pebl/tree/master/src (properties, bindings)
+
 HLists
 -----------------------------
 
@@ -41,7 +47,6 @@ Properties
 
 - binding from many (at least two) properties with converter
 - read only property
-
 
 Layout
 -----------------------------
