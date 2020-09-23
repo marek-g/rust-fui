@@ -2,7 +2,7 @@
 
 This chapter shows how to localize your `fui` application with [`translation`](https://crates.io/crates/translation) crate that is based on [`tr!`](https://crates.io/crates/tr) macro.
 
-Please note that text translation of `fui` application can be done with any external localisation crate. The `translate` crate is great if you like to have English text placed in the source code and be compatible with the [`gettext`](https://www.gnu.org/software/gettext/) library. If you like to keep only ids of text entries in your source code instead and use programmable translation files, you may be more interested in crates like [`fluent`](https://crates.io/crates/fluent).
+Please note that text translation of `fui` application can be done with any external localization crate. The `translate` crate is great if you like to have English text placed in the source code and be compatible with the [`gettext`](https://www.gnu.org/software/gettext/) library. If you like to keep only ids of text entries in your source code instead and use programmable translation files, you may be more interested in crates like [`fluent`](https://crates.io/crates/fluent).
 
 This is a summary taken from the [`translation`](https://crates.io/crates/translation) crate. For more information and the latest documentation please refer to the crate's documentation.
 
