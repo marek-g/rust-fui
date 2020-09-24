@@ -93,7 +93,7 @@ where
             None,
             ViewContext {
                 attached_values: context.attached_values,
-                children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+                children: Children::SingleStatic(content),
             },
         )
     }
@@ -166,7 +166,7 @@ where
                     clicked: clicked_callback,
                 },
                 is_checked: &mut vm.is_checked,
-                @content,
+                content,
             }
         }
     }

@@ -104,7 +104,7 @@ impl Style<Popup> for DefaultPopupStyle {
                                 placement: relative_placement,
                                 clicked_outside: clicked_outside_callback.clone(),
 
-                                @first_child,
+                                first_child,
                             }
                         };
 

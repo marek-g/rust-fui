@@ -35,8 +35,9 @@ impl TabControl {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let tabs_source = Rc::new(context.children);
-        let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0))));
+        let tabs_source =
+            &context.children as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>;
+        let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0).unwrap())));
 
         let selected_tab_clone = selected_tab.clone();
         let tab_button_vms =
@@ -66,7 +67,7 @@ impl TabControl {
             None,
             ViewContext {
                 attached_values: context.attached_values,
-                children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+                children: Children::SingleStatic(content),
             },
         )
     }

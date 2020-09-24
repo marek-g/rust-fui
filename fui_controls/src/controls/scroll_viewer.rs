@@ -58,13 +58,6 @@ impl ScrollViewer {
                 (info.content_height - info.viewport_height).max(0.0f32)
             });
 
-        let scroll_area = ScrollArea::builder()
-            .offset_x(offset_x_prop1)
-            .offset_y(offset_y_prop1)
-            .viewport_info(viewport_info_prop_src)
-            .build()
-            .to_view(None, context);
-
         ui! {
             Grid {
                 columns: 2,
@@ -73,7 +66,13 @@ impl ScrollViewer {
                 heights: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
 
                 Border {
-                    @scroll_area,
+                    ScrollArea {
+                        offset_x: offset_x_prop1,
+                        offset_y: offset_y_prop1,
+                        viewport_info: viewport_info_prop_src,
+
+                        context.children,
+                    },
                 },
 
                 ScrollBar {

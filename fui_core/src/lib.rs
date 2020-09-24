@@ -1,5 +1,5 @@
-mod children_source;
-pub use children_source::*;
+mod children;
+pub use children::*;
 
 mod common;
 pub use common::*;

@@ -6,7 +6,7 @@ use crate::common::*;
 use crate::control::*;
 use crate::observable::*;
 use crate::style::*;
-use crate::{DrawingContext, view::ViewContext, EventContext};
+use crate::{view::ViewContext, DrawingContext, EventContext};
 
 use drawing::primitive::Primitive;
 
@@ -17,11 +17,7 @@ pub struct StyledControl<D> {
 }
 
 impl<D: 'static> StyledControl<D> {
-    pub fn new(
-        data: D,
-        style: Box<dyn Style<D>>,
-        view_context: ViewContext,
-    ) -> Rc<RefCell<Self>> {
+    pub fn new(data: D, style: Box<dyn Style<D>>, view_context: ViewContext) -> Rc<RefCell<Self>> {
         let control = Rc::new(RefCell::new(StyledControl {
             data,
             style,
@@ -35,12 +31,16 @@ impl<D: 'static> StyledControl<D> {
         let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
         let handler = Box::new(
             move |changed_args: ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>| {
-                if let ObservableChangedEventArgs::Insert { index: _, value: child } = changed_args {
+                if let ObservableChangedEventArgs::Insert {
+                    index: _,
+                    value: child,
+                } = changed_args
+                {
                     child
                         .borrow_mut()
                         .get_context_mut()
                         .set_parent(&control_clone);
-                    
+
                     // dynamically created controls require to set services
                     let services = control_clone.borrow_mut().get_context().get_services();
                     child.borrow_mut().get_context_mut().set_services(services);
@@ -49,7 +49,7 @@ impl<D: 'static> StyledControl<D> {
                     .borrow_mut()
                     .get_context_mut()
                     .set_is_dirty(true);
-            }
+            },
         );
         let subscription = control
             .borrow_mut()
@@ -62,16 +62,15 @@ impl<D: 'static> StyledControl<D> {
             .get_context_mut()
             .set_children_collection_changed_event_subscription(subscription);
 
-        for child in control.borrow_mut()
+        for child in control
+            .borrow_mut()
             .get_context_mut()
             .get_children()
-            .into_iter() {
+            .into_iter()
+        {
             let control: Rc<RefCell<dyn ControlObject>> = control.clone();
 
-            child
-                .borrow_mut()
-                .get_context_mut()
-                .set_parent(&control);
+            child.borrow_mut().get_context_mut().set_parent(&control);
         }
 
         control.borrow_mut().setup();
@@ -153,19 +152,33 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         self.style.setup(&mut self.data, &mut self.control_context);
     }
 
-    fn handle_event(&mut self, drawing_context: &mut dyn DrawingContext,
-        event_context: &mut dyn EventContext, event: ControlEvent) {
-        self.style
-            .handle_event(&mut self.data, &mut self.control_context, drawing_context, event_context, event)
+    fn handle_event(
+        &mut self,
+        drawing_context: &mut dyn DrawingContext,
+        event_context: &mut dyn EventContext,
+        event: ControlEvent,
+    ) {
+        self.style.handle_event(
+            &mut self.data,
+            &mut self.control_context,
+            drawing_context,
+            event_context,
+            event,
+        )
     }
 
     fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size) {
-        self.style
-            .measure(&mut self.data, &mut self.control_context, drawing_context, size)
+        self.style.measure(
+            &mut self.data,
+            &mut self.control_context,
+            drawing_context,
+            size,
+        )
     }
 
     fn set_rect(&mut self, rect: Rect) {
-        self.style.set_rect(&mut self.data, &mut self.control_context, rect);
+        self.style
+            .set_rect(&mut self.data, &mut self.control_context, rect);
     }
 
     fn get_rect(&self) -> Rect {
@@ -173,10 +186,14 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
-        self.style.hit_test(&self.data, &self.control_context, point)
+        self.style
+            .hit_test(&self.data, &self.control_context, point)
     }
 
-    fn to_primitives(&self, drawing_context: &mut dyn DrawingContext) -> (Vec<Primitive>, Vec<Primitive>) {
+    fn to_primitives(
+        &self,
+        drawing_context: &mut dyn DrawingContext,
+    ) -> (Vec<Primitive>, Vec<Primitive>) {
         self.style
             .to_primitives(&self.data, &self.control_context, drawing_context)
     }

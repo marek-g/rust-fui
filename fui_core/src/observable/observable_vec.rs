@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::iter::FromIterator;
 
 use crate::observable::observable_collection::ObservableChangedEventArgs;
-use crate::{EventSubscription, observable::event::Event};
+use crate::{observable::event::Event, EventSubscription};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
@@ -21,12 +21,14 @@ impl<T: 'static + Clone> ObservableVec<T> {
         self.items.len()
     }
 
-    pub fn get(&self, index: usize) -> T {
-        self.items[index].clone()
+    pub fn get(&self, index: usize) -> Option<T> {
+        self.items.get(index).map(|el| el.clone())
     }
 
     pub fn on_changed<F>(&self, f: F) -> EventSubscription
-        where F: 'static + Fn(ObservableChangedEventArgs<T>) {
+    where
+        F: 'static + Fn(ObservableChangedEventArgs<T>),
+    {
         self.changed_event.borrow_mut().subscribe(f)
     }
 
@@ -46,9 +48,7 @@ impl<T: 'static + Clone> ObservableVec<T> {
         let mut i = 0;
         while i != self.items.len() {
             if filter(&mut self.items[i]) {
-                let event_args = ObservableChangedEventArgs::Remove {
-                    index: i,
-                };
+                let event_args = ObservableChangedEventArgs::Remove { index: i };
                 self.items.remove(i);
                 self.changed_event.borrow().emit(event_args);
             } else {

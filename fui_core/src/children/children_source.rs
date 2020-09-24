@@ -154,7 +154,7 @@ where
 pub struct AggregatedChildrenSource {
     sources: Vec<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
     changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>>>>,
-    source_changed_event_subscriptions: Vec<EventSubscription>,
+    _source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
 impl AggregatedChildrenSource {
@@ -165,6 +165,7 @@ impl AggregatedChildrenSource {
         let mut source_changed_event_subscriptions = Vec::new();
         for source in &sources {
             let changed_event_clone = changed_event.clone();
+            // TODO: BUG: the index of changed_args is wrong!
             let handler =
                 Box::new(move |changed_args| changed_event_clone.borrow().emit(changed_args));
             if let Some(subscription) = source.on_changed(handler) {
@@ -174,7 +175,7 @@ impl AggregatedChildrenSource {
         AggregatedChildrenSource {
             sources,
             changed_event,
-            source_changed_event_subscriptions,
+            _source_changed_event_subscriptions: source_changed_event_subscriptions,
         }
     }
 }
@@ -184,7 +185,7 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildren
         self.sources.iter().map(|s| s.len()).sum()
     }
 
-    fn get(&self, index: usize) -> Rc<RefCell<dyn ControlObject>> {
+    fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let mut new_index = index;
         for source in &self.sources {
             let len = source.len();
@@ -195,11 +196,7 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for AggregatedChildren
             }
         }
 
-        panic!(format!(
-            "index out of bounds: the len is {} but the index is {}",
-            self.len(),
-            index
-        ))
+        None
     }
 
     fn on_changed(

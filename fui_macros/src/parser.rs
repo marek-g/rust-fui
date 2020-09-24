@@ -1,7 +1,6 @@
-use proc_macro2::Span;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
-use syn::{braced, Error, Expr, ExprReference, Ident, Token};
+use syn::{braced, Expr, Ident, Token};
 
 /// Syntax of ui! macro.
 ///
@@ -60,13 +59,10 @@ pub enum CtrlParam {
     Property(CtrlProperty),
 
     // Button { ... }
-    Ctrl(Ctrl),
+    ChildCtrl(Ctrl),
 
-    // @control,
-    RawCtrl(RawCtrl),
-
-    // &expression,
-    Collection(Collection),
+    // control, &vm.items
+    ChildExpr(Expr),
 }
 
 impl Parse for CtrlParam {
@@ -77,12 +73,10 @@ impl Parse for CtrlParam {
             input.parse().map(CtrlParam::Style)
         } else if input.peek(Ident) && input.peek2(Token![:]) {
             input.parse().map(CtrlParam::Property)
-        } else if input.peek(Token![@]) {
-            input.parse().map(CtrlParam::RawCtrl)
-        } else if input.peek(Token![&]) {
-            input.parse().map(CtrlParam::Collection)
+        } else if input.peek(Ident) && input.peek2(syn::token::Brace) {
+            input.parse().map(CtrlParam::ChildCtrl)
         } else {
-            input.parse().map(CtrlParam::Ctrl)
+            input.parse().map(CtrlParam::ChildExpr)
         }
     }
 }
@@ -98,36 +92,6 @@ impl Parse for CtrlProperty {
         input.parse::<Token![:]>()?;
         let expr: Expr = input.parse()?;
         Ok(CtrlProperty { name, expr })
-    }
-}
-
-pub struct RawCtrl {
-    pub name: Ident,
-}
-
-impl Parse for RawCtrl {
-    fn parse(input: ParseStream) -> Result<Self> {
-        input.parse::<Token![@]>()?;
-        let name: Ident = input.parse()?;
-        Ok(RawCtrl { name })
-    }
-}
-
-pub struct Collection {
-    pub reference: ExprReference,
-}
-
-impl Parse for Collection {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let expr: Expr = input.parse()?;
-        if let Expr::Reference(reference) = expr {
-            Ok(Collection { reference })
-        } else {
-            Err(Error::new(
-                Span::call_site(),
-                "expected reference to collection",
-            ))
-        }
     }
 }
 
@@ -206,7 +170,7 @@ mod tests {
         }
 
         let param = params.next().unwrap();
-        if let CtrlParam::Ctrl(param) = param {
+        if let CtrlParam::ChildCtrl(param) = param {
             assert_eq!(param.name, Ident::new("Button", Span::call_site()));
             let mut params = param.params.into_iter();
             let param = params.next().unwrap();
@@ -220,7 +184,7 @@ mod tests {
         }
 
         let param = params.next().unwrap();
-        if let CtrlParam::Ctrl(param) = param {
+        if let CtrlParam::ChildCtrl(param) = param {
             assert_eq!(param.name, Ident::new("Text", Span::call_site()));
             let mut params = param.params.into_iter();
             let param = params.next().unwrap();

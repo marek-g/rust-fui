@@ -21,7 +21,7 @@ use crate::parser::CtrlProperty;
 //
 //         Button { Text { text: "Button".to_string() } },
 //         Text { text: "Label".to_string() },
-//         @control,
+//         control,
 //     }
 // )
 //
@@ -29,27 +29,27 @@ use crate::parser::CtrlProperty;
 //
 // <Horizontal>::builder().spacing(4.into()).build().to_view(None, ViewContext {
 //     attached_values: { let mut map = TypeMap::new(); map.insert::<Row>(1.into()); map },
-//     children: Box::new(vec![
+//     children: Children::from(vec![
 //
-//         <Button>::builder().build().to_view(None, ViewContext {
+//         (<Button>::builder().build().to_view(None, ViewContext {
 //             attached_values: TypeMap::new(),
-//             children: Box::new(vec![
+//             children: Children::from(vec![
 //
-//                 <Text>::builder()
+//                 (<Text>::builder()
 //                     .text("Button".to_string().into())
 //                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
 //                         children: Box::new(Vec::<Rc<RefCell<dyn ControlObject>>>::new()),
-//                     }) as Rc<RefCell<dyn ControlObject>>,
+//                     }) as Rc<RefCell<dyn ControlObject>>).into(),
 //
 //             )]),
-//         }),
+//         })).into(),
 //
 //         <Text>::builder()
 //             .text("Label".to_string().into())
 //             .build().to_view(None, ViewContext {
 //                 attached_values: TypeMap::new(),
-//                 children: Box::new(Vec::<Rc<RefCell<dyn ControlObject>>>::new()),
+//                 children: Children::from(vec![]),
 //             }),
 //         ),
 //
@@ -67,10 +67,8 @@ use crate::parser::CtrlProperty;
 //
 // <Vertical>::builder().build().to_view(None, ViewContext {
 //     attached_values: TypeMap::new(),
-//     children: Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(&vm.items),
+//     children: Children::from(vec![(&vm.items).into()]),
 // })
-//
-// Vecs and ObservableCollections can be aggregated with AggregatedChildrenSource.
 //
 // ui!(
 //     Text {
@@ -88,7 +86,7 @@ use crate::parser::CtrlProperty;
 //         color([1.0, 0.0, 0.0, 1.0].into()).build()))),
 //     ViewContext {
 //         attached_values: TypeMap::new(),
-//         children: Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(&vm.items),
+//         children: Children::from(vec![]),
 //     }
 // )
 //
@@ -159,7 +157,7 @@ fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro
     for attached_value in attached_values {
         let name = attached_value.name;
         let expr = attached_value.expr;
-        insert_statements.push(quote!(map.insert::<#name>(#expr.into());))
+        insert_statements.push(quote!(map.insert::<#name>((#expr).into());))
     }
     quote!({ let mut map = TypeMap::new(); #(#insert_statements)* map })
 }
@@ -167,40 +165,15 @@ fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro
 fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
     let mut sources = Vec::new();
 
-    let mut static_children = Vec::new();
     for child in children {
-        if let CtrlParam::Ctrl(static_child) = child {
-            static_children.push(quote_control(static_child));
-        } else if let CtrlParam::RawCtrl(raw_control) = child {
-            let name = raw_control.name;
-            static_children.push(quote!(#name));
-        } else if let CtrlParam::Collection(dynamic_child) = child {
-            if static_children.len() > 0 {
-                sources.push(quote!(Box::new(
-                    vec![#(#static_children as Rc<RefCell<dyn ControlObject>>,)*]
-                )));
-                static_children = Vec::new();
-            }
-
-            let reference = dynamic_child.reference;
-            sources.push(quote!(Box::<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>::from(#reference)));
+        if let CtrlParam::ChildCtrl(static_child) = child {
+            sources.push(quote_control(static_child));
+        } else if let CtrlParam::ChildExpr(expression) = child {
+            sources.push(quote!(#expression));
         }
     }
 
-    if static_children.len() > 0 {
-        sources.push(quote!(Box::new(
-            vec![#(#static_children as Rc<RefCell<dyn ControlObject>>,)*]
-        )));
-    }
-
-    let len = sources.len();
-    if len == 0 {
-        quote!(Box::new(Vec::<Rc<RefCell<ControlObject>>>::new()))
-    } else if len == 1 {
-        sources.into_iter().next().unwrap()
-    } else {
-        quote!(Box::new(AggregatedChildrenSource::new(vec![#(#sources,)*])))
-    }
+    quote!({ Children::from(vec![#((#sources).into()),*]) })
 }
 
 fn decouple_params(
@@ -229,12 +202,10 @@ fn decouple_params(
                     properties.push(property);
                 }
             }
-        } else if let CtrlParam::Ctrl(control) = el {
-            children.push(CtrlParam::Ctrl(control))
-        } else if let CtrlParam::RawCtrl(raw_control) = el {
-            children.push(CtrlParam::RawCtrl(raw_control))
-        } else if let CtrlParam::Collection(c) = el {
-            children.push(CtrlParam::Collection(c))
+        } else if let CtrlParam::ChildCtrl(control) = el {
+            children.push(CtrlParam::ChildCtrl(control))
+        } else if let CtrlParam::ChildExpr(expression) = el {
+            children.push(CtrlParam::ChildExpr(expression))
         }
     }
 

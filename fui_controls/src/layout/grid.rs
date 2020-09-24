@@ -287,10 +287,7 @@ impl DefaultGridStyle {
         }
     }
 
-    fn decide_number_of_rows_and_columns(
-        data: &Grid,
-        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
-    ) -> (usize, usize) {
+    fn decide_number_of_rows_and_columns(data: &Grid, children: &Children) -> (usize, usize) {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
         for child in children.into_iter() {
@@ -354,7 +351,7 @@ impl DefaultGridStyle {
     fn prepare_definitions(
         &mut self,
         data: &Grid,
-        _children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+        _children: &Children,
         number_of_rows: usize,
         number_of_columns: usize,
         size_to_content_u: bool,
@@ -426,11 +423,7 @@ impl DefaultGridStyle {
         }
     }
 
-    fn prepare_cell_cache(
-        &mut self,
-        data: &Grid,
-        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
-    ) {
+    fn prepare_cell_cache(&mut self, data: &Grid, children: &Children) {
         self.has_fill_cells_u = false;
         self.has_fill_cells_v = false;
         self.has_group_3_cells_in_auto_rows = false;
@@ -548,7 +541,7 @@ impl DefaultGridStyle {
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
-        children: &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+        children: &Children,
         ignore_desired_size_u: bool,
         force_infinity_v: bool,
     ) -> bool {
@@ -558,7 +551,7 @@ impl DefaultGridStyle {
         let ignore_desired_size_v = force_infinity_v;
 
         for cell in cells {
-            let child = children.get(cell.child_index);
+            let child = children.get(cell.child_index).unwrap();
 
             let old_width = child.borrow().get_rect().width;
             Self::measure_cell(
@@ -1675,7 +1668,7 @@ impl Style<Grid> for DefaultGridStyle {
                 .chain(self.cell_group_3.iter())
                 .chain(self.cell_group_4.iter())
             {
-                let child = children.get(cell.child_index);
+                let child = children.get(cell.child_index).unwrap();
                 let column_index = cell.column_index;
                 let row_index = cell.row_index;
                 let column_span = cell.column_span;

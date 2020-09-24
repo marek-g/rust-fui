@@ -4,12 +4,12 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::{Services, observable::*};
+use crate::{observable::*, Children, Services};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
-    children: Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+    children: Children,
     children_collection_changed_event_subscription: Option<EventSubscription>,
 
     attached_values: TypeMap,
@@ -52,7 +52,7 @@ impl ControlContext {
         self.parent = Some(Rc::downgrade(parent_rc));
     }
 
-    pub fn get_children(&self) -> &Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>> {
+    pub fn get_children(&self) -> &Children {
         &self.children
     }
 
@@ -77,7 +77,10 @@ impl ControlContext {
 
     pub fn set_services(&mut self, services: Option<Weak<RefCell<Services>>>) {
         for child in self.children.into_iter() {
-            child.borrow_mut().get_context_mut().set_services(services.clone());
+            child
+                .borrow_mut()
+                .get_context_mut()
+                .set_services(services.clone());
         }
         self.services = services;
     }

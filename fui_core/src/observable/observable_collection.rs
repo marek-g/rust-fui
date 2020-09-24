@@ -1,7 +1,9 @@
-use crate::{Event, EventSubscription, ObservableVec, Property};
+use crate::{
+    Children, ControlObject, Event, EventSubscription, ObservableVec, Property, SubChildren,
+};
 use std::cell::RefCell;
 use std::cell::RefMut;
-use std::{ops::Index, rc::Rc};
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {
@@ -11,7 +13,7 @@ pub enum ObservableChangedEventArgs<T: 'static + Clone> {
 
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;
-    fn get(&self, index: usize) -> T;
+    fn get(&self, index: usize) -> Option<T>;
     fn on_changed(
         &self,
         f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
@@ -39,7 +41,7 @@ where
     fn next(&mut self) -> Option<T> {
         if self.pos < self.len {
             self.pos += 1;
-            Some(self.source.get(self.pos - 1))
+            self.source.get(self.pos - 1)
         } else {
             None
         }
@@ -53,7 +55,7 @@ where
     fn next_back(&mut self) -> Option<T> {
         if self.len > self.pos {
             self.len -= 1;
-            Some(self.source.get(self.len))
+            self.source.get(self.len)
         } else {
             None
         }
@@ -90,8 +92,12 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
         self.items.borrow().len()
     }
 
-    fn get(&self, index: usize) -> T {
-        self.items.borrow().index(index).clone()
+    fn get(&self, index: usize) -> Option<T> {
+        self.items
+            .borrow()
+            .as_slice()
+            .get(index)
+            .map(|el| el.clone())
     }
 
     fn on_changed(
@@ -167,8 +173,8 @@ where
         Vec::len(self)
     }
 
-    fn get(&self, index: usize) -> T {
-        Vec::index(self, index).clone()
+    fn get(&self, index: usize) -> Option<T> {
+        self.as_slice().get(index).map(|el| el.clone())
     }
 
     fn on_changed(
@@ -190,7 +196,7 @@ where
         ObservableVec::len(self)
     }
 
-    fn get(&self, index: usize) -> T {
+    fn get(&self, index: usize) -> Option<T> {
         ObservableVec::get(self, index)
     }
 
@@ -213,8 +219,12 @@ where
         1
     }
 
-    fn get(&self, _index: usize) -> T {
-        Property::get(self)
+    fn get(&self, index: usize) -> Option<T> {
+        if index == 0 {
+            Some(Property::get(self))
+        } else {
+            None
+        }
     }
 
     fn on_changed(
@@ -240,8 +250,12 @@ where
         }
     }
 
-    fn get(&self, _index: usize) -> T {
-        Property::get(&self).unwrap()
+    fn get(&self, index: usize) -> Option<T> {
+        if index == 0 {
+            Property::get(&self)
+        } else {
+            None
+        }
     }
 
     fn on_changed(
@@ -256,5 +270,41 @@ where
                 value: v.unwrap(),
             });
         }))
+    }
+}
+
+///
+/// ObservableCollection for Children.
+///
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Children {
+    fn len(&self) -> usize {
+        Children::len(self)
+    }
+
+    fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        Children::get(self, index)
+    }
+
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>,
+    ) -> Option<EventSubscription> {
+        match self {
+            Children::None | Children::SingleStatic(_) | Children::MultipleStatic(_) => None,
+
+            Children::SingleDynamic(x) => x.on_changed(f),
+
+            Children::MultipleMixed(children) => {
+                // TODO: implement!!
+                for child in children {
+                    match child {
+                        SubChildren::SingleStatic(x) => {}
+                        SubChildren::MultipleStatic(x) => {}
+                        SubChildren::SingleDynamic(x) => {}
+                    }
+                }
+                None
+            }
+        }
     }
 }

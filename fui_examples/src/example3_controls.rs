@@ -120,14 +120,14 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 4,
 
-                        @radio1,
-                        @radio2,
-                        @radio3,
+                        radio1,
+                        radio2,
+                        radio3,
                     },
                     Vertical {
-                        @radio4,
-                        @radio5,
-                        @radio6,
+                        radio4,
+                        radio5,
+                        radio6,
                     },
 
                     Vertical {
@@ -166,7 +166,7 @@ impl ViewModel for MainViewModel {
             None,
             ViewContext {
                 attached_values: TypeMap::new(),
-                children: Box::new(vec![content as Rc<RefCell<dyn ControlObject>>]),
+                children: Children::SingleStatic(content),
             },
         )
     }
