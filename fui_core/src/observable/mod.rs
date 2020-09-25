@@ -1,14 +1,20 @@
 mod callback;
-pub use self::callback::*;
+pub use callback::*;
 
 mod event;
-pub use self::event::*;
+pub use event::*;
 
 mod property;
-pub use self::property::*;
+pub use property::*;
 
 mod observable_collection;
-pub use self::observable_collection::*;
+pub use observable_collection::*;
+
+mod observable_collection_map;
+pub use observable_collection_map::*;
+
+mod observable_composite;
+pub use observable_composite::*;
 
 mod observable_vec;
-pub use self::observable_vec::*;
+pub use observable_vec::*;

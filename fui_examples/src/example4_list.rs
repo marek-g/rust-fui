@@ -137,7 +137,9 @@ impl ViewModel for MainViewModel {
 
                 ScrollViewer {
                     Vertical {
+                        Text { text: "The dynamic list can be mixed with static controls." },
                         &vm.items,
+                        Text { text: "This is the end." },
                     },
                 }
             }

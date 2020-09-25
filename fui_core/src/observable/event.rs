@@ -5,11 +5,28 @@ use std::rc::Weak;
 use crate::Callback;
 
 ///
-/// EventSubscription is an owner of the callback.
+/// EventSubscription is an owner of the callback (handler).
+/// Event keeps only a weak reference to the callback (handler).
+///
 /// Calling the callback stops when EventSubscription is dropped.
 ///
+/// EventSubscription can keep more than one callback internally.
+/// It is useful when implementing aggregation of events.
+///
 pub struct EventSubscription {
-    _callback: Rc<dyn CallbackObject>,
+    _callbacks: Vec<Rc<dyn CallbackObject>>,
+}
+
+impl EventSubscription {
+    pub fn from_many(event_subscriptions: Vec<EventSubscription>) -> Self {
+        let mut callbacks = Vec::new();
+        for mut subscription in event_subscriptions.into_iter() {
+            callbacks.append(&mut subscription._callbacks);
+        }
+        EventSubscription {
+            _callbacks: callbacks,
+        }
+    }
 }
 
 pub trait CallbackObject {}
@@ -34,7 +51,7 @@ impl<A: 'static + Clone> Event<A> {
         self.callbacks.borrow_mut().push(weak_callback);
 
         EventSubscription {
-            _callback: rc_callback,
+            _callbacks: vec![rc_callback],
         }
     }
 

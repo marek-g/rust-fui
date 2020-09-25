@@ -1,4 +1,6 @@
-use crate::{ControlObject, ObservableCollection, SubChildren};
+use crate::{
+    ControlObject, EventSubscription, ObservableChangedEventArgs, ObservableCollection, SubChildren,
+};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -256,5 +258,41 @@ impl<T: 'static + ControlObject> From<Rc<RefCell<T>>> for Children {
 impl<T: Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>> From<T> for Children {
     fn from(item: T) -> Children {
         Children::SingleDynamic(item.into())
+    }
+}
+
+///
+/// ObservableCollection for Children.
+///
+impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Children {
+    fn len(&self) -> usize {
+        Children::len(self)
+    }
+
+    fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        Children::get(self, index)
+    }
+
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>,
+    ) -> Option<EventSubscription> {
+        match self {
+            Children::None | Children::SingleStatic(_) | Children::MultipleStatic(_) => None,
+
+            Children::SingleDynamic(x) => x.on_changed(f),
+
+            Children::MultipleMixed(children) => {
+                // TODO: implement!!
+                for child in children {
+                    match child {
+                        SubChildren::SingleStatic(x) => {}
+                        SubChildren::MultipleStatic(x) => {}
+                        SubChildren::SingleDynamic(x) => {}
+                    }
+                }
+                None
+            }
+        }
     }
 }

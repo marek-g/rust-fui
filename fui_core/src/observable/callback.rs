@@ -12,7 +12,7 @@ thread_local! {
 /// (you must explicitly call CallbackExecutor::execute_all_in_queue() to do it).
 /// Callbacks are queued because this prevents mutability problems when callbacks are called from callbacks.
 ///
-/// Callback is the owner of the listener clousure.
+/// Callback is the owner of the listener closure.
 ///
 #[derive(Clone)]
 pub struct Callback<A> {

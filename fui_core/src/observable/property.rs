@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::Event;
 use crate::EventSubscription;
+use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
 
 pub struct Property<T> {
     data: Rc<RefCell<PropertyData<T>>>,
@@ -23,10 +23,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         property
     }
 
-    pub fn binded_c_from<
-        TSrc: 'static + Clone + PartialEq,
-        F: 'static + Fn(TSrc) -> T,
-    >(
+    pub fn binded_c_from<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
         src_property: &Property<TSrc>,
         f: F,
     ) -> Self {
@@ -44,7 +41,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn binded_c_to<TDst: 'static + Clone + PartialEq, F: 'static + Fn(T) -> TDst>(
         dst_property: &mut Property<TDst>,
         f: F,
-        init_value: T
+        init_value: T,
     ) -> Self {
         let mut property = Property::new(init_value);
         dst_property.bind_c(&mut property, f);
@@ -268,5 +265,70 @@ where
 {
     fn from(value: (&mut Property<TSrc>, F1, F2)) -> Property<TDest> {
         Property::binded_c_two_way(value.0, value.1, value.2)
+    }
+}
+
+///
+/// ObservableCollection for Property.
+///
+impl<T> ObservableCollection<T> for Property<T>
+where
+    T: 'static + Clone + PartialEq,
+{
+    fn len(&self) -> usize {
+        1
+    }
+
+    fn get(&self, index: usize) -> Option<T> {
+        if index == 0 {
+            Some(Property::get(self))
+        } else {
+            None
+        }
+    }
+
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
+    ) -> Option<EventSubscription> {
+        Some(Property::on_changed(self, move |v| {
+            f(ObservableChangedEventArgs::Remove { index: 0 });
+            f(ObservableChangedEventArgs::Insert { index: 0, value: v });
+        }))
+    }
+}
+
+impl<T> ObservableCollection<T> for Property<Option<T>>
+where
+    T: 'static + Clone + PartialEq,
+{
+    fn len(&self) -> usize {
+        if self.get().is_some() {
+            1
+        } else {
+            0
+        }
+    }
+
+    fn get(&self, index: usize) -> Option<T> {
+        if index == 0 {
+            Property::get(&self)
+        } else {
+            None
+        }
+    }
+
+    fn on_changed(
+        &self,
+        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
+    ) -> Option<EventSubscription> {
+        Some(Property::on_changed(self, move |v| {
+            // TODO: should only emit Remove(0) if previous value wasn't None
+            //f(ObservableChangedEventArgs::Remove { index: 0 });
+            f(ObservableChangedEventArgs::Insert {
+                index: 0,
+                value: v.unwrap(),
+            });
+        }))
     }
 }
