@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn test_ctrl_param_ctrl() {
         let ctrl_param: CtrlParam = parse_quote!(Button {});
-        if let CtrlParam::Ctrl(_) = ctrl_param {
+        if let CtrlParam::ChildCtrl(_) = ctrl_param {
         } else {
             panic!("Expected CtrlParam::Ctrl")
         }
@@ -174,7 +174,7 @@ mod tests {
             assert_eq!(param.name, Ident::new("Button", Span::call_site()));
             let mut params = param.params.into_iter();
             let param = params.next().unwrap();
-            if let CtrlParam::Ctrl(param) = param {
+            if let CtrlParam::ChildCtrl(param) = param {
                 assert_eq!(param.name, Ident::new("Text", Span::call_site()));
             } else {
                 panic!("Expected Text CtrlParam::Ctrl");
