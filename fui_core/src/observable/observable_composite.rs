@@ -22,7 +22,7 @@ impl<T: 'static + Clone> ObservableComposite<T> {
 
         let lengths_rc = Rc::new(RefCell::new(Vec::with_capacity(sources.len())));
 
-        for (index, source) in sources.iter().enumerate() {
+        for (source_index, source) in sources.iter().enumerate() {
             // store source length
             lengths_rc.borrow_mut().push(source.len());
 
@@ -30,12 +30,12 @@ impl<T: 'static + Clone> ObservableComposite<T> {
             let changed_event_clone = changed_event.clone();
             let handler = Box::new(move |changed_args| {
                 // calculate offset, which is sum of length of all previous sources
-                let offset: usize = lengths_clone.borrow().iter().take(index).sum();
+                let offset: usize = lengths_clone.borrow().iter().take(source_index).sum();
 
                 // apply offset to event args and update lengths collection
                 let updated_args = match changed_args {
                     ObservableChangedEventArgs::Insert { index, value } => {
-                        lengths_clone.borrow_mut()[index] += 1;
+                        lengths_clone.borrow_mut()[source_index] += 1;
                         ObservableChangedEventArgs::Insert {
                             index: offset + index,
                             value,
@@ -43,8 +43,8 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                     }
                     ObservableChangedEventArgs::Remove { index } => {
                         let mut lengths = lengths_clone.borrow_mut();
-                        if lengths[index] > 0 {
-                            lengths[index] -= 1;
+                        if lengths[source_index] > 0 {
+                            lengths[source_index] -= 1;
                         }
                         ObservableChangedEventArgs::Remove {
                             index: offset + index,
