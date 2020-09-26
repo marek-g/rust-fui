@@ -8,39 +8,44 @@ use std::rc::Rc;
 /// This is a composite collection of any number of observable collections.
 ///
 pub struct ObservableComposite<T: 'static + Clone> {
-    sources: Rc<Vec<Box<dyn ObservableCollection<T>>>>,
+    sources: Vec<Box<dyn ObservableCollection<T>>>,
+    lengths: Rc<RefCell<Vec<usize>>>,
+
     changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<T>>>>,
     _source_changed_event_subscriptions: Vec<EventSubscription>,
 }
 
 impl<T: 'static + Clone> ObservableComposite<T> {
     pub fn from(sources: Vec<Box<dyn ObservableCollection<T>>>) -> Self {
-        let sources_rc = Rc::new(sources);
-
         let changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
 
-        for (index, source) in sources_rc.iter().enumerate() {
-            let changed_event_clone = changed_event.clone();
+        let lengths_rc = Rc::new(RefCell::new(Vec::with_capacity(sources.len())));
 
-            let sources_weak = Rc::downgrade(&sources_rc);
+        for (index, source) in sources.iter().enumerate() {
+            // store source length
+            lengths_rc.borrow_mut().push(source.len());
+
+            let lengths_clone = lengths_rc.clone();
+            let changed_event_clone = changed_event.clone();
             let handler = Box::new(move |changed_args| {
                 // calculate offset, which is sum of length of all previous sources
-                let offset = if let Some(sources) = sources_weak.upgrade() {
-                    sources.iter().take(index).map(|source| source.len()).sum()
-                } else {
-                    0
-                };
+                let offset: usize = lengths_clone.borrow().iter().take(index).sum();
 
-                // apply offset to event args
+                // apply offset to event args and update lengths collection
                 let updated_args = match changed_args {
                     ObservableChangedEventArgs::Insert { index, value } => {
+                        lengths_clone.borrow_mut()[index] += 1;
                         ObservableChangedEventArgs::Insert {
                             index: offset + index,
                             value,
                         }
                     }
                     ObservableChangedEventArgs::Remove { index } => {
+                        let mut lengths = lengths_clone.borrow_mut();
+                        if lengths[index] > 0 {
+                            lengths[index] -= 1;
+                        }
                         ObservableChangedEventArgs::Remove {
                             index: offset + index,
                         }
@@ -55,7 +60,8 @@ impl<T: 'static + Clone> ObservableComposite<T> {
             }
         }
         ObservableComposite {
-            sources: sources_rc,
+            sources,
+            lengths: lengths_rc,
             changed_event,
             _source_changed_event_subscriptions: source_changed_event_subscriptions,
         }
