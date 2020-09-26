@@ -13,7 +13,7 @@ impl ViewContext {
     pub fn empty() -> ViewContext {
         ViewContext {
             attached_values: TypeMap::new(),
-            children: Children::new(),
+            children: Children::empty(),
         }
     }
 }

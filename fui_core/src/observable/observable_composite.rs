@@ -9,8 +9,6 @@ use std::rc::Rc;
 ///
 pub struct ObservableComposite<T: 'static + Clone> {
     sources: Vec<Box<dyn ObservableCollection<T>>>,
-    lengths: Rc<RefCell<Vec<usize>>>,
-
     changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<T>>>>,
     _source_changed_event_subscriptions: Vec<EventSubscription>,
 }
@@ -20,6 +18,13 @@ impl<T: 'static + Clone> ObservableComposite<T> {
         let changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
 
+        // The collection that keeps track of the lengths of all source collections.
+        //
+        // Please note that we need to manually update lengths. We cannot just look
+        // directly into `sources` to get them. Events in `fui` are asynchronous, so
+        // we could get different results (different index values in generated events).
+        // For example in a case of quickly adding two items one by one, we receive
+        // the event of adding the first one later (when both are already added).
         let lengths_rc = Rc::new(RefCell::new(Vec::with_capacity(sources.len())));
 
         for (source_index, source) in sources.iter().enumerate() {
@@ -61,7 +66,6 @@ impl<T: 'static + Clone> ObservableComposite<T> {
         }
         ObservableComposite {
             sources,
-            lengths: lengths_rc,
             changed_event,
             _source_changed_event_subscriptions: source_changed_event_subscriptions,
         }
