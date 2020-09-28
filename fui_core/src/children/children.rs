@@ -50,9 +50,8 @@ impl Children {
                     if static_children.len() > 0 {
                         sources_to_compose.push(Box::new(static_children));
                         static_children = Vec::new();
-
-                        sources_to_compose.push(items);
                     }
+                    sources_to_compose.push(items);
                 }
             }
         }
