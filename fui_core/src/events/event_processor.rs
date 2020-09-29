@@ -1,8 +1,11 @@
 use std::cell::RefCell;
-use std::{collections::VecDeque, rc::{Rc, Weak}};
+use std::{
+    collections::VecDeque,
+    rc::{Rc, Weak},
+};
 
 use crate::control::*;
-use crate::{DrawingContext, events::*};
+use crate::{events::*, DrawingContext};
 
 struct QueuedEvent {
     pub control: Rc<RefCell<dyn ControlObject>>,
@@ -35,7 +38,7 @@ impl EventProcessor {
             event_queue: VecDeque::new(),
         }
     }
-  
+
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
@@ -47,7 +50,11 @@ impl EventProcessor {
         self.handle_hover_event(root_view, event);
 
         while let Some(queue_event) = self.event_queue.pop_front() {
-            self.send_event_to_control(Some(queue_event.control), drawing_context, queue_event.event);
+            self.send_event_to_control(
+                Some(queue_event.control),
+                drawing_context,
+                queue_event.event,
+            );
         }
     }
 
@@ -107,10 +114,7 @@ impl EventProcessor {
                 Gesture::TapUp { position } => {
                     let captured_control = self.get_captured_control();
                     self.set_captured_control(None);
-                    self.queue_event(
-                        captured_control,
-                        ControlEvent::TapUp { position: position },
-                    );
+                    self.queue_event(captured_control, ControlEvent::TapUp { position: position });
                 }
 
                 Gesture::TapMove { position } => {
@@ -170,7 +174,9 @@ impl EventProcessor {
         event: ControlEvent,
     ) {
         if let Some(ref control) = control {
-            control.borrow_mut().handle_event(drawing_context, self, event);
+            control
+                .borrow_mut()
+                .handle_event(drawing_context, self, event);
         };
     }
 }
@@ -188,22 +194,27 @@ impl EventContext for EventProcessor {
         }
     }
 
-    fn set_hovered_control(&mut self,control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        if let Some(ref hovered_control) = self.get_hovered_control() {
-            if let Some(control) = control.clone() {
-                if !Rc::ptr_eq(hovered_control, &control) {
-                    self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
-                }
-            } else {
-                self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
-            }
+    fn set_hovered_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
+        if !self.is_hover_enabled {
+            self.hovered_control = control.map(|ref c| Rc::downgrade(c));
+            return;
         }
 
-        self.hovered_control = control.clone().map(|ref c| Rc::downgrade(c));
-
-        if self.is_hover_enabled {
-            if let Some(control) = control {
+        if let Some(control) = control {
+            if let Some(ref hovered_control) = self.get_hovered_control() {
+                if !Rc::ptr_eq(hovered_control, &control) {
+                    self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
+                    self.hovered_control = Some(Rc::downgrade(&control));
+                    self.queue_event(Some(control), ControlEvent::HoverEnter);
+                }
+            } else {
+                self.hovered_control = Some(Rc::downgrade(&control));
                 self.queue_event(Some(control), ControlEvent::HoverEnter);
+            }
+        } else {
+            if let Some(ref hovered_control) = self.get_hovered_control() {
+                self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
+                self.hovered_control = None;
             }
         }
     }
@@ -239,12 +250,13 @@ impl EventContext for EventProcessor {
         self.queue_event(control, ControlEvent::FocusEnter);
     }
 
-    fn queue_event(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>, event: ControlEvent) {
+    fn queue_event(
+        &mut self,
+        control: Option<Rc<RefCell<dyn ControlObject>>>,
+        event: ControlEvent,
+    ) {
         if let Some(control) = control {
-            self.event_queue.push_back(QueuedEvent {
-                control,
-                event,
-            })
+            self.event_queue.push_back(QueuedEvent { control, event })
         }
     }
 }
