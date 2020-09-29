@@ -44,6 +44,7 @@ pub struct DefaultTextBoxStyleParams {}
 
 pub struct DefaultTextBoxStyle {
     rect: Rect,
+    is_hover: bool,
     is_focused: bool,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
@@ -63,6 +64,7 @@ impl DefaultTextBoxStyle {
                 width: 0f32,
                 height: 0f32,
             },
+            is_hover: false,
             is_focused: false,
             event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
@@ -180,6 +182,16 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
             ControlEvent::FocusLeave => {
                 self.is_focused = false;
+                control_context.set_is_dirty(true);
+            }
+
+            ControlEvent::HoverEnter => {
+                self.is_hover = true;
+                control_context.set_is_dirty(true);
+            }
+
+            ControlEvent::HoverLeave => {
+                self.is_hover = false;
                 control_context.set_is_dirty(true);
             }
 
@@ -320,7 +332,15 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
-        default_theme::border_3d_edit(&mut vec, x, y, width, height, self.is_focused);
+        default_theme::border_3d_edit(
+            &mut vec,
+            x,
+            y,
+            width,
+            height,
+            self.is_hover,
+            self.is_focused,
+        );
 
         gradient_rect(
             &mut vec,
@@ -330,11 +350,15 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             height - 6.0f32,
             if self.is_focused {
                 [1.0, 1.0, 1.0, 0.75]
+            } else if self.is_hover {
+                [1.0, 1.0, 1.0, 0.675]
             } else {
                 [1.0, 1.0, 1.0, 0.6]
             },
             if self.is_focused {
                 [0.9, 0.9, 0.9, 0.75]
+            } else if self.is_hover {
+                [0.9, 0.9, 0.9, 0.675]
             } else {
                 [0.9, 0.9, 0.9, 0.6]
             },
