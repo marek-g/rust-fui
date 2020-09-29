@@ -113,6 +113,24 @@ pub fn border_3d_single(
             outer_color: border_color4,
         },
     });
+
+    // white shiny pixel
+    vec.push(Primitive::Rectangle {
+        rect: PixelRect::new(
+            if !is_pressed {
+                PixelPoint::new(x, y)
+            } else {
+                PixelPoint::new(x + width - line_thickness, y + height - line_thickness)
+            },
+            PixelSize::new(line_thickness, line_thickness),
+        ),
+        color: [
+            1.0f32,
+            1.0f32,
+            1.0f32,
+            if !is_pressed { 1.0f32 } else { 0.5f32 },
+        ],
+    });
 }
 
 pub fn border_3d_single_rounded(
@@ -194,6 +212,27 @@ pub fn border_3d_single_rounded(
             inner_color: border_color3,
             outer_color: border_color4,
         },
+    });
+
+    // white shiny pixel
+    vec.push(Primitive::Rectangle {
+        rect: PixelRect::new(
+            if !is_pressed {
+                PixelPoint::new(x + radius / 2.0f32, y + radius / 2.0f32)
+            } else {
+                PixelPoint::new(
+                    x + width - line_thickness * radius / 2.0f32,
+                    y + height - line_thickness * radius / 2.0f32,
+                )
+            },
+            PixelSize::new(line_thickness, line_thickness),
+        ),
+        color: [
+            1.0f32,
+            1.0f32,
+            1.0f32,
+            if !is_pressed { 1.0f32 } else { 0.5f32 },
+        ],
     });
 }
 
