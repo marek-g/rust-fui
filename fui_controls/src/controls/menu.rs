@@ -7,7 +7,7 @@ use typemap::TypeMap;
 
 use crate::controls::*;
 use crate::layout::*;
-use crate::DataHolder;
+use crate::{DataHolder, GestureArea};
 use fui_core::*;
 
 pub enum MenuItem {
@@ -122,12 +122,24 @@ impl MenuItem {
                     return title;
                 }
 
+                let mut is_open_prop = Property::new(false);
+                let mut is_open_prop2 = Property::binded_two_way(&mut is_open_prop);
+                let mut tap_down_callback: Callback<()> = Callback::empty();
+                tap_down_callback.set(move |_| {
+                    is_open_prop2.set(true);
+                });
+
                 ui! {
-                    Grid {
+                    GestureArea {
+                        tap_down: tap_down_callback,
+
                         title,
 
                         Popup {
+                            is_open: is_open_prop,
+                            placement: PopupPlacement::BelowOrAboveParent,
 
+                            Text { text: "This is popup!" }
                         }
                     }
                 }

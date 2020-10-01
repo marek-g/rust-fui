@@ -51,12 +51,7 @@ pub struct DefaultButtonStyle {
 impl DefaultButtonStyle {
     pub fn new(_params: DefaultButtonStyleParams) -> Self {
         DefaultButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
+            rect: Rect::empty(),
             is_hover: Property::new(false),
             is_pressed: Property::new(false),
             is_focused: Property::new(false),
