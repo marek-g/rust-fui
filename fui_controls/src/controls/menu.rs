@@ -102,10 +102,12 @@ impl MenuItem {
     pub fn to_view(self) -> Rc<RefCell<dyn ControlObject>> {
         match self {
             MenuItem::Separator => {
-                ui! {
+                let separator: Rc<RefCell<dyn ControlObject>> = ui! {
                     Text { text: "|" }
-                }
+                };
+                separator
             }
+
             MenuItem::Text {
                 text,
                 shortcut,
@@ -113,10 +115,24 @@ impl MenuItem {
                 callback,
                 sub_items,
             } => {
-                ui! {
+                let title = ui! {
                     Text { Style: Hover {}, text: text }
+                };
+                if sub_items.len() == 0 {
+                    return title;
+                }
+
+                ui! {
+                    Grid {
+                        title,
+
+                        Popup {
+
+                        }
+                    }
                 }
             }
+
             MenuItem::Custom {
                 content,
                 callback,

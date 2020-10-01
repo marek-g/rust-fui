@@ -15,6 +15,12 @@ pub enum PopupPlacement {
     BelowOrAboveParent,
 }
 
+#[derive(Copy, Clone)]
+pub enum PopupAutoHide {
+    None,
+    ClickedOutside,
+}
+
 #[derive(TypedBuilder)]
 pub struct Popup {
     #[builder(default = Property::new(false))]
@@ -23,8 +29,8 @@ pub struct Popup {
     #[builder(default = PopupPlacement::FullSize)]
     pub placement: PopupPlacement,
 
-    #[builder(default = Callback::empty())]
-    pub clicked_outside: Callback<()>,
+    #[builder(default = PopupAutoHide::ClickedOutside)]
+    pub auto_hide: PopupAutoHide,
 }
 
 impl Popup {
@@ -71,7 +77,15 @@ impl Style<Popup> for DefaultPopupStyle {
         let self_rc = control_context.get_self_rc();
         let popup_content_rc = self.popup_content.clone();
         let placement = data.placement;
-        let clicked_outside_callback = data.clicked_outside.clone();
+        let auto_hide = data.auto_hide;
+
+        let mut clicked_outside = Callback::empty();
+        if let PopupAutoHide::ClickedOutside = auto_hide {
+            let mut is_open_property2 = Property::binded_two_way(&mut data.is_open);
+            clicked_outside.set(move |_| {
+                is_open_property2.set(false);
+            });
+        }
 
         let is_open_handler = move |is_open| {
             let window_service = self_rc
@@ -102,7 +116,7 @@ impl Style<Popup> for DefaultPopupStyle {
                         let content = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
-                                clicked_outside: clicked_outside_callback.clone(),
+                                clicked_outside: clicked_outside.clone(),
 
                                 first_child,
                             }

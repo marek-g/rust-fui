@@ -123,7 +123,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
             );
     }
 
-    pub fn on_changed<F: 'static + Fn(T)>(&self, f: F) -> EventSubscription {
+    pub fn on_changed<F: 'static + FnMut(T)>(&self, f: F) -> EventSubscription {
         self.data.borrow_mut().changed.subscribe(f)
     }
 }

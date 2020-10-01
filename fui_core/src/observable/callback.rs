@@ -16,7 +16,7 @@ thread_local! {
 ///
 #[derive(Clone)]
 pub struct Callback<A> {
-    callback: Option<Rc<dyn 'static + Fn(A)>>,
+    callback: Option<Rc<RefCell<dyn 'static + FnMut(A)>>>,
 }
 
 impl<A: 'static + Clone> Callback<A> {
@@ -24,20 +24,20 @@ impl<A: 'static + Clone> Callback<A> {
         Callback { callback: None }
     }
 
-    pub fn new<T: 'static, F: 'static + Fn(&mut T, A)>(vm: &Rc<RefCell<T>>, f: F) -> Self {
-        let vm_clone = vm.clone();
+    pub fn new<T: 'static, F: 'static + FnMut(&mut T, A)>(vm: &Rc<RefCell<T>>, mut f: F) -> Self {
+        let mut vm_clone = vm.clone();
         let f2 = move |args: A| {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);
         };
         Callback {
-            callback: Some(Rc::new(f2)),
+            callback: Some(Rc::new(RefCell::new(f2))),
         }
     }
 
-    pub fn new_rc<T: 'static, F: 'static + Fn(Rc<RefCell<T>>, A)>(
+    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
         vm: &Rc<RefCell<T>>,
-        f: F,
+        mut f: F,
     ) -> Self {
         let vm_clone = vm.clone();
         let f2 = move |args: A| {
@@ -45,21 +45,25 @@ impl<A: 'static + Clone> Callback<A> {
             f(vm, args);
         };
         Callback {
-            callback: Some(Rc::new(f2)),
+            callback: Some(Rc::new(RefCell::new(f2))),
         }
     }
 
-    pub fn set<F: 'static + Fn(A)>(&mut self, f: F) {
-        self.callback = Some(Rc::new(f));
+    pub fn set<F: 'static + FnMut(A)>(&mut self, f: F) {
+        self.callback = Some(Rc::new(RefCell::new(f)));
     }
 
-    pub fn set_vm<T: 'static, F: 'static + Fn(&mut T, A)>(&mut self, vm: &Rc<RefCell<T>>, f: F) {
+    pub fn set_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(
+        &mut self,
+        vm: &Rc<RefCell<T>>,
+        mut f: F,
+    ) {
         let vm_clone = vm.clone();
         let f2 = move |args: A| {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);
         };
-        self.callback = Some(Rc::new(f2));
+        self.callback = Some(Rc::new(RefCell::new(f2)));
     }
 
     pub fn clear(&mut self) {
@@ -102,14 +106,14 @@ trait EmittedCallback {
 }
 
 struct EmittedCallbackStruct<A> {
-    callback: Weak<dyn 'static + Fn(A)>,
+    callback: Weak<RefCell<dyn 'static + FnMut(A)>>,
     args: A,
 }
 
 impl<A: Clone> EmittedCallback for EmittedCallbackStruct<A> {
     fn execute(&self) {
         if let Some(callback) = self.callback.upgrade() {
-            callback(self.args.clone());
+            callback.borrow_mut()(self.args.clone());
         }
     }
 }

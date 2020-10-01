@@ -35,7 +35,7 @@ where
     ) -> Rc<RefCell<dyn ControlObject>> {
         let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
         let is_popup_open_property2 =
-            Property::binded_from(&is_popup_open_property_rc.borrow_mut());
+            Property::binded_two_way(&mut is_popup_open_property_rc.borrow_mut());
 
         let is_popup_open_property_rc_clone = is_popup_open_property_rc.clone();
         let mut show_callback = Callback::empty();
@@ -69,7 +69,6 @@ where
                 Popup {
                     is_open: is_popup_open_property2,
                     placement: PopupPlacement::BelowOrAboveParent,
-                    clicked_outside: hide_callback,
 
                     ScrollViewer {
                         horizontal_scroll_bar_visibility: ScrollBarVisibility::Hidden,
