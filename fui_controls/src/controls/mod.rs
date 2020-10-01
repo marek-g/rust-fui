@@ -1,38 +1,41 @@
 mod bitmap;
-pub use self::bitmap::*;
+pub use bitmap::*;
 
 mod border;
-pub use self::border::*;
+pub use border::*;
 
 mod button;
-pub use self::button::*;
+pub use button::*;
 
 mod drop_down;
-pub use self::drop_down::*;
+pub use drop_down::*;
+
+mod menu;
+pub use menu::*;
 
 mod popup;
-pub use self::popup::*;
+pub use popup::*;
 
 mod progress_bar;
-pub use self::progress_bar::*;
+pub use progress_bar::*;
 
 mod scroll_area;
-pub use self::scroll_area::*;
+pub use scroll_area::*;
 
 mod scroll_bar;
-pub use self::scroll_bar::*;
+pub use scroll_bar::*;
 
 mod scroll_viewer;
-pub use self::scroll_viewer::*;
+pub use scroll_viewer::*;
 
 mod tab_control;
-pub use self::tab_control::*;
+pub use tab_control::*;
 
 mod text;
-pub use self::text::*;
+pub use text::*;
 
 mod text_box;
-pub use self::text_box::*;
+pub use text_box::*;
 
 mod toggle_button;
-pub use self::toggle_button::*;
+pub use toggle_button::*;

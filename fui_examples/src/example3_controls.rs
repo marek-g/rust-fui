@@ -63,101 +63,129 @@ impl ViewModel for MainViewModel {
         let radio_controller2 =
             RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
 
-        let content = ui!(
-            TabControl {
-                Grid {
-                    Title: "Tab 1",
+        let tab1 = ui!(
+            Grid {
+                Title: "Tab 1",
 
-                    columns: 2,
-                    default_height: Length::Auto,
+                columns: 2,
+                default_height: Length::Auto,
 
-                    TextBox {
-                        text: &mut vm.text,
-                    },
-                    Text {
-                        text: &vm.text,
-                    },
-
-                    TextBox {
-                        text: &mut vm.text2,
-                    },
-                    Text {
-                        Style: Default {
-                            color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
-                        },
-                        text: &vm.text2,
-                    },
-
-                    ScrollBar {
-                        orientation: Orientation::Horizontal,
-                        value: &mut vm.progress,
-                    },
-                    ProgressBar {
-                        value: &vm.progress,
-                    },
-
-                    DropDown1 {
-                        Column: 0,
-                        Row: 3,
-
-                        selected_item: &mut vm.drop_down_selected_item,
-                        items: vec![
-                            StringViewModel::new("Element A"),
-                            StringViewModel::new("Element B"),
-                            StringViewModel::new("Element C"),
-                            StringViewModel::new("Element D"),
-                            StringViewModel::new("Element E"),
-                        ],
-                    },
-                    Text {
-                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
-                            None => "-".to_string(),
-                            Some(vm) => vm.borrow().text.clone(),
-                        }),
-                    },
-
-                    Vertical {
-                        Column: 0,
-                        Row: 4,
-
-                        radio1,
-                        radio2,
-                        radio3,
-                    },
-                    Vertical {
-                        radio4,
-                        radio5,
-                        radio6,
-                    },
-
-                    Vertical {
-                        Column: 0,
-                        Row: 5,
-
-                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
-                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
-                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
-                    },
+                TextBox {
+                    text: &mut vm.text,
+                },
+                Text {
+                    text: &vm.text,
                 },
 
-                Grid {
-                    Title: "Tab 2",
-
-                    columns: 2,
-
-                    Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
-                    Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.decrease()),
-                        Text { text: "Decrease" },
+                TextBox {
+                    text: &mut vm.text2,
+                },
+                Text {
+                    Style: Default {
+                        color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
                     },
-                    Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.increase()),
-                        Text { text: "Increase" },
-                    },
-                    Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
-                }
+                    text: &vm.text2,
+                },
+
+                ScrollBar {
+                    orientation: Orientation::Horizontal,
+                    value: &mut vm.progress,
+                },
+                ProgressBar {
+                    value: &vm.progress,
+                },
+
+                DropDown1 {
+                    Column: 0,
+                    Row: 3,
+
+                    selected_item: &mut vm.drop_down_selected_item,
+                    items: vec![
+                        StringViewModel::new("Element A"),
+                        StringViewModel::new("Element B"),
+                        StringViewModel::new("Element C"),
+                        StringViewModel::new("Element D"),
+                        StringViewModel::new("Element E"),
+                    ],
+                },
+                Text {
+                    text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
+                        None => "-".to_string(),
+                        Some(vm) => vm.borrow().text.clone(),
+                    }),
+                },
+
+                Vertical {
+                    Column: 0,
+                    Row: 4,
+
+                    radio1,
+                    radio2,
+                    radio3,
+                },
+                Vertical {
+                    radio4,
+                    radio5,
+                    radio6,
+                },
+
+                Vertical {
+                    Column: 0,
+                    Row: 5,
+
+                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
+                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
+                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
+                },
             }
         );
+
+        let tab2 = ui!(
+            Grid {
+                Title: "Tab 2",
+
+                columns: 2,
+
+                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.decrease()),
+                    Text { text: "Decrease" },
+                },
+                Button {
+                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
+                    Text { text: "Increase" },
+                },
+                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
+            }
+        );
+
+        let menu_items = vec![
+            MenuItem::folder(
+                "File",
+                vec![
+                    MenuItem::simple("Open...", Callback::empty()),
+                    MenuItem::simple("Save...", Callback::empty()),
+                    MenuItem::Separator,
+                    MenuItem::simple("Exit", Callback::empty()),
+                ],
+            ),
+            MenuItem::folder(
+                "Help",
+                vec![
+                    MenuItem::simple("Help", Callback::empty()),
+                    MenuItem::Separator,
+                    MenuItem::simple("About", Callback::empty()),
+                ],
+            ),
+        ];
+
+        let content = ui!(Grid {
+            rows: 2,
+            heights: vec![(0, Length::Auto)],
+
+            Menu { items: menu_items },
+            TabControl { tab1, tab2 }
+        });
 
         let data_holder = DataHolder {
             data: (radio_controller, radio_controller2),

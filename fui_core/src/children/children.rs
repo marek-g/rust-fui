@@ -115,10 +115,29 @@ impl<T: 'static + ControlObject> From<Rc<RefCell<T>>> for Children {
     }
 }
 
+/// Converts vector of controls to ChildEntry.
+impl From<Vec<Rc<RefCell<dyn ControlObject>>>> for Children {
+    fn from(items: Vec<Rc<RefCell<dyn ControlObject>>>) -> Children {
+        Children::MultipleStatic(items)
+    }
+}
+
+/// Converts vector of controls to ChildEntry.
+impl<T: 'static + ControlObject> From<Vec<Rc<RefCell<T>>>> for Children {
+    fn from(items: Vec<Rc<RefCell<T>>>) -> Children {
+        Children::MultipleStatic(
+            items
+                .into_iter()
+                .map(|item| item as Rc<RefCell<dyn ControlObject>>)
+                .collect(),
+        )
+    }
+}
+
 /// Converts an observable collection to ChildEntry.
 impl<T: Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>> From<T> for Children {
-    fn from(item: T) -> Children {
-        Children::SingleDynamic(item.into())
+    fn from(items: T) -> Children {
+        Children::SingleDynamic(items.into())
     }
 }
 
