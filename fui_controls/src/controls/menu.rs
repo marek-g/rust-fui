@@ -114,7 +114,7 @@ impl MenuItem {
                 sub_items,
             } => {
                 ui! {
-                    Text { text: text }
+                    Text { Style: Hover {}, text: text }
                 }
             }
             MenuItem::Custom {
