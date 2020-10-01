@@ -228,11 +228,6 @@ impl EventContext for EventProcessor {
     }
 
     fn set_captured_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        if let Some(_) = control {
-            self.disable_hover();
-        } else {
-            self.enable_hover();
-        }
         self.captured_control = control.map(|ref c| Rc::downgrade(c));
     }
 
