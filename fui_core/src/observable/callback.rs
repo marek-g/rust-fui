@@ -25,7 +25,7 @@ impl<A: 'static + Clone> Callback<A> {
     }
 
     pub fn new<T: 'static, F: 'static + FnMut(&mut T, A)>(vm: &Rc<RefCell<T>>, mut f: F) -> Self {
-        let mut vm_clone = vm.clone();
+        let vm_clone = vm.clone();
         let f2 = move |args: A| {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);

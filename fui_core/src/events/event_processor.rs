@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::control::*;
-use crate::{events::*, DrawingContext};
+use crate::{events::*, DrawingContext, Point};
 
 struct QueuedEvent {
     pub control: Rc<RefCell<dyn ControlObject>>,
@@ -13,11 +13,12 @@ struct QueuedEvent {
 }
 
 pub struct EventProcessor {
-    hovered_control: Option<Weak<RefCell<dyn ControlObject>>>,
+    hovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
     captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
     focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
 
     is_hover_enabled: bool,
+    cursor_pos: Option<Point>,
 
     gesture_detector: GestureDetector,
 
@@ -27,11 +28,12 @@ pub struct EventProcessor {
 impl EventProcessor {
     pub fn new() -> Self {
         EventProcessor {
-            hovered_control: None,
+            hovered_controls: Vec::new(),
             captured_control: None,
             focused_control: None,
 
             is_hover_enabled: true,
+            cursor_pos: None,
 
             gesture_detector: GestureDetector::new(),
 
@@ -126,16 +128,6 @@ impl EventProcessor {
             });
     }
 
-    fn disable_hover(&mut self) {
-        self.queue_event(self.get_hovered_control(), ControlEvent::HoverLeave);
-        self.is_hover_enabled = false;
-    }
-
-    fn enable_hover(&mut self) {
-        self.is_hover_enabled = true;
-        self.queue_event(self.get_hovered_control(), ControlEvent::HoverEnter);
-    }
-
     fn handle_hover_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
@@ -143,22 +135,66 @@ impl EventProcessor {
     ) {
         match event {
             InputEvent::CursorMoved { position, .. } => {
-                let hit_test_result = root_view.borrow().hit_test(*position);
-                let hit_control = match hit_test_result {
-                    HitTestResult::Current => Some(root_view.clone()),
-                    HitTestResult::Child(control) => Some(control),
-                    HitTestResult::Nothing => None,
-                };
-
-                self.set_hovered_control(hit_control);
+                self.cursor_pos = Some(*position);
+                self.recalculate_hover(root_view);
             }
 
             InputEvent::CursorLeft { .. } => {
-                self.set_hovered_control(None);
+                self.cursor_pos = None;
+                self.clear_hover();
             }
 
             _ => (),
         }
+    }
+
+    fn recalculate_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
+        if let Some(position) = self.cursor_pos {
+            let controls_to_hover = root_view.borrow().get_controls_at_point(position);
+
+            // leave hover
+            let to_leave_hover = self
+                .hovered_controls
+                .iter()
+                .rev()
+                .filter(|&c| !controls_to_hover.iter().any(|c2| Weak::ptr_eq(c, c2)))
+                .map(|c| c.clone())
+                .collect::<Vec<_>>();
+            for c in to_leave_hover {
+                self.queue_event(c.upgrade(), ControlEvent::HoverLeave);
+            }
+
+            // enter hover
+            for control_to_hover in &controls_to_hover {
+                let exists = self
+                    .hovered_controls
+                    .iter()
+                    .any(|c| Weak::ptr_eq(c, &control_to_hover));
+                if !exists {
+                    self.queue_event(control_to_hover.upgrade(), ControlEvent::HoverEnter);
+                }
+            }
+
+            self.hovered_controls = controls_to_hover;
+        }
+    }
+
+    fn clear_hover(&mut self) {
+        let mut to_leave_hover = Vec::new();
+        to_leave_hover.append(&mut self.hovered_controls);
+        for c in to_leave_hover {
+            self.queue_event(c.upgrade(), ControlEvent::HoverLeave);
+        }
+    }
+
+    fn disable_hover(&mut self) {
+        self.clear_hover();
+        self.is_hover_enabled = false;
+    }
+
+    fn enable_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
+        self.is_hover_enabled = true;
+        self.recalculate_hover(root_view);
     }
 
     /// Sends event to the control.
@@ -182,43 +218,6 @@ impl EventProcessor {
 }
 
 impl EventContext for EventProcessor {
-    fn get_hovered_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
-        if self.is_hover_enabled {
-            if let Some(ref control) = self.hovered_control {
-                control.upgrade()
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-
-    fn set_hovered_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        if !self.is_hover_enabled {
-            self.hovered_control = control.map(|ref c| Rc::downgrade(c));
-            return;
-        }
-
-        if let Some(control) = control {
-            if let Some(ref hovered_control) = self.get_hovered_control() {
-                if !Rc::ptr_eq(hovered_control, &control) {
-                    self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
-                    self.hovered_control = Some(Rc::downgrade(&control));
-                    self.queue_event(Some(control), ControlEvent::HoverEnter);
-                }
-            } else {
-                self.hovered_control = Some(Rc::downgrade(&control));
-                self.queue_event(Some(control), ControlEvent::HoverEnter);
-            }
-        } else {
-            if let Some(ref hovered_control) = self.get_hovered_control() {
-                self.queue_event(Some(hovered_control.clone()), ControlEvent::HoverLeave);
-                self.hovered_control = None;
-            }
-        }
-    }
-
     fn get_captured_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if let Some(ref control) = self.captured_control {
             control.upgrade()

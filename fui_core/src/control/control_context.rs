@@ -32,6 +32,10 @@ impl ControlContext {
         }
     }
 
+    pub fn get_self_weak(&self) -> Weak<RefCell<dyn ControlObject>> {
+        self.self_weak.clone().unwrap()
+    }
+
     pub fn get_self_rc(&self) -> Rc<RefCell<dyn ControlObject>> {
         self.self_weak.as_ref().unwrap().upgrade().unwrap()
     }

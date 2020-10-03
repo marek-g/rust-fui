@@ -1,10 +1,31 @@
 use crate::control::control_behavior::ControlBehavior;
-use crate::{EventSubscription, control::control_context::ControlContext, Property};
-use std::{cell::{RefMut, RefCell}, rc::Rc};
+use crate::{control::control_context::ControlContext, EventSubscription, Point, Property};
+use std::rc::Weak;
+use std::{
+    cell::{RefCell, RefMut},
+    rc::Rc,
+};
 
 pub trait ControlObject: ControlBehavior {
     fn get_context(&self) -> &ControlContext;
     fn get_context_mut(&mut self) -> &mut ControlContext;
+
+    /// Returns all the child controls including this one
+    /// that are located within a specified `point` of the window.
+    ///
+    /// The order is from the bottom to the top.
+    fn get_controls_at_point(&self, point: Point) -> Vec<Weak<RefCell<dyn ControlObject>>> {
+        let rect = self.get_rect();
+        let mut res = Vec::new();
+        if point.is_inside(&rect) {
+            let children = self.get_context().get_children();
+            for child in children {
+                res.append(&mut child.borrow().get_controls_at_point(point));
+            }
+            res.push(self.get_context().get_self_weak())
+        }
+        res
+    }
 }
 
 ///
