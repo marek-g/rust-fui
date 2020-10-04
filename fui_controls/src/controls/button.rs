@@ -127,8 +127,15 @@ impl Style<Button> for DefaultButtonStyle {
         _data: &mut Button,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        if size.width.is_finite() {
+            size.width = 0.0f32.max(size.width - 20.0f32);
+        }
+        if size.height.is_finite() {
+            size.height = 0.0f32.max(size.height - 20.0f32);
+        }
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -137,12 +144,13 @@ impl Style<Button> for DefaultButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
+
         self.rect = Rect::new(
             0.0f32,
             0.0f32,
             content_size.width + 20.0f32,
             content_size.height + 20.0f32,
-        )
+        );
     }
 
     fn set_rect(&mut self, _data: &mut Button, control_context: &mut ControlContext, rect: Rect) {

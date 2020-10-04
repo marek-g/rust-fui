@@ -1,23 +1,26 @@
 mod color;
-pub use self::color::*;
+pub use color::*;
 
 mod matrix;
-pub use self::matrix::*;
+pub use matrix::*;
 
 mod orientation;
-pub use self::orientation::*;
+pub use orientation::*;
 
 mod point;
-pub use self::point::*;
+pub use point::*;
 
 mod rect;
-pub use self::rect::*;
+pub use rect::*;
 
 mod rounding;
-pub use self::rounding::*;
+pub use rounding::*;
 
 mod size;
-pub use self::size::*;
+pub use size::*;
+
+mod thickness;
+pub use thickness::*;
 
 mod unit;
-pub use self::unit::*;
+pub use unit::*;

@@ -1,14 +1,17 @@
 mod horizontal;
-pub use self::horizontal::*;
+pub use horizontal::*;
 
 mod grid;
-pub use self::grid::*;
+pub use grid::*;
+
+mod margin;
+pub use margin::*;
 
 mod relative_layout;
 pub use relative_layout::*;
 
 mod stack_panel;
-pub use self::stack_panel::*;
+pub use stack_panel::*;
 
 mod vertical;
-pub use self::vertical::*;
+pub use vertical::*;

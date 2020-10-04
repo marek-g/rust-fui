@@ -122,9 +122,12 @@ impl MenuItem {
                 sub_items,
             } => {
                 let title = ui! {
-                    Text {
-                        Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
-                        text: text
+                    Margin {
+                        thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
+                        Text {
+                            Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
+                            text: text
+                        }
                     }
                 };
                 if sub_items.len() == 0 {

@@ -123,16 +123,6 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         } else {
             HitTestResult::Nothing
         }
-        /*let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
-            let child_hit_test = child.borrow_mut().hit_test(point);
-            return match child_hit_test {
-                HitTestResult::Current => HitTestResult::Child(child.clone()),
-                HitTestResult::Child(..) => child_hit_test,
-                HitTestResult::Nothing => HitTestResult::Nothing,
-            };
-        }
-        HitTestResult::Nothing*/
     }
 
     fn to_primitives(
