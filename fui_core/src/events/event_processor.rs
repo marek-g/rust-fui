@@ -144,13 +144,32 @@ impl EventProcessor {
                 self.clear_hover();
             }
 
+            InputEvent::MouseInput {
+                state: ElementState::Released,
+                ..
+            } => {
+                self.recalculate_hover(root_view);
+            }
+
             _ => (),
         }
     }
 
     fn recalculate_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
         if let Some(position) = self.cursor_pos {
-            let controls_to_hover = root_view.borrow().get_controls_at_point(position);
+            let mut controls_to_hover = root_view.borrow().get_controls_at_point(position);
+
+            // if there is captured control, only captured control can be hovered
+            if let Some(captured_control) = &self.captured_control {
+                let mut i = 0;
+                while i != controls_to_hover.len() {
+                    if !Weak::ptr_eq(&controls_to_hover[i], &captured_control) {
+                        controls_to_hover.remove(i);
+                    } else {
+                        i += 1;
+                    }
+                }
+            }
 
             // leave hover
             let to_leave_hover = self
@@ -185,16 +204,6 @@ impl EventProcessor {
         for c in to_leave_hover {
             self.queue_event(c.upgrade(), ControlEvent::HoverLeave);
         }
-    }
-
-    fn disable_hover(&mut self) {
-        self.clear_hover();
-        self.is_hover_enabled = false;
-    }
-
-    fn enable_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
-        self.is_hover_enabled = true;
-        self.recalculate_hover(root_view);
     }
 
     /// Sends event to the control.

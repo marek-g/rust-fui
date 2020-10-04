@@ -7,3 +7,5 @@
 `HoverLeave` event is sent to the control when pointer leaves contol's area.
 
 More than one control can be hovered at the same time if they overlap.
+
+If there is a captured control, only the captured control can be hovered.
