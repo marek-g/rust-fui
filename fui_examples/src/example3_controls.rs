@@ -165,6 +165,14 @@ impl ViewModel for MainViewModel {
                 vec![
                     MenuItem::simple("Open...", Callback::empty()),
                     MenuItem::simple("Save...", Callback::empty()),
+                    MenuItem::folder(
+                        "Export",
+                        vec![
+                            MenuItem::simple("PDF...", Callback::empty()),
+                            MenuItem::simple("PNG...", Callback::empty()),
+                            MenuItem::simple("HTML...", Callback::empty()),
+                        ],
+                    ),
                     MenuItem::Separator,
                     MenuItem::simple("Exit", Callback::empty()),
                 ],

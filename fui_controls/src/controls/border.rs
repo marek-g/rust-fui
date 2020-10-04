@@ -6,9 +6,13 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
+use drawing::units::{PixelPoint, PixelRect, PixelSize};
 
 #[derive(TypedBuilder)]
-pub struct Border {}
+pub struct Border {
+    #[builder(default = None)]
+    background_color: Option<Color>,
+}
 
 impl Border {
     pub fn to_view(
@@ -152,7 +156,7 @@ impl Style<Border> for DefaultBorderStyle {
 
     fn to_primitives(
         &self,
-        _data: &Border,
+        data: &Border,
         control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
@@ -163,6 +167,13 @@ impl Style<Border> for DefaultBorderStyle {
         let y = self.rect.y;
         let width = self.rect.width;
         let height = self.rect.height;
+
+        if let Some(color) = data.background_color {
+            vec.push(Primitive::Rectangle {
+                rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
+                color,
+            });
+        }
 
         default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
 

@@ -80,10 +80,13 @@ impl Menu {
         let content: Vec<_> = self.items.into_iter().map(|item| item.to_view()).collect();
 
         let menu = ui! {
-            StackPanel {
-                orientation: self.orientation,
+            Border {
+                background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32],
+                StackPanel {
+                    orientation: self.orientation,
 
-                content,
+                    content,
+                }
             }
         };
 
@@ -103,7 +106,10 @@ impl MenuItem {
         match self {
             MenuItem::Separator => {
                 let separator: Rc<RefCell<dyn ControlObject>> = ui! {
-                    Text { text: "|" }
+                    Text {
+                        Style: Default { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
+                        text: "|"
+                    }
                 };
                 separator
             }
@@ -116,7 +122,10 @@ impl MenuItem {
                 sub_items,
             } => {
                 let title = ui! {
-                    Text { Style: Hover {}, text: text }
+                    Text {
+                        Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
+                        text: text
+                    }
                 };
                 if sub_items.len() == 0 {
                     return title;
@@ -129,6 +138,9 @@ impl MenuItem {
                     is_open_prop2.set(true);
                 });
 
+                let sub_content: Vec<_> =
+                    sub_items.into_iter().map(|item| item.to_view()).collect();
+
                 ui! {
                     GestureArea {
                         tap_down: tap_down_callback,
@@ -139,7 +151,12 @@ impl MenuItem {
                             is_open: is_open_prop,
                             placement: PopupPlacement::BelowOrAboveParent,
 
-                            Text { text: "This is popup!" }
+                            Border {
+                                background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32],
+                                Vertical {
+                                    sub_content
+                                }
+                            }
                         }
                     }
                 }
