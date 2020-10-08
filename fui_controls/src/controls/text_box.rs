@@ -175,23 +175,13 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         event: ControlEvent,
     ) {
         match event {
-            ControlEvent::FocusEnter => {
-                self.is_focused = true;
+            ControlEvent::FocusChange(value) => {
+                self.is_focused = value;
                 control_context.set_is_dirty(true);
             }
 
-            ControlEvent::FocusLeave => {
-                self.is_focused = false;
-                control_context.set_is_dirty(true);
-            }
-
-            ControlEvent::HoverEnter => {
-                self.is_hover = true;
-                control_context.set_is_dirty(true);
-            }
-
-            ControlEvent::HoverLeave => {
-                self.is_hover = false;
+            ControlEvent::HoverChange(value) => {
+                self.is_hover = value;
                 control_context.set_is_dirty(true);
             }
 

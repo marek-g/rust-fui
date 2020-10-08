@@ -180,7 +180,7 @@ impl EventProcessor {
                 .map(|c| c.clone())
                 .collect::<Vec<_>>();
             for c in to_leave_hover {
-                self.queue_event(c.upgrade(), ControlEvent::HoverLeave);
+                self.queue_event(c.upgrade(), ControlEvent::HoverChange(false));
             }
 
             // enter hover
@@ -190,7 +190,7 @@ impl EventProcessor {
                     .iter()
                     .any(|c| Weak::ptr_eq(c, &control_to_hover));
                 if !exists {
-                    self.queue_event(control_to_hover.upgrade(), ControlEvent::HoverEnter);
+                    self.queue_event(control_to_hover.upgrade(), ControlEvent::HoverChange(true));
                 }
             }
 
@@ -202,7 +202,7 @@ impl EventProcessor {
         let mut to_leave_hover = Vec::new();
         to_leave_hover.append(&mut self.hovered_controls);
         for c in to_leave_hover {
-            self.queue_event(c.upgrade(), ControlEvent::HoverLeave);
+            self.queue_event(c.upgrade(), ControlEvent::HoverChange(false));
         }
     }
 
@@ -248,9 +248,9 @@ impl EventContext for EventProcessor {
     }
 
     fn set_focused_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
-        self.queue_event(self.get_focused_control(), ControlEvent::FocusLeave);
+        self.queue_event(self.get_focused_control(), ControlEvent::FocusChange(false));
         self.focused_control = control.clone().map(|ref c| Rc::downgrade(c));
-        self.queue_event(control, ControlEvent::FocusEnter);
+        self.queue_event(control, ControlEvent::FocusChange(true));
     }
 
     fn queue_event(

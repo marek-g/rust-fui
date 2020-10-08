@@ -184,12 +184,8 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_thumb_hover.set(true);
-            }
-
-            ControlEvent::HoverLeave => {
-                self.is_thumb_hover.set(false);
+            ControlEvent::HoverChange(value) => {
+                self.is_thumb_hover.set(value);
             }
 
             _ => (),

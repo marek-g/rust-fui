@@ -12,6 +12,9 @@ pub struct GestureArea {
 
     #[builder(default = Callback::empty())]
     pub tap_up: Callback<()>,
+
+    #[builder(default = Callback::empty())]
+    pub hover_change: Callback<bool>,
 }
 
 impl GestureArea {

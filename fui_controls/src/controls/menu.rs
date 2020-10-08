@@ -122,11 +122,16 @@ impl MenuItem {
                 sub_items,
             } => {
                 let title = ui! {
-                    Margin {
-                        thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
-                        Text {
-                            Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
-                            text: text
+                    GestureArea {
+                        Border {
+                            background_color: Some([0.0f32, 0.0f32, 0.0f32, 1.0f32]),
+                            Margin {
+                                thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
+                                Text {
+                                    Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
+                                    text: text
+                                }
+                            }
                         }
                     }
                 };

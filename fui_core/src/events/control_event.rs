@@ -3,11 +3,8 @@ use crate::events::key_event::KeyEvent;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ControlEvent {
-    HoverEnter,
-    HoverLeave,
-
-    FocusEnter,
-    FocusLeave,
+    HoverChange(bool),
+    FocusChange(bool),
 
     TapDown { position: Point },
     TapUp { position: Point },

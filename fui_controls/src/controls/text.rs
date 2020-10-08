@@ -208,13 +208,8 @@ impl Style<Text> for HoverTextStyle {
         event: ControlEvent,
     ) {
         match event {
-            ControlEvent::HoverEnter => {
-                self.is_hover = true;
-                control_context.set_is_dirty(true);
-            }
-
-            ControlEvent::HoverLeave => {
-                self.is_hover = false;
+            ControlEvent::HoverChange(value) => {
+                self.is_hover = value;
                 control_context.set_is_dirty(true);
             }
 

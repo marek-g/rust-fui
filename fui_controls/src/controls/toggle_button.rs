@@ -114,20 +114,12 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+            ControlEvent::HoverChange(value) => {
+                self.is_hover.set(value);
             }
 
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
+            ControlEvent::FocusChange(value) => {
+                self.is_focused.set(value);
             }
 
             _ => (),
@@ -321,20 +313,12 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+            ControlEvent::HoverChange(value) => {
+                self.is_hover.set(value);
             }
 
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
+            ControlEvent::FocusChange(value) => {
+                self.is_focused.set(value);
             }
 
             _ => (),
@@ -562,20 +546,12 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+            ControlEvent::HoverChange(value) => {
+                self.is_hover.set(value);
             }
 
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
+            ControlEvent::FocusChange(value) => {
+                self.is_focused.set(value);
             }
 
             _ => (),
@@ -771,20 +747,12 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+            ControlEvent::HoverChange(value) => {
+                self.is_hover.set(value);
             }
 
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
+            ControlEvent::FocusChange(value) => {
+                self.is_focused.set(value);
             }
 
             _ => (),
@@ -1007,20 +975,12 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
                 }
             }
 
-            ControlEvent::HoverEnter => {
-                self.is_hover.set(true);
+            ControlEvent::HoverChange(value) => {
+                self.is_hover.set(value);
             }
 
-            ControlEvent::HoverLeave => {
-                self.is_hover.set(false);
-            }
-
-            ControlEvent::FocusEnter => {
-                self.is_focused.set(true);
-            }
-
-            ControlEvent::FocusLeave => {
-                self.is_focused.set(false);
+            ControlEvent::FocusChange(value) => {
+                self.is_focused.set(value);
             }
 
             _ => (),
