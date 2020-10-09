@@ -8,10 +8,15 @@ use typed_builder::TypedBuilder;
 use crate::style::*;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 
+pub enum BorderType {
+    None,
+    Normal,
+}
+
 #[derive(TypedBuilder)]
 pub struct Border {
-    #[builder(default = None)]
-    background_color: Option<Color>,
+    #[builder(default = BorderType::Normal)]
+    border_type: BorderType,
 }
 
 impl Border {
@@ -39,14 +44,19 @@ impl Border {
 const BORDER_SIZE: f32 = 1.0f32;
 
 #[derive(TypedBuilder)]
-pub struct DefaultBorderStyleParams {}
+pub struct DefaultBorderStyleParams {
+    #[builder(default = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]))]
+    background_color: Property<Color>,
+}
 
 pub struct DefaultBorderStyle {
     rect: Rect,
+    params: DefaultBorderStyleParams,
+    event_subscriptions: Vec<EventSubscription>,
 }
 
 impl DefaultBorderStyle {
-    pub fn new(_params: DefaultBorderStyleParams) -> Self {
+    pub fn new(params: DefaultBorderStyleParams) -> Self {
         DefaultBorderStyle {
             rect: Rect {
                 x: 0f32,
@@ -54,12 +64,27 @@ impl DefaultBorderStyle {
                 width: 0f32,
                 height: 0f32,
             },
+            params,
+            event_subscriptions: Vec::new(),
+        }
+    }
+
+    fn get_border_size(data: &mut Border) -> f32 {
+        match data.border_type {
+            BorderType::None => 0f32,
+            BorderType::Normal => BORDER_SIZE,
         }
     }
 }
 
 impl Style<Border> for DefaultBorderStyle {
-    fn setup(&mut self, _data: &mut Border, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut Border, control_context: &mut ControlContext) {
+        self.event_subscriptions.push(
+            self.params
+                .background_color
+                .dirty_watching(&control_context.get_self_rc()),
+        );
+    }
 
     fn handle_event(
         &mut self,
@@ -73,22 +98,24 @@ impl Style<Border> for DefaultBorderStyle {
 
     fn measure(
         &mut self,
-        _data: &mut Border,
+        data: &mut Border,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
         let children = control_context.get_children();
 
+        let border_size = Self::get_border_size(data);
+
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
                 if size.width.is_finite() {
-                    0f32.max(size.width - BORDER_SIZE * 2.0f32)
+                    0f32.max(size.width - border_size * 2.0f32)
                 } else {
                     size.width
                 },
                 if size.height.is_finite() {
-                    0f32.max(size.height - BORDER_SIZE * 2.0f32)
+                    0f32.max(size.height - border_size * 2.0f32)
                 } else {
                     size.height
                 },
@@ -103,19 +130,21 @@ impl Style<Border> for DefaultBorderStyle {
         self.rect = Rect::new(
             0.0f32,
             0.0f32,
-            content_size.width + BORDER_SIZE * 2.0f32,
-            content_size.height + BORDER_SIZE * 2.0f32,
+            content_size.width + border_size * 2.0f32,
+            content_size.height + border_size * 2.0f32,
         )
     }
 
-    fn set_rect(&mut self, _data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(&mut self, data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
         self.rect = rect;
 
+        let border_size = Self::get_border_size(data);
+
         let content_rect = Rect::new(
-            rect.x + BORDER_SIZE,
-            rect.y + BORDER_SIZE,
-            rect.width - BORDER_SIZE * 2.0f32,
-            rect.height - BORDER_SIZE * 2.0f32,
+            rect.x + border_size,
+            rect.y + border_size,
+            rect.width - border_size * 2.0f32,
+            rect.height - border_size * 2.0f32,
         );
 
         let children = control_context.get_children();
@@ -168,14 +197,21 @@ impl Style<Border> for DefaultBorderStyle {
         let width = self.rect.width;
         let height = self.rect.height;
 
-        if let Some(color) = data.background_color {
+        let background_color = self.params.background_color.get();
+        if background_color[3] > 0.0f32 {
             vec.push(Primitive::Rectangle {
                 rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-                color,
+                color: background_color,
             });
         }
 
-        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
+        match data.border_type {
+            BorderType::Normal => {
+                default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false)
+            }
+
+            BorderType::None => (),
+        }
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {

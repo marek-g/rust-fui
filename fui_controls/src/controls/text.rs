@@ -151,33 +151,27 @@ impl Style<Text> for DefaultTextStyle {
 }
 
 //
-// Hover Text Style
+// Dynamic Text Style
 //
 
 #[derive(TypedBuilder)]
-pub struct HoverTextStyleParams {
-    #[builder(default = [1.0f32, 1.0f32, 1.0f32, 1.0f32])]
-    pub color: Color,
-
-    #[builder(default = [1.0f32, 1.0f32, 0.0f32, 1.0f32])]
-    pub hover_color: Color,
-
-    #[builder(default = [0.0f32, 0.0f32, 0.0f32, 0.5f32])]
-    pub hover_background: Color,
+pub struct DynamicTextStyleParams {
+    #[builder(default = Property::new([1.0f32, 1.0f32, 1.0f32, 1.0f32]))]
+    pub color: Property<Color>,
 }
 
-pub struct HoverTextStyle {
+pub struct DynamicTextStyle {
     rect: Rect,
-    params: HoverTextStyleParams,
+    params: DynamicTextStyleParams,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
     font_size: u8,
     is_hover: bool,
 }
 
-impl HoverTextStyle {
-    pub fn new(params: HoverTextStyleParams) -> Self {
-        HoverTextStyle {
+impl DynamicTextStyle {
+    pub fn new(params: DynamicTextStyleParams) -> Self {
+        DynamicTextStyle {
             rect: Rect {
                 x: 0f32,
                 y: 0f32,
@@ -193,10 +187,15 @@ impl HoverTextStyle {
     }
 }
 
-impl Style<Text> for HoverTextStyle {
+impl Style<Text> for DynamicTextStyle {
     fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
         self.event_subscriptions
             .push(data.text.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
+            self.params
+                .color
+                .dirty_watching(&control_context.get_self_rc()),
+        );
     }
 
     fn handle_event(
@@ -270,20 +269,9 @@ impl Style<Text> for HoverTextStyle {
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
-        if self.is_hover {
-            vec.push(Primitive::Rectangle {
-                color: self.params.hover_background,
-                rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-            });
-        }
-
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
-            color: if self.is_hover {
-                self.params.hover_color
-            } else {
-                self.params.color
-            },
+            color: self.params.color.get(),
             position: PixelPoint::new(
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,

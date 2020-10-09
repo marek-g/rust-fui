@@ -81,7 +81,9 @@ impl Menu {
 
         let menu = ui! {
             Border {
-                background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32],
+                border_type: BorderType::None,
+                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+
                 StackPanel {
                     orientation: self.orientation,
 
@@ -121,20 +123,44 @@ impl MenuItem {
                 callback,
                 sub_items,
             } => {
+                let mut background_property = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
+                let mut background_property2 = Property::binded_two_way(&mut background_property);
+                let mut foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
+                let mut foreground_property2 = Property::binded_two_way(&mut foreground_property);
+
+                let mut on_hover_callback = Callback::empty();
+                on_hover_callback.set(move |value| {
+                    background_property2.set(if value {
+                        [0.0f32, 0.0f32, 0.0f32, 0.8f32]
+                    } else {
+                        [0.0f32, 0.0f32, 0.0f32, 0.0f32]
+                    });
+                    foreground_property2.set(if value {
+                        [1.0f32, 1.0f32, 0.0f32, 1.0f32]
+                    } else {
+                        [0.0f32, 0.0f32, 0.0f32, 1.0f32]
+                    });
+                });
+
                 let title = ui! {
                     GestureArea {
+                        hover_change: on_hover_callback,
+
                         Border {
-                            background_color: Some([0.0f32, 0.0f32, 0.0f32, 1.0f32]),
+                            border_type: BorderType::None,
+                            Style: Default { background_color: background_property },
+
                             Margin {
                                 thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
                                 Text {
-                                    Style: Hover { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
+                                    Style: Dynamic { color: foreground_property },
                                     text: text
                                 }
                             }
                         }
                     }
                 };
+
                 if sub_items.len() == 0 {
                     return title;
                 }
@@ -160,7 +186,8 @@ impl MenuItem {
                             placement: PopupPlacement::BelowOrAboveParent,
 
                             Border {
-                                background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32],
+                                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+
                                 Vertical {
                                     sub_content
                                 }

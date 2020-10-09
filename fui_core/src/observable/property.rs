@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::EventSubscription;
+use crate::{Color, EventSubscription};
 use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
 
 pub struct Property<T> {
@@ -177,6 +177,7 @@ impl IntoProperty for u128 {}
 impl IntoProperty for usize {}
 impl IntoProperty for f32 {}
 impl IntoProperty for f64 {}
+impl IntoProperty for Color {}
 
 ///
 /// Allows to convert types attributed with IntoProperty to Property<T>.

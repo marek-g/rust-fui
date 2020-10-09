@@ -70,6 +70,10 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
                 data.tap_up.emit(());
             }
 
+            ControlEvent::HoverChange(value) => {
+                data.hover_change.emit(value);
+            }
+
             _ => (),
         }
     }
