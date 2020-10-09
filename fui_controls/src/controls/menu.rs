@@ -77,9 +77,13 @@ impl Menu {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let content: Vec<_> = self.items.into_iter().map(|item| item.to_view()).collect();
+        let content: Vec<_> = self
+            .items
+            .into_iter()
+            .map(|item| item.to_view(true))
+            .collect();
 
-        let menu = ui! {
+        let menu = ui!(
             Border {
                 border_type: BorderType::None,
                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
@@ -90,7 +94,7 @@ impl Menu {
                     content,
                 }
             }
-        };
+        );
 
         let data_holder = DataHolder { data: () };
         data_holder.to_view(
@@ -104,13 +108,13 @@ impl Menu {
 }
 
 impl MenuItem {
-    pub fn to_view(self) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(self, is_top: bool) -> Rc<RefCell<dyn ControlObject>> {
         match self {
             MenuItem::Separator => {
                 let separator: Rc<RefCell<dyn ControlObject>> = ui! {
                     Text {
                         Style: Default { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
-                        text: "|"
+                        text: "---------"
                     }
                 };
                 separator
@@ -127,6 +131,7 @@ impl MenuItem {
                 let mut background_property2 = Property::binded_two_way(&mut background_property);
                 let mut foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
                 let mut foreground_property2 = Property::binded_two_way(&mut foreground_property);
+                let mut foreground_property3 = Property::binded_two_way(&mut foreground_property);
 
                 let mut on_hover_callback = Callback::empty();
                 on_hover_callback.set(move |value| {
@@ -142,7 +147,45 @@ impl MenuItem {
                     });
                 });
 
-                let title = ui! {
+                let title_content: Rc<RefCell<dyn ControlObject>> = if is_top {
+                    ui!(
+                        Margin {
+                            Row: 0, Column: 1,
+                            thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
+
+                            Text {
+                                Style: Dynamic { color: foreground_property },
+                                text: text
+                            }
+                        }
+                    )
+                } else {
+                    ui!(
+                        Grid {
+                            columns: 4,
+                            widths: vec![
+                                (0, Length::Exact(25.0f32)),
+                                (1, Length::Fill(1.0f32)),
+                                (2, Length::Auto),
+                                (3, Length::Exact(25.0f32)),
+                            ],
+
+                            Text {
+                                Row: 0, Column: 1,
+                                Style: Dynamic { color: foreground_property },
+                                text: text
+                            },
+
+                            Text {
+                                Row: 0, Column: 3,
+                                Style: Dynamic { color: foreground_property3 },
+                                text: if sub_items.len() > 0 { ">" } else { "" },
+                            }
+                        }
+                    )
+                };
+
+                let title = ui!(
                     GestureArea {
                         hover_change: on_hover_callback,
 
@@ -150,16 +193,10 @@ impl MenuItem {
                             border_type: BorderType::None,
                             Style: Default { background_color: background_property },
 
-                            Margin {
-                                thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
-                                Text {
-                                    Style: Dynamic { color: foreground_property },
-                                    text: text
-                                }
-                            }
+                            title_content,
                         }
                     }
-                };
+                );
 
                 if sub_items.len() == 0 {
                     return title;
@@ -172,10 +209,12 @@ impl MenuItem {
                     is_open_prop2.set(true);
                 });
 
-                let sub_content: Vec<_> =
-                    sub_items.into_iter().map(|item| item.to_view()).collect();
+                let sub_content: Vec<_> = sub_items
+                    .into_iter()
+                    .map(|item| item.to_view(false))
+                    .collect();
 
-                ui! {
+                ui!(
                     GestureArea {
                         tap_down: tap_down_callback,
 
@@ -188,13 +227,17 @@ impl MenuItem {
                             Border {
                                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
-                                Vertical {
+                                Grid {
+                                    columns: 1,
+                                    default_width: Length::Fill(1.0f32),
+                                    default_height: Length::Auto,
+
                                     sub_content
                                 }
                             }
                         }
                     }
-                }
+                )
             }
 
             MenuItem::Custom {
