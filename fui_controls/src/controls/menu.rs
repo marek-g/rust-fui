@@ -172,7 +172,9 @@ impl MenuItem {
 
                             Text {
                                 Row: 0, Column: 1,
+                                HorizontalAlignment: Alignment::Start,
                                 Style: Dynamic { color: foreground_property },
+
                                 text: text
                             },
 

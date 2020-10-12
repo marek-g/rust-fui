@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::Alignment;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
@@ -90,8 +91,15 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, _rect: Rect) {
-        //self.rect = rect;
+    fn set_rect(&mut self, _data: &mut Bitmap, control_context: &mut ControlContext, rect: Rect) {
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Start,
+            Alignment::Start,
+        );
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {

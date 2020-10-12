@@ -146,16 +146,22 @@ impl ViewModel for MainViewModel {
 
                 columns: 2,
 
-                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                Text {
+                    text: (&vm.counter, |counter| format!("Counter {}", counter))
+                },
                 Button {
+                    VerticalAlignment: Alignment::Stretch,
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: "Decrease" },
                 },
                 Button {
+                    VerticalAlignment: Alignment::Stretch,
                     clicked: Callback::new(view_model, |vm, _| vm.increase()),
                     Text { text: "Increase" },
                 },
-                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
+                Text {
+                    text: (&vm.counter2, |counter| format!("Counter2 {}", counter))
+                },
             }
         );
 
@@ -192,7 +198,10 @@ impl ViewModel for MainViewModel {
             heights: vec![(0, Length::Auto)],
 
             Menu { items: menu_items },
-            TabControl { tab1, tab2 }
+            TabControl {
+                tab1,
+                tab2
+            }
         });
 
         let data_holder = DataHolder {

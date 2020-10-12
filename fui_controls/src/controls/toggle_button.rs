@@ -11,6 +11,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
+use crate::Alignment;
 
 #[derive(TypedBuilder)]
 pub struct ToggleButton {
@@ -1016,13 +1017,20 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
 
         let content_rect = Rect::new(
-            rect.x + 10.0f32,
-            rect.y + 10.0f32,
-            rect.width - 20.0f32,
-            rect.height - 20.0f32,
+            self.rect.x + 10.0f32,
+            self.rect.y + 10.0f32,
+            self.rect.width - 20.0f32,
+            self.rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();

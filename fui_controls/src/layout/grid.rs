@@ -30,6 +30,7 @@ use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
 
+use crate::Alignment;
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -1649,7 +1650,14 @@ impl Style<Grid> for DefaultGridStyle {
     }
 
     fn set_rect(&mut self, _data: &mut Grid, control_context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Stretch,
+        );
 
         let children = control_context.get_children();
 
@@ -1691,6 +1699,7 @@ impl Style<Grid> for DefaultGridStyle {
                     ),
                     Self::get_final_size_for_range(&mut self.definitions_v, row_index, row_span),
                 );
+
                 child.borrow_mut().set_rect(rc);
             }
         }

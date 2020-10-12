@@ -7,6 +7,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
+use crate::Alignment;
 
 #[derive(TypedBuilder)]
 pub struct ProgressBar {
@@ -126,10 +127,17 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn set_rect(
         &mut self,
         _data: &mut ProgressBar,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {

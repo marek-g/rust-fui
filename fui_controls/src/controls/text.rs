@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::Alignment;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
@@ -95,8 +96,15 @@ impl Style<Text> for DefaultTextStyle {
         self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
+    fn set_rect(&mut self, _data: &mut Text, control_context: &mut ControlContext, rect: Rect) {
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Center,
+            Alignment::Center,
+        );
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {
@@ -137,10 +145,7 @@ impl Style<Text> for DefaultTextStyle {
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: self.params.color,
-            position: PixelPoint::new(
-                x + (width - text_width as f32) / 2.0,
-                y + (height - text_height as f32) / 2.0,
-            ),
+            position: PixelPoint::new(x, y),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
             size: Length::new(self.font_size as f32),
             text: data.text.get(),
@@ -272,10 +277,7 @@ impl Style<Text> for DynamicTextStyle {
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: self.params.color.get(),
-            position: PixelPoint::new(
-                x + (width - text_width as f32) / 2.0,
-                y + (height - text_height as f32) / 2.0,
-            ),
+            position: PixelPoint::new(x, y),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
             size: Length::new(self.font_size as f32),
             text: data.text.get(),

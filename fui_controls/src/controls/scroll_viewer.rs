@@ -61,7 +61,6 @@ impl ScrollViewer {
         ui! {
             Grid {
                 columns: 2,
-
                 widths: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
                 heights: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
 

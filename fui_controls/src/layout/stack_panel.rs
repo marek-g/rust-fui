@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
+use crate::Alignment;
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -110,28 +111,55 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Start,
+            Alignment::Start,
+        );
 
-        let mut child_rect = rect;
+        let mut child_rect = self.rect;
 
         let children = control_context.get_children();
 
         match data.orientation {
             Orientation::Horizontal => {
                 for child in children.into_iter() {
-                    let child_size = child.borrow_mut().get_rect();
+                    let mut child = child.borrow_mut();
+
+                    let child_size = child.get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
-                    child.borrow_mut().set_rect(child_rect);
+
+                    let dest_rect = Rect::new(
+                        child_rect.x,
+                        child_rect.y,
+                        child_rect.width,
+                        self.rect.height,
+                    );
+                    child.set_rect(dest_rect);
+
                     child_rect.x += child_rect.width;
                 }
             }
             Orientation::Vertical => {
                 for child in children.into_iter() {
-                    let child_size = child.borrow_mut().get_rect();
+                    let mut child = child.borrow_mut();
+
+                    let child_size = child.get_rect();
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
-                    child.borrow_mut().set_rect(child_rect);
+
+                    let dest_rect = Rect::new(
+                        child_rect.x,
+                        child_rect.y,
+                        self.rect.width,
+                        child_rect.height,
+                    );
+                    child.set_rect(dest_rect);
+
                     child_rect.y += child_rect.height;
                 }
             }

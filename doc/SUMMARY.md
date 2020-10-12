@@ -3,6 +3,7 @@
 [Intro](intro.md)
 
 - [Layout](layout.md)
+  - [Alignment](layout_alignment.md)
 - [Events](events.md)
 - [Internationalization](i18n.md)
   - [Text translation](i18n_text_translation.md)

@@ -11,6 +11,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
+use crate::Alignment;
 
 #[derive(TypedBuilder)]
 pub struct TextBox {
@@ -273,17 +274,32 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         data: &mut TextBox,
         _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        _size: Size,
+        size: Size,
     ) {
         let (_text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
-        self.rect = Rect::new(0.0f32, 0.0f32, 8.0f32 + 8.0f32, text_height as f32 + 8.0f32)
+
+        let width = if size.width.is_infinite() {
+            8.0f32 + 8.0f32
+        } else {
+            size.width.max(8.0f32 + 8.0f32)
+        };
+
+        self.rect = Rect::new(0.0f32, 0.0f32, width, text_height as f32 + 8.0f32)
     }
 
-    fn set_rect(&mut self, _data: &mut TextBox, _control_context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
+    fn set_rect(&mut self, _data: &mut TextBox, control_context: &mut ControlContext, rect: Rect) {
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
+
         self.update_offset_x();
     }
 

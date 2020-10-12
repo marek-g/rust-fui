@@ -67,7 +67,9 @@ impl ViewModel for MainViewModel {
 
         ui!(
             Horizontal {
-                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                Text {
+                    text: (&vm.counter, |counter| format!("Counter {}", counter))
+                },
                 Button {
                     clicked: Callback::new(view_model, |vm, _| vm.decrease()),
                     Text { text: "Decrease" }
@@ -76,7 +78,9 @@ impl ViewModel for MainViewModel {
                     clicked: Callback::new(view_model, |vm, _| vm.increase()),
                     text: "Increase"
                 },
-                Text { text: (&vm.counter2, |counter| format!("Counter2 {}", counter)) },
+                Text {
+                    text: (&vm.counter2, |counter| format!("Counter2 {}", counter))
+                },
             }
         )
     }

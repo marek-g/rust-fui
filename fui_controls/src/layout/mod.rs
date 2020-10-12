@@ -1,3 +1,6 @@
+mod alignment;
+pub use alignment::*;
+
 mod horizontal;
 pub use horizontal::*;
 
