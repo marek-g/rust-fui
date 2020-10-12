@@ -64,6 +64,7 @@ where
         let content = ui! {
             Button {
                 clicked: show_callback.clone(),
+
                 &self.selected_item,
 
                 Popup {
@@ -75,7 +76,9 @@ where
                         vertical_scroll_bar_visibility: ScrollBarVisibility::Auto,
 
                         Grid {
+                            VerticalAlignment: Alignment::Start,
                             columns: 1,
+
                             &menu_item_vms,
                         }
                     }

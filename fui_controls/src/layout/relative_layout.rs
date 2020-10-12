@@ -118,15 +118,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
                     if height_above > height_below {
                         is_above = true;
-                        Size::new(
-                            size.width, /*relative_control_rect.width*/
-                            height_above,
-                        )
+                        Size::new(relative_control_rect.width, height_above)
                     } else {
-                        Size::new(
-                            size.width, /*relative_control_rect.width*/
-                            height_below,
-                        )
+                        Size::new(relative_control_rect.width, height_below)
                     }
                 } else {
                     size
