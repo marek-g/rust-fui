@@ -11,7 +11,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::Alignment;
+use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct TextBox {
@@ -272,10 +272,13 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn measure(
         &mut self,
         data: &mut TextBox,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let (_text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
@@ -287,7 +290,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             size.width.max(8.0f32 + 8.0f32)
         };
 
-        self.rect = Rect::new(0.0f32, 0.0f32, width, text_height as f32 + 8.0f32)
+        self.rect = Rect::new(0.0f32, 0.0f32, width, text_height as f32 + 8.0f32);
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, _data: &mut TextBox, control_context: &mut ControlContext, rect: Rect) {
@@ -299,6 +303,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             Alignment::Stretch,
             Alignment::Start,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         self.update_offset_x();
     }

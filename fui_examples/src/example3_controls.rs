@@ -66,6 +66,7 @@ impl ViewModel for MainViewModel {
         let tab1 = ui!(
             Grid {
                 Title: "Tab 1",
+                Margin: Thickness::all(5.0f32),
 
                 columns: 2,
                 default_height: Length::Auto,
@@ -74,13 +75,16 @@ impl ViewModel for MainViewModel {
                     text: &mut vm.text,
                 },
                 Text {
+                    Margin: Thickness::left(5.0f32),
                     text: &vm.text,
                 },
 
                 TextBox {
+                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     text: &mut vm.text2,
                 },
                 Text {
+                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     Style: Default {
                         color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
                     },
@@ -88,14 +92,17 @@ impl ViewModel for MainViewModel {
                 },
 
                 ScrollBar {
+                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     orientation: Orientation::Horizontal,
                     value: &mut vm.progress,
                 },
                 ProgressBar {
+                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     value: &vm.progress,
                 },
 
                 DropDown1 {
+                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     Column: 0,
                     Row: 3,
 
@@ -109,6 +116,7 @@ impl ViewModel for MainViewModel {
                     ],
                 },
                 Text {
+                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
                         None => "-".to_string(),
                         Some(vm) => vm.borrow().text.clone(),
@@ -116,6 +124,7 @@ impl ViewModel for MainViewModel {
                 },
 
                 Vertical {
+                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     Column: 0,
                     Row: 4,
 
@@ -124,12 +133,14 @@ impl ViewModel for MainViewModel {
                     radio3,
                 },
                 Vertical {
+                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     radio4,
                     radio5,
                     radio6,
                 },
 
                 Vertical {
+                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     Column: 0,
                     Row: 5,
 
@@ -199,6 +210,8 @@ impl ViewModel for MainViewModel {
 
             Menu { items: menu_items },
             TabControl {
+                Margin: Thickness::all(5.0f32),
+
                 tab1,
                 tab2
             }

@@ -7,7 +7,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::Alignment;
+use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct ScrollBar {
@@ -196,10 +196,13 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn measure(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         match data.orientation {
             Orientation::Horizontal => {
                 let space = if size.width.is_infinite() {
@@ -218,6 +221,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 self.rect = Rect::new(0.0f32, 0.0f32, 20.0f32, MIN_SIZE.max(space));
             }
         }
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext, rect: Rect) {
@@ -235,6 +239,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 Orientation::Vertical => Alignment::Stretch,
             },
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         self.calc_sizes(data);
     }

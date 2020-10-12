@@ -6,7 +6,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 
 pub enum BorderType {
@@ -102,8 +102,11 @@ impl Style<Border> for DefaultBorderStyle {
         data: &mut Border,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
 
         let border_size = Self::get_border_size(data);
@@ -133,7 +136,8 @@ impl Style<Border> for DefaultBorderStyle {
             0.0f32,
             content_size.width + border_size * 2.0f32,
             content_size.height + border_size * 2.0f32,
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
@@ -145,6 +149,7 @@ impl Style<Border> for DefaultBorderStyle {
             Alignment::Stretch,
             Alignment::Stretch,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let border_size = Self::get_border_size(data);
 

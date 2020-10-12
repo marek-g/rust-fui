@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
@@ -85,15 +85,19 @@ impl Style<Text> for DefaultTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
+        let map = control_context.get_attached_values();
+
         let (text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
-        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
+
+        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32);
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, _data: &mut Text, control_context: &mut ControlContext, rect: Rect) {
@@ -105,6 +109,7 @@ impl Style<Text> for DefaultTextStyle {
             Alignment::Center,
             Alignment::Center,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {
@@ -224,19 +229,31 @@ impl Style<Text> for DynamicTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
+        let map = control_context.get_attached_values();
+
         let (text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
-        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32)
+
+        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32);
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, rect: Rect) {
-        self.rect = rect;
+    fn set_rect(&mut self, _data: &mut Text, control_context: &mut ControlContext, rect: Rect) {
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Center,
+            Alignment::Center,
+        );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {

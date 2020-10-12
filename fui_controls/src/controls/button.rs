@@ -8,7 +8,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::Alignment;
+use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct Button {
@@ -122,6 +122,9 @@ impl Style<Button> for DefaultButtonStyle {
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         if size.width.is_finite() {
             size.width = 0.0f32.max(size.width - 20.0f32);
         }
@@ -144,6 +147,7 @@ impl Style<Button> for DefaultButtonStyle {
             content_size.width + 20.0f32,
             content_size.height + 20.0f32,
         );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, _data: &mut Button, control_context: &mut ControlContext, rect: Rect) {
@@ -155,6 +159,7 @@ impl Style<Button> for DefaultButtonStyle {
             Alignment::Stretch,
             Alignment::Start,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
             self.rect.x + 10.0f32,

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -45,12 +45,7 @@ pub struct DefaultStackPanelStyle {
 impl DefaultStackPanelStyle {
     pub fn new(_params: DefaultStackPanelStyleParams) -> Self {
         DefaultStackPanelStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
+            rect: Rect::empty(),
         }
     }
 }
@@ -73,8 +68,11 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         data: &mut StackPanel,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
 
         let children = control_context.get_children();
@@ -103,6 +101,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         }
 
         self.rect = result;
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -119,6 +118,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
             Alignment::Start,
             Alignment::Start,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let mut child_rect = self.rect;
 

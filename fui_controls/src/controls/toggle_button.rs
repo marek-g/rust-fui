@@ -11,7 +11,7 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::Alignment;
+use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct ToggleButton {
@@ -132,8 +132,11 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -147,7 +150,8 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             0.0f32,
             content_size.width + 20.0f32,
             content_size.height + 20.0f32,
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -156,13 +160,21 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
-            rect.x + 10.0f32,
-            rect.y + 10.0f32,
-            rect.width - 20.0f32,
-            rect.height - 20.0f32,
+            self.rect.x + 10.0f32,
+            self.rect.y + 10.0f32,
+            self.rect.width - 20.0f32,
+            self.rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -333,6 +345,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) {
+        let map = control_context.get_attached_values();
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
@@ -358,7 +372,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             0.0f32,
             content_size.width + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN * 2.0f32,
             CHECKBOX_BUTTON_SIZE.max(content_size.height),
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -367,13 +382,21 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
-            rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
-            rect.y,
-            rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
-            rect.height,
+            self.rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
+            self.rect.y,
+            self.rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
+            self.rect.height,
         );
 
         let children = control_context.get_children();
@@ -564,8 +587,11 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -579,7 +605,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             0.0f32,
             content_size.width + 20.0f32,
             content_size.height + 20.0f32,
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -588,13 +615,21 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
-            rect.x + 10.0f32,
-            rect.y + 10.0f32,
-            rect.width - 20.0f32,
-            rect.height - 20.0f32,
+            self.rect.x + 10.0f32,
+            self.rect.y + 10.0f32,
+            self.rect.width - 20.0f32,
+            self.rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -765,8 +800,11 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
@@ -792,7 +830,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             0.0f32,
             content_size.width + RADIO_BUTTON_SIZE + RADIO_MARGIN * 2.0f32,
             RADIO_BUTTON_SIZE.max(content_size.height),
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -801,13 +840,21 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        self.rect = rect;
+        let map = control_context.get_attached_values();
+        Alignment::apply(
+            &mut self.rect,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Start,
+        );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
-            rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
-            rect.y,
-            rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
-            rect.height,
+            self.rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
+            self.rect.y,
+            self.rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
+            self.rect.height,
         );
 
         let children = control_context.get_children();
@@ -993,8 +1040,11 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -1008,7 +1058,8 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
             0.0f32,
             content_size.width + 20.0f32,
             content_size.height + 20.0f32,
-        )
+        );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -1025,6 +1076,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
             Alignment::Stretch,
             Alignment::Start,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let content_rect = Rect::new(
             self.rect.x + 10.0f32,

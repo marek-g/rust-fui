@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
@@ -115,8 +115,11 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         _data: &mut ScrollArea,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let children = control_context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -132,6 +135,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
             self.content_size.width.min(size.width),
             self.content_size.height.min(size.height),
         );
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
@@ -148,6 +152,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
             Alignment::Stretch,
             Alignment::Stretch,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         self.update_properties(data);
 

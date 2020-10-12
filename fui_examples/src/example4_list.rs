@@ -41,6 +41,7 @@ impl ViewModel for ItemViewModel {
                 Text { text: &vm.name },
                 Text { text: (&vm.number, |n| format!(" - {}", n)) },
                 Button {
+                    Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
                     clicked: Callback::new_rc(view_model, |vm, _| {
                         let parent = vm.borrow().parent.clone();
                         if let Some(parent) = parent.upgrade() {
@@ -121,6 +122,7 @@ impl ViewModel for MainViewModel {
                 heights: vec![(0, Length::Auto)],
 
                 Vertical {
+                    Margin: Thickness::all(5.0f32),
                     Button {
                         clicked: Callback::new_rc(view_model, |vm, _| vm.add()),
                         Text { text: "Add" },
@@ -137,6 +139,7 @@ impl ViewModel for MainViewModel {
 
                 ScrollViewer {
                     Vertical {
+                        Margin: Thickness::all(5.0f32),
                         Text { text: "The dynamic list can be mixed with static controls." },
                         &vm.items,
                         Text { text: "This is the end." },

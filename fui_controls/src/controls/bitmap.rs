@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
@@ -77,10 +77,12 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn measure(
         &mut self,
         data: &mut Bitmap,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) {
+        let map = control_context.get_attached_values();
+
         self.rect = if let Ok(texture_size) = drawing_context
             .get_resources()
             .get_texture_size(data.texture_id.get())
@@ -88,7 +90,8 @@ impl Style<Bitmap> for DefaultBitmapStyle {
             Rect::new(0.0f32, 0.0f32, texture_size.0 as f32, texture_size.1 as f32)
         } else {
             Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
-        }
+        };
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, _data: &mut Bitmap, control_context: &mut ControlContext, rect: Rect) {
@@ -100,6 +103,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
             Alignment::Start,
             Alignment::Start,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
     }
 
     fn get_rect(&self, _control_context: &ControlContext) -> Rect {

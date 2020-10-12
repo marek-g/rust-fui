@@ -30,7 +30,7 @@ use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
 
-use crate::Alignment;
+use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -1482,8 +1482,11 @@ impl Style<Grid> for DefaultGridStyle {
         data: &mut Grid,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
+        mut size: Size,
     ) {
+        let map = control_context.get_attached_values();
+        size = Margin::remove_from_size(size, &map);
+
         let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
 
         let children = control_context.get_children();
@@ -1647,6 +1650,7 @@ impl Style<Grid> for DefaultGridStyle {
         }
 
         self.rect = grid_desired_size;
+        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(&mut self, _data: &mut Grid, control_context: &mut ControlContext, rect: Rect) {
@@ -1658,16 +1662,17 @@ impl Style<Grid> for DefaultGridStyle {
             Alignment::Stretch,
             Alignment::Stretch,
         );
+        self.rect = Margin::remove_from_rect(self.rect, &map);
 
         let children = control_context.get_children();
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow_mut().set_rect(rect);
+                child.borrow_mut().set_rect(self.rect);
             }
         } else {
-            Self::set_final_size(&mut self.definitions_u, rect.width, true);
-            Self::set_final_size(&mut self.definitions_v, rect.height, false);
+            Self::set_final_size(&mut self.definitions_u, self.rect.width, true);
+            Self::set_final_size(&mut self.definitions_v, self.rect.height, false);
 
             for cell in self
                 .cell_group_1
@@ -1683,14 +1688,14 @@ impl Style<Grid> for DefaultGridStyle {
                 let row_span = cell.row_span;
                 let rc = Rect::new(
                     if column_index == 0 {
-                        rect.x
+                        self.rect.x
                     } else {
-                        rect.x + self.definitions_u[column_index].final_offset
+                        self.rect.x + self.definitions_u[column_index].final_offset
                     },
                     if row_index == 0 {
-                        rect.y
+                        self.rect.y
                     } else {
-                        rect.y + self.definitions_v[row_index].final_offset
+                        self.rect.y + self.definitions_v[row_index].final_offset
                     },
                     Self::get_final_size_for_range(
                         &mut self.definitions_u,

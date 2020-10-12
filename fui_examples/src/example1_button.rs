@@ -67,7 +67,9 @@ impl ViewModel for MainViewModel {
 
         ui!(
             Horizontal {
+                Margin: Thickness::sides(0.0f32, 5.0f32),
                 Text {
+                    Margin: Thickness::all(5.0f32),
                     text: (&vm.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
@@ -79,6 +81,7 @@ impl ViewModel for MainViewModel {
                     text: "Increase"
                 },
                 Text {
+                    Margin: Thickness::all(5.0f32),
                     text: (&vm.counter2, |counter| format!("Counter2 {}", counter))
                 },
             }

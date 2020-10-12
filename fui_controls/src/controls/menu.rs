@@ -148,17 +148,15 @@ impl MenuItem {
                 });
 
                 let title_content: Rc<RefCell<dyn ControlObject>> = if is_top {
-                    ui!(
-                        Margin {
-                            Row: 0, Column: 1,
-                            thickness: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
-
-                            Text {
-                                Style: Dynamic { color: foreground_property },
-                                text: text
-                            }
-                        }
-                    )
+                    ui!(Text {
+                        Row: 0,
+                        Column: 1,
+                        Margin: Thickness::new(5.0f32, 0.0f32, 5.0f32, 0.0f32),
+                        Style: Dynamic {
+                            color: foreground_property
+                        },
+                        text: text
+                    })
                 } else {
                     ui!(
                         Grid {
