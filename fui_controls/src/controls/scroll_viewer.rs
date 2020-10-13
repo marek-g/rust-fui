@@ -58,6 +58,16 @@ impl ScrollViewer {
                 (info.content_height - info.viewport_height).max(0.0f32)
             });
 
+        let horizontal_scrollbar_visible_prop =
+            Property::binded_c_from(&viewport_info_prop_src, |info: ViewportInfo| {
+                info.content_width > info.viewport_width
+            });
+
+        let vertical_scrollbar_visible_prop =
+            Property::binded_c_from(&viewport_info_prop_src, |info: ViewportInfo| {
+                info.content_height > info.viewport_height
+            });
+
         ui! {
             Grid {
                 columns: 2,
@@ -75,6 +85,7 @@ impl ScrollViewer {
                 },
 
                 ScrollBar {
+                    Visible: vertical_scrollbar_visible_prop,
                     orientation: Orientation::Vertical,
                     value: offset_y_prop2,
                     max_value: max_offset_y_prop,
@@ -82,6 +93,7 @@ impl ScrollViewer {
                 },
 
                 ScrollBar {
+                    Visible: horizontal_scrollbar_visible_prop,
                     orientation: Orientation::Horizontal,
                     value: offset_x_prop2,
                     max_value: max_offset_x_prop,
