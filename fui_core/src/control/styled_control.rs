@@ -168,7 +168,13 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn measure(&mut self, drawing_context: &mut dyn DrawingContext, mut size: Size) {
-        //let map = self.control_context.get_attached_values();
+        let map = self.control_context.get_attached_values();
+        if let Some(visible) = map.get::<Visible>() {
+            if !visible.get() {
+                self.control_context.set_rect(Rect::empty());
+                return;
+            }
+        }
 
         size = Margin::remove_from_size(size, &self.control_context.get_attached_values());
 
@@ -192,6 +198,12 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
 
     fn set_rect(&mut self, rect: Rect) {
         let map = self.control_context.get_attached_values();
+        if let Some(visible) = map.get::<Visible>() {
+            if !visible.get() {
+                self.control_context.set_rect(Rect::empty());
+                return;
+            }
+        }
 
         let control_rect = self.control_context.get_rect();
         let measured_size = Size::new(control_rect.width, control_rect.height);
@@ -215,6 +227,11 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {
+        let rect = self.control_context.get_rect();
+        if rect.width == 0.0f32 || rect.height == 0.0f32 {
+            return HitTestResult::Nothing;
+        }
+
         self.style
             .hit_test(&self.data, &self.control_context, point)
     }
@@ -223,6 +240,11 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         &self,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
+        let rect = self.control_context.get_rect();
+        if rect.width == 0.0f32 || rect.height == 0.0f32 {
+            return (Vec::new(), Vec::new());
+        }
+
         self.style
             .to_primitives(&self.data, &self.control_context, drawing_context)
     }

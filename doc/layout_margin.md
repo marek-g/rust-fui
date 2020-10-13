@@ -1,7 +1,7 @@
 # Layout Margin
 
-There is `Margin` attached value that can be added to any control to add margin.
+The `Margin` attached value can be added to any control to add margin. The value type is `Thickness`.
 
 ## Notes for control developers
 
-The `ControlObject` trait implementation for `StyledControl<D>` takes care of respecting these attached values automatically for every control.
+The `ControlObject` trait implementation for `StyledControl<D>` takes care of respecting this attached value automatically for every control.
