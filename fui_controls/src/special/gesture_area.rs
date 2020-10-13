@@ -84,10 +84,14 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
-    ) {
+    ) -> Size {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().measure(drawing_context, size);
+            let child_rect = child.borrow().get_rect();
+            Size::new(child_rect.width, child_rect.height)
+        } else {
+            Size::new(0.0f32, 0.0f32)
         }
     }
 
@@ -100,15 +104,6 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
             child.borrow_mut().set_rect(rect);
-        }
-    }
-
-    fn get_rect(&self, control_context: &ControlContext) -> Rect {
-        let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
-            child.borrow().get_rect()
-        } else {
-            Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
         }
     }
 

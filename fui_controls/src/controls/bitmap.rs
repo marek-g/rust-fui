@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
@@ -38,19 +37,12 @@ impl Bitmap {
 pub struct DefaultBitmapStyleParams {}
 
 pub struct DefaultBitmapStyle {
-    rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
 }
 
 impl DefaultBitmapStyle {
     pub fn new(_params: DefaultBitmapStyleParams) -> Self {
         DefaultBitmapStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             event_subscriptions: Vec::new(),
         }
     }
@@ -77,46 +69,30 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn measure(
         &mut self,
         data: &mut Bitmap,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-
-        self.rect = if let Ok(texture_size) = drawing_context
+    ) -> Size {
+        if let Ok(texture_size) = drawing_context
             .get_resources()
             .get_texture_size(data.texture_id.get())
         {
-            Rect::new(0.0f32, 0.0f32, texture_size.0 as f32, texture_size.1 as f32)
+            Size::new(texture_size.0 as f32, texture_size.1 as f32)
         } else {
-            Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
-        };
-        self.rect = Margin::add_to_rect(self.rect, &map);
+            Size::new(0.0f32, 0.0f32)
+        }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Start,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
+    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, _rect: Rect) {
     }
 
     fn hit_test(
         &self,
         _data: &Bitmap,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -126,17 +102,18 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn to_primitives(
         &self,
         data: &Bitmap,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
-        if self.rect.width > 0.0f32 && self.rect.height > 0.0f32 {
+        let rect = control_context.get_rect();
+        if rect.width > 0.0f32 && rect.height > 0.0f32 {
             vec.push(Primitive::Image {
                 resource_key: data.texture_id.get(),
                 rect: PixelRect::new(
-                    PixelPoint::new(self.rect.x, self.rect.y),
-                    PixelSize::new(self.rect.width, self.rect.height),
+                    PixelPoint::new(rect.x, rect.y),
+                    PixelSize::new(rect.width, rect.height),
                 ),
                 uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
             });

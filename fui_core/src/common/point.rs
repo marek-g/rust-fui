@@ -7,8 +7,15 @@ pub struct Point {
 }
 
 impl Point {
+    pub fn empty() -> Self {
+        Point {
+            x: 0.0f32,
+            y: 0.0f32,
+        }
+    }
+
     pub fn new(x: f32, y: f32) -> Self {
-        Point { x: x, y: y }
+        Point { x, y }
     }
 
     pub fn is_inside(&self, rect: &Rect) -> bool {

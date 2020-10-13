@@ -7,7 +7,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct ProgressBar {
@@ -55,19 +54,12 @@ const MIN_SIZE: f32 = 22.0f32;
 pub struct DefaultProgressBarStyleParams {}
 
 pub struct DefaultProgressBarStyle {
-    rect: Rect,
     event_subscriptions: Vec<EventSubscription>,
 }
 
 impl DefaultProgressBarStyle {
     pub fn new(_params: DefaultProgressBarStyleParams) -> Self {
         DefaultProgressBarStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             event_subscriptions: Vec::new(),
         }
     }
@@ -100,62 +92,31 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn measure(
         &mut self,
         data: &mut ProgressBar,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+        _size: Size,
+    ) -> Size {
         match data.orientation {
-            Orientation::Horizontal => {
-                let space = if size.width.is_infinite() {
-                    MIN_SIZE
-                } else {
-                    size.width
-                };
-                self.rect = Rect::new(0.0f32, 0.0f32, MIN_SIZE.max(space), 20.0f32);
-            }
-            Orientation::Vertical => {
-                let space = if size.height.is_infinite() {
-                    MIN_SIZE
-                } else {
-                    size.height
-                };
-                self.rect = Rect::new(0.0f32, 0.0f32, 20.0f32, MIN_SIZE.max(space));
-            }
+            Orientation::Horizontal => Size::new(MIN_SIZE, 20.0f32),
+            Orientation::Vertical => Size::new(20.0f32, MIN_SIZE),
         }
-        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
     fn set_rect(
         &mut self,
         _data: &mut ProgressBar,
-        control_context: &mut ControlContext,
-        rect: Rect,
+        _control_context: &mut ControlContext,
+        _rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
     }
 
     fn hit_test(
         &self,
         _data: &ProgressBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -165,13 +126,14 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn to_primitives(
         &self,
         data: &ProgressBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let progress_bar_size_px = match data.orientation {
             Orientation::Horizontal => width - START_MARGIN - END_MARGIN,

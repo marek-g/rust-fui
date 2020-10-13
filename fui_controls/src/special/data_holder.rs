@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -36,15 +35,11 @@ impl<T: 'static> DataHolder<T> {
 #[derive(TypedBuilder)]
 pub struct DefaultDataHolderStyleParams {}
 
-pub struct DefaultDataHolderStyle {
-    rect: Rect,
-}
+pub struct DefaultDataHolderStyle;
 
 impl DefaultDataHolderStyle {
     pub fn new(_params: DefaultDataHolderStyleParams) -> Self {
-        DefaultDataHolderStyle {
-            rect: Rect::empty(),
-        }
+        DefaultDataHolderStyle {}
     }
 }
 
@@ -67,19 +62,17 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
-        let content_rect = if let Some(ref content) = children.into_iter().next() {
+        let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
-            content.borrow().get_rect()
+            let rect = content.borrow().get_rect();
+            Size::new(rect.width, rect.height)
         } else {
-            Rect::empty()
+            Size::empty()
         };
-        self.rect = content_rect;
-        self.rect = Margin::add_to_rect(self.rect, &map);
+
+        content_size
     }
 
     fn set_rect(
@@ -88,24 +81,10 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Stretch,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow_mut().set_rect(self.rect);
+            child.borrow_mut().set_rect(rect);
         }
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
     }
 
     fn hit_test(

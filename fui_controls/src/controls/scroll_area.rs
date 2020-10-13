@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::clipping::Clipping;
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
@@ -54,7 +53,6 @@ impl ScrollArea {
 pub struct DefaultScrollAreaStyleParams {}
 
 pub struct DefaultScrollAreaStyle {
-    rect: Rect,
     content_size: Size,
     event_subscriptions: Vec<EventSubscription>,
 }
@@ -62,27 +60,21 @@ pub struct DefaultScrollAreaStyle {
 impl DefaultScrollAreaStyle {
     pub fn new(_params: DefaultScrollAreaStyleParams) -> Self {
         DefaultScrollAreaStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             content_size: Size::new(0.0f32, 0.0f32),
             event_subscriptions: Vec::new(),
         }
     }
 
-    fn update_properties(&self, data: &mut ScrollArea) {
+    fn update_properties(&self, data: &mut ScrollArea, rect: Rect) {
         data.viewport_info.set(ViewportInfo {
             content_width: self.content_size.width,
             content_height: self.content_size.height,
-            viewport_width: self.rect.width,
-            viewport_height: self.rect.height,
+            viewport_width: rect.width,
+            viewport_height: rect.height,
         });
 
-        let max_offset_x = (self.content_size.width - self.rect.width).max(0.0f32);
-        let max_offset_y = (self.content_size.height - self.rect.height).max(0.0f32);
+        let max_offset_x = (self.content_size.width - rect.width).max(0.0f32);
+        let max_offset_y = (self.content_size.height - rect.height).max(0.0f32);
         if data.offset_x.get() > max_offset_x {
             data.offset_x.set(max_offset_x)
         }
@@ -116,10 +108,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -129,13 +118,10 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
             Size::new(0f32, 0f32)
         };
 
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
+        Size::new(
             self.content_size.width.min(size.width),
             self.content_size.height.min(size.height),
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        )
     }
 
     fn set_rect(
@@ -144,32 +130,18 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Stretch,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
-        self.update_properties(data);
+        self.update_properties(data, rect);
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
             let child_rect = Rect::new(
-                self.rect.x - data.offset_x.get().round(),
-                self.rect.y - data.offset_y.get().round(),
-                self.rect.width + data.offset_x.get().round(),
-                self.rect.height + data.offset_y.get().round(),
+                rect.x - data.offset_x.get().round(),
+                rect.y - data.offset_y.get().round(),
+                rect.width + data.offset_x.get().round(),
+                rect.height + data.offset_y.get().round(),
             );
             content.borrow_mut().set_rect(child_rect);
         }
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
     }
 
     fn hit_test(
@@ -178,7 +150,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
@@ -207,10 +179,11 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {

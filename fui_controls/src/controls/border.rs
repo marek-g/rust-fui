@@ -6,7 +6,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 
 pub enum BorderType {
@@ -51,7 +50,6 @@ pub struct DefaultBorderStyleParams {
 }
 
 pub struct DefaultBorderStyle {
-    rect: Rect,
     params: DefaultBorderStyleParams,
     event_subscriptions: Vec<EventSubscription>,
 }
@@ -59,12 +57,6 @@ pub struct DefaultBorderStyle {
 impl DefaultBorderStyle {
     pub fn new(params: DefaultBorderStyleParams) -> Self {
         DefaultBorderStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             params,
             event_subscriptions: Vec::new(),
         }
@@ -103,10 +95,7 @@ impl Style<Border> for DefaultBorderStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
 
         let border_size = Self::get_border_size(data);
@@ -131,33 +120,20 @@ impl Style<Border> for DefaultBorderStyle {
             Size::new(0f32, 0f32)
         };
 
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
+        Size::new(
             content_size.width + border_size * 2.0f32,
             content_size.height + border_size * 2.0f32,
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        )
     }
 
     fn set_rect(&mut self, data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Stretch,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let border_size = Self::get_border_size(data);
 
         let content_rect = Rect::new(
-            self.rect.x + border_size,
-            self.rect.y + border_size,
-            self.rect.width - border_size * 2.0f32,
-            self.rect.height - border_size * 2.0f32,
+            rect.x + border_size,
+            rect.y + border_size,
+            rect.width - border_size * 2.0f32,
+            rect.height - border_size * 2.0f32,
         );
 
         let children = control_context.get_children();
@@ -166,17 +142,13 @@ impl Style<Border> for DefaultBorderStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &Border,
         control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
@@ -204,11 +176,12 @@ impl Style<Border> for DefaultBorderStyle {
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
+        let rect = control_context.get_rect();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let background_color = self.params.background_color.get();
         if background_color[3] > 0.0f32 {

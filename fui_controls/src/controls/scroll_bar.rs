@@ -7,7 +7,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct ScrollBar {
@@ -59,7 +58,6 @@ const MIN_SIZE: f32 = MIN_THUMB_SIZE * 2.0f32;
 pub struct DefaultScrollBarStyleParams {}
 
 pub struct DefaultScrollBarStyle {
-    rect: Rect,
     thumb_pos_px: f32,
     thumb_size_px: f32,
 
@@ -73,12 +71,6 @@ pub struct DefaultScrollBarStyle {
 impl DefaultScrollBarStyle {
     pub fn new(_params: DefaultScrollBarStyleParams) -> Self {
         DefaultScrollBarStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             thumb_pos_px: 0f32,
             thumb_size_px: 0f32,
             is_thumb_hover: Property::new(false),
@@ -88,10 +80,10 @@ impl DefaultScrollBarStyle {
         }
     }
 
-    fn calc_sizes(&mut self, data: &ScrollBar) {
+    fn calc_sizes(&mut self, data: &ScrollBar, rect: Rect) {
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => self.rect.width - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => self.rect.height - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => rect.width - START_MARGIN - END_MARGIN,
+            Orientation::Vertical => rect.height - START_MARGIN - END_MARGIN,
         };
         let scroll_bar_size_f32 =
             data.max_value.get() - data.min_value.get() + data.viewport_size.get();
@@ -138,16 +130,17 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn handle_event(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &mut ControlContext,
+        control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
         match event {
             ControlEvent::TapDown { position } => {
+                let rect = control_context.get_rect();
                 let pos = match data.orientation {
-                    Orientation::Horizontal => position.x - self.rect.x - START_MARGIN,
-                    Orientation::Vertical => position.y - self.rect.y - START_MARGIN,
+                    Orientation::Horizontal => position.x - rect.x - START_MARGIN,
+                    Orientation::Vertical => position.y - rect.y - START_MARGIN,
                 };
                 if pos >= self.thumb_pos_px && pos < self.thumb_pos_px + self.thumb_size_px {
                     self.is_thumb_pressed.set(true);
@@ -161,14 +154,16 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
 
             ControlEvent::TapMove { ref position } => {
                 if self.is_thumb_pressed.get() {
+                    let rect = control_context.get_rect();
+
                     let scroll_bar_size_px = match data.orientation {
-                        Orientation::Horizontal => self.rect.width - START_MARGIN - END_MARGIN,
-                        Orientation::Vertical => self.rect.height - START_MARGIN - END_MARGIN,
+                        Orientation::Horizontal => rect.width - START_MARGIN - END_MARGIN,
+                        Orientation::Vertical => rect.height - START_MARGIN - END_MARGIN,
                     };
 
                     let pos = match data.orientation {
-                        Orientation::Horizontal => position.x - self.rect.x - START_MARGIN,
-                        Orientation::Vertical => position.y - self.rect.y - START_MARGIN,
+                        Orientation::Horizontal => position.x - rect.x - START_MARGIN,
+                        Orientation::Vertical => position.y - rect.y - START_MARGIN,
                     };
 
                     let new_thumb_pos_px = pos - self.pressed_offset;
@@ -179,7 +174,6 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                         .min(data.max_value.get());
 
                     if new_value != data.value.get() {
-                        //println!("New value: {}", new_value);
                         data.value.set(new_value);
                     }
                 }
@@ -196,13 +190,10 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn measure(
         &mut self,
         data: &mut ScrollBar,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         match data.orientation {
             Orientation::Horizontal => {
                 let space = if size.width.is_infinite() {
@@ -210,7 +201,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 } else {
                     size.width
                 };
-                self.rect = Rect::new(0.0f32, 0.0f32, MIN_SIZE.max(space), 20.0f32);
+                Size::new(MIN_SIZE.max(space), 20.0f32)
             }
             Orientation::Vertical => {
                 let space = if size.height.is_infinite() {
@@ -218,43 +209,27 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                 } else {
                     size.height
                 };
-                self.rect = Rect::new(0.0f32, 0.0f32, 20.0f32, MIN_SIZE.max(space));
+                Size::new(20.0f32, MIN_SIZE.max(space))
             }
         }
-        self.rect = Margin::add_to_rect(self.rect, &map);
     }
 
-    fn set_rect(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            match data.orientation {
-                Orientation::Horizontal => Alignment::Stretch,
-                Orientation::Vertical => Alignment::Start,
-            },
-            match data.orientation {
-                Orientation::Horizontal => Alignment::Start,
-                Orientation::Vertical => Alignment::Stretch,
-            },
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
-        self.calc_sizes(data);
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
+    fn set_rect(
+        &mut self,
+        data: &mut ScrollBar,
+        _control_context: &mut ControlContext,
+        rect: Rect,
+    ) {
+        self.calc_sizes(data, rect);
     }
 
     fn hit_test(
         &self,
         _data: &ScrollBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -264,13 +239,14 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn to_primitives(
         &self,
         data: &ScrollBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let scroll_bar_size_px = match data.orientation {
             Orientation::Horizontal => width - START_MARGIN - END_MARGIN,

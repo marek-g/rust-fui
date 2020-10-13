@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use euclid::Length;
@@ -42,7 +41,6 @@ pub struct DefaultTextStyleParams {
 }
 
 pub struct DefaultTextStyle {
-    rect: Rect,
     params: DefaultTextStyleParams,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
@@ -52,12 +50,6 @@ pub struct DefaultTextStyle {
 impl DefaultTextStyle {
     pub fn new(params: DefaultTextStyleParams) -> Self {
         DefaultTextStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             params,
             event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
@@ -85,44 +77,27 @@ impl Style<Text> for DefaultTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-
+    ) -> Size {
         let (text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
-        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32);
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Center,
-            Alignment::Center,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
+    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, _rect: Rect) {}
 
     fn hit_test(
         &self,
         _data: &Text,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -132,15 +107,16 @@ impl Style<Text> for DefaultTextStyle {
     fn to_primitives(
         &self,
         data: &Text,
-        _control_ontext: &ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let (text_width, text_height) = drawing_context
             .get_resources()
@@ -150,7 +126,10 @@ impl Style<Text> for DefaultTextStyle {
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: self.params.color,
-            position: PixelPoint::new(x, y),
+            position: PixelPoint::new(
+                x + (width - text_width as f32) / 2.0,
+                y + (height - text_height as f32) / 2.0,
+            ),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
             size: Length::new(self.font_size as f32),
             text: data.text.get(),
@@ -171,7 +150,6 @@ pub struct DynamicTextStyleParams {
 }
 
 pub struct DynamicTextStyle {
-    rect: Rect,
     params: DynamicTextStyleParams,
     event_subscriptions: Vec<EventSubscription>,
     font_name: &'static str,
@@ -182,12 +160,6 @@ pub struct DynamicTextStyle {
 impl DynamicTextStyle {
     pub fn new(params: DynamicTextStyleParams) -> Self {
         DynamicTextStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             params,
             event_subscriptions: Vec::new(),
             font_name: "OpenSans-Regular.ttf",
@@ -229,44 +201,27 @@ impl Style<Text> for DynamicTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-
+    ) -> Size {
         let (text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
             .unwrap_or((0, 0));
 
-        self.rect = Rect::new(0.0f32, 0.0f32, text_width as f32, text_height as f32);
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Center,
-            Alignment::Center,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
+    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, _rect: Rect) {}
 
     fn hit_test(
         &self,
         _data: &Text,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -276,15 +231,16 @@ impl Style<Text> for DynamicTextStyle {
     fn to_primitives(
         &self,
         data: &Text,
-        _control_ontext: &ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let (text_width, text_height) = drawing_context
             .get_resources()
@@ -294,7 +250,10 @@ impl Style<Text> for DynamicTextStyle {
         vec.push(Primitive::Text {
             resource_key: self.font_name.to_string(),
             color: self.params.color.get(),
-            position: PixelPoint::new(x, y),
+            position: PixelPoint::new(
+                x + (width - text_width as f32) / 2.0,
+                y + (height - text_height as f32) / 2.0,
+            ),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
             size: Length::new(self.font_size as f32),
             text: data.text.get(),

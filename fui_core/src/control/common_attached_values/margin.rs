@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
+use crate::{Rect, Size, Thickness};
 use drawing::primitive::Primitive;
-use fui_core::*;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
@@ -34,6 +34,23 @@ impl Margin {
         }
 
         rect
+    }
+
+    pub fn add_to_size(mut size: Size, map: &TypeMap) -> Size {
+        let thickness = if let Some(t) = map.get::<Margin>() {
+            *t
+        } else {
+            return size;
+        };
+
+        if size.width.is_finite() {
+            size.width = 0.0f32.max(size.width + thickness.left + thickness.right);
+        }
+        if size.height.is_finite() {
+            size.height = 0.0f32.max(size.height + thickness.top + thickness.bottom);
+        }
+
+        size
     }
 
     pub fn remove_from_size(mut size: Size, map: &TypeMap) -> Size {

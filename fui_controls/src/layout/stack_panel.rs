@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -17,8 +16,18 @@ impl StackPanel {
     pub fn to_view(
         self,
         style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
+        mut context: ViewContext,
     ) -> Rc<RefCell<StyledControl<Self>>> {
+        // set default alignment to Start
+        context
+            .attached_values
+            .entry::<HorizontalAlignment>()
+            .or_insert(Alignment::Start);
+        context
+            .attached_values
+            .entry::<VerticalAlignment>()
+            .or_insert(Alignment::Start);
+
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -38,15 +47,11 @@ impl StackPanel {
 #[derive(TypedBuilder)]
 pub struct DefaultStackPanelStyleParams {}
 
-pub struct DefaultStackPanelStyle {
-    rect: Rect,
-}
+pub struct DefaultStackPanelStyle;
 
 impl DefaultStackPanelStyle {
     pub fn new(_params: DefaultStackPanelStyleParams) -> Self {
-        DefaultStackPanelStyle {
-            rect: Rect::empty(),
-        }
+        DefaultStackPanelStyle {}
     }
 }
 
@@ -69,11 +74,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
-        let mut result = Rect::new(0.0f32, 0.0f32, 0f32, 0f32);
+    ) -> Size {
+        let mut result = Size::new(0f32, 0f32);
 
         let children = control_context.get_children();
 
@@ -100,8 +102,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
             }
         }
 
-        self.rect = result;
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        result
     }
 
     fn set_rect(
@@ -110,17 +111,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Start,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
-        let mut child_rect = self.rect;
+        let mut child_rect = rect;
 
         let children = control_context.get_children();
 
@@ -133,12 +124,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
 
-                    let dest_rect = Rect::new(
-                        child_rect.x,
-                        child_rect.y,
-                        child_rect.width,
-                        self.rect.height,
-                    );
+                    let dest_rect =
+                        Rect::new(child_rect.x, child_rect.y, child_rect.width, rect.height);
                     child.set_rect(dest_rect);
 
                     child_rect.x += child_rect.width;
@@ -152,12 +139,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     child_rect.width = child_size.width;
                     child_rect.height = child_size.height;
 
-                    let dest_rect = Rect::new(
-                        child_rect.x,
-                        child_rect.y,
-                        self.rect.width,
-                        child_rect.height,
-                    );
+                    let dest_rect =
+                        Rect::new(child_rect.x, child_rect.y, rect.width, child_rect.height);
                     child.set_rect(dest_rect);
 
                     child_rect.y += child_rect.height;
@@ -166,17 +149,13 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &StackPanel,
         control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             for child in children.into_iter() {
                 let c = child.borrow();

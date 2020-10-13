@@ -4,7 +4,7 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::{observable::*, Children, Services};
+use crate::{observable::*, Children, Rect, Services};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
@@ -15,6 +15,8 @@ pub struct ControlContext {
     attached_values: TypeMap,
 
     services: Option<Weak<RefCell<Services>>>,
+
+    rect: Rect,
 
     is_dirty: bool,
 }
@@ -28,6 +30,7 @@ impl ControlContext {
             children_collection_changed_event_subscription: None,
             attached_values: view_context.attached_values,
             services: None,
+            rect: Rect::empty(),
             is_dirty: true,
         }
     }
@@ -87,6 +90,14 @@ impl ControlContext {
                 .set_services(services.clone());
         }
         self.services = services;
+    }
+
+    pub fn get_rect(&self) -> Rect {
+        self.rect
+    }
+
+    pub fn set_rect(&mut self, rect: Rect) {
+        self.rect = rect;
     }
 
     pub fn is_dirty(&self) -> bool {

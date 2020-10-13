@@ -64,12 +64,7 @@ pub struct DefaultRelativeLayoutStyle {
 impl DefaultRelativeLayoutStyle {
     pub fn new(_params: DefaultRelativeLayoutStyleParams) -> Self {
         DefaultRelativeLayoutStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
+            rect: Rect::empty(),
         }
     }
 }
@@ -100,7 +95,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
-    ) {
+    ) -> Size {
         let children = control_context.get_children();
 
         let mut is_above = false;
@@ -140,7 +135,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
         self.rect = match &data.placement {
             RelativePlacement::FullSize => {
-                Rect::new(0f32, 0f32, available_size.width, available_size.height)
+                Rect::new(0.0f32, 0.0f32, available_size.width, available_size.height)
             }
 
             RelativePlacement::BelowOrAboveControl(_) => {
@@ -160,7 +155,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     )
                 }
             }
-        }
+        };
+
+        Size::new(self.rect.width, self.rect.height)
     }
 
     fn set_rect(
@@ -173,10 +170,6 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().set_rect(self.rect);
         }
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
     }
 
     fn hit_test(

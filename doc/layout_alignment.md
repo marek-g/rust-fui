@@ -6,6 +6,10 @@ There are two attached values that can be added to any control to precisely posi
 - `Alignment::End`
 - `Alignment::Stretch`
 
-## Rules for control developers
+The default values are `Alignment::Stretch` except for `StackPanel`, `Vertical` and `Horizontal` for which it is `Alignment::Start`.
 
-Each control is responsible for respecting `HorizontalAlignment` and `VerticalAlignment` attached values on its own. Each layout control should pass whole dedicated area to its child (regardless of measured child size), and the child will position itself.  
+## Notes for control developers
+
+The `ControlObject` trait implementation for `StyledControl<D>` takes care of respecting these attached values automatically for every control.
+
+To change the default value, you can insert desired value to `ViewContext` during control creation - see`StackPanel::to_view(...)`.

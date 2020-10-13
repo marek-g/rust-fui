@@ -209,6 +209,7 @@ impl ViewModel for MainViewModel {
             heights: vec![(0, Length::Auto)],
 
             Menu { items: menu_items },
+
             TabControl {
                 Margin: Thickness::all(5.0f32),
 

@@ -8,7 +8,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct Button {
@@ -42,7 +41,6 @@ impl Button {
 pub struct DefaultButtonStyleParams {}
 
 pub struct DefaultButtonStyle {
-    rect: Rect,
     is_hover: Property<bool>,
     is_pressed: Property<bool>,
     is_focused: Property<bool>,
@@ -52,7 +50,6 @@ pub struct DefaultButtonStyle {
 impl DefaultButtonStyle {
     pub fn new(_params: DefaultButtonStyleParams) -> Self {
         DefaultButtonStyle {
-            rect: Rect::empty(),
             is_hover: Property::new(false),
             is_pressed: Property::new(false),
             is_focused: Property::new(false),
@@ -121,10 +118,7 @@ impl Style<Button> for DefaultButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         if size.width.is_finite() {
             size.width = 0.0f32.max(size.width - 20.0f32);
         }
@@ -141,31 +135,15 @@ impl Style<Button> for DefaultButtonStyle {
             Size::new(0f32, 0f32)
         };
 
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
     fn set_rect(&mut self, _data: &mut Button, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + 10.0f32,
-            self.rect.y + 10.0f32,
-            self.rect.width - 20.0f32,
-            self.rect.height - 20.0f32,
+            rect.x + 10.0f32,
+            rect.y + 10.0f32,
+            rect.width - 20.0f32,
+            rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -174,17 +152,13 @@ impl Style<Button> for DefaultButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &Button,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -199,11 +173,12 @@ impl Style<Button> for DefaultButtonStyle {
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
+        let rect = control_context.get_rect();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         default_theme::button(
             &mut vec,

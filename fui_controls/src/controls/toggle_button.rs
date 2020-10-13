@@ -11,7 +11,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct ToggleButton {
@@ -45,7 +44,6 @@ impl ToggleButton {
 pub struct DefaultToggleButtonStyleParams {}
 
 pub struct DefaultToggleButtonStyle {
-    rect: Rect,
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
@@ -55,12 +53,6 @@ pub struct DefaultToggleButtonStyle {
 impl DefaultToggleButtonStyle {
     pub fn new(_params: DefaultToggleButtonStyleParams) -> Self {
         DefaultToggleButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
@@ -133,10 +125,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -145,13 +134,8 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+
+        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
     fn set_rect(
@@ -160,21 +144,11 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + 10.0f32,
-            self.rect.y + 10.0f32,
-            self.rect.width - 20.0f32,
-            self.rect.height - 20.0f32,
+            rect.x + 10.0f32,
+            rect.y + 10.0f32,
+            rect.width - 20.0f32,
+            rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -183,17 +157,13 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &ToggleButton,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -209,10 +179,11 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let is_pressed = if self.is_tapped.get() {
             !data.is_checked.get()
@@ -256,7 +227,6 @@ const CHECKBOX_MARGIN: f32 = 6.0f32;
 pub struct CheckBoxToggleButtonStyleParams {}
 
 pub struct CheckBoxToggleButtonStyle {
-    rect: Rect,
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
@@ -266,12 +236,6 @@ pub struct CheckBoxToggleButtonStyle {
 impl CheckBoxToggleButtonStyle {
     pub fn new(_params: CheckBoxToggleButtonStyleParams) -> Self {
         CheckBoxToggleButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
@@ -344,9 +308,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-
+    ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
@@ -367,13 +329,11 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
+
+        Size::new(
             content_size.width + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN * 2.0f32,
             CHECKBOX_BUTTON_SIZE.max(content_size.height),
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        )
     }
 
     fn set_rect(
@@ -382,21 +342,11 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
-            self.rect.y,
-            self.rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
-            self.rect.height,
+            rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
+            rect.y,
+            rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
+            rect.height,
         );
 
         let children = control_context.get_children();
@@ -405,17 +355,13 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &ToggleButton,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -431,9 +377,10 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let height = rect.height;
 
         let is_pressed = if self.is_tapped.get() {
             true
@@ -500,7 +447,6 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 pub struct TabToggleButtonStyleParams {}
 
 pub struct TabToggleButtonStyle {
-    rect: Rect,
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
@@ -510,12 +456,6 @@ pub struct TabToggleButtonStyle {
 impl TabToggleButtonStyle {
     pub fn new(_params: TabToggleButtonStyleParams) -> Self {
         TabToggleButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
@@ -588,10 +528,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -600,13 +537,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+
+        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
     fn set_rect(
@@ -615,21 +547,11 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + 10.0f32,
-            self.rect.y + 10.0f32,
-            self.rect.width - 20.0f32,
-            self.rect.height - 20.0f32,
+            rect.x + 10.0f32,
+            rect.y + 10.0f32,
+            rect.width - 20.0f32,
+            rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -638,17 +560,13 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &ToggleButton,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -664,10 +582,11 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let is_pressed = if self.is_tapped.get() {
             true
@@ -713,7 +632,6 @@ const RADIO_MARGIN: f32 = 6.0f32;
 pub struct RadioToggleButtonStyleParams {}
 
 pub struct RadioToggleButtonStyle {
-    rect: Rect,
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
@@ -723,12 +641,6 @@ pub struct RadioToggleButtonStyle {
 impl RadioToggleButtonStyle {
     pub fn new(_params: RadioToggleButtonStyleParams) -> Self {
         RadioToggleButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
@@ -801,10 +713,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             let child_size = Size::new(
@@ -825,13 +734,11 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
+
+        Size::new(
             content_size.width + RADIO_BUTTON_SIZE + RADIO_MARGIN * 2.0f32,
             RADIO_BUTTON_SIZE.max(content_size.height),
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        )
     }
 
     fn set_rect(
@@ -840,21 +747,11 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
-            self.rect.y,
-            self.rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
-            self.rect.height,
+            rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
+            rect.y,
+            rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
+            rect.height,
         );
 
         let children = control_context.get_children();
@@ -863,17 +760,13 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &ToggleButton,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -889,9 +782,10 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let height = rect.height;
 
         let is_pressed = if self.is_tapped.get() {
             true
@@ -950,7 +844,6 @@ pub struct DropDownToggleButtonStyleParams {
 }
 
 pub struct DropDownToggleButtonStyle {
-    rect: Rect,
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
@@ -961,12 +854,6 @@ pub struct DropDownToggleButtonStyle {
 impl DropDownToggleButtonStyle {
     pub fn new(params: DropDownToggleButtonStyleParams) -> Self {
         DropDownToggleButtonStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
@@ -1041,10 +928,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
             content.borrow_mut().measure(drawing_context, size);
@@ -1053,13 +937,8 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         } else {
             Size::new(0f32, 0f32)
         };
-        self.rect = Rect::new(
-            0.0f32,
-            0.0f32,
-            content_size.width + 20.0f32,
-            content_size.height + 20.0f32,
-        );
-        self.rect = Margin::add_to_rect(self.rect, &map);
+
+        Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
 
     fn set_rect(
@@ -1068,21 +947,11 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         control_context: &mut ControlContext,
         rect: Rect,
     ) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let content_rect = Rect::new(
-            self.rect.x + 10.0f32,
-            self.rect.y + 10.0f32,
-            self.rect.width - 20.0f32,
-            self.rect.height - 20.0f32,
+            rect.x + 10.0f32,
+            rect.y + 10.0f32,
+            rect.width - 20.0f32,
+            rect.height - 20.0f32,
         );
 
         let children = control_context.get_children();
@@ -1091,17 +960,13 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &ToggleButton,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -1117,10 +982,11 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         let mut vec = Vec::new();
         let mut overlay = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let is_pressed = if self.is_tapped.get() {
             true

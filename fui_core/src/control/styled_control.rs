@@ -167,22 +167,51 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         )
     }
 
-    fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size) {
-        self.style.measure(
+    fn measure(&mut self, drawing_context: &mut dyn DrawingContext, mut size: Size) {
+        //let map = self.control_context.get_attached_values();
+
+        size = Margin::remove_from_size(size, &self.control_context.get_attached_values());
+
+        let mut measured_size = self.style.measure(
             &mut self.data,
             &mut self.control_context,
             drawing_context,
             size,
-        )
+        );
+
+        measured_size =
+            Margin::add_to_size(measured_size, &self.control_context.get_attached_values());
+
+        self.control_context.set_rect(Rect::new(
+            0.0f32,
+            0.0f32,
+            measured_size.width,
+            measured_size.height,
+        ));
     }
 
     fn set_rect(&mut self, rect: Rect) {
+        let map = self.control_context.get_attached_values();
+
+        let control_rect = self.control_context.get_rect();
+        let measured_size = Size::new(control_rect.width, control_rect.height);
+
+        let mut new_rect = Alignment::apply(
+            measured_size,
+            rect,
+            &map,
+            Alignment::Stretch,
+            Alignment::Stretch,
+        );
+        new_rect = Margin::remove_from_rect(new_rect, &map);
+
+        self.control_context.set_rect(new_rect);
         self.style
-            .set_rect(&mut self.data, &mut self.control_context, rect);
+            .set_rect(&mut self.data, &mut self.control_context, new_rect);
     }
 
     fn get_rect(&self) -> Rect {
-        self.style.get_rect(&self.control_context)
+        self.control_context.get_rect()
     }
 
     fn hit_test(&self, point: Point) -> HitTestResult {

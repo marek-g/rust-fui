@@ -25,9 +25,8 @@ pub trait Style<D> {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         size: Size,
-    );
+    ) -> Size;
     fn set_rect(&mut self, data: &mut D, control_context: &mut ControlContext, rect: Rect);
-    fn get_rect(&self, control_context: &ControlContext) -> Rect;
 
     fn hit_test(&self, data: &D, control_context: &ControlContext, point: Point) -> HitTestResult;
 

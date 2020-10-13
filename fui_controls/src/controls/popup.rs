@@ -152,14 +152,11 @@ impl Style<Popup> for DefaultPopupStyle {
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _size: Size,
-    ) {
+    ) -> Size {
+        Size::new(0.0f32, 0.0f32)
     }
 
     fn set_rect(&mut self, _data: &mut Popup, _control_context: &mut ControlContext, _rect: Rect) {}
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        Rect::new(0.0f32, 0.0f32, 0f32, 0f32)
-    }
 
     fn hit_test(
         &self,

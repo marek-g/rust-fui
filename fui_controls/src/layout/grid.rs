@@ -30,7 +30,6 @@ use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
 
-use crate::{Alignment, Margin};
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -254,8 +253,6 @@ impl Grid {
 pub struct DefaultGridStyleParams {}
 
 pub struct DefaultGridStyle {
-    rect: Rect,
-
     definitions_u: Vec<DefinitionBase>,
     definitions_v: Vec<DefinitionBase>,
     cell_group_1: Vec<CellCache>,
@@ -270,12 +267,6 @@ pub struct DefaultGridStyle {
 impl DefaultGridStyle {
     pub fn new(_params: DefaultGridStyleParams) -> Self {
         DefaultGridStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             definitions_u: Vec::new(),
             definitions_v: Vec::new(),
             cell_group_1: Vec::new(),
@@ -1483,11 +1474,8 @@ impl Style<Grid> for DefaultGridStyle {
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
-        let mut grid_desired_size = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
+    ) -> Size {
+        let mut grid_desired_size = Size::new(0.0f32, 0.0f32);
 
         let children = control_context.get_children();
 
@@ -1649,30 +1637,19 @@ impl Style<Grid> for DefaultGridStyle {
             grid_desired_size.height = Self::calculate_desired_size(&self.definitions_v);
         }
 
-        self.rect = grid_desired_size;
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        grid_desired_size
     }
 
     fn set_rect(&mut self, _data: &mut Grid, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Stretch,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
         let children = control_context.get_children();
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow_mut().set_rect(self.rect);
+                child.borrow_mut().set_rect(rect);
             }
         } else {
-            Self::set_final_size(&mut self.definitions_u, self.rect.width, true);
-            Self::set_final_size(&mut self.definitions_v, self.rect.height, false);
+            Self::set_final_size(&mut self.definitions_u, rect.width, true);
+            Self::set_final_size(&mut self.definitions_v, rect.height, false);
 
             for cell in self
                 .cell_group_1
@@ -1688,14 +1665,14 @@ impl Style<Grid> for DefaultGridStyle {
                 let row_span = cell.row_span;
                 let rc = Rect::new(
                     if column_index == 0 {
-                        self.rect.x
+                        rect.x
                     } else {
-                        self.rect.x + self.definitions_u[column_index].final_offset
+                        rect.x + self.definitions_u[column_index].final_offset
                     },
                     if row_index == 0 {
-                        self.rect.y
+                        rect.y
                     } else {
-                        self.rect.y + self.definitions_v[row_index].final_offset
+                        rect.y + self.definitions_v[row_index].final_offset
                     },
                     Self::get_final_size_for_range(
                         &mut self.definitions_u,
@@ -1710,17 +1687,13 @@ impl Style<Grid> for DefaultGridStyle {
         }
     }
 
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
-    }
-
     fn hit_test(
         &self,
         _data: &Grid,
         control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             for child in children.into_iter().rev() {
                 let c = child.borrow();

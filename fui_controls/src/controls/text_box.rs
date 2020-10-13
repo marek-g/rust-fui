@@ -11,7 +11,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use crate::{Alignment, Margin};
 
 #[derive(TypedBuilder)]
 pub struct TextBox {
@@ -44,7 +43,6 @@ impl TextBox {
 pub struct DefaultTextBoxStyleParams {}
 
 pub struct DefaultTextBoxStyle {
-    rect: Rect,
     is_hover: bool,
     is_focused: bool,
     event_subscriptions: Vec<EventSubscription>,
@@ -59,12 +57,6 @@ pub struct DefaultTextBoxStyle {
 impl DefaultTextBoxStyle {
     pub fn new(_params: DefaultTextBoxStyleParams) -> Self {
         DefaultTextBoxStyle {
-            rect: Rect {
-                x: 0f32,
-                y: 0f32,
-                width: 0f32,
-                height: 0f32,
-            },
             is_hover: false,
             is_focused: false,
             event_subscriptions: Vec::new(),
@@ -81,13 +73,14 @@ impl DefaultTextBoxStyle {
         &self,
         text: &str,
         pos: &Point,
+        rect: Rect,
         resources: &mut dyn Resources,
     ) -> (usize, f32) {
         let (char_widths, _) = resources
             .get_font_dimensions_each_char(self.font_name, self.font_size, &text)
             .unwrap_or((Vec::new(), 0));
 
-        let pos = (pos.x - self.rect.x - 4.0f32) as i32;
+        let pos = (pos.x - rect.x - 4.0f32) as i32;
 
         let mut cursor_char = 0;
         let mut cursor_px = 0;
@@ -114,15 +107,27 @@ impl DefaultTextBoxStyle {
         text_width as f32
     }
 
-    fn move_cursor(&mut self, text: &str, cursor_pos_char: usize, resources: &mut dyn Resources) {
+    fn move_cursor(
+        &mut self,
+        text: &str,
+        cursor_pos_char: usize,
+        rect: Rect,
+        resources: &mut dyn Resources,
+    ) {
         let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, resources);
         self.cursor_pos_char = cursor_pos_char;
         self.cursor_pos_px = cursor_pos_px;
 
-        self.update_offset_x();
+        self.update_offset_x(rect);
     }
 
-    fn insert_str(&mut self, data: &mut TextBox, text: &str, resources: &mut dyn Resources) {
+    fn insert_str(
+        &mut self,
+        data: &mut TextBox,
+        text: &str,
+        rect: Rect,
+        resources: &mut dyn Resources,
+    ) {
         let t = data.text.get();
         let t: String = t
             .chars()
@@ -133,27 +138,33 @@ impl DefaultTextBoxStyle {
 
         let new_cursor_pos_char = self.cursor_pos_char + text.chars().count();
 
-        self.move_cursor(&t, new_cursor_pos_char, resources);
+        self.move_cursor(&t, new_cursor_pos_char, rect, resources);
         data.text.set(t);
     }
 
-    fn remove_char(&mut self, data: &mut TextBox, pos: usize, resources: &mut dyn Resources) {
+    fn remove_char(
+        &mut self,
+        data: &mut TextBox,
+        pos: usize,
+        rect: Rect,
+        resources: &mut dyn Resources,
+    ) {
         let t = data.text.get();
         let t: String = t.chars().take(pos).chain(t.chars().skip(pos + 1)).collect();
 
         if pos < self.cursor_pos_char {
-            self.move_cursor(&t, self.cursor_pos_char - 1, resources);
+            self.move_cursor(&t, self.cursor_pos_char - 1, rect, resources);
         }
 
         data.text.set(t);
     }
 
-    fn update_offset_x(&mut self) {
+    fn update_offset_x(&mut self, rect: Rect) {
         if self.is_focused {
             if self.cursor_pos_px < self.offset_x {
                 self.offset_x = self.cursor_pos_px;
-            } else if self.cursor_pos_px > self.offset_x + self.rect.width - 8.0f32 {
-                self.offset_x = self.cursor_pos_px - self.rect.width + 8.0f32 + 2.0f32;
+            } else if self.cursor_pos_px > self.offset_x + rect.width - 8.0f32 {
+                self.offset_x = self.cursor_pos_px - rect.width + 8.0f32 + 2.0f32;
             }
         } else {
             self.offset_x = 0.0f32;
@@ -190,6 +201,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 let cursor_pos = self.calc_cursor_pos(
                     &data.text.get(),
                     position,
+                    control_context.get_rect(),
                     drawing_context.get_resources(),
                 );
                 self.cursor_pos_char = cursor_pos.0;
@@ -206,6 +218,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                     self.remove_char(
                                         data,
                                         self.cursor_pos_char - 1,
+                                        control_context.get_rect(),
                                         drawing_context.get_resources(),
                                     );
                                 }
@@ -216,6 +229,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                     self.remove_char(
                                         data,
                                         self.cursor_pos_char,
+                                        control_context.get_rect(),
                                         drawing_context.get_resources(),
                                     );
                                 }
@@ -223,14 +237,24 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             Keycode::Home => {
                                 let text = data.text.get();
                                 if self.cursor_pos_char > 0 {
-                                    self.move_cursor(&text, 0, drawing_context.get_resources());
+                                    self.move_cursor(
+                                        &text,
+                                        0,
+                                        control_context.get_rect(),
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             Keycode::End => {
                                 let text = data.text.get();
                                 let len = text.chars().count();
                                 if self.cursor_pos_char + 1 <= len {
-                                    self.move_cursor(&text, len, drawing_context.get_resources());
+                                    self.move_cursor(
+                                        &text,
+                                        len,
+                                        control_context.get_rect(),
+                                        drawing_context.get_resources(),
+                                    );
                                 }
                             }
                             Keycode::Left => {
@@ -239,6 +263,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                     self.move_cursor(
                                         &text,
                                         self.cursor_pos_char - 1,
+                                        control_context.get_rect(),
                                         drawing_context.get_resources(),
                                     );
                                 }
@@ -249,6 +274,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                     self.move_cursor(
                                         &text,
                                         self.cursor_pos_char + 1,
+                                        control_context.get_rect(),
                                         drawing_context.get_resources(),
                                     );
                                 }
@@ -258,7 +284,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                     }
 
                     if let Some(ref text) = key_event.text {
-                        self.insert_str(data, &text, drawing_context.get_resources());
+                        self.insert_str(
+                            data,
+                            &text,
+                            control_context.get_rect(),
+                            drawing_context.get_resources(),
+                        );
                     }
 
                     control_context.set_is_dirty(true);
@@ -272,13 +303,10 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn measure(
         &mut self,
         data: &mut TextBox,
-        control_context: &mut ControlContext,
+        _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
         mut size: Size,
-    ) {
-        let map = control_context.get_attached_values();
-        size = Margin::remove_from_size(size, &map);
-
+    ) -> Size {
         let (_text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
@@ -290,35 +318,20 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             size.width.max(8.0f32 + 8.0f32)
         };
 
-        self.rect = Rect::new(0.0f32, 0.0f32, width, text_height as f32 + 8.0f32);
-        self.rect = Margin::add_to_rect(self.rect, &map);
+        Size::new(width, text_height as f32 + 8.0f32)
     }
 
-    fn set_rect(&mut self, _data: &mut TextBox, control_context: &mut ControlContext, rect: Rect) {
-        let map = control_context.get_attached_values();
-        Alignment::apply(
-            &mut self.rect,
-            rect,
-            &map,
-            Alignment::Stretch,
-            Alignment::Start,
-        );
-        self.rect = Margin::remove_from_rect(self.rect, &map);
-
-        self.update_offset_x();
-    }
-
-    fn get_rect(&self, _control_context: &ControlContext) -> Rect {
-        self.rect
+    fn set_rect(&mut self, _data: &mut TextBox, _control_context: &mut ControlContext, rect: Rect) {
+        self.update_offset_x(rect);
     }
 
     fn hit_test(
         &self,
         _data: &TextBox,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         point: Point,
     ) -> HitTestResult {
-        if point.is_inside(&self.rect) {
+        if point.is_inside(&control_context.get_rect()) {
             HitTestResult::Current
         } else {
             HitTestResult::Nothing
@@ -328,15 +341,16 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn to_primitives(
         &self,
         data: &TextBox,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let mut vec = Vec::new();
 
-        let x = self.rect.x;
-        let y = self.rect.y;
-        let width = self.rect.width;
-        let height = self.rect.height;
+        let rect = control_context.get_rect();
+        let x = rect.x;
+        let y = rect.y;
+        let width = rect.width;
+        let height = rect.height;
 
         let (text_width, text_height) = drawing_context
             .get_resources()
