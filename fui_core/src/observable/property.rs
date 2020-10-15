@@ -6,14 +6,12 @@ use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
 
 pub struct Property<T> {
     data: Rc<RefCell<PropertyData<T>>>,
-    binding_subscriptions: Vec<EventSubscription>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
             data: Rc::new(RefCell::new(PropertyData::new(val.into()))),
-            binding_subscriptions: Vec::new(),
         }
     }
 
@@ -49,9 +47,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn binded_two_way(other_property: &mut Property<T>) -> Self {
-        let mut property = Property::binded_from(&other_property);
-        other_property.bind(&mut property);
-        property
+        other_property.clone()
     }
 
     pub fn binded_c_two_way<TOther, F1, F2>(
@@ -86,18 +82,19 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         self.set(src_property.get());
 
         let weak_data_dest = Rc::downgrade(&self.data);
-        self.binding_subscriptions
-            .push(
-                src_property
-                    .data
-                    .borrow_mut()
-                    .changed
-                    .subscribe(move |src_val| {
-                        if let Some(dest_property_data) = weak_data_dest.upgrade() {
-                            dest_property_data.borrow_mut().set(src_val.clone());
-                        }
-                    }),
-            );
+        let subscription = src_property
+            .data
+            .borrow_mut()
+            .changed
+            .subscribe(move |src_val| {
+                if let Some(dest_property_data) = weak_data_dest.upgrade() {
+                    dest_property_data.borrow_mut().set(src_val.clone());
+                }
+            });
+        self.data
+            .borrow_mut()
+            .binding_subscriptions
+            .push(subscription);
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -109,18 +106,19 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
 
         let weak_data_dest = Rc::downgrade(&self.data);
         let boxed_f = Box::new(f);
-        self.binding_subscriptions
-            .push(
-                src_property
-                    .data
-                    .borrow_mut()
-                    .changed
-                    .subscribe(move |src_val| {
-                        if let Some(dest_property_data) = weak_data_dest.upgrade() {
-                            dest_property_data.borrow_mut().set(boxed_f(src_val));
-                        }
-                    }),
-            );
+        let subscription = src_property
+            .data
+            .borrow_mut()
+            .changed
+            .subscribe(move |src_val| {
+                if let Some(dest_property_data) = weak_data_dest.upgrade() {
+                    dest_property_data.borrow_mut().set(boxed_f(src_val));
+                }
+            });
+        self.data
+            .borrow_mut()
+            .binding_subscriptions
+            .push(subscription);
     }
 
     pub fn on_changed<F: 'static + FnMut(T)>(&self, f: F) -> EventSubscription {
@@ -128,9 +126,22 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 }
 
+impl<T: 'static + Clone + PartialEq> Clone for Property<T> {
+    fn clone(&self) -> Self {
+        Property::<T> {
+            data: self.data.clone(),
+        }
+    }
+
+    fn clone_from(&mut self, source: &Self) {
+        self.data.clone_from(&source.data);
+    }
+}
+
 struct PropertyData<T> {
     value: T,
     changed: Event<T>,
+    binding_subscriptions: Vec<EventSubscription>,
 }
 
 impl<T: 'static + Clone + PartialEq> PropertyData<T> {
@@ -138,6 +149,7 @@ impl<T: 'static + Clone + PartialEq> PropertyData<T> {
         PropertyData {
             value: val,
             changed: Event::new(),
+            binding_subscriptions: Vec::new(),
         }
     }
 
