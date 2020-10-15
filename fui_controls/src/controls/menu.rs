@@ -204,8 +204,12 @@ impl MenuItem {
 
                 let mut is_open_prop = Property::new(false);
                 let mut is_open_prop2 = Property::binded_two_way(&mut is_open_prop);
-                let mut tap_down_callback: Callback<()> = Callback::empty();
+                /*let mut tap_down_callback: Callback<()> = Callback::empty();
                 tap_down_callback.set(move |_| {
+                    is_open_prop2.set(true);
+                });*/
+                let mut hover_change_callback: Callback<bool> = Callback::empty();
+                hover_change_callback.set(move |value| {
                     is_open_prop2.set(true);
                 });
 
@@ -216,7 +220,8 @@ impl MenuItem {
 
                 ui!(
                     GestureArea {
-                        tap_down: tap_down_callback,
+                        //tap_down: tap_down_callback,
+                        hover_change: hover_change_callback,
 
                         title,
 
