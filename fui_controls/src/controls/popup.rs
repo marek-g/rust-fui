@@ -81,9 +81,9 @@ impl Style<Popup> for DefaultPopupStyle {
 
         let mut clicked_outside = Callback::empty();
         if let PopupAutoHide::ClickedOutside = auto_hide {
-            let mut is_open_property2 = Property::binded_two_way(&mut data.is_open);
+            let mut is_open_property_clone = data.is_open.clone();
             clicked_outside.set(move |_| {
-                is_open_property2.set(false);
+                is_open_property_clone.set(false);
             });
         }
 

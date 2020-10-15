@@ -87,37 +87,11 @@ where
     }
 }
 
-impl<V> From<&Rc<RefCell<dyn ObservableCollection<Rc<RefCell<V>>>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-where
-    V: 'static + ViewModel,
-{
-    fn from(src: &Rc<RefCell<dyn ObservableCollection<Rc<RefCell<V>>>>>) -> Self {
-        Box::new(src.borrow().map(|vm| ViewModel::create_view(vm)))
-    }
-}
-
-impl From<&Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-{
-    fn from(src: &Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        Box::new(src.borrow().map(|el| el.clone()))
-    }
-}
-
 impl From<&Property<Rc<RefCell<dyn ControlObject>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
 {
     fn from(src: &Property<Rc<RefCell<dyn ControlObject>>>) -> Self {
-        Box::new(Property::binded_from(&src))
-    }
-}
-
-impl From<&Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-{
-    fn from(src: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>) -> Self {
-        Box::new(Property::binded_from(&src.borrow()))
+        Box::new(src.clone())
     }
 }
 

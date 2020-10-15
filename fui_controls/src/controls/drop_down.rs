@@ -33,30 +33,26 @@ where
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let is_popup_open_property_rc = Rc::new(RefCell::new(Property::new(false)));
-        let is_popup_open_property2 =
-            Property::binded_two_way(&mut is_popup_open_property_rc.borrow_mut());
+        let is_popup_open_property = Property::new(false);
 
-        let is_popup_open_property_rc_clone = is_popup_open_property_rc.clone();
+        let mut is_popup_open_property_clone = is_popup_open_property.clone();
         let mut show_callback = Callback::empty();
         show_callback.set(move |_| {
-            is_popup_open_property_rc_clone.borrow_mut().set(true);
+            is_popup_open_property_clone.set(true);
         });
 
+        let mut is_popup_open_property_clone = is_popup_open_property.clone();
         let mut hide_callback = Callback::empty();
         hide_callback.set(move |_| {
-            is_popup_open_property_rc.clone().borrow_mut().set(false);
+            is_popup_open_property_clone.set(false);
         });
 
-        let selected_item_rc = Rc::new(RefCell::new(Property::binded_two_way(
-            &mut self.selected_item,
-        )));
-
+        let selected_item_prop_clone = self.selected_item.clone();
         let hide_callback_clone = hide_callback.clone();
         let menu_item_vms = self.items.map(move |v| {
             MenuItemViewModel::new(
                 v.clone(),
-                selected_item_rc.clone(),
+                selected_item_prop_clone.clone(),
                 hide_callback_clone.clone(),
             )
         });
@@ -68,7 +64,7 @@ where
                 &self.selected_item,
 
                 Popup {
-                    is_open: is_popup_open_property2,
+                    is_open: is_popup_open_property,
                     placement: PopupPlacement::BelowOrAboveParent,
 
                     ScrollViewer {
@@ -108,7 +104,7 @@ where
     pub is_checked: Property<bool>,
     pub clicked_callback: Callback<()>,
     pub source_vm: Rc<RefCell<V>>,
-    pub selected_item: Rc<RefCell<Property<Option<Rc<RefCell<V>>>>>>,
+    pub selected_item: Property<Option<Rc<RefCell<V>>>>,
     pub event_subscription: Option<EventSubscription>,
 }
 
@@ -118,10 +114,10 @@ where
 {
     pub fn new(
         source_vm: Rc<RefCell<V>>,
-        selected_item: Rc<RefCell<Property<Option<Rc<RefCell<V>>>>>>,
+        selected_item: Property<Option<Rc<RefCell<V>>>>,
         clicked_callback: Callback<()>,
     ) -> Rc<RefCell<Self>> {
-        let is_checked = match &selected_item.borrow().get() {
+        let is_checked = match &selected_item.get() {
             None => false,
             Some(vm) => vm == &source_vm,
         };
@@ -140,10 +136,8 @@ where
             vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
-                        let vm = vm.borrow();
-                        vm.selected_item
-                            .borrow_mut()
-                            .set(Some(vm.source_vm.clone()));
+                        let source_vm_clone = vm.borrow().source_vm.clone();
+                        vm.borrow_mut().selected_item.set(Some(source_vm_clone));
                     });
                     clicked_callback.emit(());
                 }

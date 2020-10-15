@@ -128,19 +128,18 @@ impl MenuItem {
                 sub_items,
             } => {
                 let mut background_property = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
-                let mut background_property2 = Property::binded_two_way(&mut background_property);
                 let mut foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
-                let mut foreground_property2 = Property::binded_two_way(&mut foreground_property);
-                let mut foreground_property3 = Property::binded_two_way(&mut foreground_property);
 
                 let mut on_hover_callback = Callback::empty();
+                let mut background_property_clone = background_property.clone();
+                let mut foreground_property_clone = foreground_property.clone();
                 on_hover_callback.set(move |value| {
-                    background_property2.set(if value {
+                    background_property_clone.set(if value {
                         [0.0f32, 0.0f32, 0.0f32, 0.8f32]
                     } else {
                         [0.0f32, 0.0f32, 0.0f32, 0.0f32]
                     });
-                    foreground_property2.set(if value {
+                    foreground_property_clone.set(if value {
                         [1.0f32, 1.0f32, 0.0f32, 1.0f32]
                     } else {
                         [0.0f32, 0.0f32, 0.0f32, 1.0f32]
@@ -171,14 +170,14 @@ impl MenuItem {
                             Text {
                                 Row: 0, Column: 1,
                                 HorizontalAlignment: Alignment::Start,
-                                Style: Dynamic { color: foreground_property },
+                                Style: Dynamic { color: foreground_property.clone() },
 
                                 text: text
                             },
 
                             Text {
                                 Row: 0, Column: 3,
-                                Style: Dynamic { color: foreground_property3 },
+                                Style: Dynamic { color: foreground_property },
                                 text: if sub_items.len() > 0 { ">" } else { "" },
                             }
                         }
@@ -203,14 +202,14 @@ impl MenuItem {
                 }
 
                 let mut is_open_prop = Property::new(false);
-                let mut is_open_prop2 = Property::binded_two_way(&mut is_open_prop);
+                let mut is_open_prop_clone = is_open_prop.clone();
                 /*let mut tap_down_callback: Callback<()> = Callback::empty();
                 tap_down_callback.set(move |_| {
-                    is_open_prop2.set(true);
+                    is_open_prop_clone.set(true);
                 });*/
                 let mut hover_change_callback: Callback<bool> = Callback::empty();
                 hover_change_callback.set(move |value| {
-                    is_open_prop2.set(true);
+                    is_open_prop_clone.set(true);
                 });
 
                 let sub_content: Vec<_> = sub_items

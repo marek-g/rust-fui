@@ -37,7 +37,7 @@ impl TabControl {
     ) -> Rc<RefCell<dyn ControlObject>> {
         let tabs_source =
             &context.children as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>;
-        let selected_tab = Rc::new(RefCell::new(Property::new(tabs_source.get(0).unwrap())));
+        let selected_tab = Property::new(tabs_source.get(0).unwrap());
 
         let selected_tab_clone = selected_tab.clone();
         let tab_button_vms =
@@ -77,21 +77,21 @@ struct TabButtonViewModel {
     pub title: Property<String>,
     pub is_checked: Property<bool>,
     pub content: Rc<RefCell<dyn ControlObject>>,
-    pub selected_tab: Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+    pub selected_tab: Property<Rc<RefCell<dyn ControlObject>>>,
     pub event_subscription: Option<EventSubscription>,
 }
 
 impl TabButtonViewModel {
     pub fn new(
         content: &Rc<RefCell<dyn ControlObject>>,
-        selected_tab: &Rc<RefCell<Property<Rc<RefCell<dyn ControlObject>>>>>,
+        selected_tab: &Property<Rc<RefCell<dyn ControlObject>>>,
     ) -> Rc<RefCell<Self>> {
         let title = content
             .borrow()
             .get_context()
             .get_attached_values()
             .get::<Title>()
-            .map(|t| Property::binded_from(t))
+            .map(|t| t.clone())
             .unwrap_or_else(|| Property::new("Tab"));
 
         let vm_rc = Rc::new(RefCell::new(TabButtonViewModel {
@@ -108,8 +108,8 @@ impl TabButtonViewModel {
             vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
-                        let vm = vm.borrow();
-                        vm.selected_tab.borrow_mut().set(vm.content.clone());
+                        let content_clone = vm.borrow().content.clone();
+                        vm.borrow_mut().selected_tab.set(content_clone);
                     });
                 }
             }));

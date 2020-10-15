@@ -33,11 +33,8 @@ impl ScrollViewer {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let mut offset_x_prop1 = Property::new(0.0f32);
-        let offset_x_prop2 = Property::binded_two_way(&mut offset_x_prop1);
-
-        let mut offset_y_prop1 = Property::new(0.0f32);
-        let offset_y_prop2 = Property::binded_two_way(&mut offset_y_prop1);
+        let mut offset_x_prop = Property::new(0.0f32);
+        let mut offset_y_prop = Property::new(0.0f32);
 
         let viewport_info_prop_src = Property::new(ViewportInfo::default());
 
@@ -76,8 +73,8 @@ impl ScrollViewer {
 
                 Border {
                     ScrollArea {
-                        offset_x: offset_x_prop1,
-                        offset_y: offset_y_prop1,
+                        offset_x: offset_x_prop.clone(),
+                        offset_y: offset_y_prop.clone(),
                         viewport_info: viewport_info_prop_src,
 
                         context.children,
@@ -87,7 +84,7 @@ impl ScrollViewer {
                 ScrollBar {
                     Visible: vertical_scrollbar_visible_prop,
                     orientation: Orientation::Vertical,
-                    value: offset_y_prop2,
+                    value: offset_y_prop,
                     max_value: max_offset_y_prop,
                     viewport_size: viewport_height_prop,
                 },
@@ -95,7 +92,7 @@ impl ScrollViewer {
                 ScrollBar {
                     Visible: horizontal_scrollbar_visible_prop,
                     orientation: Orientation::Horizontal,
-                    value: offset_x_prop2,
+                    value: offset_x_prop,
                     max_value: max_offset_x_prop,
                     viewport_size: viewport_width_prop,
                 },
