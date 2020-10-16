@@ -11,14 +11,29 @@ use typemap::TypeMap;
 
 #[derive(Copy, Clone)]
 pub enum PopupPlacement {
+    /// The popup will fill full window area.
     FullSize,
+
+    /// The popup will be placed above or below the parent
+    /// (wherever is more space) and will be the size of the parent.
     BelowOrAboveParent,
+
+    /// The popup will be placed to the left or to the right of the parent.
+    LeftOrRightParent,
 }
 
 #[derive(Copy, Clone)]
 pub enum PopupAutoHide {
+    /// The popup will be not automatically hidden.
     None,
+
+    /// The popup will be automatically closed when user clicks outside it.
     ClickedOutside,
+
+    /// The popup will be automatically closed when user moves the cursor
+    /// away the popup and it's parent or clicks outside it
+    /// (the submenu like behavior).
+    Menu,
 }
 
 #[derive(TypedBuilder)]
@@ -79,13 +94,11 @@ impl Style<Popup> for DefaultPopupStyle {
         let placement = data.placement;
         let auto_hide = data.auto_hide;
 
-        let mut clicked_outside = Callback::empty();
-        if let PopupAutoHide::ClickedOutside = auto_hide {
-            let mut is_open_property_clone = data.is_open.clone();
-            clicked_outside.set(move |_| {
-                is_open_property_clone.set(false);
-            });
-        }
+        let mut close_callback = Callback::empty();
+        let mut is_open_property_clone = data.is_open.clone();
+        close_callback.set(move |_| {
+            is_open_property_clone.set(false);
+        });
 
         let is_open_handler = move |is_open| {
             let window_service = self_rc
@@ -111,12 +124,19 @@ impl Style<Popup> for DefaultPopupStyle {
                                     Rc::downgrade(&self_popup.get_context().get_parent().unwrap());
                                 RelativePlacement::BelowOrAboveControl(parent_weak)
                             }
+
+                            PopupPlacement::LeftOrRightParent => {
+                                let parent_weak =
+                                    Rc::downgrade(&self_popup.get_context().get_parent().unwrap());
+                                RelativePlacement::LeftOrRightControl(parent_weak)
+                            }
                         };
 
                         let content = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
-                                clicked_outside: clicked_outside.clone(),
+                                close: close_callback.clone(),
+                                auto_hide: auto_hide,
 
                                 first_child,
                             }

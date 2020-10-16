@@ -48,6 +48,7 @@ impl EventProcessor {
         event: &InputEvent,
     ) {
         self.handle_keyboard_event(root_view, event);
+        self.handle_pointer_event(root_view, event);
         self.handle_gesture_event(root_view, event);
         self.handle_hover_event(root_view, event);
 
@@ -70,6 +71,32 @@ impl EventProcessor {
                 self.queue_event(
                     self.get_focused_control(),
                     ControlEvent::KeyboardInput(key_event.clone()),
+                );
+            }
+
+            _ => (),
+        }
+    }
+
+    fn handle_pointer_event(
+        &mut self,
+        root_view: &Rc<RefCell<dyn ControlObject>>,
+        event: &InputEvent,
+    ) {
+        match event {
+            InputEvent::CursorMoved { position, .. } => {
+                let hit_test_result = root_view.borrow().hit_test(*position);
+                let hit_control = match hit_test_result {
+                    HitTestResult::Current => Some(root_view.clone()),
+                    HitTestResult::Child(control) => Some(control),
+                    HitTestResult::Nothing => None,
+                };
+
+                self.queue_event(
+                    hit_control,
+                    ControlEvent::PointerMove {
+                        position: *position,
+                    },
                 );
             }
 

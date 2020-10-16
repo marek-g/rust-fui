@@ -217,6 +217,12 @@ impl MenuItem {
                     .map(|item| item.to_view(false))
                     .collect();
 
+                let popup_placement = if is_top {
+                    PopupPlacement::BelowOrAboveParent
+                } else {
+                    PopupPlacement::LeftOrRightParent
+                };
+
                 ui!(
                     GestureArea {
                         //tap_down: tap_down_callback,
@@ -226,7 +232,8 @@ impl MenuItem {
 
                         Popup {
                             is_open: is_open_prop,
-                            placement: PopupPlacement::BelowOrAboveParent,
+                            placement: popup_placement,
+                            auto_hide: PopupAutoHide::Menu,
 
                             Border {
                                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },

@@ -10,5 +10,7 @@ pub enum ControlEvent {
     TapUp { position: Point },
     TapMove { position: Point },
 
+    PointerMove { position: Point },
+
     KeyboardInput(KeyEvent),
 }

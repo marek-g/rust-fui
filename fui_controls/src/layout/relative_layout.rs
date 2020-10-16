@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
+use crate::PopupAutoHide;
 use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
@@ -8,6 +9,7 @@ use typed_builder::TypedBuilder;
 pub enum RelativePlacement {
     FullSize,
     BelowOrAboveControl(Weak<RefCell<dyn ControlObject>>),
+    LeftOrRightControl(Weak<RefCell<dyn ControlObject>>),
 }
 
 ///
@@ -29,7 +31,10 @@ pub struct RelativeLayout {
     pub placement: RelativePlacement,
 
     #[builder(default = Callback::empty())]
-    pub clicked_outside: Callback<()>,
+    pub close: Callback<()>,
+
+    #[builder(default = PopupAutoHide::None)]
+    pub auto_hide: PopupAutoHide,
 }
 
 impl RelativeLayout {
@@ -59,12 +64,14 @@ pub struct DefaultRelativeLayoutStyleParams {}
 
 pub struct DefaultRelativeLayoutStyle {
     rect: Rect,
+    relative_control_rect: Rect,
 }
 
 impl DefaultRelativeLayoutStyle {
     pub fn new(_params: DefaultRelativeLayoutStyleParams) -> Self {
         DefaultRelativeLayoutStyle {
             rect: Rect::empty(),
+            relative_control_rect: Rect::empty(),
         }
     }
 }
@@ -81,9 +88,21 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         event: ControlEvent,
     ) {
         match event {
-            ControlEvent::TapDown { .. } => {
-                data.clicked_outside.emit(());
-            }
+            ControlEvent::TapDown { .. } => match data.auto_hide {
+                PopupAutoHide::ClickedOutside | PopupAutoHide::Menu => data.close.emit(()),
+                _ => (),
+            },
+
+            ControlEvent::PointerMove { position } => match data.auto_hide {
+                PopupAutoHide::Menu => {
+                    if !position.is_inside(&self.relative_control_rect)
+                        && !position.is_inside(&self.rect)
+                    {
+                        data.close.emit(())
+                    }
+                }
+                _ => (),
+            },
 
             _ => (),
         }
@@ -99,23 +118,43 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         let children = control_context.get_children();
 
         let mut is_above = false;
-        let mut relative_control_rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
+        let mut is_left = false;
+        self.relative_control_rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
         let available_size = match &data.placement {
             RelativePlacement::FullSize => size,
 
             RelativePlacement::BelowOrAboveControl(relative_control) => {
                 if let Some(relative_control) = relative_control.upgrade() {
-                    relative_control_rect = relative_control.borrow().get_rect();
+                    self.relative_control_rect = relative_control.borrow().get_rect();
 
-                    let height_above = relative_control_rect.y;
-                    let height_below =
-                        size.height - (relative_control_rect.y + relative_control_rect.height);
+                    let height_above = self.relative_control_rect.y;
+                    let height_below = size.height
+                        - (self.relative_control_rect.y + self.relative_control_rect.height);
 
                     if height_above > height_below {
                         is_above = true;
-                        Size::new(relative_control_rect.width, height_above)
+                        Size::new(self.relative_control_rect.width, height_above)
                     } else {
-                        Size::new(relative_control_rect.width, height_below)
+                        Size::new(self.relative_control_rect.width, height_below)
+                    }
+                } else {
+                    size
+                }
+            }
+
+            RelativePlacement::LeftOrRightControl(relative_control) => {
+                if let Some(relative_control) = relative_control.upgrade() {
+                    self.relative_control_rect = relative_control.borrow().get_rect();
+
+                    let width_left = self.relative_control_rect.x;
+                    let width_right = size.width
+                        - (self.relative_control_rect.x + self.relative_control_rect.width);
+
+                    if width_left > width_right {
+                        is_left = true;
+                        Size::new(width_left, size.height)
+                    } else {
+                        Size::new(width_right, size.height)
                     }
                 } else {
                     size
@@ -141,16 +180,43 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             RelativePlacement::BelowOrAboveControl(_) => {
                 if is_above {
                     Rect::new(
-                        relative_control_rect.x,
-                        relative_control_rect.y - content_size.height,
+                        self.relative_control_rect.x,
+                        self.relative_control_rect.y - content_size.height,
                         content_size.width.max(available_size.width),
                         content_size.height,
                     )
                 } else {
                     Rect::new(
-                        relative_control_rect.x,
-                        relative_control_rect.y + relative_control_rect.height,
+                        self.relative_control_rect.x,
+                        self.relative_control_rect.y + self.relative_control_rect.height,
                         content_size.width.max(available_size.width),
+                        content_size.height,
+                    )
+                }
+            }
+
+            RelativePlacement::LeftOrRightControl(_) => {
+                let pos_y = if content_size.height
+                    <= available_size.height - self.relative_control_rect.y
+                {
+                    self.relative_control_rect.y
+                } else {
+                    (self.relative_control_rect.y + self.relative_control_rect.height
+                        - content_size.height)
+                        .max(0.0f32)
+                };
+                if is_left {
+                    Rect::new(
+                        self.relative_control_rect.x - content_size.width.min(available_size.width),
+                        pos_y,
+                        content_size.width.min(available_size.width),
+                        content_size.height,
+                    )
+                } else {
+                    Rect::new(
+                        self.relative_control_rect.x + self.relative_control_rect.width,
+                        pos_y,
+                        content_size.width.min(available_size.width),
                         content_size.height,
                     )
                 }
