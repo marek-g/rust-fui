@@ -218,6 +218,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         &mut self,
         data: &mut ScrollBar,
         _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         self.calc_sizes(data, rect);

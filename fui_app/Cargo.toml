@@ -13,6 +13,8 @@ edition = "2018"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.1" }
+fui_macros = { path = "../fui_macros", version = "0.1" }
+fui_controls = { path = "../fui_controls", version = "0.1" }
 #drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
 #drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.1" }
 drawing = "0.1"

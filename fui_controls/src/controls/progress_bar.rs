@@ -106,6 +106,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         &mut self,
         _data: &mut ProgressBar,
         _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
         _rect: Rect,
     ) {
     }

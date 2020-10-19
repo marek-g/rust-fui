@@ -1640,12 +1640,18 @@ impl Style<Grid> for DefaultGridStyle {
         grid_desired_size
     }
 
-    fn set_rect(&mut self, _data: &mut Grid, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &mut Grid,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
+        rect: Rect,
+    ) {
         let children = control_context.get_children();
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow_mut().set_rect(rect);
+                child.borrow_mut().set_rect(drawing_context, rect);
             }
         } else {
             Self::set_final_size(&mut self.definitions_u, rect.width, true);
@@ -1682,7 +1688,7 @@ impl Style<Grid> for DefaultGridStyle {
                     Self::get_final_size_for_range(&mut self.definitions_v, row_index, row_span),
                 );
 
-                child.borrow_mut().set_rect(rc);
+                child.borrow_mut().set_rect(drawing_context, rc);
             }
         }
     }

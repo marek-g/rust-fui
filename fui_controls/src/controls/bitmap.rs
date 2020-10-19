@@ -83,7 +83,13 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         }
     }
 
-    fn set_rect(&mut self, _data: &mut Bitmap, _control_context: &mut ControlContext, _rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &mut Bitmap,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        _rect: Rect,
+    ) {
     }
 
     fn hit_test(

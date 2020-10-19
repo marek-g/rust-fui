@@ -79,11 +79,12 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         &mut self,
         _data: &mut DataHolder<T>,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow_mut().set_rect(rect);
+            child.borrow_mut().set_rect(drawing_context, rect);
         }
     }
 

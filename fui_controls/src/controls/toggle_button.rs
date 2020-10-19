@@ -142,6 +142,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         &mut self,
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -153,7 +154,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -340,6 +341,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         &mut self,
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -351,7 +353,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -545,6 +547,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         &mut self,
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -556,7 +559,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -745,6 +748,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         &mut self,
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -756,7 +760,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -945,6 +949,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         &mut self,
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -956,7 +961,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 

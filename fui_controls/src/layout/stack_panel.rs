@@ -109,6 +109,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         &mut self,
         data: &mut StackPanel,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         let mut child_rect = rect;
@@ -126,7 +127,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
 
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, child_rect.width, rect.height);
-                    child.set_rect(dest_rect);
+                    child.set_rect(drawing_context, dest_rect);
 
                     child_rect.x += child_rect.width;
                 }
@@ -141,7 +142,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
 
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, rect.width, child_rect.height);
-                    child.set_rect(dest_rect);
+                    child.set_rect(drawing_context, dest_rect);
 
                     child_rect.y += child_rect.height;
                 }

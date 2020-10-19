@@ -15,15 +15,19 @@ pub enum RelativePlacement {
 ///
 /// Warning!
 ///
-/// RelativeLayout is designed to work with Popup control.
+/// RelativeLayout is designed to work with Popup control
+/// and it's dangerous (danger of panic) to use outside of it.
 ///
 /// It works correctly only when:
-/// 1. Placed as a top control (covers whole window).
+/// 1. Covers whole window.
 /// 2. References to controls on lower layouts.
 ///
-/// Referencing controls placed on the same layout
-/// can cause panics because of recursive borrowing
-/// controls during layout phase.
+/// The lower layout control is a control that:
+/// - is not lying on the path from RelativeLayout to root
+///   (that would cause borrow panic during layout phase)
+/// - it's layout phase is calculated before the layout
+///   phase of RelativeLayout (RelativeLayout refers to
+///   calculated size of that control)
 ///
 #[derive(TypedBuilder)]
 pub struct RelativeLayout {
@@ -110,25 +114,42 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
     fn measure(
         &mut self,
+        _data: &mut RelativeLayout,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        size: Size,
+    ) -> Size {
+        // RelativeLayout is a special container.
+        // It skips the measure phase of it's child here.
+        // It delays it to the set_rect() phase, because
+        // the space available to it's child may depend
+        // on the position of the relative control
+        // (the position of it is unknown here).
+        self.rect = Rect::new(0.0f32, 0.0f32, size.width, size.height);
+        size
+    }
+
+    fn set_rect(
+        &mut self,
         data: &mut RelativeLayout,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        size: Size,
-    ) -> Size {
+        rect: Rect,
+    ) {
         let children = control_context.get_children();
 
         let mut is_above = false;
         let mut is_left = false;
         self.relative_control_rect = Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32);
         let available_size = match &data.placement {
-            RelativePlacement::FullSize => size,
+            RelativePlacement::FullSize => Size::new(rect.width, rect.height),
 
             RelativePlacement::BelowOrAboveControl(relative_control) => {
                 if let Some(relative_control) = relative_control.upgrade() {
                     self.relative_control_rect = relative_control.borrow().get_rect();
 
                     let height_above = self.relative_control_rect.y;
-                    let height_below = size.height
+                    let height_below = rect.height
                         - (self.relative_control_rect.y + self.relative_control_rect.height);
 
                     if height_above > height_below {
@@ -138,7 +159,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                         Size::new(self.relative_control_rect.width, height_below)
                     }
                 } else {
-                    size
+                    Size::new(rect.width, rect.height)
                 }
             }
 
@@ -147,17 +168,17 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     self.relative_control_rect = relative_control.borrow().get_rect();
 
                     let width_left = self.relative_control_rect.x;
-                    let width_right = size.width
+                    let width_right = rect.width
                         - (self.relative_control_rect.x + self.relative_control_rect.width);
 
                     if width_left > width_right {
                         is_left = true;
-                        Size::new(width_left, size.height)
+                        Size::new(width_left, rect.height)
                     } else {
-                        Size::new(width_right, size.height)
+                        Size::new(width_right, rect.height)
                     }
                 } else {
-                    size
+                    Size::new(rect.width, rect.height)
                 }
             }
         };
@@ -223,18 +244,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             }
         };
 
-        Size::new(self.rect.width, self.rect.height)
-    }
-
-    fn set_rect(
-        &mut self,
-        _data: &mut RelativeLayout,
-        control_context: &mut ControlContext,
-        _rect: Rect,
-    ) {
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(self.rect);
+            content.borrow_mut().set_rect(drawing_context, self.rect);
         }
     }
 

@@ -321,7 +321,13 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         Size::new(width, text_height as f32 + 8.0f32)
     }
 
-    fn set_rect(&mut self, _data: &mut TextBox, _control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        _data: &mut TextBox,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        rect: Rect,
+    ) {
         self.update_offset_x(rect);
     }
 

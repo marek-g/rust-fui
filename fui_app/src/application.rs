@@ -158,29 +158,26 @@ impl Application {
                                     physical_size.height as u16,
                                 );
 
-                                // resizing must be done on all layers,
-                                // starting from the first one
-                                for root_view in window_entry.window.borrow_mut().get_layers() {
-                                    let size = Size::new(
-                                        physical_size.width as f32,
-                                        physical_size.height as f32,
-                                    );
-                                    let mut root_control = root_view.borrow_mut();
-                                    root_control.get_context_mut().set_is_dirty(true);
+                                // resize root view
+                                let window = window_entry.window.borrow();
+                                let root_view = window.get_root_control();
+                                let size = Size::new(
+                                    physical_size.width as f32,
+                                    physical_size.height as f32,
+                                );
+                                let mut root_control = root_view.borrow_mut();
+                                root_control.get_context_mut().set_is_dirty(true);
 
-                                    let mut fui_drawing_context = FuiDrawingContext::new(
-                                        (physical_size.width as u16, physical_size.height as u16),
-                                        drawing_context.deref_mut(),
-                                    );
-                                    root_control.measure(&mut fui_drawing_context, size);
+                                let mut fui_drawing_context = FuiDrawingContext::new(
+                                    (physical_size.width as u16, physical_size.height as u16),
+                                    drawing_context.deref_mut(),
+                                );
+                                root_control.measure(&mut fui_drawing_context, size);
 
-                                    root_control.set_rect(Rect::new(
-                                        0f32,
-                                        0f32,
-                                        size.width,
-                                        size.height,
-                                    ));
-                                }
+                                root_control.set_rect(
+                                    &mut fui_drawing_context,
+                                    Rect::new(0f32, 0f32, size.width, size.height),
+                                );
                             }
 
                             _ => (),
@@ -196,16 +193,13 @@ impl Application {
                                 drawing_context.deref_mut(),
                             );
 
-                            // events go only to the top layer
-                            // in future it may change to allow non-modal layers
-                            let root_view = window.get_layers().last().map(|r| r.clone());
-                            if let Some(root_view) = root_view {
-                                window.event_processor.handle_event(
-                                    &root_view,
-                                    &mut fui_drawing_context,
-                                    &input_event,
-                                );
-                            }
+                            // events go to the window's root control
+                            let root_view = window.get_root_control().clone();
+                            window.event_processor.handle_event(
+                                &root_view,
+                                &mut fui_drawing_context,
+                                &input_event,
+                            );
                         }
                     }
                 }
@@ -216,20 +210,7 @@ impl Application {
     }
 
     fn is_dirty(window: &mut Window) -> bool {
-        let mut res = false;
-        for root_view in window.get_layers() {
-            let root_control = root_view.borrow();
-            if root_control.get_context().is_dirty() {
-                res = true;
-                break;
-            }
-        }
-
-        if window.is_dirty {
-            return true;
-        }
-
-        res
+        window.get_root_control().borrow().get_context().is_dirty()
     }
 
     fn render(window: &mut Window, drawing_context: &mut DrawingContext, width: u32, height: u32) {
@@ -240,11 +221,14 @@ impl Application {
 
         let mut primitives = Vec::new();
 
-        for root_view in window.get_layers() {
-            let mut root_control = root_view.borrow_mut();
+        {
+            let mut root_control = window.get_root_control().borrow_mut();
 
             root_control.measure(&mut fui_drawing_context, size);
-            root_control.set_rect(Rect::new(0f32, 0f32, size.width, size.height));
+            root_control.set_rect(
+                &mut fui_drawing_context,
+                Rect::new(0f32, 0f32, size.width, size.height),
+            );
 
             let (mut primitives1, mut overlay) =
                 root_control.to_primitives(&mut fui_drawing_context);
@@ -253,8 +237,6 @@ impl Application {
 
             root_control.get_context_mut().set_is_dirty(false);
         }
-
-        window.is_dirty = false;
 
         let res = drawing_context.begin(&mut window.drawing_window_target);
         if let Err(err) = res {

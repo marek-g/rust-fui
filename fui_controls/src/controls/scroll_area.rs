@@ -128,6 +128,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         &mut self,
         data: &mut ScrollArea,
         control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
         rect: Rect,
     ) {
         self.update_properties(data, rect);
@@ -140,7 +141,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
                 rect.width + data.offset_x.get().round(),
                 rect.height + data.offset_y.get().round(),
             );
-            content.borrow_mut().set_rect(child_rect);
+            content.borrow_mut().set_rect(drawing_context, child_rect);
         }
     }
 

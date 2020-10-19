@@ -89,7 +89,14 @@ impl Style<Text> for DefaultTextStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, _rect: Rect) {}
+    fn set_rect(
+        &mut self,
+        _data: &mut Text,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        _rect: Rect,
+    ) {
+    }
 
     fn hit_test(
         &self,
@@ -213,7 +220,14 @@ impl Style<Text> for DynamicTextStyle {
         Size::new(text_width as f32, text_height as f32)
     }
 
-    fn set_rect(&mut self, _data: &mut Text, _control_context: &mut ControlContext, _rect: Rect) {}
+    fn set_rect(
+        &mut self,
+        _data: &mut Text,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut dyn DrawingContext,
+        _rect: Rect,
+    ) {
+    }
 
     fn hit_test(
         &self,

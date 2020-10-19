@@ -66,10 +66,13 @@ impl WindowManager {
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_rc.clone();
 
         let services = Rc::new(RefCell::new(Services::new(&window_service_rc)));
-
-        view.borrow_mut()
+        window_rc
+            .borrow()
+            .get_root_control()
+            .borrow_mut()
             .get_context_mut()
             .set_services(Some(Rc::downgrade(&services)));
+
         window_rc.borrow_mut().add_layer(view);
 
         let window_entry = WindowEntry {

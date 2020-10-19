@@ -126,7 +126,13 @@ impl Style<Border> for DefaultBorderStyle {
         )
     }
 
-    fn set_rect(&mut self, data: &mut Border, control_context: &mut ControlContext, rect: Rect) {
+    fn set_rect(
+        &mut self,
+        data: &mut Border,
+        control_context: &mut ControlContext,
+        drawing_context: &mut dyn DrawingContext,
+        rect: Rect,
+    ) {
         let border_size = Self::get_border_size(data);
 
         let content_rect = Rect::new(
@@ -138,7 +144,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(content_rect);
+            content.borrow_mut().set_rect(drawing_context, content_rect);
         }
     }
 

@@ -1,25 +1,37 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use typemap::TypeMap;
 
-use fui_core::ControlObject;
+use fui_controls::Grid;
+use fui_core::{Children, ControlObject, ObservableCollection, ObservableVec, ViewContext};
 use fui_core::{EventProcessor, WindowService};
+use fui_macros::ui;
 
 use crate::DrawingWindowTarget;
 
 pub struct Window {
     pub drawing_window_target: DrawingWindowTarget,
     pub event_processor: EventProcessor,
-    pub is_dirty: bool,
-    control_layers: Vec<Rc<RefCell<dyn ControlObject>>>,
+    pub root_control: Rc<RefCell<dyn ControlObject>>,
+
+    control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
 }
 
 impl Window {
     pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
+        let control_layers = ObservableVec::<Rc<RefCell<dyn ControlObject>>>::new();
+
+        let content = ui!(
+            Grid {
+                &control_layers,
+            }
+        );
+
         Window {
             drawing_window_target,
             event_processor: EventProcessor::new(),
-            is_dirty: false,
-            control_layers: Vec::new(),
+            root_control: content,
+            control_layers,
         }
     }
 
@@ -27,7 +39,11 @@ impl Window {
         &self.drawing_window_target
     }
 
-    pub fn get_layers(&self) -> &Vec<Rc<RefCell<dyn ControlObject>>> {
+    pub fn get_root_control(&self) -> &Rc<RefCell<dyn ControlObject>> {
+        &self.root_control
+    }
+
+    pub fn get_layers(&self) -> &ObservableVec<Rc<RefCell<dyn ControlObject>>> {
         &self.control_layers
     }
 }
@@ -35,18 +51,10 @@ impl Window {
 impl WindowService for Window {
     fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.push(control);
-        self.is_dirty = true;
     }
 
     fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
-        let mut i = 0;
-        while i != self.control_layers.len() {
-            if Rc::ptr_eq(&self.control_layers[i], control) {
-                self.control_layers.remove(i);
-            } else {
-                i += 1;
-            }
-        }
-        self.is_dirty = true;
+        self.control_layers
+            .remove_filter(|el| Rc::ptr_eq(el, control));
     }
 }

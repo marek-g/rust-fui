@@ -196,7 +196,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         ));
     }
 
-    fn set_rect(&mut self, rect: Rect) {
+    fn set_rect(&mut self, drawing_context: &mut dyn DrawingContext, rect: Rect) {
         let map = self.control_context.get_attached_values();
         if let Some(visible) = map.get::<Visible>() {
             if !visible.get() {
@@ -218,8 +218,12 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         new_rect = Margin::remove_from_rect(new_rect, &map);
 
         self.control_context.set_rect(new_rect);
-        self.style
-            .set_rect(&mut self.data, &mut self.control_context, new_rect);
+        self.style.set_rect(
+            &mut self.data,
+            &mut self.control_context,
+            drawing_context,
+            new_rect,
+        );
     }
 
     fn get_rect(&self) -> Rect {
