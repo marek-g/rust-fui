@@ -20,7 +20,7 @@ pub enum RelativePlacement {
 ///
 /// It works correctly only when:
 /// 1. Covers whole window.
-/// 2. References to controls on lower layouts.
+/// 2. References only controls on lower layouts.
 ///
 /// The lower layout control is a control that:
 /// - is not lying on the path from RelativeLayout to root
@@ -39,6 +39,11 @@ pub struct RelativeLayout {
 
     #[builder(default = PopupAutoHide::None)]
     pub auto_hide: PopupAutoHide,
+
+    /// RelativeLayout does not pass through events to controls below
+    /// except the area covered by this list of controls
+    #[builder(default = Vec::new())]
+    pub uncovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
 }
 
 impl RelativeLayout {
@@ -252,10 +257,12 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
     fn hit_test(
         &self,
-        _data: &RelativeLayout,
+        data: &RelativeLayout,
         control_context: &ControlContext,
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        // If the point is inside child area
+        // pass the check to the child.
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
@@ -268,10 +275,21 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     }
                 }
             }
-            Some(control_context.get_self_rc())
-        } else {
-            Some(control_context.get_self_rc())
         }
+
+        // If the point is over one of the `uncovered_controls`
+        // return None, so the parent will hit test them
+        // and they will receive event.
+        for uncovered_control in &data.uncovered_controls {
+            if let Some(uncovered_control) = uncovered_control.upgrade() {
+                if point.is_inside(&uncovered_control.borrow().get_rect()) {
+                    return None;
+                }
+            }
+        }
+
+        // Otherwise return self and block sending events outside.
+        Some(control_context.get_self_rc())
     }
 
     fn to_primitives(

@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell};
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 use crate::layout::RelativeLayout;
 use crate::RelativePlacement;
@@ -46,6 +46,11 @@ pub struct Popup {
 
     #[builder(default = PopupAutoHide::ClickedOutside)]
     pub auto_hide: PopupAutoHide,
+
+    /// Popup does not pass through events to controls below
+    /// except the area covered by this list of controls
+    #[builder(default = Vec::new())]
+    pub uncovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
 }
 
 impl Popup {
@@ -93,6 +98,7 @@ impl Style<Popup> for DefaultPopupStyle {
         let popup_content_rc = self.popup_content.clone();
         let placement = data.placement;
         let auto_hide = data.auto_hide;
+        let uncovered_controls = data.uncovered_controls.to_vec();
 
         let mut close_callback = Callback::empty();
         let mut is_open_property_clone = data.is_open.clone();
@@ -137,6 +143,7 @@ impl Style<Popup> for DefaultPopupStyle {
                                 placement: relative_placement,
                                 close: close_callback.clone(),
                                 auto_hide: auto_hide,
+                                uncovered_controls: uncovered_controls.to_vec(),
 
                                 first_child,
                             }

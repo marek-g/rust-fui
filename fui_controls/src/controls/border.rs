@@ -167,7 +167,7 @@ impl Style<Border> for DefaultBorderStyle {
                     }
                 }
             }
-            None
+            Some(control_context.get_self_rc())
         } else {
             None
         }

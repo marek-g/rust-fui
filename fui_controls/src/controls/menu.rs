@@ -1,7 +1,7 @@
 use fui_core::{ControlObject, Property, Style, ViewContext};
 use fui_macros::ui;
 use std::cell::RefCell;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
@@ -80,13 +80,9 @@ impl Menu {
         // menu is active when tapped
         let is_menu_active_prop = Property::new(false);
 
-        let content: Vec<_> = self
-            .items
-            .into_iter()
-            .map(|item| item.to_view(true, &is_menu_active_prop))
-            .collect();
+        let mut content_prop = ObservableVec::new();
 
-        let menu = ui!(
+        let menu: Rc<RefCell<dyn ControlObject>> = ui!(
             Border {
                 border_type: BorderType::None,
                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
@@ -94,10 +90,17 @@ impl Menu {
                 StackPanel {
                     orientation: self.orientation,
 
-                    content,
+                    &content_prop,
                 }
             }
         );
+
+        let uncovered_controls: Vec<_> = vec![Rc::downgrade(&menu)];
+
+        for item in self.items.into_iter() {
+            let view = item.to_view(true, &is_menu_active_prop, &uncovered_controls);
+            content_prop.push(view);
+        }
 
         let data_holder = DataHolder { data: () };
         data_holder.to_view(
@@ -115,6 +118,7 @@ impl MenuItem {
         self,
         is_top: bool,
         is_menu_active_prop: &Property<bool>,
+        uncovered_controls: &Vec<Weak<RefCell<dyn ControlObject>>>,
     ) -> Rc<RefCell<dyn ControlObject>> {
         match self {
             MenuItem::Separator => {
@@ -244,10 +248,7 @@ impl MenuItem {
                 let popup = if sub_items.len() == 0 {
                     Children::None
                 } else {
-                    let sub_content: Vec<_> = sub_items
-                        .into_iter()
-                        .map(|item| item.to_view(false, &is_menu_active_prop))
-                        .collect();
+                    let mut sub_content_prop = ObservableVec::new();
 
                     let popup_placement = if is_top {
                         PopupPlacement::BelowOrAboveParent
@@ -280,27 +281,37 @@ impl MenuItem {
                         },
                     );
 
-                    let popup = ui!(
-                        Popup {
-                            is_open: is_open_prop,
-                            placement: popup_placement,
-                            //auto_hide: PopupAutoHide::Menu,
+                    let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
+                        Border {
+                            Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
-                            Border {
-                                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+                            Grid {
+                                columns: 1,
+                                default_width: Length::Fill(1.0f32),
+                                default_height: Length::Auto,
 
-                                Grid {
-                                    columns: 1,
-                                    default_width: Length::Fill(1.0f32),
-                                    default_height: Length::Auto,
-
-                                    sub_content
-                                }
-                            },
-
-                            data_holder,
+                                &sub_content_prop,
+                            }
                         }
                     );
+
+                    let mut uncovered_controls = uncovered_controls.to_vec();
+                    uncovered_controls.push(Rc::downgrade(&popup_content));
+                    for item in sub_items.into_iter() {
+                        let view = item.to_view(false, &is_menu_active_prop, &uncovered_controls);
+                        sub_content_prop.push(view);
+                    }
+
+                    let popup = ui!(Popup {
+                        is_open: is_open_prop,
+                        placement: popup_placement,
+                        //auto_hide: PopupAutoHide::Menu,
+                        uncovered_controls: uncovered_controls,
+
+                        popup_content,
+
+                        data_holder,
+                    });
 
                     Children::SingleStatic(popup)
                 };
