@@ -111,7 +111,7 @@ impl EventProcessor {
                     if let Some(captured_control) = captured_control {
                         self.queue_event(
                             Some(captured_control),
-                            ControlEvent::TapDown { position: position },
+                            ControlEvent::TapDown { position },
                         );
                     } else {
                         let hit_control = root_view.borrow().hit_test(position);
@@ -122,7 +122,7 @@ impl EventProcessor {
 
                             self.queue_event(
                                 self.get_captured_control(),
-                                ControlEvent::TapDown { position: position },
+                                ControlEvent::TapDown { position },
                             );
                         }
                     }
@@ -131,13 +131,13 @@ impl EventProcessor {
                 Gesture::TapUp { position } => {
                     let captured_control = self.get_captured_control();
                     self.set_captured_control(None);
-                    self.queue_event(captured_control, ControlEvent::TapUp { position: position });
+                    self.queue_event(captured_control, ControlEvent::TapUp { position });
                 }
 
                 Gesture::TapMove { position } => {
                     self.queue_event(
                         self.get_captured_control(),
-                        ControlEvent::TapMove { position: position },
+                        ControlEvent::TapMove { position },
                     );
                 }
             });
@@ -172,7 +172,7 @@ impl EventProcessor {
 
     fn recalculate_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
         if let Some(position) = self.cursor_pos {
-            let mut controls_to_hover = root_view.borrow().get_controls_at_point(position);
+            let mut controls_to_hover = root_view.borrow().get_hit_path(position);
 
             // if there is captured control, only captured control can be hovered
             if let Some(captured_control) = &self.captured_control {

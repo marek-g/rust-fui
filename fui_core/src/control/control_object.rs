@@ -10,10 +10,13 @@ pub trait ControlObject: ControlBehavior {
     fn get_context(&self) -> &ControlContext;
     fn get_context_mut(&mut self) -> &mut ControlContext;
 
+    ///
     /// Returns all the child controls including this one
     /// that are located within a specified `point` of the window.
+    /// This also includes controls placed behind hit controls.
     ///
     /// The order is from the bottom to the top.
+    ///
     fn get_controls_at_point(&self, point: Point) -> Vec<Weak<RefCell<dyn ControlObject>>> {
         let rect = self.get_rect();
         let mut res = Vec::new();
@@ -23,6 +26,25 @@ pub trait ControlObject: ControlBehavior {
                 res.append(&mut child.borrow().get_controls_at_point(point));
             }
             res.push(self.get_context().get_self_weak())
+        }
+        res
+    }
+
+    ///
+    /// Returns the `hit` control and all its parent controls
+    /// up to and including this one.
+    ///
+    fn get_hit_path(&self, point: Point) -> Vec<Weak<RefCell<dyn ControlObject>>> {
+        let mut res = Vec::new();
+        let mut hit_control = self.hit_test(point);
+        while let Some(control) = &hit_control {
+            res.push(Rc::downgrade(control));
+
+            hit_control = if Rc::ptr_eq(&control, &self.get_context().get_self_rc()) {
+                None
+            } else {
+                control.borrow().get_context().get_parent()
+            }
         }
         res
     }
