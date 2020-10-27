@@ -336,11 +336,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         _data: &TextBox,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 

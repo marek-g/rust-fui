@@ -8,12 +8,6 @@ use crate::control::ControlObject;
 use crate::events::*;
 use crate::DrawingContext;
 
-pub enum HitTestResult {
-    Nothing,
-    Current,
-    Child(Rc<RefCell<dyn ControlObject>>),
-}
-
 pub trait ControlBehavior {
     fn setup(&mut self);
 
@@ -27,7 +21,7 @@ pub trait ControlBehavior {
     fn set_rect(&mut self, drawing_context: &mut dyn DrawingContext, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, point: Point) -> HitTestResult;
+    fn hit_test(&self, point: Point) -> Option<Rc<RefCell<dyn ControlObject>>>;
 
     /// Returns primitives.
     /// First vector contains primitives for normal layer (most controls).

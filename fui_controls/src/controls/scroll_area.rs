@@ -150,24 +150,21 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         _data: &ScrollArea,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.hit_test(point);
-                    match child_hit_test {
-                        HitTestResult::Current => return HitTestResult::Child(content.clone()),
-                        HitTestResult::Child(..) => return child_hit_test,
-                        HitTestResult::Nothing => (),
+                    if let Some(hit_control) = c.hit_test(point) {
+                        return Some(hit_control);
                     }
                 }
             }
-            HitTestResult::Nothing
+            None
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 

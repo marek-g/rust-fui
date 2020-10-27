@@ -7,6 +7,7 @@ use typed_builder::TypedBuilder;
 
 use crate::style::*;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
+use std::sync::mpsc::channel;
 
 pub enum BorderType {
     None,
@@ -153,7 +154,7 @@ impl Style<Border> for DefaultBorderStyle {
         _data: &Border,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
@@ -161,16 +162,14 @@ impl Style<Border> for DefaultBorderStyle {
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let child_hit_test = c.hit_test(point);
-                    match child_hit_test {
-                        HitTestResult::Current => return HitTestResult::Child(content.clone()),
-                        HitTestResult::Child(..) => return child_hit_test,
-                        HitTestResult::Nothing => (),
+                    if child_hit_test.is_some() {
+                        return child_hit_test;
                     }
                 }
             }
-            HitTestResult::Nothing
+            None
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 

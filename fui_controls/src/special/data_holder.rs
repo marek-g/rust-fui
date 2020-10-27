@@ -93,17 +93,13 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         _data: &DataHolder<T>,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            let child_hit_test = child.borrow_mut().hit_test(point);
-            return match child_hit_test {
-                HitTestResult::Current => HitTestResult::Child(child.clone()),
-                HitTestResult::Child(..) => child_hit_test,
-                HitTestResult::Nothing => HitTestResult::Nothing,
-            };
+            child.borrow_mut().hit_test(point)
+        } else {
+            None
         }
-        HitTestResult::Nothing
     }
 
     fn to_primitives(

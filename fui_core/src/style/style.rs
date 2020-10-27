@@ -6,6 +6,8 @@ use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
 use crate::{DrawingContext, EventContext};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 pub trait Style<D> {
     fn setup(&mut self, data: &mut D, control_context: &mut ControlContext);
@@ -34,7 +36,12 @@ pub trait Style<D> {
         rect: Rect,
     );
 
-    fn hit_test(&self, data: &D, control_context: &ControlContext, point: Point) -> HitTestResult;
+    fn hit_test(
+        &self,
+        data: &D,
+        control_context: &ControlContext,
+        point: Point,
+    ) -> Option<Rc<RefCell<dyn ControlObject>>>;
 
     fn to_primitives(
         &self,

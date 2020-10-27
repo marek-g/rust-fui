@@ -255,24 +255,22 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         _data: &RelativeLayout,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
                 let c = content.borrow();
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
-                    let child_hit_test = c.hit_test(point);
-                    match child_hit_test {
-                        HitTestResult::Current => return HitTestResult::Child(content.clone()),
-                        HitTestResult::Child(..) => return child_hit_test,
-                        HitTestResult::Nothing => (),
+                    let hit_control = c.hit_test(point);
+                    if hit_control.is_some() {
+                        return hit_control;
                     }
                 }
             }
-            HitTestResult::Current
+            None
         } else {
-            HitTestResult::Current
+            None
         }
     }
 

@@ -93,15 +93,23 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.is_checked.change(|val| !val);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.is_checked.change(|val| !val);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_tapped.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        self.is_tapped.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 } else {
                     self.is_tapped.set(false);
                 }
@@ -163,11 +171,11 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 
@@ -277,15 +285,23 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.is_checked.change(|val| !val);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.is_checked.change(|val| !val);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_tapped.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        self.is_tapped.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 } else {
                     self.is_tapped.set(false);
                 }
@@ -362,11 +378,11 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 
@@ -498,15 +514,23 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.is_checked.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.is_checked.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_tapped.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                        self.is_tapped.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 } else {
                     self.is_tapped.set(false);
                 }
@@ -568,11 +592,11 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 
@@ -684,15 +708,23 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.is_checked.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.is_checked.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_tapped.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                        self.is_tapped.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 } else {
                     self.is_tapped.set(false);
                 }
@@ -769,11 +801,11 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 
@@ -899,16 +931,23 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.is_checked.set(true);
-                    self.clicked.emit(());
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.is_checked.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 }
                 self.is_tapped.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_tapped.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                        self.is_tapped.set(true);
+                    } else {
+                        self.is_tapped.set(false);
+                    }
                 } else {
                     self.is_tapped.set(false);
                 }
@@ -970,11 +1009,11 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 

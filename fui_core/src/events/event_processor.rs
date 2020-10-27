@@ -85,13 +85,7 @@ impl EventProcessor {
     ) {
         match event {
             InputEvent::CursorMoved { position, .. } => {
-                let hit_test_result = root_view.borrow().hit_test(*position);
-                let hit_control = match hit_test_result {
-                    HitTestResult::Current => Some(root_view.clone()),
-                    HitTestResult::Child(control) => Some(control),
-                    HitTestResult::Nothing => None,
-                };
-
+                let hit_control = root_view.borrow().hit_test(*position);
                 self.queue_event(
                     hit_control,
                     ControlEvent::PointerMove {
@@ -120,13 +114,7 @@ impl EventProcessor {
                             ControlEvent::TapDown { position: position },
                         );
                     } else {
-                        let hit_test_result = root_view.borrow().hit_test(position);
-                        let hit_control = match hit_test_result {
-                            HitTestResult::Current => Some(root_view.clone()),
-                            HitTestResult::Child(control) => Some(control),
-                            HitTestResult::Nothing => None,
-                        };
-
+                        let hit_control = root_view.borrow().hit_test(position);
                         if let Some(ref hit_control) = hit_control {
                             self.set_focused_control(Some(hit_control.clone()));
 

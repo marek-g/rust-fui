@@ -86,15 +86,21 @@ impl Style<Button> for DefaultButtonStyle {
             }
 
             ControlEvent::TapUp { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    data.clicked.emit(());
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        data.clicked.emit(());
+                    }
                 }
                 self.is_pressed.set(false);
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let HitTestResult::Current = self.hit_test(&data, &control_context, *position) {
-                    self.is_pressed.set(true);
+                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                        self.is_pressed.set(true);
+                    } else {
+                        self.is_pressed.set(false);
+                    }
                 } else {
                     self.is_pressed.set(false);
                 }
@@ -163,11 +169,11 @@ impl Style<Button> for DefaultButtonStyle {
         _data: &Button,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         if point.is_inside(&control_context.get_rect()) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 

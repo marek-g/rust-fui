@@ -230,10 +230,10 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         self.control_context.get_rect()
     }
 
-    fn hit_test(&self, point: Point) -> HitTestResult {
+    fn hit_test(&self, point: Point) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let rect = self.control_context.get_rect();
         if rect.width == 0.0f32 || rect.height == 0.0f32 {
-            return HitTestResult::Nothing;
+            return None;
         }
 
         self.style

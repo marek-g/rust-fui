@@ -190,8 +190,8 @@ impl Style<Popup> for DefaultPopupStyle {
         _data: &Popup,
         _control_context: &ControlContext,
         _point: Point,
-    ) -> HitTestResult {
-        HitTestResult::Nothing
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+        None
     }
 
     fn to_primitives(

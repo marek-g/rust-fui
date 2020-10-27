@@ -113,7 +113,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         _data: &GestureArea,
         control_context: &ControlContext,
         point: Point,
-    ) -> HitTestResult {
+    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
         let rect = if let Some(child) = children.into_iter().next() {
             child.borrow().get_rect()
@@ -122,9 +122,9 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         };
 
         if point.is_inside(&rect) {
-            HitTestResult::Current
+            Some(control_context.get_self_rc())
         } else {
-            HitTestResult::Nothing
+            None
         }
     }
 
