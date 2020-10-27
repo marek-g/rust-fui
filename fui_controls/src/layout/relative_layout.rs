@@ -268,9 +268,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     }
                 }
             }
-            None
+            Some(control_context.get_self_rc())
         } else {
-            None
+            Some(control_context.get_self_rc())
         }
     }
 
