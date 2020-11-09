@@ -216,7 +216,7 @@ impl ViewModel for MainViewModel {
             Menu { items: menu_items },
 
             TabControl {
-                Margin: Thickness::all(5.0f32),
+                Margin: Thickness::new(5.0f32, 12.0f32, 5.0f32, 5.0f32),
 
                 tab1,
                 tab2
