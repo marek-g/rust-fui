@@ -176,6 +176,11 @@ impl ViewModel for MainViewModel {
             }
         );
 
+        let mut exit_callback = Callback::empty();
+        exit_callback.set(|_| {
+            println!("Exit");
+        });
+
         let menu_items = vec![
             MenuItem::folder(
                 "File",
@@ -191,7 +196,7 @@ impl ViewModel for MainViewModel {
                         ],
                     ),
                     MenuItem::Separator,
-                    MenuItem::simple("Exit", Callback::empty()),
+                    MenuItem::simple("Exit", exit_callback),
                 ],
             ),
             MenuItem::folder(

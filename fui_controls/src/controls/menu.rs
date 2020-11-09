@@ -181,9 +181,12 @@ impl MenuItem {
                     let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let mut is_open_prop_clone = is_open_prop.clone();
                     on_tap_down_callback.set(move |_| {
-                        is_menu_active_prop_clone.set(true);
                         if has_sub_items {
+                            is_menu_active_prop_clone.set(true);
                             is_open_prop_clone.set(true);
+                        } else {
+                            // execute menu command
+                            callback.emit(());
                         }
                     });
 
@@ -244,6 +247,16 @@ impl MenuItem {
                             if has_sub_items {
                                 is_open_prop_clone.set(true);
                             }
+                        }
+                    });
+
+                    let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
+                    on_tap_down_callback.set(move |_| {
+                        if !has_sub_items {
+                            // close menu
+                            is_menu_active_prop_clone.set(false);
+                            // execute menu command
+                            callback.emit(());
                         }
                     });
                 }
