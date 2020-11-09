@@ -89,10 +89,14 @@ impl Menu {
                 border_type: BorderType::None,
                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
-                StackPanel {
-                    orientation: self.orientation,
+                Shadow {
+                    Style: Default { size: 12.0f32 },
 
-                    &content_prop,
+                    StackPanel {
+                        orientation: self.orientation,
+
+                        &content_prop,
+                    }
                 }
             }
         );
