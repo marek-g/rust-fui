@@ -68,15 +68,17 @@ where
                     auto_hide: PopupAutoHide::ClickedOutside,
                     placement: PopupPlacement::BelowOrAboveParent,
 
-                    ScrollViewer {
-                        horizontal_scroll_bar_visibility: ScrollBarVisibility::Hidden,
-                        vertical_scroll_bar_visibility: ScrollBarVisibility::Auto,
+                    Shadow {
+                        ScrollViewer {
+                            horizontal_scroll_bar_visibility: ScrollBarVisibility::Hidden,
+                            vertical_scroll_bar_visibility: ScrollBarVisibility::Auto,
 
-                        Grid {
-                            VerticalAlignment: Alignment::Start,
-                            columns: 1,
+                            Grid {
+                                VerticalAlignment: Alignment::Start,
+                                columns: 1,
 
-                            &menu_item_vms,
+                                &menu_item_vms,
+                            }
                         }
                     }
                 }
