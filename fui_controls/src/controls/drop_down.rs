@@ -65,6 +65,7 @@ where
 
                 Popup {
                     is_open: is_popup_open_property,
+                    auto_hide: PopupAutoHide::ClickedOutside,
                     placement: PopupPlacement::BelowOrAboveParent,
 
                     ScrollViewer {

@@ -34,11 +34,14 @@ pub struct RelativeLayout {
     #[builder(default = RelativePlacement::FullSize)]
     pub placement: RelativePlacement,
 
-    #[builder(default = Callback::empty())]
-    pub close: Callback<()>,
-
+    /// Auto hide method.
+    /// Defines rules when to call `auto_hide_request` callback.
     #[builder(default = PopupAutoHide::None)]
     pub auto_hide: PopupAutoHide,
+
+    /// Called when auto hide is requested.
+    #[builder(default = Callback::empty())]
+    pub auto_hide_request: Callback<()>,
 
     /// RelativeLayout does not pass through events to controls below
     /// except the area covered by this list of controls
@@ -98,7 +101,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         match event {
             ControlEvent::TapDown { .. } => match data.auto_hide {
-                PopupAutoHide::ClickedOutside | PopupAutoHide::Menu => data.close.emit(()),
+                PopupAutoHide::ClickedOutside | PopupAutoHide::Menu => {
+                    data.auto_hide_request.emit(())
+                }
                 _ => (),
             },
 
@@ -107,7 +112,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     if !position.is_inside(&self.relative_control_rect)
                         && !position.is_inside(&self.rect)
                     {
-                        data.close.emit(())
+                        data.auto_hide_request.emit(())
                     }
                 }
                 _ => (),

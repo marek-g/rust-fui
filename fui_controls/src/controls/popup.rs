@@ -44,8 +44,12 @@ pub struct Popup {
     #[builder(default = PopupPlacement::FullSize)]
     pub placement: PopupPlacement,
 
-    #[builder(default = PopupAutoHide::ClickedOutside)]
+    #[builder(default = PopupAutoHide::None)]
     pub auto_hide: PopupAutoHide,
+
+    /// Called when auto hide has occured.
+    #[builder(default = Callback::empty())]
+    pub auto_hide_occured: Callback<()>,
 
     /// Popup does not pass through events to controls below
     /// except the area covered by this list of controls
@@ -98,12 +102,14 @@ impl Style<Popup> for DefaultPopupStyle {
         let popup_content_rc = self.popup_content.clone();
         let placement = data.placement;
         let auto_hide = data.auto_hide;
+        let auto_hide_occured = data.auto_hide_occured.clone();
         let uncovered_controls = data.uncovered_controls.to_vec();
 
-        let mut close_callback = Callback::empty();
+        let mut auto_hide_request_callback = Callback::empty();
         let mut is_open_property_clone = data.is_open.clone();
-        close_callback.set(move |_| {
+        auto_hide_request_callback.set(move |_| {
             is_open_property_clone.set(false);
+            auto_hide_occured.emit(());
         });
 
         let is_open_handler = move |is_open| {
@@ -141,8 +147,8 @@ impl Style<Popup> for DefaultPopupStyle {
                         let content = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
-                                close: close_callback.clone(),
                                 auto_hide: auto_hide,
+                                auto_hide_request: auto_hide_request_callback.clone(),
                                 uncovered_controls: uncovered_controls.to_vec(),
 
                                 first_child,

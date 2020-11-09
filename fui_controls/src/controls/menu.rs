@@ -270,17 +270,6 @@ impl MenuItem {
                         }
                     });
 
-                    let data_holder = DataHolder {
-                        data: (popup_close_subscription),
-                    }
-                    .to_view(
-                        None,
-                        ViewContext {
-                            attached_values: TypeMap::new(),
-                            children: Children::None,
-                        },
-                    );
-
                     let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
                         Border {
                             Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
@@ -302,10 +291,38 @@ impl MenuItem {
                         sub_content_prop.push(view);
                     }
 
+                    // when clicked outside last open submenu
+                    // make whole menu inactive (and close all submenu windows)
+                    let mut auto_hide_occured_callback = Callback::empty();
+                    let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
+                    auto_hide_occured_callback.set(move |_| {
+                        is_menu_active_prop_clone.set(false);
+                    });
+
+                    let mut is_open_prop_clone = is_open_prop.clone();
+                    let is_menu_active_prop_changed =
+                        is_menu_active_prop.on_changed(move |value| {
+                            if !value {
+                                is_open_prop_clone.set(false);
+                            }
+                        });
+
+                    let data_holder = DataHolder {
+                        data: (popup_close_subscription, is_menu_active_prop_changed),
+                    }
+                    .to_view(
+                        None,
+                        ViewContext {
+                            attached_values: TypeMap::new(),
+                            children: Children::None,
+                        },
+                    );
+
                     let popup = ui!(Popup {
                         is_open: is_open_prop,
                         placement: popup_placement,
-                        //auto_hide: PopupAutoHide::Menu,
+                        auto_hide: PopupAutoHide::ClickedOutside,
+                        auto_hide_occured: auto_hide_occured_callback,
                         uncovered_controls: uncovered_controls,
 
                         popup_content,
