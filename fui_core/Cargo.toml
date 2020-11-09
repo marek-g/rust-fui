@@ -12,8 +12,8 @@ readme = "../README.md"
 edition = "2018"
 
 [dependencies]
-#drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
-drawing = "0.1"
+drawing = { path = "../../rust-drawing/drawing", version = "0.1" }
+#drawing = "0.1"
 anyhow = "1.0"
 typed-builder = "0.7"
 typemap = "0.3"
