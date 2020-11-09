@@ -81,6 +81,8 @@ impl Menu {
         let is_menu_active_prop = Property::new(false);
 
         let mut content_prop = ObservableVec::new();
+        let mut close_item_popup_callbacks = Vec::new();
+        let mut close_siblings_callbacks = Vec::new();
 
         let menu: Rc<RefCell<dyn ControlObject>> = ui!(
             Border {
@@ -98,8 +100,32 @@ impl Menu {
         let uncovered_controls: Vec<_> = vec![Rc::downgrade(&menu)];
 
         for item in self.items.into_iter() {
-            let view = item.to_view(true, &is_menu_active_prop, &uncovered_controls);
+            let close_siblings_callback_rc = Rc::new(RefCell::new(Callback::empty()));
+            let (view, close_item_popup_callback) = item.to_view(
+                true,
+                &is_menu_active_prop,
+                &uncovered_controls,
+                &close_siblings_callback_rc,
+            );
             content_prop.push(view);
+            close_item_popup_callbacks.push(close_item_popup_callback);
+            close_siblings_callbacks.push(close_siblings_callback_rc);
+        }
+
+        // setup sibling closing logic
+        for i in 0..close_siblings_callbacks.len() {
+            let mut close_item_popup_callbacks_for_i = Vec::new();
+            for j in 0..close_item_popup_callbacks.len() {
+                if j != i {
+                    close_item_popup_callbacks_for_i.push(close_item_popup_callbacks[j].clone());
+                }
+            }
+
+            close_siblings_callbacks[i].borrow_mut().set(move |_| {
+                for i in 0..close_item_popup_callbacks_for_i.len() {
+                    close_item_popup_callbacks_for_i[i].emit(());
+                }
+            });
         }
 
         let data_holder = DataHolder { data: () };
@@ -119,7 +145,8 @@ impl MenuItem {
         is_top: bool,
         is_menu_active_prop: &Property<bool>,
         uncovered_controls: &Vec<Weak<RefCell<dyn ControlObject>>>,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+        close_siblings_callback_rc: &Rc<RefCell<Callback<()>>>,
+    ) -> (Rc<RefCell<dyn ControlObject>>, Callback<()>) {
         match self {
             MenuItem::Separator => {
                 let separator: Rc<RefCell<dyn ControlObject>> = ui! {
@@ -128,7 +155,7 @@ impl MenuItem {
                         text: "---------"
                     }
                 };
-                separator
+                (separator, Callback::empty())
             }
 
             MenuItem::Text {
@@ -165,6 +192,7 @@ impl MenuItem {
                     let mut foreground_property_clone = foreground_property.clone();
                     let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let mut is_open_prop_clone = is_open_prop.clone();
+                    let close_siblings_callback_clone = close_siblings_callback_rc.clone();
                     on_hover_callback.set(move |value| {
                         background_property_clone.set(
                             if value || is_menu_active_prop_clone.get() {
@@ -181,14 +209,21 @@ impl MenuItem {
                             },
                         );
 
-                        if has_sub_items && is_menu_active_prop_clone.get() {
-                            is_open_prop_clone.set(true);
+                        if value && is_menu_active_prop_clone.get() {
+                            // close all the other popups on the same level (siblings)
+                            close_siblings_callback_clone.borrow().emit(());
+
+                            // open popup if there are sub items
+                            if has_sub_items {
+                                is_open_prop_clone.set(true);
+                            }
                         }
                     });
                 } else {
                     let mut background_property_clone = background_property.clone();
                     let mut foreground_property_clone = foreground_property.clone();
                     let mut is_open_prop_clone = is_open_prop.clone();
+                    let close_siblings_callback_clone = close_siblings_callback_rc.clone();
                     on_hover_callback.set(move |value| {
                         background_property_clone.set(if value || has_sub_items {
                             [0.0f32, 0.0f32, 0.0f32, 0.8f32]
@@ -201,8 +236,14 @@ impl MenuItem {
                             [0.0f32, 0.0f32, 0.0f32, 1.0f32]
                         });
 
-                        if has_sub_items && !is_top {
-                            is_open_prop_clone.set(true);
+                        if value {
+                            // close all the other popups on the same level (siblings)
+                            close_siblings_callback_clone.borrow().emit(());
+
+                            // open popup if there are sub items
+                            if has_sub_items {
+                                is_open_prop_clone.set(true);
+                            }
                         }
                     });
                 }
@@ -245,6 +286,9 @@ impl MenuItem {
                     )
                 };
 
+                // return callback that closes the popup
+                let mut close_popup_callback = Callback::empty();
+
                 let popup = if sub_items.len() == 0 {
                     Children::None
                 } else {
@@ -284,11 +328,39 @@ impl MenuItem {
                         }
                     );
 
+                    let mut close_item_popup_callbacks = Vec::new();
+                    let mut close_siblings_callbacks = Vec::new();
+
                     let mut uncovered_controls = uncovered_controls.to_vec();
                     uncovered_controls.push(Rc::downgrade(&popup_content));
                     for item in sub_items.into_iter() {
-                        let view = item.to_view(false, &is_menu_active_prop, &uncovered_controls);
+                        let close_siblings_callback_rc = Rc::new(RefCell::new(Callback::empty()));
+                        let (view, close_item_popup_callback) = item.to_view(
+                            false,
+                            &is_menu_active_prop,
+                            &uncovered_controls,
+                            &close_siblings_callback_rc,
+                        );
                         sub_content_prop.push(view);
+                        close_item_popup_callbacks.push(close_item_popup_callback);
+                        close_siblings_callbacks.push(close_siblings_callback_rc);
+                    }
+
+                    // setup sibling closing logic
+                    for i in 0..close_siblings_callbacks.len() {
+                        let mut close_item_popup_callbacks_for_i = Vec::new();
+                        for j in 0..close_item_popup_callbacks.len() {
+                            if j != i {
+                                close_item_popup_callbacks_for_i
+                                    .push(close_item_popup_callbacks[j].clone());
+                            }
+                        }
+
+                        close_siblings_callbacks[i].borrow_mut().set(move |_| {
+                            for i in 0..close_item_popup_callbacks_for_i.len() {
+                                close_item_popup_callbacks_for_i[i].emit(());
+                            }
+                        });
                     }
 
                     // when clicked outside last open submenu
@@ -306,6 +378,17 @@ impl MenuItem {
                                 is_open_prop_clone.set(false);
                             }
                         });
+
+                    // return callback that closes the popup
+                    let mut is_open_prop_clone = is_open_prop.clone();
+                    close_popup_callback.set(move |_| {
+                        // close this popup
+                        is_open_prop_clone.set(false);
+                        // close all sub-popups
+                        for subsibling in &close_siblings_callbacks {
+                            subsibling.borrow().emit(());
+                        }
+                    });
 
                     let data_holder = DataHolder {
                         data: (popup_close_subscription, is_menu_active_prop_changed),
@@ -333,7 +416,7 @@ impl MenuItem {
                     Children::SingleStatic(popup)
                 };
 
-                ui!(
+                let content = ui!(
                     GestureArea {
                         hover_change: on_hover_callback,
                         tap_down: on_tap_down_callback,
@@ -347,14 +430,16 @@ impl MenuItem {
 
                         popup,
                     }
-                )
+                );
+
+                (content, close_popup_callback)
             }
 
             MenuItem::Custom {
                 content,
                 callback,
                 sub_items,
-            } => content,
+            } => (content, Callback::empty()),
         }
     }
 }
