@@ -328,15 +328,19 @@ impl MenuItem {
                     });
 
                     let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
-                        Border {
-                            Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+                        Shadow {
+                            Style: Default { size: 12.0f32 },
 
-                            Grid {
-                                columns: 1,
-                                default_width: Length::Fill(1.0f32),
-                                default_height: Length::Auto,
+                            Border {
+                                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
-                                &sub_content_prop,
+                                Grid {
+                                    columns: 1,
+                                    default_width: Length::Fill(1.0f32),
+                                    default_height: Length::Auto,
+
+                                    &sub_content_prop,
+                                }
                             }
                         }
                     );

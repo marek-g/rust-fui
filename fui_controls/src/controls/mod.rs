@@ -28,6 +28,9 @@ pub use scroll_bar::*;
 mod scroll_viewer;
 pub use scroll_viewer::*;
 
+mod shadow;
+pub use shadow::*;
+
 mod tab_control;
 pub use tab_control::*;
 
