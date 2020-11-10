@@ -11,12 +11,13 @@ use std::sync::mpsc::channel;
 
 pub enum BorderType {
     None,
-    Normal,
+    Sunken,
+    Raisen,
 }
 
 #[derive(TypedBuilder)]
 pub struct Border {
-    #[builder(default = BorderType::Normal)]
+    #[builder(default = BorderType::Sunken)]
     border_type: BorderType,
 }
 
@@ -66,7 +67,7 @@ impl DefaultBorderStyle {
     fn get_border_size(data: &mut Border) -> f32 {
         match data.border_type {
             BorderType::None => 0f32,
-            BorderType::Normal => BORDER_SIZE,
+            BorderType::Sunken | BorderType::Raisen => BORDER_SIZE,
         }
     }
 }
@@ -197,8 +198,12 @@ impl Style<Border> for DefaultBorderStyle {
         }
 
         match data.border_type {
-            BorderType::Normal => {
+            BorderType::Sunken => {
                 default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false)
+            }
+
+            BorderType::Raisen => {
+                default_theme::border_3d_single(&mut vec, x, y, width, height, false, false, false)
             }
 
             BorderType::None => (),

@@ -85,12 +85,12 @@ impl Menu {
         let mut close_siblings_callbacks = Vec::new();
 
         let menu: Rc<RefCell<dyn ControlObject>> = ui!(
-            Border {
-                border_type: BorderType::None,
-                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+            Shadow {
+                Style: Default { size: 12.0f32 },
 
-                Shadow {
-                    Style: Default { size: 12.0f32 },
+                Border {
+                    border_type: BorderType::None,
+                    Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
                     StackPanel {
                         orientation: self.orientation,
@@ -336,6 +336,7 @@ impl MenuItem {
                             Style: Default { size: 12.0f32 },
 
                             Border {
+                                border_type: BorderType::Raisen,
                                 Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
 
                                 Grid {
