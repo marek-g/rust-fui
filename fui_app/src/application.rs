@@ -81,6 +81,7 @@ impl Application {
         let event_loop_iteration = self.event_loop_iteration.clone();
         let drawing_context = self.drawing_context.clone();
         let window_manager = self.window_manager.clone();
+        let background_texture = window_manager.borrow().get_background_texture();
 
         event_loop.run(move |event, _, control_flow| {
             event_loop_iteration.borrow_mut().emit(());
@@ -121,6 +122,7 @@ impl Application {
                                 &mut drawing_context.borrow_mut(),
                                 physical_size.width as u32,
                                 physical_size.height as u32,
+                                background_texture,
                             );
 
                             let cpu_time = cpu_time.elapsed();
@@ -171,6 +173,7 @@ impl Application {
                                 let mut fui_drawing_context = FuiDrawingContext::new(
                                     (physical_size.width as u16, physical_size.height as u16),
                                     drawing_context.deref_mut(),
+                                    background_texture,
                                 );
                                 root_control.measure(&mut fui_drawing_context, size);
 
@@ -191,6 +194,7 @@ impl Application {
                             let mut fui_drawing_context = FuiDrawingContext::new(
                                 (physical_size.width as u16, physical_size.height as u16),
                                 drawing_context.deref_mut(),
+                                background_texture,
                             );
 
                             // events go to the window's root control
@@ -213,13 +217,32 @@ impl Application {
         window.get_root_control().borrow().get_context().is_dirty()
     }
 
-    fn render(window: &mut Window, drawing_context: &mut DrawingContext, width: u32, height: u32) {
+    fn render(
+        window: &mut Window,
+        drawing_context: &mut DrawingContext,
+        width: u32,
+        height: u32,
+        background_texture: i32,
+    ) {
         let size = Size::new(width as f32, height as f32);
 
-        let mut fui_drawing_context =
-            FuiDrawingContext::new((size.width as u16, size.height as u16), drawing_context);
+        let mut fui_drawing_context = FuiDrawingContext::new(
+            (size.width as u16, size.height as u16),
+            drawing_context,
+            background_texture,
+        );
 
         let mut primitives = Vec::new();
+
+        // background texture
+        primitives.push(drawing::primitive::Primitive::Image {
+            resource_key: background_texture,
+            rect: drawing::units::PixelRect::new(
+                drawing::units::PixelPoint::new(0.0f32, 0.0f32),
+                drawing::units::PixelSize::new(size.width, size.height),
+            ),
+            uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
+        });
 
         {
             let mut root_control = window.get_root_control().borrow_mut();

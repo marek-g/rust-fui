@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rand::{thread_rng, Rng};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -17,6 +18,7 @@ pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
     main_window_id: Option<winit::window::WindowId>,
     windows: HashMap<winit::window::WindowId, WindowEntry>,
+    background_texture: i32,
 }
 
 impl WindowManager {
@@ -25,7 +27,14 @@ impl WindowManager {
             drawing_context: drawing_context,
             main_window_id: None,
             windows: HashMap::new(),
+            background_texture: -1,
         }
+    }
+
+    fn create_background_texture(drawing_context: &mut DrawingContext) -> Result<i32> {
+        let mut data = [0u8; 256 * 256];
+        thread_rng().fill(&mut data[..]);
+        drawing_context.create_texture(&data, 256, 256, ColorFormat::Y8, false)
     }
 
     pub fn add_window(
@@ -55,6 +64,12 @@ impl WindowManager {
                 )?
             }
         };
+
+        // create background texture
+        if self.background_texture < 0 {
+            self.background_texture =
+                WindowManager::create_background_texture(&mut self.drawing_context.borrow_mut())?;
+        }
 
         let physical_size = window_target.get_window().inner_size();
         let window_id = window_target.get_window().id();
@@ -112,6 +127,10 @@ impl WindowManager {
     pub fn clear(&mut self) {
         self.windows.clear();
         self.main_window_id = None;
+    }
+
+    pub fn get_background_texture(&self) -> i32 {
+        self.background_texture
     }
 }
 

@@ -66,7 +66,7 @@ impl ViewModel for MainViewModel {
         let tab1 = ui!(
             Grid {
                 Title: "Tab 1",
-                Margin: Thickness::all(5.0f32),
+                Margin: Thickness::all(8.0f32),
 
                 columns: 2,
                 default_height: Length::Auto,
@@ -216,7 +216,7 @@ impl ViewModel for MainViewModel {
             Menu { items: menu_items },
 
             TabControl {
-                Margin: Thickness::new(5.0f32, 12.0f32, 5.0f32, 5.0f32),
+                Margin: Thickness::new(8.0f32, 12.0f32, 8.0f32, 8.0f32),
 
                 tab1,
                 tab2

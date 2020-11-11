@@ -272,13 +272,19 @@ impl fui_core::Resources for DrawingContext {
 pub struct FuiDrawingContext<'a> {
     drawing_area_size: (u16, u16),
     resources: &'a mut crate::DrawingContext,
+    background_texture: i32,
 }
 
 impl<'a> FuiDrawingContext<'a> {
-    pub fn new(drawing_area_size: (u16, u16), resources: &'a mut crate::DrawingContext) -> Self {
+    pub fn new(
+        drawing_area_size: (u16, u16),
+        resources: &'a mut crate::DrawingContext,
+        background_texture: i32,
+    ) -> Self {
         FuiDrawingContext {
             drawing_area_size,
             resources,
+            background_texture,
         }
     }
 }
@@ -289,5 +295,8 @@ impl<'a> fui_core::DrawingContext for FuiDrawingContext<'a> {
     }
     fn get_resources(&mut self) -> &mut dyn fui_core::Resources {
         self.resources
+    }
+    fn get_background_texture(&self) -> i32 {
+        self.background_texture
     }
 }
