@@ -117,6 +117,12 @@ impl Application {
                         if physical_size.width > 0 && physical_size.height > 0 {
                             let cpu_time = cpu_time::ProcessTime::now();
 
+                            Application::update_min_window_size(
+                                &mut window_entry.window.borrow_mut(),
+                                &mut drawing_context.borrow_mut(),
+                                background_texture,
+                            );
+
                             Application::render(
                                 &mut window_entry.window.borrow_mut(),
                                 &mut drawing_context.borrow_mut(),
@@ -215,6 +221,32 @@ impl Application {
 
     fn is_dirty(window: &mut Window) -> bool {
         window.get_root_control().borrow().get_context().is_dirty()
+    }
+
+    fn update_min_window_size(
+        window: &mut Window,
+        drawing_context: &mut DrawingContext,
+        background_texture: i32,
+    ) {
+        let size = Size::new(0.0f32, 0.0f32);
+
+        let mut fui_drawing_context = FuiDrawingContext::new(
+            (size.width as u16, size.height as u16),
+            drawing_context,
+            background_texture,
+        );
+
+        let mut root_control = window.get_root_control().borrow_mut();
+        root_control.measure(&mut fui_drawing_context, size);
+        let min_size = root_control.get_rect();
+
+        window
+            .drawing_window_target
+            .get_window()
+            .set_min_inner_size(Some(winit::dpi::PhysicalSize::new(
+                min_size.width,
+                min_size.height,
+            )));
     }
 
     fn render(
