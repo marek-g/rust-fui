@@ -32,9 +32,14 @@ impl WindowManager {
     }
 
     fn create_background_texture(drawing_context: &mut DrawingContext) -> Result<i32> {
-        let mut data = [0u8; 256 * 256];
-        thread_rng().fill(&mut data[..]);
-        drawing_context.create_texture(&data, 256, 256, ColorFormat::Y8, false)
+        let mut data = [0u8; 256 * 256 * 4];
+        for i in 0..256 * 256 {
+            data[i * 4 + 0] = 60;
+            data[i * 4 + 1] = thread_rng().gen_range(90 - 15, 90 + 16);
+            data[i * 4 + 2] = 60;
+            data[i * 4 + 3] = 255;
+        }
+        drawing_context.create_texture(&data, 256, 256, ColorFormat::RGBA, false)
     }
 
     pub fn add_window(

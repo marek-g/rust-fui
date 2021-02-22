@@ -273,7 +273,12 @@ impl Application {
                 drawing::units::PixelPoint::new(0.0f32, 0.0f32),
                 drawing::units::PixelSize::new(size.width, size.height),
             ),
-            uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
+            uv: [
+                0.0f32,
+                0.0f32,
+                1.0f32 * size.width / 256.0f32,
+                1.0f32 * size.height / 256.0f32,
+            ],
         });
 
         {
