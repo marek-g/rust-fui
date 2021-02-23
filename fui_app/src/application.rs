@@ -29,12 +29,16 @@ impl Application {
 
         Dispatcher::setup_events_loop_proxy(event_loop.create_proxy());
 
+        let event_loop_proxy = event_loop.create_proxy();
         Ok(Application {
             title: title,
             event_loop: Some(event_loop),
             event_loop_iteration: Rc::new(RefCell::new(Event::new())),
             drawing_context: drawing_context.clone(),
-            window_manager: Rc::new(RefCell::new(WindowManager::new(drawing_context))),
+            window_manager: Rc::new(RefCell::new(WindowManager::new(
+                drawing_context,
+                event_loop_proxy,
+            ))),
         })
     }
 
@@ -211,6 +215,14 @@ impl Application {
                                 &input_event,
                             );
                         }
+                    }
+                }
+
+                winit::event::Event::UserEvent(()) => {
+                    if window_manager.borrow().is_exit_flag() {
+                        *control_flow = winit::event_loop::ControlFlow::Exit;
+                    } else {
+                        *control_flow = winit::event_loop::ControlFlow::Wait;
                     }
                 }
 

@@ -16,18 +16,25 @@ pub struct WindowEntry {
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
+    event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
     main_window_id: Option<winit::window::WindowId>,
     windows: HashMap<winit::window::WindowId, WindowEntry>,
     background_texture: i32,
+    exit_flag: bool,
 }
 
 impl WindowManager {
-    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+    pub fn new(
+        drawing_context: Rc<RefCell<DrawingContext>>,
+        event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
+    ) -> Self {
         WindowManager {
             drawing_context: drawing_context,
+            event_loop_proxy,
             main_window_id: None,
             windows: HashMap::new(),
             background_texture: -1,
+            exit_flag: false,
         }
     }
 
@@ -129,9 +136,18 @@ impl WindowManager {
         &mut self.windows
     }
 
-    pub fn clear(&mut self) {
+    pub fn close_all_windows(&mut self) {
         self.windows.clear();
         self.main_window_id = None;
+    }
+
+    pub fn is_exit_flag(&self) -> bool {
+        self.exit_flag
+    }
+
+    pub fn exit(&mut self) {
+        self.exit_flag = true;
+        self.event_loop_proxy.send_event(());
     }
 
     pub fn get_background_texture(&self) -> i32 {
@@ -143,6 +159,6 @@ impl Drop for WindowManager {
     fn drop(&mut self) {
         // It is important to drop windows before drawing_context!
         // Windows cleanup graphics resources and drawing context drops graphics device.
-        self.windows.clear();
+        self.close_all_windows();
     }
 }

@@ -13,6 +13,8 @@ use typemap::TypeMap;
 use winit::window::WindowBuilder;
 
 struct MainViewModel {
+    pub window_manager: Rc<RefCell<WindowManager>>,
+
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
@@ -22,8 +24,10 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new() -> Rc<RefCell<Self>> {
+    pub fn new(window_manager: Rc<RefCell<WindowManager>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
+            window_manager,
+
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
             progress: Property::new(0.5f32),
@@ -177,8 +181,9 @@ impl ViewModel for MainViewModel {
         );
 
         let mut exit_callback = Callback::empty();
-        exit_callback.set(|_| {
-            println!("Exit");
+        let window_manager = vm.window_manager.clone();
+        exit_callback.set(move |_| {
+            window_manager.borrow_mut().exit();
         });
 
         let menu_items = vec![
@@ -239,9 +244,11 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: layout").unwrap();
 
+    let window_manager = app.get_window_manager().clone();
+
     app.add_window(
         WindowBuilder::new().with_title("Example: layout"),
-        MainViewModel::new(),
+        MainViewModel::new(window_manager),
     )?;
 
     app.run();
