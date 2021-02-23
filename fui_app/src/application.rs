@@ -15,7 +15,6 @@ pub struct Application {
     title: &'static str,
     event_loop: Option<winit::event_loop::EventLoop<()>>,
     event_loop_iteration: Rc<RefCell<Event<()>>>,
-    drawing_context: Rc<RefCell<DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
 }
 
@@ -25,16 +24,13 @@ impl Application {
 
         let event_loop = winit::event_loop::EventLoop::new();
 
-        let drawing_context = Rc::new(RefCell::new(DrawingContext::new()?));
-
         Dispatcher::setup_events_loop_proxy(event_loop.create_proxy());
 
         Ok(Application {
             title: title,
             event_loop: Some(event_loop),
             event_loop_iteration: Rc::new(RefCell::new(Event::new())),
-            drawing_context: drawing_context.clone(),
-            window_manager: Rc::new(RefCell::new(WindowManager::new(drawing_context))),
+            window_manager: Rc::new(RefCell::new(WindowManager::new()?)),
         })
     }
 
@@ -44,10 +40,6 @@ impl Application {
 
     pub fn get_event_loop(&self) -> Option<&winit::event_loop::EventLoop<()>> {
         self.event_loop.as_ref()
-    }
-
-    pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
-        &self.drawing_context
     }
 
     pub fn get_window_manager(&self) -> &Rc<RefCell<WindowManager>> {
@@ -79,7 +71,11 @@ impl Application {
 
         let event_loop = self.event_loop.take().unwrap();
         let event_loop_iteration = self.event_loop_iteration.clone();
-        let drawing_context = self.drawing_context.clone();
+        let drawing_context = self
+            .get_window_manager()
+            .borrow()
+            .get_drawing_context()
+            .clone();
         let window_manager = self.window_manager.clone();
         let background_texture = window_manager.borrow().get_background_texture();
 
