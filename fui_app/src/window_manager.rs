@@ -22,13 +22,13 @@ pub struct WindowManager {
 }
 
 impl WindowManager {
-    pub fn new() -> Result<Self> {
-        Ok(WindowManager {
-            drawing_context: Rc::new(RefCell::new(DrawingContext::new()?)),
+    pub fn new(drawing_context: Rc<RefCell<DrawingContext>>) -> Self {
+        WindowManager {
+            drawing_context: drawing_context,
             main_window_id: None,
             windows: HashMap::new(),
             background_texture: -1,
-        })
+        }
     }
 
     fn create_background_texture(drawing_context: &mut DrawingContext) -> Result<i32> {
@@ -119,10 +119,6 @@ impl WindowManager {
             &event_loop,
             ViewModel::create_view(&view_model),
         )
-    }
-
-    pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
-        &self.drawing_context
     }
 
     pub fn get_main_window_id(&self) -> Option<winit::window::WindowId> {
