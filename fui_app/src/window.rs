@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use fui_controls::Grid;
+use fui_core::Grid;
 use fui_core::{Children, ControlObject, ObservableCollection, ObservableVec, ViewContext};
 use fui_core::{EventProcessor, WindowService};
 use fui_macros::ui;

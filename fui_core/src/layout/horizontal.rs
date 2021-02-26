@@ -4,7 +4,7 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
 use super::stack_panel::*;
-use fui_core::*;
+use crate::{ControlObject, Orientation, Style, ViewContext};
 
 #[derive(TypedBuilder)]
 pub struct Horizontal {}

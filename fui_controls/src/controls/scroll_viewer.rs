@@ -9,7 +9,6 @@ use typemap::TypeMap;
 use crate::controls::border::Border;
 use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
 use crate::controls::scroll_bar::ScrollBar;
-use crate::layout::*;
 
 pub enum ScrollBarVisibility {
     Disabled,

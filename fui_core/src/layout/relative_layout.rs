@@ -1,15 +1,31 @@
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::PopupAutoHide;
+use crate::{
+    Callback, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext, Point,
+    Rect, Size, Style, StyledControl, ViewContext,
+};
 use drawing::primitive::Primitive;
-use fui_core::*;
 use typed_builder::TypedBuilder;
 
 pub enum RelativePlacement {
     FullSize,
     BelowOrAboveControl(Weak<RefCell<dyn ControlObject>>),
     LeftOrRightControl(Weak<RefCell<dyn ControlObject>>),
+}
+
+#[derive(Copy, Clone)]
+pub enum RelativeAutoHide {
+    /// The layout will not call auto_hide_request callback.
+    None,
+
+    /// The layout will call auto_hide_request when user clicks outside it.
+    ClickedOutside,
+
+    /// The layout will call auto_hide_request when user moves the cursor
+    /// away the layout and it's parent or clicks outside it
+    /// (the submenu like behavior).
+    Menu,
 }
 
 ///
@@ -36,8 +52,8 @@ pub struct RelativeLayout {
 
     /// Auto hide method.
     /// Defines rules when to call `auto_hide_request` callback.
-    #[builder(default = PopupAutoHide::None)]
-    pub auto_hide: PopupAutoHide,
+    #[builder(default = RelativeAutoHide::None)]
+    pub auto_hide: RelativeAutoHide,
 
     /// Called when auto hide is requested.
     #[builder(default = Callback::empty())]
@@ -101,14 +117,14 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         match event {
             ControlEvent::TapDown { .. } => match data.auto_hide {
-                PopupAutoHide::ClickedOutside | PopupAutoHide::Menu => {
+                RelativeAutoHide::ClickedOutside | RelativeAutoHide::Menu => {
                     data.auto_hide_request.emit(())
                 }
                 _ => (),
             },
 
             ControlEvent::PointerMove { position } => match data.auto_hide {
-                PopupAutoHide::Menu => {
+                RelativeAutoHide::Menu => {
                     if !position.is_inside(&self.relative_control_rect)
                         && !position.is_inside(&self.rect)
                     {

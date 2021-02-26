@@ -246,6 +246,10 @@ fn main() -> Result<()> {
 
     let window_manager = app.get_window_manager().clone();
 
+    /*let window = window_manager
+    .borrow_mut()
+    .create_window(WindowBuilder::new().with_title("Example: layout"));*/
+
     app.add_window(
         WindowBuilder::new().with_title("Example: layout"),
         MainViewModel::new(window_manager),

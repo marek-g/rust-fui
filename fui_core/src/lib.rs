@@ -1,26 +1,22 @@
-mod children;
 pub use children::*;
-
-mod common;
 pub use common::*;
-
-mod control;
 pub use control::*;
+pub use events::*;
+pub use layout::*;
+pub use observable::*;
+pub use services::*;
+pub use style::*;
+pub use view::*;
 
-mod drawing;
 pub use crate::drawing::*;
 
+mod children;
+mod common;
+mod control;
+mod drawing;
 mod events;
-pub use events::*;
-
+mod layout;
 mod observable;
-pub use observable::*;
-
 mod services;
-pub use services::*;
-
 mod style;
-pub use style::*;
-
 mod view;
-pub use view::*;

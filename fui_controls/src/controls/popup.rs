@@ -1,9 +1,8 @@
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 
-use crate::layout::RelativeLayout;
-use crate::RelativePlacement;
 use drawing::primitive::Primitive;
+use fui_core::RelativeLayout;
 use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
@@ -144,10 +143,16 @@ impl Style<Popup> for DefaultPopupStyle {
                             }
                         };
 
+                        let relative_auto_hide = match auto_hide {
+                            PopupAutoHide::None => RelativeAutoHide::None,
+                            PopupAutoHide::ClickedOutside => RelativeAutoHide::ClickedOutside,
+                            PopupAutoHide::Menu => RelativeAutoHide::Menu,
+                        };
+
                         let content = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
-                                auto_hide: auto_hide,
+                                auto_hide: relative_auto_hide,
                                 auto_hide_request: auto_hide_request_callback.clone(),
                                 uncovered_controls: uncovered_controls.to_vec(),
 

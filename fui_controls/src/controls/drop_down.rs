@@ -1,13 +1,14 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use fui_core::*;
-use fui_macros::ui;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
+use fui_core::*;
+use fui_macros::ui;
+
 use crate::controls::*;
-use crate::{layout::*, DataHolder, RadioController, RadioElement};
+use crate::{DataHolder, RadioController, RadioElement};
 
 //
 // DropDown.
