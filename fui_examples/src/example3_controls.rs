@@ -14,6 +14,7 @@ use winit::window::WindowBuilder;
 
 struct MainViewModel {
     pub window_manager: Rc<RefCell<WindowManager>>,
+    pub window: Rc<RefCell<dyn WindowService>>,
 
     pub text: Property<String>,
     pub text2: Property<String>,
@@ -24,9 +25,13 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(window_manager: Rc<RefCell<WindowManager>>) -> Rc<RefCell<Self>> {
+    pub fn new(
+        window_manager: Rc<RefCell<WindowManager>>,
+        window: Rc<RefCell<dyn WindowService>>,
+    ) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
             window_manager,
+            window,
 
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
@@ -182,8 +187,23 @@ impl ViewModel for MainViewModel {
 
         let mut exit_callback = Callback::empty();
         let window_manager = vm.window_manager.clone();
+        let window = vm.window.clone();
         exit_callback.set(move |_| {
-            window_manager.borrow_mut().exit();
+            let mut buttons = ObservableVec::new();
+            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
+                "Yes".to_string(),
+            ))));
+            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
+                "No".to_string(),
+            ))));
+            MessageBox::show(
+                &window,
+                MessageBoxParams::builder()
+                    .message("Do you really want to exit?".to_string())
+                    .buttons(buttons)
+                    .build(),
+            );
+            //window_manager.borrow_mut().exit();
         });
 
         let menu_items = vec![
@@ -246,14 +266,19 @@ fn main() -> Result<()> {
 
     let window_manager = app.get_window_manager().clone();
 
-    /*let window = window_manager
-    .borrow_mut()
-    .create_window(WindowBuilder::new().with_title("Example: layout"));*/
+    let mut main_window = window_manager.borrow_mut().create_window(
+        WindowBuilder::new().with_title("Example: layout"),
+        app.get_event_loop().unwrap(),
+    )?;
+    let main_view_model = MainViewModel::new(window_manager, main_window.clone());
+    main_window
+        .borrow_mut()
+        .add_layer(ViewModel::create_view(&main_view_model));
 
-    app.add_window(
+    /*app.add_window(
         WindowBuilder::new().with_title("Example: layout"),
         MainViewModel::new(window_manager),
-    )?;
+    )?;*/
 
     app.run();
 
