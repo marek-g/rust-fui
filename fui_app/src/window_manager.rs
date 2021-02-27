@@ -8,16 +8,22 @@ use fui_core::*;
 
 use crate::{DrawingContext, DrawingWindowTarget};
 
-pub struct WindowEntry {
-    pub window: Rc<RefCell<Window<DrawingWindowTarget>>>,
-    pub services: Rc<RefCell<Services>>,
+pub struct WinitWindow {
+    pub drawing_target: DrawingWindowTarget,
+}
+
+impl WinitWindow {
+    pub fn new(drawing_target: DrawingWindowTarget) -> Self {
+        Self { drawing_target }
+    }
 }
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
     event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
     main_window_id: Option<winit::window::WindowId>,
-    windows: HashMap<winit::window::WindowId, WindowEntry>,
+    windows: HashMap<winit::window::WindowId, Rc<RefCell<Window<WinitWindow>>>>,
+    window_services: HashMap<winit::window::WindowId, Rc<RefCell<Services>>>,
     background_texture: i32,
     exit_flag: bool,
 }
@@ -32,6 +38,7 @@ impl WindowManager {
             event_loop_proxy,
             main_window_id: None,
             windows: HashMap::new(),
+            window_services: HashMap::new(),
             background_texture: -1,
             exit_flag: false,
         }
@@ -48,24 +55,23 @@ impl WindowManager {
         drawing_context.create_texture(&data, 256, 256, ColorFormat::RGBA, false)
     }
 
-    pub fn add_window(
+    pub fn create_window(
         &mut self,
         window_builder: winit::window::WindowBuilder,
         event_loop: &winit::event_loop::EventLoop<()>,
-        view: Rc<RefCell<dyn ControlObject>>,
-    ) -> Result<winit::window::WindowId> {
+    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
         let mut window_target = {
             let first_window = self
                 .windows
                 .iter()
                 .next()
-                .map(|(_id, entry)| entry.window.clone());
+                .map(|(_id, window)| window.clone());
 
             if let Some(first_window) = first_window {
                 self.drawing_context.borrow_mut().create_window(
                     window_builder,
                     &event_loop,
-                    Some(&first_window.borrow_mut().native_window),
+                    Some(&first_window.borrow_mut().native_window.drawing_target),
                 )?
             } else {
                 self.drawing_context.borrow_mut().create_window(
@@ -86,7 +92,8 @@ impl WindowManager {
         let window_id = window_target.get_window().id();
 
         window_target.update_size(physical_size.width as u16, physical_size.height as u16);
-        let window = Window::new(window_target);
+        let winit_window = WinitWindow::new(window_target);
+        let window = Window::new(winit_window);
 
         let window_rc = Rc::new(RefCell::new(window));
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_rc.clone();
@@ -99,19 +106,27 @@ impl WindowManager {
             .get_context_mut()
             .set_services(Some(Rc::downgrade(&services)));
 
-        window_rc.borrow_mut().add_layer(view);
-
-        let window_entry = WindowEntry {
-            window: window_rc,
-            services: services,
-        };
-        self.windows.insert(window_id, window_entry);
+        self.windows.insert(window_id, window_rc.clone());
+        self.window_services.insert(window_id, services);
 
         if let None = self.main_window_id {
             self.main_window_id = Some(window_id);
         }
 
-        Ok(window_id)
+        Ok(window_rc)
+    }
+
+    pub fn add_window(
+        &mut self,
+        window_builder: winit::window::WindowBuilder,
+        event_loop: &winit::event_loop::EventLoop<()>,
+        view: Rc<RefCell<dyn ControlObject>>,
+    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
+        let mut window_rc = self.create_window(window_builder, event_loop)?;
+
+        window_rc.borrow_mut().add_layer(view);
+
+        Ok(window_rc)
     }
 
     pub fn add_window_view_model<V: ViewModel>(
@@ -119,7 +134,7 @@ impl WindowManager {
         window_builder: winit::window::WindowBuilder,
         event_loop: &winit::event_loop::EventLoop<()>,
         view_model: &Rc<RefCell<V>>,
-    ) -> Result<winit::window::WindowId> {
+    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
         self.add_window(
             window_builder,
             &event_loop,
@@ -131,12 +146,15 @@ impl WindowManager {
         self.main_window_id
     }
 
-    pub fn get_windows_mut(&mut self) -> &mut HashMap<winit::window::WindowId, WindowEntry> {
+    pub fn get_windows_mut(
+        &mut self,
+    ) -> &mut HashMap<winit::window::WindowId, Rc<RefCell<Window<WinitWindow>>>> {
         &mut self.windows
     }
 
     pub fn close_all_windows(&mut self) {
         self.windows.clear();
+        self.window_services.clear();
         self.main_window_id = None;
     }
 

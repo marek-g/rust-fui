@@ -6,8 +6,8 @@ use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
 
-use crate::DrawingContext;
 use crate::{Dispatcher, DrawingWindowTarget};
+use crate::{DrawingContext, WinitWindow};
 use crate::{FuiDrawingContext, WindowManager};
 
 pub struct Application {
@@ -69,7 +69,7 @@ impl Application {
         &mut self,
         window_builder: winit::window::WindowBuilder,
         view_model: Rc<RefCell<V>>,
-    ) -> Result<winit::window::WindowId> {
+    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
         self.window_manager.borrow_mut().add_window_view_model(
             window_builder,
             self.get_event_loop().unwrap(),
@@ -93,12 +93,12 @@ impl Application {
 
             match event {
                 winit::event::Event::MainEventsCleared => {
-                    for window_entry in window_manager.borrow_mut().get_windows_mut().values_mut() {
-                        if Application::is_dirty(&mut window_entry.window.borrow_mut()) {
-                            window_entry
-                                .window
+                    for window in window_manager.borrow_mut().get_windows_mut().values_mut() {
+                        if Application::is_dirty(&mut window.borrow_mut()) {
+                            window
                                 .borrow_mut()
                                 .native_window
+                                .drawing_target
                                 .get_window()
                                 .request_redraw();
                         }
@@ -106,28 +106,28 @@ impl Application {
                 }
 
                 winit::event::Event::RedrawRequested(ref window_id) => {
-                    if let Some(window_entry) = window_manager
+                    if let Some(window) = window_manager
                         .borrow_mut()
                         .get_windows_mut()
                         .get_mut(window_id)
                     {
-                        let physical_size = window_entry
-                            .window
+                        let physical_size = window
                             .borrow_mut()
                             .native_window
+                            .drawing_target
                             .get_window()
                             .inner_size();
                         if physical_size.width > 0 && physical_size.height > 0 {
                             let cpu_time = cpu_time::ProcessTime::now();
 
                             Application::update_min_window_size(
-                                &mut window_entry.window.borrow_mut(),
+                                &mut window.borrow_mut(),
                                 &mut drawing_context.borrow_mut(),
                                 background_texture,
                             );
 
                             Application::render(
-                                &mut window_entry.window.borrow_mut(),
+                                &mut window.borrow_mut(),
                                 &mut drawing_context.borrow_mut(),
                                 physical_size.width as u32,
                                 physical_size.height as u32,
@@ -138,10 +138,10 @@ impl Application {
                             frame_no += 1;
                             println!("Frame no: {}, CPU time: {:?}", frame_no, cpu_time);
 
-                            window_entry
-                                .window
+                            window
                                 .borrow_mut()
                                 .native_window
+                                .drawing_target
                                 .swap_buffers();
                         }
                     }
@@ -151,7 +151,7 @@ impl Application {
                     ref window_id,
                     ref event,
                 } => {
-                    if let Some(window_entry) = window_manager
+                    if let Some(window) = window_manager
                         .borrow_mut()
                         .get_windows_mut()
                         .get_mut(window_id)
@@ -164,13 +164,13 @@ impl Application {
                             winit::event::WindowEvent::Resized(physical_size) => {
                                 let drawing_context = &mut drawing_context.borrow_mut();
                                 drawing_context.update_size(
-                                    &mut window_entry.window.borrow_mut().native_window,
+                                    &mut window.borrow_mut().native_window.drawing_target,
                                     physical_size.width as u16,
                                     physical_size.height as u16,
                                 );
 
                                 // resize root view
-                                let window = window_entry.window.borrow();
+                                let window = window.borrow();
                                 let root_view = window.get_root_control();
                                 let size = Size::new(
                                     physical_size.width as f32,
@@ -195,9 +195,13 @@ impl Application {
                             _ => (),
                         }
 
-                        let mut window = window_entry.window.borrow_mut();
+                        let mut window = window.borrow_mut();
                         if let Some(input_event) = crate::event_converter::convert_event(event) {
-                            let physical_size = window.native_window.get_window().inner_size();
+                            let physical_size = window
+                                .native_window
+                                .drawing_target
+                                .get_window()
+                                .inner_size();
                             let mut drawing_context = drawing_context.borrow_mut();
                             let mut fui_drawing_context = FuiDrawingContext::new(
                                 (physical_size.width as u16, physical_size.height as u16),
@@ -229,12 +233,12 @@ impl Application {
         });
     }
 
-    fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
+    fn is_dirty(window: &mut Window<WinitWindow>) -> bool {
         window.get_root_control().borrow().get_context().is_dirty()
     }
 
     fn update_min_window_size(
-        window: &mut Window<DrawingWindowTarget>,
+        window: &mut Window<WinitWindow>,
         drawing_context: &mut DrawingContext,
         background_texture: i32,
     ) {
@@ -252,6 +256,7 @@ impl Application {
 
         window
             .native_window
+            .drawing_target
             .get_window()
             .set_min_inner_size(Some(winit::dpi::PhysicalSize::new(
                 min_size.width,
@@ -260,7 +265,7 @@ impl Application {
     }
 
     fn render(
-        window: &mut Window<DrawingWindowTarget>,
+        window: &mut Window<WinitWindow>,
         drawing_context: &mut DrawingContext,
         width: u32,
         height: u32,
@@ -308,19 +313,22 @@ impl Application {
             root_control.get_context_mut().set_is_dirty(false);
         }
 
-        let res = drawing_context.begin(&mut window.native_window);
+        let res = drawing_context.begin(&mut window.native_window.drawing_target);
         if let Err(err) = res {
             eprintln!("Render error on begin drawing: {}", err);
         } else {
             drawing_context.clear(
-                window.native_window.get_render_target(),
+                window.native_window.drawing_target.get_render_target(),
                 &[0.3f32, 0.4f32, 0.3f32, 1.0f32],
             );
-            let res = drawing_context.draw(window.native_window.get_render_target(), &primitives);
+            let res = drawing_context.draw(
+                window.native_window.drawing_target.get_render_target(),
+                &primitives,
+            );
             if let Err(err) = res {
                 eprintln!("Render error: {}", err);
             }
-            drawing_context.end(&mut window.native_window);
+            drawing_context.end(&mut window.native_window.drawing_target);
         }
     }
 }
