@@ -6,9 +6,8 @@ use std::cell::RefCell;
 use std::ops::DerefMut;
 use std::rc::Rc;
 
-use crate::Dispatcher;
 use crate::DrawingContext;
-use crate::Window;
+use crate::{Dispatcher, DrawingWindowTarget};
 use crate::{FuiDrawingContext, WindowManager};
 
 pub struct Application {
@@ -99,7 +98,7 @@ impl Application {
                             window_entry
                                 .window
                                 .borrow_mut()
-                                .drawing_window_target
+                                .native_window
                                 .get_window()
                                 .request_redraw();
                         }
@@ -115,7 +114,7 @@ impl Application {
                         let physical_size = window_entry
                             .window
                             .borrow_mut()
-                            .drawing_window_target
+                            .native_window
                             .get_window()
                             .inner_size();
                         if physical_size.width > 0 && physical_size.height > 0 {
@@ -142,7 +141,7 @@ impl Application {
                             window_entry
                                 .window
                                 .borrow_mut()
-                                .drawing_window_target
+                                .native_window
                                 .swap_buffers();
                         }
                     }
@@ -165,7 +164,7 @@ impl Application {
                             winit::event::WindowEvent::Resized(physical_size) => {
                                 let drawing_context = &mut drawing_context.borrow_mut();
                                 drawing_context.update_size(
-                                    &mut window_entry.window.borrow_mut().drawing_window_target,
+                                    &mut window_entry.window.borrow_mut().native_window,
                                     physical_size.width as u16,
                                     physical_size.height as u16,
                                 );
@@ -198,8 +197,7 @@ impl Application {
 
                         let mut window = window_entry.window.borrow_mut();
                         if let Some(input_event) = crate::event_converter::convert_event(event) {
-                            let physical_size =
-                                window.drawing_window_target.get_window().inner_size();
+                            let physical_size = window.native_window.get_window().inner_size();
                             let mut drawing_context = drawing_context.borrow_mut();
                             let mut fui_drawing_context = FuiDrawingContext::new(
                                 (physical_size.width as u16, physical_size.height as u16),
@@ -231,12 +229,12 @@ impl Application {
         });
     }
 
-    fn is_dirty(window: &mut Window) -> bool {
+    fn is_dirty(window: &mut Window<DrawingWindowTarget>) -> bool {
         window.get_root_control().borrow().get_context().is_dirty()
     }
 
     fn update_min_window_size(
-        window: &mut Window,
+        window: &mut Window<DrawingWindowTarget>,
         drawing_context: &mut DrawingContext,
         background_texture: i32,
     ) {
@@ -253,7 +251,7 @@ impl Application {
         let min_size = root_control.get_rect();
 
         window
-            .drawing_window_target
+            .native_window
             .get_window()
             .set_min_inner_size(Some(winit::dpi::PhysicalSize::new(
                 min_size.width,
@@ -262,7 +260,7 @@ impl Application {
     }
 
     fn render(
-        window: &mut Window,
+        window: &mut Window<DrawingWindowTarget>,
         drawing_context: &mut DrawingContext,
         width: u32,
         height: u32,
@@ -310,22 +308,19 @@ impl Application {
             root_control.get_context_mut().set_is_dirty(false);
         }
 
-        let res = drawing_context.begin(&mut window.drawing_window_target);
+        let res = drawing_context.begin(&mut window.native_window);
         if let Err(err) = res {
             eprintln!("Render error on begin drawing: {}", err);
         } else {
             drawing_context.clear(
-                window.drawing_window_target.get_render_target(),
+                window.native_window.get_render_target(),
                 &[0.3f32, 0.4f32, 0.3f32, 1.0f32],
             );
-            let res = drawing_context.draw(
-                window.drawing_window_target.get_render_target(),
-                &primitives,
-            );
+            let res = drawing_context.draw(window.native_window.get_render_target(), &primitives);
             if let Err(err) = res {
                 eprintln!("Render error: {}", err);
             }
-            drawing_context.end(&mut window.drawing_window_target);
+            drawing_context.end(&mut window.native_window);
         }
     }
 }

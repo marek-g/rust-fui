@@ -494,6 +494,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "drawing",
+ "fui_macros",
  "typed-builder",
  "typemap",
 ]

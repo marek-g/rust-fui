@@ -6,11 +6,10 @@ use std::rc::Rc;
 
 use fui_core::*;
 
-use crate::DrawingContext;
-use crate::Window;
+use crate::{DrawingContext, DrawingWindowTarget};
 
 pub struct WindowEntry {
-    pub window: Rc<RefCell<Window>>,
+    pub window: Rc<RefCell<Window<DrawingWindowTarget>>>,
     pub services: Rc<RefCell<Services>>,
 }
 
@@ -66,7 +65,7 @@ impl WindowManager {
                 self.drawing_context.borrow_mut().create_window(
                     window_builder,
                     &event_loop,
-                    Some(&first_window.borrow_mut().drawing_window_target),
+                    Some(&first_window.borrow_mut().native_window),
                 )?
             } else {
                 self.drawing_context.borrow_mut().create_window(

@@ -2,23 +2,21 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use typemap::TypeMap;
 
-use fui_core::Grid;
-use fui_core::{Children, ControlObject, ObservableCollection, ObservableVec, ViewContext};
-use fui_core::{EventProcessor, WindowService};
+use crate::{
+    Children, ControlObject, EventProcessor, Grid, ObservableVec, ViewContext, WindowService,
+};
 use fui_macros::ui;
 
-use crate::DrawingWindowTarget;
-
-pub struct Window {
-    pub drawing_window_target: DrawingWindowTarget,
+pub struct Window<NativeWindow> {
+    pub native_window: NativeWindow,
     pub event_processor: EventProcessor,
     pub root_control: Rc<RefCell<dyn ControlObject>>,
 
     control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
 }
 
-impl Window {
-    pub fn new(drawing_window_target: DrawingWindowTarget) -> Self {
+impl<NativeWindow> Window<NativeWindow> {
+    pub fn new(native_window: NativeWindow) -> Self {
         let control_layers = ObservableVec::<Rc<RefCell<dyn ControlObject>>>::new();
 
         let content = ui!(
@@ -28,15 +26,15 @@ impl Window {
         );
 
         Window {
-            drawing_window_target,
+            native_window,
             event_processor: EventProcessor::new(),
             root_control: content,
             control_layers,
         }
     }
 
-    pub fn get_drawing_target(&self) -> &DrawingWindowTarget {
-        &self.drawing_window_target
+    pub fn get_native_window(&self) -> &NativeWindow {
+        &self.native_window
     }
 
     pub fn get_root_control(&self) -> &Rc<RefCell<dyn ControlObject>> {
@@ -48,7 +46,7 @@ impl Window {
     }
 }
 
-impl WindowService for Window {
+impl<NativeWindow> WindowService for Window<NativeWindow> {
     fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.push(control);
     }
