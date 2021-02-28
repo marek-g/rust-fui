@@ -8,12 +8,14 @@ use typemap::TypeMap;
 
 pub struct DialogButtonViewModel {
     pub text: Property<String>,
+    pub callback: Callback<()>,
 }
 
 impl DialogButtonViewModel {
-    pub fn new(text: String) -> Self {
+    pub fn new(text: &str, callback: Callback<()>) -> Self {
         Self {
             text: Property::new(text),
+            callback,
         }
     }
 }
@@ -23,7 +25,10 @@ impl ViewModel for DialogButtonViewModel {
         let vm: &mut DialogButtonViewModel = &mut view_model.borrow_mut();
 
         ui! {
-            Button { Text { text: &vm.text }}
+            Button {
+                clicked: vm.callback.clone(),
+                Text { text: &vm.text }
+            }
         }
     }
 }
@@ -42,17 +47,32 @@ pub struct MessageBox;
 impl MessageBox {
     pub fn show(window: &Rc<RefCell<dyn WindowService>>, params: MessageBoxParams) {
         let content = ui! {
-            Shadow {
-                Style: Default { size: 12.0f32 },
+            Border {
+                border_type: BorderType::None,
+                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.5f32], },
+                HorizontalAlignment: Alignment::Stretch,
+                VerticalAlignment: Alignment::Stretch,
 
-                Border {
-                    border_type: BorderType::None,
-                    Style: Default { background_color: [0.0f32, 0.0f32, 0.0f32, 0.8f32], },
+                Shadow {
+                    Style: Default { size: 12.0f32 },
+                    HorizontalAlignment: Alignment::Center,
+                    VerticalAlignment: Alignment::Center,
 
-                    Vertical {
-                        Text { text: params.message },
+                    Border {
+                        border_type: BorderType::None,
+                        Style: Default { background_color: [0.0f32, 0.0f32, 0.0f32, 0.8f32], },
 
-                        Horizontal { &params.buttons }
+                        Vertical {
+                            Margin: Thickness::all(10.0f32),
+
+                            Text { text: params.message },
+
+                            Grid {
+                                Margin: Thickness::top(10.0f32),
+                                rows: 1,
+                                &params.buttons
+                            }
+                        }
                     }
                 }
             }

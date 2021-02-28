@@ -49,6 +49,12 @@ impl<A: 'static + Clone> Callback<A> {
         }
     }
 
+    pub fn simple<F: 'static + FnMut(A)>(f: F) -> Self {
+        Self {
+            callback: Some(Rc::new(RefCell::new(f))),
+        }
+    }
+
     pub fn set<F: 'static + FnMut(A)>(&mut self, f: F) {
         self.callback = Some(Rc::new(RefCell::new(f)));
     }

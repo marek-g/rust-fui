@@ -189,12 +189,23 @@ impl ViewModel for MainViewModel {
         let window_manager = vm.window_manager.clone();
         let window = vm.window.clone();
         exit_callback.set(move |_| {
+            let window_manager = window_manager.clone();
             let mut buttons = ObservableVec::new();
             buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "Yes".to_string(),
+                "Yes",
+                Callback::simple(move |_| window_manager.borrow_mut().exit()),
             ))));
             buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "No".to_string(),
+                "No",
+                Callback::empty(),
+            ))));
+            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
+                "Cancel",
+                Callback::empty(),
+            ))));
+            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
+                "Help",
+                Callback::empty(),
             ))));
             MessageBox::show(
                 &window,
