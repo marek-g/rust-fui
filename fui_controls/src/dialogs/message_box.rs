@@ -12,7 +12,7 @@ pub struct DialogButtonViewModel {
 }
 
 impl DialogButtonViewModel {
-    pub fn new(text: &str, callback: Callback<()>) -> Self {
+    pub fn new(text: String, callback: Callback<()>) -> Self {
         Self {
             text: Property::new(text),
             callback,
@@ -34,18 +34,18 @@ impl ViewModel for DialogButtonViewModel {
 }
 
 #[derive(TypedBuilder)]
-pub struct MessageBoxParams {
+pub struct MessageBox {
     #[builder(default = String::new())]
     message: String,
 
-    #[builder(default = ObservableVec::new())]
-    buttons: ObservableVec<Rc<RefCell<DialogButtonViewModel>>>,
+    #[builder(default = Vec::new())]
+    buttons: Vec<(String, Callback<()>)>,
 }
 
-pub struct MessageBox;
-
 impl MessageBox {
-    pub fn show(window: &Rc<RefCell<dyn WindowService>>, params: MessageBoxParams) {
+    pub fn show(self, window: &Rc<RefCell<dyn WindowService>>) {
+        let mut buttons = ObservableVec::<Rc<RefCell<DialogButtonViewModel>>>::new();
+
         let content = ui! {
             Border {
                 border_type: BorderType::None,
@@ -65,18 +65,34 @@ impl MessageBox {
                         Vertical {
                             Margin: Thickness::all(10.0f32),
 
-                            Text { text: params.message },
+                            Text { text: self.message },
 
                             Grid {
                                 Margin: Thickness::top(10.0f32),
                                 rows: 1,
-                                &params.buttons
+                                &buttons
                             }
                         }
                     }
                 }
             }
         };
+
+        for (text, callback) in self.buttons {
+            // create new_callback that closes dialog layer
+            // and calls button callback
+            let window_clone = window.clone();
+            let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
+            let new_callback = Callback::simple(move |_| {
+                window_clone.borrow_mut().remove_layer(&content_clone);
+                callback.emit(());
+            });
+
+            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
+                text,
+                new_callback,
+            ))));
+        }
 
         window.borrow_mut().add_layer(content);
     }

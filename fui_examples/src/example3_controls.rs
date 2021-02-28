@@ -190,31 +190,17 @@ impl ViewModel for MainViewModel {
         let window = vm.window.clone();
         exit_callback.set(move |_| {
             let window_manager = window_manager.clone();
-            let mut buttons = ObservableVec::new();
-            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "Yes",
-                Callback::simple(move |_| window_manager.borrow_mut().exit()),
-            ))));
-            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "No",
-                Callback::empty(),
-            ))));
-            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "Cancel",
-                Callback::empty(),
-            ))));
-            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                "Help",
-                Callback::empty(),
-            ))));
-            MessageBox::show(
-                &window,
-                MessageBoxParams::builder()
-                    .message("Do you really want to exit?".to_string())
-                    .buttons(buttons)
-                    .build(),
-            );
-            //window_manager.borrow_mut().exit();
+            MessageBox::builder()
+                .message("Do you really want to exit?".to_string())
+                .buttons(vec![
+                    (
+                        "Yes".to_string(),
+                        Callback::simple(move |_| window_manager.borrow_mut().exit()),
+                    ),
+                    ("No".to_string(), Callback::empty()),
+                ])
+                .build()
+                .show(&window);
         });
 
         let menu_items = vec![
