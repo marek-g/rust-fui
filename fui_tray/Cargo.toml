@@ -1,0 +1,15 @@
+[package]
+name = "fui_tray"
+version = "0.1.0"
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Tray control for FUI UI Framework"
+keywords = ["gui", "ui", "framework", "mvvm", "tray"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_tray"
+readme = "README.md"
+edition = "2018"
+
+[dependencies]
+fui_core = { path = "../fui_core", version = "0.1" }

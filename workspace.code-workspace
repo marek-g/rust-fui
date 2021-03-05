@@ -18,6 +18,9 @@
 		{
 			"path": "fui_macros"
 		},
+		{
+			"path": "fui_tray"
+		},
 	],
 	"settings": {}
 }
