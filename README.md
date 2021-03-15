@@ -30,9 +30,9 @@ Standard controls for FUI UI Framework.
 
 Media controls for FUI UI Framework.
 
-### `fui_tray` [![Crates.io Version](https://img.shields.io/crates/v/fui_tray.svg)](https://crates.io/crates/fui_tray)
+### `fui_system` [![Crates.io Version](https://img.shields.io/crates/v/fui_system.svg)](https://crates.io/crates/fui_system)
 
-Tray control for FUI UI Framework.
+Systen controls (dialogs, tray etc.) for FUI UI Framework.
 
 ### `fui_app` [![Crates.io Version](https://img.shields.io/crates/v/fui_app.svg)](https://crates.io/crates/fui_app)
 

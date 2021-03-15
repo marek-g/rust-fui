@@ -23,9 +23,11 @@ typed-builder = "0.7"
 typemap = "0.3"
 
 fui_controls_media = { path = "../../rust-fui/fui_controls_media", version = "0.1", optional = true }
+fui_system = { path = "../../rust-fui/fui_system", version = "0.1", optional = true }
 
 [features]
 video = ["fui_controls_media"]
+system = ["fui_system"]
 
 [[bin]]
 name = "example1_button"
@@ -51,3 +53,8 @@ path = "src/example5_contentcontrol.rs"
 name = "example6_video"
 path = "src/example6_video.rs"
 required-features = ["video"]
+
+[[bin]]
+name = "example7_tray"
+path = "src/example7_tray.rs"
+required-features = ["system"]

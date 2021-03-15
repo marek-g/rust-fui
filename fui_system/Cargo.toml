@@ -1,0 +1,20 @@
+[package]
+name = "fui_system"
+version = "0.1.0"
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "System controls (dialogs, tray etc.) for FUI UI Framework"
+keywords = ["gui", "ui", "framework", "dialog", "tray"]
+categories = ["gui"]
+license = "LGPL-2.1-or-later WITH WxWindows-exception-3.1"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_system"
+readme = "README.md"
+edition = "2018"
+
+[dependencies]
+thiserror = "1.0"
+
+[build-dependencies]
+bindgen = "0.57"
+
+[target.'cfg(target_os = "linux")'.dependencies]

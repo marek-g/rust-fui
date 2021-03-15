@@ -7,5 +7,5 @@ members = [
     "fui_core",
     "fui_examples",
     "fui_macros",
-    "fui_tray",
+    "fui_system",
 ]
