@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QIcon, QString};
+use crate::qt_wrapper::{QIcon, QMenu, QString};
 
 pub struct QSystemTrayIcon {
     pub this: *mut ::std::os::raw::c_void,
@@ -13,6 +13,14 @@ impl QSystemTrayIcon {
             }
 
             Ok(Self { this })
+        }
+    }
+
+    // keeps reference to QMenu, doesn't take ownership
+    pub fn set_context_menu(&mut self, menu: &mut QMenu) -> Result<(), ()> {
+        unsafe {
+            crate::qt_wrapper::QSystemTrayIcon_setContextMenu(self.this, menu.this);
+            Ok(())
         }
     }
 

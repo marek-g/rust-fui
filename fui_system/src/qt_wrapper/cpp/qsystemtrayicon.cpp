@@ -11,6 +11,13 @@ void QSystemTrayIcon_delete(void *self)
     delete static_cast<QSystemTrayIcon *>(self);
 }
 
+void QSystemTrayIcon_setContextMenu(void *self, void *menu)
+{
+    QSystemTrayIcon *tray = static_cast<QSystemTrayIcon *>(self);
+    QMenu *qmenu = static_cast<QMenu *>(menu);
+    tray->setContextMenu(qmenu);
+}
+
 void QSystemTrayIcon_setIcon(void *self, const void *icon)
 {
     QSystemTrayIcon *tray = static_cast<QSystemTrayIcon *>(self);

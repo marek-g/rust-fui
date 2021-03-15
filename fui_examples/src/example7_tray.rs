@@ -100,11 +100,13 @@ fn main() -> Result<()> {
 
         let mut tray = SystemTray::new().unwrap();
         let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
+        tray.set_menu(&MenuItem::Separator);
         tray.set_icon(&icon_data);
         tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
         tray.set_visible(true).unwrap();
 
         let mut tray2 = SystemTray::new().unwrap();
+        tray2.set_menu(&MenuItem::Separator);
         tray2.set_icon(&icon_data);
         tray2.set_visible(true).unwrap();
 

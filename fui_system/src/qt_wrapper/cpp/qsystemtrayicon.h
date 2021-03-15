@@ -8,6 +8,8 @@ extern "C" {
 void *QSystemTrayIcon_new();
 void QSystemTrayIcon_delete(void *self);
 
+// QSystemTrayIcon doesn't take ownership over menu
+void QSystemTrayIcon_setContextMenu(void *self, void *menu);
 void QSystemTrayIcon_setIcon(void *self, const void *icon);
 void QSystemTrayIcon_setToolTip(void *self, const void *tip);
 

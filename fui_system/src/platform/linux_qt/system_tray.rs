@@ -1,5 +1,6 @@
-use crate::qt_wrapper::{QIcon, QPixmap, QString, QSystemTrayIcon};
+use crate::qt_wrapper::{QIcon, QMenu, QPixmap, QString, QSystemTrayIcon};
 use crate::TrayError;
+use fui_core::MenuItem;
 
 pub enum SystemMessageIcon<'a> {
     NoIcon,
@@ -11,17 +12,27 @@ pub enum SystemMessageIcon<'a> {
 
 pub struct SystemTray {
     qtray: QSystemTrayIcon,
+    qmenu: Option<QMenu>,
 }
 
 impl SystemTray {
     pub fn new() -> Result<Self, ()> {
         Ok(SystemTray {
             qtray: QSystemTrayIcon::new()?,
+            qmenu: None,
         })
     }
 
     pub fn set_icon(&mut self, data: &[u8]) -> Result<(), ()> {
         self.qtray.set_icon(&Self::create_icon(data)?)?;
+        Ok(())
+    }
+
+    pub fn set_menu(&mut self, menu: &MenuItem) -> Result<(), ()> {
+        let mut qmenu = QMenu::new()?;
+        qmenu.add_action_text(&QString::from_str("Test")?)?;
+        self.qtray.set_context_menu(&mut qmenu);
+        self.qmenu = Some(qmenu);
         Ok(())
     }
 

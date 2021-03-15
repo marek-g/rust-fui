@@ -1,3 +1,4 @@
+#include "qaction.h"
 #include "qapplication.h"
 #include "qicon.h"
 #include "qmenu.h"

@@ -4,6 +4,9 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+mod qaction;
+pub use qaction::*;
+
 mod qapplication;
 pub use qapplication::*;
 
