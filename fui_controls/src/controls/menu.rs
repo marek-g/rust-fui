@@ -9,59 +9,6 @@ use crate::controls::*;
 use crate::{DataHolder, GestureArea};
 use fui_core::*;
 
-pub enum MenuItem {
-    Separator,
-    Text {
-        text: String,
-        shortcut: Option<String>,
-        icon: Option<Rc<RefCell<dyn ControlObject>>>,
-        callback: Callback<()>,
-        sub_items: Vec<MenuItem>,
-    },
-    Custom {
-        content: Rc<RefCell<dyn ControlObject>>,
-        callback: Callback<()>,
-        sub_items: Vec<MenuItem>,
-    },
-}
-
-impl MenuItem {
-    pub fn folder(text: &str, sub_items: Vec<MenuItem>) -> Self {
-        MenuItem::Text {
-            text: text.into(),
-            shortcut: None,
-            icon: None,
-            callback: Callback::empty(),
-            sub_items,
-        }
-    }
-
-    pub fn simple(text: &str, callback: Callback<()>) -> Self {
-        MenuItem::Text {
-            text: text.into(),
-            shortcut: None,
-            icon: None,
-            callback,
-            sub_items: Vec::new(),
-        }
-    }
-
-    pub fn full(
-        text: &str,
-        shortcut: Option<String>,
-        icon: Option<Rc<RefCell<dyn ControlObject>>>,
-        callback: Callback<()>,
-    ) -> Self {
-        MenuItem::Text {
-            text: text.into(),
-            shortcut,
-            icon,
-            callback,
-            sub_items: Vec::new(),
-        }
-    }
-}
-
 #[derive(TypedBuilder)]
 pub struct Menu {
     #[builder(default = Orientation::Horizontal)]
@@ -104,7 +51,8 @@ impl Menu {
 
         for item in self.items.into_iter() {
             let close_siblings_callback_rc = Rc::new(RefCell::new(Callback::empty()));
-            let (view, close_item_popup_callback) = item.to_view(
+            let (view, close_item_popup_callback) = Self::menu_item_to_view(
+                item,
                 true,
                 &is_menu_active_prop,
                 &uncovered_controls,
@@ -140,17 +88,15 @@ impl Menu {
             },
         )
     }
-}
 
-impl MenuItem {
-    pub fn to_view(
-        self,
+    fn menu_item_to_view(
+        menu_item: MenuItem,
         is_top: bool,
         is_menu_active_prop: &Property<bool>,
         uncovered_controls: &Vec<Weak<RefCell<dyn ControlObject>>>,
         close_siblings_callback_rc: &Rc<RefCell<Callback<()>>>,
     ) -> (Rc<RefCell<dyn ControlObject>>, Callback<()>) {
-        match self {
+        match menu_item {
             MenuItem::Separator => {
                 let separator: Rc<RefCell<dyn ControlObject>> = ui! {
                     Text {
@@ -356,7 +302,8 @@ impl MenuItem {
                     uncovered_controls.push(Rc::downgrade(&popup_content));
                     for item in sub_items.into_iter() {
                         let close_siblings_callback_rc = Rc::new(RefCell::new(Callback::empty()));
-                        let (view, close_item_popup_callback) = item.to_view(
+                        let (view, close_item_popup_callback) = Self::menu_item_to_view(
+                            item,
                             false,
                             &is_menu_active_prop,
                             &uncovered_controls,
