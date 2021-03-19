@@ -98,15 +98,43 @@ fn main() -> Result<()> {
     let tray_thread = thread::spawn(move || {
         let system_app = SystemApplication::new("Example: tray");
 
+        let menu_items = vec![
+            MenuItem::folder(
+                "File",
+                vec![
+                    MenuItem::simple("Open...", Callback::empty()),
+                    MenuItem::simple("Save...", Callback::empty()),
+                    MenuItem::folder(
+                        "Export",
+                        vec![
+                            MenuItem::simple("PDF...", Callback::empty()),
+                            MenuItem::simple("PNG...", Callback::empty()),
+                            MenuItem::simple("HTML...", Callback::empty()),
+                        ],
+                    ),
+                    MenuItem::Separator,
+                    MenuItem::simple("Exit", Callback::empty()),
+                ],
+            ),
+            MenuItem::folder(
+                "Help",
+                vec![
+                    MenuItem::simple("Help", Callback::empty()),
+                    MenuItem::Separator,
+                    MenuItem::simple("About", Callback::empty()),
+                ],
+            ),
+        ];
+
         let mut tray = SystemTray::new().unwrap();
         let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
-        tray.set_menu(&MenuItem::Separator);
+        tray.set_menu(&menu_items);
         tray.set_icon(&icon_data);
         tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
         tray.set_visible(true).unwrap();
 
         let mut tray2 = SystemTray::new().unwrap();
-        tray2.set_menu(&MenuItem::Separator);
+        tray2.set_menu(&menu_items);
         tray2.set_icon(&icon_data);
         tray2.set_visible(true).unwrap();
 

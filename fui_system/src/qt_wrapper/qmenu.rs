@@ -2,6 +2,7 @@ use crate::qt_wrapper::{QAction, QString};
 
 pub struct QMenu {
     pub this: *mut ::std::os::raw::c_void,
+    pub is_owned: bool,
 }
 
 impl QMenu {
@@ -12,7 +13,10 @@ impl QMenu {
                 return Err(());
             }
 
-            Ok(Self { this })
+            Ok(Self {
+                this,
+                is_owned: true,
+            })
         }
     }
 
@@ -29,12 +33,42 @@ impl QMenu {
             })
         }
     }
+
+    pub fn add_separator(&mut self) -> Result<QAction, ()> {
+        unsafe {
+            let qaction_this = crate::qt_wrapper::QMenu_addSeparator(self.this);
+            if qaction_this.is_null() {
+                return Err(());
+            }
+
+            Ok(QAction {
+                this: qaction_this,
+                is_owned: false,
+            })
+        }
+    }
+
+    pub fn add_menu(&mut self, text: &QString) -> Result<QMenu, ()> {
+        unsafe {
+            let qmenu_this = crate::qt_wrapper::QMenu_addMenu(self.this, text.this);
+            if qmenu_this.is_null() {
+                return Err(());
+            }
+
+            Ok(QMenu {
+                this: qmenu_this,
+                is_owned: false,
+            })
+        }
+    }
 }
 
 impl Drop for QMenu {
     fn drop(&mut self) {
-        unsafe {
-            crate::qt_wrapper::QMenu_delete(self.this);
+        if self.is_owned {
+            unsafe {
+                crate::qt_wrapper::QMenu_delete(self.this);
+            }
         }
     }
 }

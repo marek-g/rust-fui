@@ -28,9 +28,8 @@ impl SystemTray {
         Ok(())
     }
 
-    pub fn set_menu(&mut self, menu: &MenuItem) -> Result<(), ()> {
-        let mut qmenu = QMenu::new()?;
-        qmenu.add_action_text(&QString::from_str("Test")?)?;
+    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
+        let mut qmenu = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
         Ok(())
@@ -89,5 +88,49 @@ impl SystemTray {
         icon.add_pixmap(&pixmap);
 
         Ok(icon)
+    }
+
+    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<QMenu, ()> {
+        unsafe {
+            let mut qmenu = QMenu::new()?;
+
+            SystemTray::qmenu_add_menu_items(&mut qmenu, menu_items);
+
+            Ok(qmenu)
+        }
+    }
+
+    fn qmenu_add_menu_items(mut qmenu: &mut QMenu, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
+        for menu_item in menu_items {
+            Self::qmenu_add_menu_item(&mut qmenu, menu_item)?;
+        }
+        Ok(())
+    }
+
+    fn qmenu_add_menu_item(qmenu: &mut QMenu, menu_item: &MenuItem) -> Result<(), ()> {
+        match menu_item {
+            MenuItem::Separator => {
+                qmenu.add_separator()?;
+            }
+
+            MenuItem::Text {
+                text,
+                shortcut,
+                icon,
+                callback,
+                sub_items,
+            } => {
+                if sub_items.len() > 0 {
+                    let mut qsubmenu = qmenu.add_menu(&QString::from_str(&text)?)?;
+                    Self::qmenu_add_menu_items(&mut qsubmenu, sub_items)?;
+                } else {
+                    qmenu.add_action_text(&QString::from_str(&text)?)?;
+                }
+            }
+
+            MenuItem::Custom { .. } => {}
+        }
+
+        Ok(())
     }
 }

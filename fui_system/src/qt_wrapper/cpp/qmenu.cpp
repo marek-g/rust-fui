@@ -26,3 +26,17 @@ void* QMenu_addAction_text(void *self, void *text)
 
     return qMenu->addAction(*qText);
 }
+
+void* QMenu_addSeparator(void *self)
+{
+    QMenu *qMenu = static_cast<QMenu *>(self);
+    return qMenu->addSeparator();
+}
+
+void* QMenu_addMenu(void *self, void *text)
+{
+    QMenu *qMenu = static_cast<QMenu *>(self);
+    QString *qText = static_cast<QString *>(text);
+
+    return qMenu->addMenu(*qText);
+}
