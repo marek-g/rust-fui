@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QIcon, QMenu, QPixmap, QString, QSystemTrayIcon};
+use crate::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
 use crate::TrayError;
 use fui_core::MenuItem;
 
@@ -13,6 +13,7 @@ pub enum SystemMessageIcon<'a> {
 pub struct SystemTray {
     qtray: QSystemTrayIcon,
     qmenu: Option<QMenu>,
+    slots: Vec<QSlot>,
 }
 
 impl SystemTray {
@@ -20,6 +21,7 @@ impl SystemTray {
         Ok(SystemTray {
             qtray: QSystemTrayIcon::new()?,
             qmenu: None,
+            slots: Vec::new(),
         })
     }
 
@@ -29,9 +31,10 @@ impl SystemTray {
     }
 
     pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
-        let mut qmenu = Self::qmenu_from_menu_items(menu_items)?;
+        let (mut qmenu, slots) = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
+        self.slots = slots;
         Ok(())
     }
 
@@ -90,24 +93,33 @@ impl SystemTray {
         Ok(icon)
     }
 
-    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<QMenu, ()> {
+    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
         unsafe {
             let mut qmenu = QMenu::new()?;
+            let mut slots = Vec::new();
 
-            SystemTray::qmenu_add_menu_items(&mut qmenu, menu_items);
+            SystemTray::qmenu_add_menu_items(&mut qmenu, &mut slots, menu_items);
 
-            Ok(qmenu)
+            Ok((qmenu, slots))
         }
     }
 
-    fn qmenu_add_menu_items(mut qmenu: &mut QMenu, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
+    fn qmenu_add_menu_items(
+        mut qmenu: &mut QMenu,
+        slots: &mut Vec<QSlot>,
+        menu_items: &Vec<MenuItem>,
+    ) -> Result<(), ()> {
         for menu_item in menu_items {
-            Self::qmenu_add_menu_item(&mut qmenu, menu_item)?;
+            Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
         }
         Ok(())
     }
 
-    fn qmenu_add_menu_item(qmenu: &mut QMenu, menu_item: &MenuItem) -> Result<(), ()> {
+    fn qmenu_add_menu_item(
+        qmenu: &mut QMenu,
+        slots: &mut Vec<QSlot>,
+        menu_item: &MenuItem,
+    ) -> Result<(), ()> {
         match menu_item {
             MenuItem::Separator => {
                 qmenu.add_separator()?;
@@ -122,9 +134,11 @@ impl SystemTray {
             } => {
                 if sub_items.len() > 0 {
                     let mut qsubmenu = qmenu.add_menu(&QString::from_str(&text)?)?;
-                    Self::qmenu_add_menu_items(&mut qsubmenu, sub_items)?;
+                    Self::qmenu_add_menu_items(&mut qsubmenu, slots, sub_items)?;
                 } else {
-                    qmenu.add_action_text(&QString::from_str(&text)?)?;
+                    let mut action = qmenu.add_action_text(&QString::from_str(&text)?)?;
+                    let slot = action.connect_triggered()?;
+                    slots.push(slot);
                 }
             }
 

@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QAction, QString};
+use crate::qt_wrapper::{QAction, QSlot, QString};
 
 pub struct QMenu {
     pub this: *mut ::std::os::raw::c_void,
@@ -27,10 +27,14 @@ impl QMenu {
                 return Err(());
             }
 
-            Ok(QAction {
+            let mut action = QAction {
                 this: qaction_this,
                 is_owned: false,
-            })
+            };
+
+            action.set_text(text);
+
+            Ok(action)
         }
     }
 

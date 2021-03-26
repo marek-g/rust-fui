@@ -1,4 +1,4 @@
-use crate::qt_wrapper::QString;
+use crate::qt_wrapper::{QSlot, QString};
 
 pub struct QAction {
     pub this: *mut ::std::os::raw::c_void,
@@ -25,6 +25,14 @@ impl QAction {
             crate::qt_wrapper::QAction_setText(self.this, text.this);
             Ok(())
         }
+    }
+
+    pub fn connect_triggered(&mut self) -> Result<QSlot, ()> {
+        let mut slot = QSlot::new()?;
+        unsafe {
+            crate::qt_wrapper::QAction_connectTriggered(self.this, slot.this);
+        }
+        Ok(slot)
     }
 }
 

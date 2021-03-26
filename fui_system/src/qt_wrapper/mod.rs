@@ -19,6 +19,9 @@ pub use qmenu::*;
 mod qpixmap;
 pub use qpixmap::*;
 
+mod qslot;
+pub use qslot::*;
+
 mod qstring;
 pub use qstring::*;
 

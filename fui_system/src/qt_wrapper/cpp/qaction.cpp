@@ -1,5 +1,8 @@
 #include <QAction>
+#include <QObject>
 #include "qaction.h"
+#include "qslot_cpp.h"
+#include <stdio.h>
 
 void *QAction_new()
 {
@@ -17,4 +20,12 @@ void QAction_setText(void *self, const void *text)
     const QString *qText = static_cast<const QString *>(text);
 
     qAction->setText(*qText);
+}
+
+void QAction_connectTriggered(void *self, void *slot)
+{
+    QAction *qAction = static_cast<QAction *>(self);
+    QSlotCpp *qSlot = static_cast<QSlotCpp *>(slot);
+
+    QObject::connect(qAction, &QAction::triggered, qSlot, &QSlotCpp::method);
 }

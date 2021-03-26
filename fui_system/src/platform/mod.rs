@@ -1,5 +1,5 @@
 #[cfg(target_os = "linux")]
-mod linux_qt;
+mod qt;
 
 #[cfg(target_os = "linux")]
-pub use linux_qt::*;
+pub use qt::*;
