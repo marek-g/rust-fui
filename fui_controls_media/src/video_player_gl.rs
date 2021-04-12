@@ -85,8 +85,8 @@ impl PlayerGl {
                 .get_windows_mut()
                 .get(&main_window_id)
             {
-                let window = main_window.window.borrow();
-                let window_drawing_target = window.get_drawing_target();
+                let window = &main_window.borrow().native_window;
+                let window_drawing_target = &window.drawing_target;
                 let context = window_drawing_target.get_context();
 
                 let window = window_drawing_target.get_window();
