@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QAction, QSlot, QString};
+use crate::platform::qt::qt_wrapper::{QAction, QSlot, QString};
 
 pub struct QMenu {
     pub this: *mut ::std::os::raw::c_void,
@@ -8,7 +8,7 @@ pub struct QMenu {
 impl QMenu {
     pub fn new() -> Result<Self, ()> {
         unsafe {
-            let this = crate::qt_wrapper::QMenu_new();
+            let this = crate::platform::qt::qt_wrapper::QMenu_new();
             if this.is_null() {
                 return Err(());
             }
@@ -22,7 +22,8 @@ impl QMenu {
 
     pub fn add_action_text(&mut self, text: &QString) -> Result<QAction, ()> {
         unsafe {
-            let qaction_this = crate::qt_wrapper::QMenu_addAction_text(self.this, text.this);
+            let qaction_this =
+                crate::platform::qt::qt_wrapper::QMenu_addAction_text(self.this, text.this);
             if qaction_this.is_null() {
                 return Err(());
             }
@@ -40,7 +41,7 @@ impl QMenu {
 
     pub fn add_separator(&mut self) -> Result<QAction, ()> {
         unsafe {
-            let qaction_this = crate::qt_wrapper::QMenu_addSeparator(self.this);
+            let qaction_this = crate::platform::qt::qt_wrapper::QMenu_addSeparator(self.this);
             if qaction_this.is_null() {
                 return Err(());
             }
@@ -54,7 +55,7 @@ impl QMenu {
 
     pub fn add_menu(&mut self, text: &QString) -> Result<QMenu, ()> {
         unsafe {
-            let qmenu_this = crate::qt_wrapper::QMenu_addMenu(self.this, text.this);
+            let qmenu_this = crate::platform::qt::qt_wrapper::QMenu_addMenu(self.this, text.this);
             if qmenu_this.is_null() {
                 return Err(());
             }
@@ -71,7 +72,7 @@ impl Drop for QMenu {
     fn drop(&mut self) {
         if self.is_owned {
             unsafe {
-                crate::qt_wrapper::QMenu_delete(self.this);
+                crate::platform::qt::qt_wrapper::QMenu_delete(self.this);
             }
         }
     }

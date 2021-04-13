@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QIcon, QMenu, QString};
+use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QString};
 
 pub struct QSystemTrayIcon {
     pub this: *mut ::std::os::raw::c_void,
@@ -7,7 +7,7 @@ pub struct QSystemTrayIcon {
 impl QSystemTrayIcon {
     pub fn new() -> Result<Self, ()> {
         unsafe {
-            let this = crate::qt_wrapper::QSystemTrayIcon_new();
+            let this = crate::platform::qt::qt_wrapper::QSystemTrayIcon_new();
             if this.is_null() {
                 return Err(());
             }
@@ -19,28 +19,28 @@ impl QSystemTrayIcon {
     // keeps reference to QMenu, doesn't take ownership
     pub fn set_context_menu(&mut self, menu: &mut QMenu) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_setContextMenu(self.this, menu.this);
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_setContextMenu(self.this, menu.this);
             Ok(())
         }
     }
 
     pub fn set_icon(&mut self, icon: &QIcon) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_setIcon(self.this, icon.this);
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_setIcon(self.this, icon.this);
             Ok(())
         }
     }
 
     pub fn set_tool_tip(&mut self, tip: &QString) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_setToolTip(self.this, tip.this);
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_setToolTip(self.this, tip.this);
             Ok(())
         }
     }
 
     pub fn set_visible(&mut self, is_visible: bool) {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_setVisible(
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_setVisible(
                 self.this,
                 if is_visible { 1 } else { 0 },
             );
@@ -55,7 +55,7 @@ impl QSystemTrayIcon {
         timeout: i32,
     ) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_showMessage(
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_showMessage(
                 self.this,
                 title.this,
                 message.this,
@@ -74,7 +74,7 @@ impl QSystemTrayIcon {
         timeout: i32,
     ) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_showMessage2(
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_showMessage2(
                 self.this,
                 title.this,
                 message.this,
@@ -89,7 +89,7 @@ impl QSystemTrayIcon {
 impl Drop for QSystemTrayIcon {
     fn drop(&mut self) {
         unsafe {
-            crate::qt_wrapper::QSystemTrayIcon_delete(self.this);
+            crate::platform::qt::qt_wrapper::QSystemTrayIcon_delete(self.this);
         }
     }
 }

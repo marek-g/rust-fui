@@ -1,4 +1,4 @@
-use crate::qt_wrapper::QString;
+use crate::platform::qt::qt_wrapper::QString;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
@@ -18,7 +18,7 @@ impl QApplication {
                 .map(|arg| arg.as_ptr())
                 .collect::<Vec<*const c_char>>();
 
-            let this = crate::qt_wrapper::QApplication_new(
+            let this = crate::platform::qt::qt_wrapper::QApplication_new(
                 c_args.len() as i32,
                 c_args.as_ptr() as *mut *const i8,
             );
@@ -32,25 +32,25 @@ impl QApplication {
 
     pub fn set_application_display_name(text: &QString) {
         unsafe {
-            crate::qt_wrapper::QApplication_setApplicationDisplayName(text.this);
+            crate::platform::qt::qt_wrapper::QApplication_setApplicationDisplayName(text.this);
         }
     }
 
     pub fn exec() {
         unsafe {
-            crate::qt_wrapper::QApplication_exec();
+            crate::platform::qt::qt_wrapper::QApplication_exec();
         }
     }
 
     pub fn exit(result_code: i32) {
         unsafe {
-            crate::qt_wrapper::QApplication_exit(result_code);
+            crate::platform::qt::qt_wrapper::QApplication_exit(result_code);
         }
     }
 
     pub fn about_qt() {
         unsafe {
-            crate::qt_wrapper::QApplication_aboutQt();
+            crate::platform::qt::qt_wrapper::QApplication_aboutQt();
         }
     }
 }
@@ -58,7 +58,7 @@ impl QApplication {
 impl Drop for QApplication {
     fn drop(&mut self) {
         unsafe {
-            crate::qt_wrapper::QApplication_delete(self.this);
+            crate::platform::qt::qt_wrapper::QApplication_delete(self.this);
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QApplication, QString};
+use crate::platform::qt::qt_wrapper::{QApplication, QString};
 
 pub struct SystemApplication {
     qapp: QApplication,

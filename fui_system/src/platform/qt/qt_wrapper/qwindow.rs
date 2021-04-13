@@ -1,4 +1,4 @@
-use crate::qt_wrapper::QString;
+use crate::platform::qt::qt_wrapper::QString;
 
 pub struct QWindow {
     pub this: *mut ::std::os::raw::c_void,
@@ -7,7 +7,7 @@ pub struct QWindow {
 impl QWindow {
     pub fn new(parent: Option<&mut QWindow>) -> Result<Self, ()> {
         unsafe {
-            let this = crate::qt_wrapper::QWindow_new(
+            let this = crate::platform::qt::qt_wrapper::QWindow_new(
                 parent.map_or(0 as *mut ::std::os::raw::c_void, |p| p.this),
             );
             if this.is_null() {
@@ -20,13 +20,16 @@ impl QWindow {
 
     pub fn set_title(&mut self, text: &QString) {
         unsafe {
-            crate::qt_wrapper::QWindow_setTitle(self.this, text.this);
+            crate::platform::qt::qt_wrapper::QWindow_setTitle(self.this, text.this);
         }
     }
 
     pub fn set_visible(&mut self, is_visible: bool) {
         unsafe {
-            crate::qt_wrapper::QWindow_setVisible(self.this, if is_visible { 1 } else { 0 });
+            crate::platform::qt::qt_wrapper::QWindow_setVisible(
+                self.this,
+                if is_visible { 1 } else { 0 },
+            );
         }
     }
 }
@@ -34,7 +37,7 @@ impl QWindow {
 impl Drop for QWindow {
     fn drop(&mut self) {
         unsafe {
-            crate::qt_wrapper::QWindow_delete(self.this);
+            crate::platform::qt::qt_wrapper::QWindow_delete(self.this);
         }
     }
 }

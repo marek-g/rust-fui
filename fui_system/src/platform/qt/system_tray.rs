@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
+use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
 use crate::TrayError;
 use fui_core::MenuItem;
 

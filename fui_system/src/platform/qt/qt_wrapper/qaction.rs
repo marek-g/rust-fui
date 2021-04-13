@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QSlot, QString};
+use crate::platform::qt::qt_wrapper::{QSlot, QString};
 
 pub struct QAction {
     pub this: *mut ::std::os::raw::c_void,
@@ -8,7 +8,7 @@ pub struct QAction {
 impl QAction {
     pub fn new() -> Result<Self, ()> {
         unsafe {
-            let this = crate::qt_wrapper::QAction_new();
+            let this = crate::platform::qt::qt_wrapper::QAction_new();
             if this.is_null() {
                 return Err(());
             }
@@ -22,7 +22,7 @@ impl QAction {
 
     pub fn set_text(&mut self, text: &QString) -> Result<(), ()> {
         unsafe {
-            crate::qt_wrapper::QAction_setText(self.this, text.this);
+            crate::platform::qt::qt_wrapper::QAction_setText(self.this, text.this);
             Ok(())
         }
     }
@@ -30,7 +30,7 @@ impl QAction {
     pub fn connect_triggered(&mut self) -> Result<QSlot, ()> {
         let mut slot = QSlot::new()?;
         unsafe {
-            crate::qt_wrapper::QAction_connectTriggered(self.this, slot.this);
+            crate::platform::qt::qt_wrapper::QAction_connectTriggered(self.this, slot.this);
         }
         Ok(slot)
     }
@@ -40,7 +40,7 @@ impl Drop for QAction {
     fn drop(&mut self) {
         if self.is_owned {
             unsafe {
-                crate::qt_wrapper::QAction_delete(self.this);
+                crate::platform::qt::qt_wrapper::QAction_delete(self.this);
             }
         }
     }

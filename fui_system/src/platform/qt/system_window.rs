@@ -1,4 +1,4 @@
-use crate::qt_wrapper::{QString, QWindow};
+use crate::platform::qt::qt_wrapper::{QString, QWindow};
 
 pub struct SystemWindow {
     qwindow: QWindow,

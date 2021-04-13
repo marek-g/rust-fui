@@ -15,7 +15,7 @@ extern "C" fn callback(target: *mut c_void) {
 impl QSlot {
     pub fn new() -> Result<Self, ()> {
         unsafe {
-            let this = crate::qt_wrapper::QSlot_new();
+            let this = crate::platform::qt::qt_wrapper::QSlot_new();
             if this.is_null() {
                 return Err(());
             }
@@ -23,7 +23,11 @@ impl QSlot {
             let result = Self { this };
 
             println!("Setfunc!");
-            crate::qt_wrapper::QSlot_setFunc(result.this, Some(callback), 0 as *mut c_void);
+            crate::platform::qt::qt_wrapper::QSlot_setFunc(
+                result.this,
+                Some(callback),
+                0 as *mut c_void,
+            );
 
             Ok(result)
         }
@@ -40,7 +44,7 @@ impl QSlot {
 impl Drop for QSlot {
     fn drop(&mut self) {
         unsafe {
-            crate::qt_wrapper::QSlot_delete(self.this);
+            crate::platform::qt::qt_wrapper::QSlot_delete(self.this);
         }
     }
 }

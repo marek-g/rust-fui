@@ -12,13 +12,16 @@ fn main() {
     println!("out_dir: {}", out_dir);
 
     if target.contains("linux") {
-        run_qmake(&current_dir.join("src/qt_wrapper/cpp"), &out_dir);
+        run_qmake(
+            &current_dir.join("src/platform/qt/qt_wrapper/cpp"),
+            &out_dir,
+        );
         run_make(&out_dir);
 
         cargo_link_static(&out_dir, "qt_wrapper");
         cargo_link_qt();
 
-        generate_bindings("src/qt_wrapper/cpp/qt_wrapper.h", &out_dir);
+        generate_bindings("src/platform/qt/qt_wrapper/cpp/qt_wrapper.h", &out_dir);
     }
 }
 
