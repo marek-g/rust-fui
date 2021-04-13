@@ -6,3 +6,4 @@
 #include "qslot.h"
 #include "qstring.h"
 #include "qsystemtrayicon.h"
+#include "qwindow.h"

@@ -147,6 +147,10 @@ fn main() -> Result<()> {
         )
         .unwrap();
 
+        let mut window = SystemWindow::new(None).unwrap();
+        window.set_title("Hello Qt!").unwrap();
+        window.set_visible(true).unwrap();
+
         SystemApplication::message_loop();
     });
 

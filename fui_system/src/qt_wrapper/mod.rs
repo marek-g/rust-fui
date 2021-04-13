@@ -27,3 +27,6 @@ pub use qstring::*;
 
 mod qsystemtrayicon;
 pub use qsystemtrayicon::*;
+
+mod qwindow;
+pub use qwindow::*;
