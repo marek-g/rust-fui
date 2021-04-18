@@ -1,4 +1,4 @@
-use crate::{Callback, ControlObject};
+use fui_core::{Callback, ControlObject};
 use std::cell::RefCell;
 use std::rc::Rc;
 

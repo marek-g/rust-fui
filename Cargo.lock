@@ -632,7 +632,6 @@ name = "fui_system"
 version = "0.1.0"
 dependencies = [
  "bindgen",
- "fui_core",
  "thiserror",
 ]
 

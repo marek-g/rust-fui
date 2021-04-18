@@ -12,7 +12,6 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.1" }
 thiserror = "1.0"
 
 [build-dependencies]

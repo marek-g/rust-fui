@@ -1,6 +1,5 @@
 use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
-use crate::TrayError;
-use fui_core::MenuItem;
+use crate::{SystemMenuItem, TrayError};
 
 pub enum SystemMessageIcon<'a> {
     NoIcon,
@@ -30,7 +29,7 @@ impl SystemTray {
         Ok(())
     }
 
-    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
+    pub fn set_menu(&mut self, menu_items: &Vec<SystemMenuItem>) -> Result<(), ()> {
         let (mut qmenu, slots) = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
@@ -93,7 +92,7 @@ impl SystemTray {
         Ok(icon)
     }
 
-    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
+    fn qmenu_from_menu_items(menu_items: &Vec<SystemMenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
         unsafe {
             let mut qmenu = QMenu::new()?;
             let mut slots = Vec::new();
@@ -107,7 +106,7 @@ impl SystemTray {
     fn qmenu_add_menu_items(
         mut qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_items: &Vec<MenuItem>,
+        menu_items: &Vec<SystemMenuItem>,
     ) -> Result<(), ()> {
         for menu_item in menu_items {
             Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
@@ -118,17 +117,17 @@ impl SystemTray {
     fn qmenu_add_menu_item(
         qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_item: &MenuItem,
+        menu_item: &SystemMenuItem,
     ) -> Result<(), ()> {
         match menu_item {
-            MenuItem::Separator => {
+            SystemMenuItem::Separator => {
                 qmenu.add_separator()?;
             }
 
-            MenuItem::Text {
+            SystemMenuItem::Text {
                 text,
                 shortcut,
-                icon,
+                //icon,
                 callback,
                 sub_items,
             } => {
@@ -141,8 +140,6 @@ impl SystemTray {
                     slots.push(slot);
                 }
             }
-
-            MenuItem::Custom { .. } => {}
         }
 
         Ok(())

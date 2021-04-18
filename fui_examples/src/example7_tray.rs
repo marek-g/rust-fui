@@ -99,29 +99,29 @@ fn main() -> Result<()> {
         let system_app = SystemApplication::new("Example: tray");
 
         let menu_items = vec![
-            MenuItem::folder(
+            SystemMenuItem::folder(
                 "File",
                 vec![
-                    MenuItem::simple("Open...", Callback::empty()),
-                    MenuItem::simple("Save...", Callback::empty()),
-                    MenuItem::folder(
+                    SystemMenuItem::simple("Open...", None),
+                    SystemMenuItem::simple("Save...", None),
+                    SystemMenuItem::folder(
                         "Export",
                         vec![
-                            MenuItem::simple("PDF...", Callback::empty()),
-                            MenuItem::simple("PNG...", Callback::empty()),
-                            MenuItem::simple("HTML...", Callback::empty()),
+                            SystemMenuItem::simple("PDF...", None),
+                            SystemMenuItem::simple("PNG...", None),
+                            SystemMenuItem::simple("HTML...", None),
                         ],
                     ),
-                    MenuItem::Separator,
-                    MenuItem::simple("Exit", Callback::empty()),
+                    SystemMenuItem::Separator,
+                    SystemMenuItem::simple("Exit", None),
                 ],
             ),
-            MenuItem::folder(
+            SystemMenuItem::folder(
                 "Help",
                 vec![
-                    MenuItem::simple("Help", Callback::empty()),
-                    MenuItem::Separator,
-                    MenuItem::simple("About", Callback::empty()),
+                    SystemMenuItem::simple("Help", None),
+                    SystemMenuItem::Separator,
+                    SystemMenuItem::simple("About", None),
                 ],
             ),
         ];
