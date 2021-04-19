@@ -27,6 +27,18 @@ void QWindow_setVisible(void *self, int visible)
     window->setVisible(visible != 0);
 }
 
+void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setInitializeGLFunc(func, data);
+}
+
+void QWindow_setPaintGLFunc(void *self, void (*func)(void*), void *data)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setPaintGLFunc(func, data);
+}
+
 QFunctionPointer OpenGLCurrentContext_getProcAddress(const char *procName)
 {
     QOpenGLContext *currentContext = QOpenGLContext::currentContext();

@@ -4,6 +4,9 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+mod callback_helper;
+use callback_helper::*;
+
 mod qaction;
 pub use qaction::*;
 

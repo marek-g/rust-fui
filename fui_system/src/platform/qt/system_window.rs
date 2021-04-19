@@ -20,4 +20,12 @@ impl SystemWindow {
         self.qwindow.set_visible(visible);
         Ok(())
     }
+
+    pub fn set_initialize_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
+        self.qwindow.set_initialize_gl_callback(callback);
+    }
+
+    pub fn set_paint_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
+        self.qwindow.set_paint_gl_callback(callback);
+    }
 }

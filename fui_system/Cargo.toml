@@ -18,3 +18,5 @@ thiserror = "1.0"
 bindgen = "0.57"
 
 [target.'cfg(target_os = "linux")'.dependencies]
+
+[dev-dependencies]
