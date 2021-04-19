@@ -32,13 +32,6 @@ impl QSlot {
             Ok(result)
         }
     }
-
-    /*pub fn add_pixmap(&mut self, pixmap: &QPixmap) -> Result<(), ()> {
-        unsafe {
-            crate::qt_wrapper::QIcon_addPixmap(self.this, pixmap.this, 0, 1);
-            Ok(())
-        }
-    }*/
 }
 
 impl Drop for QSlot {

@@ -1,12 +1,14 @@
-use crate::platform::qt::qt_wrapper::callback_helper::{callback_to_pointer, callback_trampoline};
+use crate::platform::qt::qt_wrapper::callback_helper::{
+    callback_to_pointer, callback_trampoline, RawCallback,
+};
 use crate::platform::qt::qt_wrapper::QString;
 use std::ffi::c_void;
 
 pub struct QWindow {
     pub this: *mut ::std::os::raw::c_void,
 
-    initialize_gl_callback: Option<Box<dyn 'static + FnMut()>>,
-    paint_gl_callback: Option<Box<dyn 'static + FnMut()>>,
+    initialize_gl_callback: Option<Box<dyn Drop>>,
+    paint_gl_callback: Option<Box<dyn Drop>>,
 }
 
 impl QWindow {
@@ -44,21 +46,25 @@ impl QWindow {
 
     pub fn set_initialize_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
         unsafe {
+            let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setInitializeGLFunc(
                 self.this,
                 Some(callback_trampoline::<F>),
-                callback_to_pointer(callback),
+                raw_callback.ptr,
             );
+            self.initialize_gl_callback = Some(Box::new(raw_callback));
         }
     }
 
     pub fn set_paint_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
         unsafe {
+            let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setPaintGLFunc(
                 self.this,
                 Some(callback_trampoline::<F>),
-                callback_to_pointer(callback),
+                raw_callback.ptr,
             );
+            self.paint_gl_callback = Some(Box::new(raw_callback));
         }
     }
 }

@@ -29,6 +29,12 @@ fn main() {
                 SystemMenuItem::simple("About", None),
             ],
         ),
+        SystemMenuItem::simple(
+            "Exit",
+            Some(Box::new(|| {
+                println!("Exit");
+            })),
+        ),
     ];
 
     let mut tray = SystemTray::new().unwrap();
