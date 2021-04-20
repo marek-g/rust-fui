@@ -1,19 +1,12 @@
+use crate::common::callback_helper::RawCallback;
 use std::ffi::c_void;
 
 pub struct QSlot {
     pub this: *mut ::std::os::raw::c_void,
 }
 
-extern "C" fn callback(target: *mut c_void) {
-    println!("I'm called from C");
-    unsafe {
-        // Update the value in RustObject with the value received from the callback:
-        //(*target).a = a;
-    }
-}
-
 impl QSlot {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new(raw_callback: &RawCallback) -> Result<Self, ()> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QSlot_new();
             if this.is_null() {
@@ -25,8 +18,8 @@ impl QSlot {
             println!("Setfunc!");
             crate::platform::qt::qt_wrapper::QSlot_setFunc(
                 result.this,
-                Some(callback),
-                0 as *mut c_void,
+                Some(raw_callback.get_trampoline_func()),
+                raw_callback.get_trampoline_func_data(),
             );
 
             Ok(result)

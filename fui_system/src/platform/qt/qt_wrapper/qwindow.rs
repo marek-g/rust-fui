@@ -1,6 +1,4 @@
-use crate::platform::qt::qt_wrapper::callback_helper::{
-    callback_to_pointer, callback_trampoline, RawCallback,
-};
+use crate::common::callback_helper::{callback_to_pointer, callback_trampoline, RawCallback};
 use crate::platform::qt::qt_wrapper::QString;
 use std::ffi::c_void;
 
@@ -49,8 +47,8 @@ impl QWindow {
             let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setInitializeGLFunc(
                 self.this,
-                Some(callback_trampoline::<F>),
-                raw_callback.ptr,
+                Some(raw_callback.get_trampoline_func()),
+                raw_callback.get_trampoline_func_data(),
             );
             self.initialize_gl_callback = Some(Box::new(raw_callback));
         }
@@ -61,8 +59,8 @@ impl QWindow {
             let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setPaintGLFunc(
                 self.this,
-                Some(callback_trampoline::<F>),
-                raw_callback.ptr,
+                Some(raw_callback.get_trampoline_func()),
+                raw_callback.get_trampoline_func_data(),
             );
             self.paint_gl_callback = Some(Box::new(raw_callback));
         }

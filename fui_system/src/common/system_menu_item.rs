@@ -1,3 +1,4 @@
+use crate::common::callback_helper::RawCallback;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -7,7 +8,7 @@ pub enum SystemMenuItem {
         text: String,
         shortcut: Option<String>,
         //icon: Option<Rc<RefCell<dyn ControlObject>>>,
-        callback: Option<Box<dyn 'static + FnMut()>>,
+        callback: Option<RawCallback>,
         sub_items: Vec<SystemMenuItem>,
     },
 }
@@ -23,27 +24,33 @@ impl SystemMenuItem {
         }
     }
 
-    pub fn simple(text: &str, callback: Option<Box<dyn 'static + FnMut()>>) -> Self {
+    pub fn simple<F>(text: &str, callback: F) -> Self
+    where
+        F: FnMut() + 'static,
+    {
         SystemMenuItem::Text {
             text: text.into(),
             shortcut: None,
             //icon: None,
-            callback,
+            callback: Some(RawCallback::new(callback)),
             sub_items: Vec::new(),
         }
     }
 
-    pub fn full(
+    pub fn full<F>(
         text: &str,
         shortcut: Option<String>,
         //icon: Option<Rc<RefCell<dyn ControlObject>>>,
-        callback: Option<Box<dyn 'static + FnMut()>>,
-    ) -> Self {
+        callback: F,
+    ) -> Self
+    where
+        F: FnMut() + 'static,
+    {
         SystemMenuItem::Text {
             text: text.into(),
             shortcut,
             //icon,
-            callback,
+            callback: Some(RawCallback::new(callback)),
             sub_items: Vec::new(),
         }
     }

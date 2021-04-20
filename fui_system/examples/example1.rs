@@ -7,34 +7,31 @@ fn main() {
         SystemMenuItem::folder(
             "File",
             vec![
-                SystemMenuItem::simple("Open...", None),
-                SystemMenuItem::simple("Save...", None),
+                SystemMenuItem::simple("Open...", || {}),
+                SystemMenuItem::simple("Save...", || {}),
                 SystemMenuItem::folder(
                     "Export",
                     vec![
-                        SystemMenuItem::simple("PDF...", None),
-                        SystemMenuItem::simple("PNG...", None),
-                        SystemMenuItem::simple("HTML...", None),
+                        SystemMenuItem::simple("PDF...", || {}),
+                        SystemMenuItem::simple("PNG...", || {}),
+                        SystemMenuItem::simple("HTML...", || {}),
                     ],
                 ),
                 SystemMenuItem::Separator,
-                SystemMenuItem::simple("Exit", None),
+                SystemMenuItem::simple("Exit", || {}),
             ],
         ),
         SystemMenuItem::folder(
             "Help",
             vec![
-                SystemMenuItem::simple("Help", None),
+                SystemMenuItem::simple("Help", || {}),
                 SystemMenuItem::Separator,
-                SystemMenuItem::simple("About", None),
+                SystemMenuItem::simple("About", || {}),
             ],
         ),
-        SystemMenuItem::simple(
-            "Exit",
-            Some(Box::new(|| {
-                println!("Exit");
-            })),
-        ),
+        SystemMenuItem::simple("Exit", || {
+            println!("Exit");
+        }),
     ];
 
     let mut tray = SystemTray::new().unwrap();
@@ -48,6 +45,8 @@ fn main() {
     tray2.set_menu(&menu_items);
     tray2.set_icon(&icon_data);
     tray2.set_visible(true).unwrap();
+
+    //drop(menu_items);
 
     let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
     tray.show_message(

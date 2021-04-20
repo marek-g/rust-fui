@@ -1,3 +1,4 @@
+use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QSlot, QString};
 
 pub struct QAction {
@@ -27,8 +28,8 @@ impl QAction {
         }
     }
 
-    pub fn connect_triggered(&mut self) -> Result<QSlot, ()> {
-        let mut slot = QSlot::new()?;
+    pub fn connect_triggered(&mut self, raw_callback: &RawCallback) -> Result<QSlot, ()> {
+        let mut slot = QSlot::new(raw_callback)?;
         unsafe {
             crate::platform::qt::qt_wrapper::QAction_connectTriggered(self.this, slot.this);
         }

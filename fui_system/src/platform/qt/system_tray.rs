@@ -1,3 +1,4 @@
+use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
 use crate::{SystemMenuItem, TrayError};
 
@@ -136,8 +137,10 @@ impl SystemTray {
                     Self::qmenu_add_menu_items(&mut qsubmenu, slots, sub_items)?;
                 } else {
                     let mut action = qmenu.add_action_text(&QString::from_str(&text)?)?;
-                    let slot = action.connect_triggered()?;
-                    slots.push(slot);
+                    if let Some(callback) = callback {
+                        let slot = action.connect_triggered(callback)?;
+                        slots.push(slot);
+                    }
                 }
             }
         }
