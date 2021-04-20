@@ -3,6 +3,13 @@
 use std::ffi::c_void;
 use std::marker::PhantomData;
 
+// Wrapper for callback.
+// Allows to pass the callback to C code.
+//
+// TODO: Verify if this is safe to use.
+// For example, when we drop the MenuItem (owner of RawCallback)
+// that was used to initialize menu for tray icon,
+// isn't the callback dropped before use?
 pub struct RawCallback {
     trampoline_func: unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void),
     trampoline_func_data: *mut c_void,
