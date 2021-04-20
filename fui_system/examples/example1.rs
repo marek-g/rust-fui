@@ -1,4 +1,7 @@
 use fui_system::*;
+use gl::types::*;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 fn main() {
     let system_app = SystemApplication::new("Example: tray");
@@ -57,12 +60,22 @@ fn main() {
     )
     .unwrap();
 
-    let mut window = SystemWindow::new(None).unwrap();
-    window.set_title("Hello Qt!").unwrap();
-    window.set_visible(true).unwrap();
+    let window_rc = Rc::new(RefCell::new(SystemWindow::new(None).unwrap()));
+    {
+        let mut window = window_rc.borrow_mut();
+        window.set_title("Hello Qt!").unwrap();
+        window.set_visible(true).unwrap();
 
-    window.set_initialize_gl_callback(|| println!("InitializeGL callback."));
-    window.set_paint_gl_callback(|| println!("PaintGL callback."));
+        let window_clone = window_rc.clone();
+        window.set_initialize_gl_callback(move || {
+            gl::load_with(|s| window_clone.borrow().get_opengl_proc_address(s).unwrap());
+        });
+
+        window.set_paint_gl_callback(|| unsafe {
+            gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 1.0f32);
+            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+        });
+    }
 
     SystemApplication::message_loop();
 }

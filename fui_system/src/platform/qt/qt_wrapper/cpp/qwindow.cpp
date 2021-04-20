@@ -39,13 +39,8 @@ void QWindow_setPaintGLFunc(void *self, void (*func)(void*), void *data)
     window->setPaintGLFunc(func, data);
 }
 
-QFunctionPointer OpenGLCurrentContext_getProcAddress(const char *procName)
+void *QWindow_context(void *self)
 {
-    QOpenGLContext *currentContext = QOpenGLContext::currentContext();
-    if (currentContext)
-    {
-        return currentContext->getProcAddress(procName);
-    }
-
-    return nullptr;
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->context();
 }

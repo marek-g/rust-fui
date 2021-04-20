@@ -1,5 +1,5 @@
 use crate::common::callback_helper::{callback_to_pointer, callback_trampoline, RawCallback};
-use crate::platform::qt::qt_wrapper::QString;
+use crate::platform::qt::qt_wrapper::{QOpenGLContext, QString};
 use std::ffi::c_void;
 
 pub struct QWindow {
@@ -63,6 +63,20 @@ impl QWindow {
                 raw_callback.get_trampoline_func_data(),
             );
             self.paint_gl_callback = Some(Box::new(raw_callback));
+        }
+    }
+
+    pub fn get_context(&self) -> Result<QOpenGLContext, ()> {
+        unsafe {
+            let context_this = crate::platform::qt::qt_wrapper::QWindow_context(self.this);
+            if context_this.is_null() {
+                return Err(());
+            }
+
+            Ok(QOpenGLContext {
+                this: context_this,
+                is_owned: false,
+            })
         }
     }
 }

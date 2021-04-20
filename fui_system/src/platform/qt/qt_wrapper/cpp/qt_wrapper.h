@@ -2,6 +2,7 @@
 #include "qapplication.h"
 #include "qicon.h"
 #include "qmenu.h"
+#include "qopenglcontext.h"
 #include "qpixmap.h"
 #include "qslot.h"
 #include "qstring.h"

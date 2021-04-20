@@ -16,7 +16,7 @@ void QWindow_setVisible(void *self, int visible);
 void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data);
 void QWindow_setPaintGLFunc(void *self, void (*func)(void*), void *data);
 
-QFunctionPointer OpenGLCurrentContext_getProcAddress(const char *procName);
+void *QWindow_context(void *self);
 
 #ifdef __cplusplus
 }

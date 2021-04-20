@@ -20,3 +20,4 @@ bindgen = "0.57"
 [target.'cfg(target_os = "linux")'.dependencies]
 
 [dev-dependencies]
+gl = "0.14.0"
