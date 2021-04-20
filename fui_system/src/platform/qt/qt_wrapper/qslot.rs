@@ -15,7 +15,6 @@ impl QSlot {
 
             let result = Self { this };
 
-            println!("Setfunc!");
             crate::platform::qt::qt_wrapper::QSlot_setFunc(
                 result.this,
                 Some(raw_callback.get_trampoline_func()),

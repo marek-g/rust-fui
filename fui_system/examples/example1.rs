@@ -30,7 +30,7 @@ fn main() {
             ],
         ),
         SystemMenuItem::simple("Exit", || {
-            println!("Exit");
+            SystemApplication::exit_message_loop();
         }),
     ];
 
