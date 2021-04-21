@@ -35,8 +35,8 @@ void QApplication_setApplicationDisplayName(const void *text)
     QApplication::setApplicationDisplayName(*qtext);
 }
 
-void QApplication_exec() {
-    QApplication::exec();
+int QApplication_exec() {
+    return QApplication::exec();
 }
 
 void QApplication_exit(int returnCode) {

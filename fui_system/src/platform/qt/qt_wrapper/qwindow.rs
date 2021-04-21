@@ -42,7 +42,19 @@ impl QWindow {
         }
     }
 
-    pub fn set_initialize_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
+    pub fn resize(&mut self, width: i32, height: i32) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_resize(self.this, width, height);
+        }
+    }
+
+    pub fn update(&mut self) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_update(self.this);
+        }
+    }
+
+    pub fn on_initialize_gl<F: 'static + FnMut()>(&mut self, callback: F) {
         unsafe {
             let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setInitializeGLFunc(
@@ -54,7 +66,7 @@ impl QWindow {
         }
     }
 
-    pub fn set_paint_gl_callback<F: 'static + FnMut()>(&mut self, callback: F) {
+    pub fn on_paint_gl<F: 'static + FnMut()>(&mut self, callback: F) {
         unsafe {
             let raw_callback = RawCallback::new(callback);
             crate::platform::qt::qt_wrapper::QWindow_setPaintGLFunc(

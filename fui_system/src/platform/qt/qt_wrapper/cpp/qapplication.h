@@ -10,7 +10,7 @@ void QApplication_delete(void *self);
 
 void QApplication_setApplicationDisplayName(const void *text);
 
-void QApplication_exec();
+int QApplication_exec();
 void QApplication_exit(int returnCode);
 
 void QApplication_aboutQt();

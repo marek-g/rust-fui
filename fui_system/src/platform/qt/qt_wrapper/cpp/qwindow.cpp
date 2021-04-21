@@ -27,6 +27,18 @@ void QWindow_setVisible(void *self, int visible)
     window->setVisible(visible != 0);
 }
 
+void QWindow_resize(void *self, int width, int height)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->resize(width, height);
+}
+
+void QWindow_update(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->update();
+}
+
 void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

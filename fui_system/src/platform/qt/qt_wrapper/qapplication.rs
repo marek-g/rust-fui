@@ -36,10 +36,8 @@ impl QApplication {
         }
     }
 
-    pub fn exec() {
-        unsafe {
-            crate::platform::qt::qt_wrapper::QApplication_exec();
-        }
+    pub fn exec() -> i32 {
+        unsafe { crate::platform::qt::qt_wrapper::QApplication_exec() }
     }
 
     pub fn exit(result_code: i32) {
