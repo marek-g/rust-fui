@@ -32,7 +32,7 @@ Media controls for FUI UI Framework.
 
 ### `fui_system` [![Crates.io Version](https://img.shields.io/crates/v/fui_system.svg)](https://crates.io/crates/fui_system)
 
-Systen controls (dialogs, tray etc.) for FUI UI Framework.
+Cross-platform windowing library focused on good desktop integration (dialogs, menus, tray icons etc.).
 
 ### `fui_app` [![Crates.io Version](https://img.shields.io/crates/v/fui_app.svg)](https://crates.io/crates/fui_app)
 
