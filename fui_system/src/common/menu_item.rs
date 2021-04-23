@@ -2,20 +2,20 @@ use crate::common::callback_helper::RawCallback;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-pub enum SystemMenuItem {
+pub enum MenuItem {
     Separator,
     Text {
         text: String,
         shortcut: Option<String>,
         //icon: Option<Rc<RefCell<dyn ControlObject>>>,
         callback: Option<RawCallback>,
-        sub_items: Vec<SystemMenuItem>,
+        sub_items: Vec<MenuItem>,
     },
 }
 
-impl SystemMenuItem {
-    pub fn folder(text: &str, sub_items: Vec<SystemMenuItem>) -> Self {
-        SystemMenuItem::Text {
+impl MenuItem {
+    pub fn folder(text: &str, sub_items: Vec<MenuItem>) -> Self {
+        MenuItem::Text {
             text: text.into(),
             shortcut: None,
             //icon: None,
@@ -28,7 +28,7 @@ impl SystemMenuItem {
     where
         F: FnMut() + 'static,
     {
-        SystemMenuItem::Text {
+        MenuItem::Text {
             text: text.into(),
             shortcut: None,
             //icon: None,
@@ -46,7 +46,7 @@ impl SystemMenuItem {
     where
         F: FnMut() + 'static,
     {
-        SystemMenuItem::Text {
+        MenuItem::Text {
             text: text.into(),
             shortcut,
             //icon,

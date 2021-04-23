@@ -1,10 +1,10 @@
-pub use system_application::*;
-pub use system_tray::*;
-pub use system_window::*;
+pub use application::*;
+pub use tray_icon::*;
+pub use window::*;
 
-mod system_application;
-mod system_tray;
-mod system_window;
+mod application;
+mod tray_icon;
+mod window;
 
 #[cfg(target_os = "linux")]
 mod qt_wrapper;

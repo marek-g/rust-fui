@@ -4,15 +4,15 @@ use std::ffi::c_void;
 ///
 /// Represents a window in the underlying windowing system.
 ///
-pub struct SystemWindow {
+pub struct Window {
     qwindow: QWindow,
 }
 
-impl SystemWindow {
+impl Window {
     ///
     /// Creates a window as a child of the given parent window.
     ///
-    pub fn new(parent: Option<&mut SystemWindow>) -> Result<Self, ()> {
+    pub fn new(parent: Option<&mut Window>) -> Result<Self, ()> {
         let qwindow = QWindow::new(parent.map(|p| &mut p.qwindow))?;
         Ok(Self { qwindow })
     }

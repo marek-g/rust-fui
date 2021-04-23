@@ -1,11 +1,11 @@
 use thiserror::Error;
 
-pub use common::SystemMenuItem;
+pub use common::MenuItem;
 
-pub use platform::SystemApplication;
-pub use platform::SystemMessageIcon;
-pub use platform::SystemTray;
-pub use platform::SystemWindow;
+pub use platform::Application;
+pub use platform::TrayIcon;
+pub use platform::TrayIconType;
+pub use platform::Window;
 
 mod common;
 mod platform;

@@ -4,11 +4,11 @@ use crate::platform::qt::qt_wrapper::{QApplication, QString};
 /// The application.
 /// Manages application control flow.
 ///
-pub struct SystemApplication {
+pub struct Application {
     qapp: QApplication,
 }
 
-impl SystemApplication {
+impl Application {
     ///
     /// Creates the application object and
     /// sets the application display name.

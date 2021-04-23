@@ -4,38 +4,38 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 fn main() {
-    let system_app = SystemApplication::new("Example: tray");
+    let system_app = Application::new("Example: tray");
 
     let window_rc = create_new_window();
 
     let menu_items = vec![
-        SystemMenuItem::folder(
+        MenuItem::folder(
             "Window",
             vec![
-                SystemMenuItem::simple("Show", {
+                MenuItem::simple("Show", {
                     let window_rc_clone = window_rc.clone();
                     move || {
                         window_rc_clone.borrow_mut().set_visible(true);
                     }
                 }),
-                SystemMenuItem::simple("Hide", {
+                MenuItem::simple("Hide", {
                     let window_rc_clone = window_rc.clone();
                     move || {
                         window_rc_clone.borrow_mut().set_visible(false);
                     }
                 }),
-                SystemMenuItem::simple("New", move || {
+                MenuItem::simple("New", move || {
                     create_new_window();
                 }),
             ],
         ),
-        SystemMenuItem::Separator,
-        SystemMenuItem::simple("Exit", || {
-            SystemApplication::exit(0);
+        MenuItem::Separator,
+        MenuItem::simple("Exit", || {
+            Application::exit(0);
         }),
     ];
 
-    let mut tray = SystemTray::new().unwrap();
+    let mut tray = TrayIcon::new().unwrap();
     let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
     tray.set_menu(&menu_items);
     tray.set_icon(&icon_data);
@@ -48,16 +48,16 @@ fn main() {
     tray.show_message(
         "Title",
         "Hello world",
-        SystemMessageIcon::Custom(&icon_data),
+        TrayIconType::Custom(&icon_data),
         5000,
     )
     .unwrap();
 
-    SystemApplication::message_loop();
+    Application::message_loop();
 }
 
-fn create_new_window() -> Rc<RefCell<SystemWindow>> {
-    let window_rc = Rc::new(RefCell::new(SystemWindow::new(None).unwrap()));
+fn create_new_window() -> Rc<RefCell<Window>> {
+    let window_rc = Rc::new(RefCell::new(Window::new(None).unwrap()));
     {
         let mut window = window_rc.borrow_mut();
         window.set_title("Hello Qt!").unwrap();

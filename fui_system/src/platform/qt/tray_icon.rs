@@ -1,8 +1,8 @@
 use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
-use crate::{SystemMenuItem, TrayError};
+use crate::{MenuItem, TrayError};
 
-pub enum SystemMessageIcon<'a> {
+pub enum TrayIconType<'a> {
     NoIcon,
     Information,
     Warning,
@@ -10,15 +10,15 @@ pub enum SystemMessageIcon<'a> {
     Custom(&'a [u8]),
 }
 
-pub struct SystemTray {
+pub struct TrayIcon {
     qtray: QSystemTrayIcon,
     qmenu: Option<QMenu>,
     slots: Vec<QSlot>,
 }
 
-impl SystemTray {
+impl TrayIcon {
     pub fn new() -> Result<Self, ()> {
-        Ok(SystemTray {
+        Ok(TrayIcon {
             qtray: QSystemTrayIcon::new()?,
             qmenu: None,
             slots: Vec::new(),
@@ -30,7 +30,7 @@ impl SystemTray {
         Ok(())
     }
 
-    pub fn set_menu(&mut self, menu_items: &Vec<SystemMenuItem>) -> Result<(), ()> {
+    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
         let (mut qmenu, slots) = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
@@ -53,29 +53,29 @@ impl SystemTray {
         &mut self,
         title: &str,
         message: &str,
-        icon: SystemMessageIcon,
+        icon: TrayIconType,
         timeout: i32,
     ) -> Result<(), ()> {
         let title = QString::from_str(title)?;
         let message = QString::from_str(message)?;
 
         match icon {
-            SystemMessageIcon::NoIcon => {
+            TrayIconType::NoIcon => {
                 self.qtray.show_message(&title, &message, 0, timeout)?;
             }
 
-            SystemMessageIcon::Information => {
+            TrayIconType::Information => {
                 self.qtray.show_message(&title, &message, 1, timeout)?;
             }
-            SystemMessageIcon::Warning => {
+            TrayIconType::Warning => {
                 self.qtray.show_message(&title, &message, 2, timeout)?;
             }
 
-            SystemMessageIcon::Critical => {
+            TrayIconType::Critical => {
                 self.qtray.show_message(&title, &message, 3, timeout)?;
             }
 
-            SystemMessageIcon::Custom(data) => {
+            TrayIconType::Custom(data) => {
                 self.qtray
                     .show_message2(&title, &message, &Self::create_icon(data)?, timeout)?;
             }
@@ -93,12 +93,12 @@ impl SystemTray {
         Ok(icon)
     }
 
-    fn qmenu_from_menu_items(menu_items: &Vec<SystemMenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
+    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
         unsafe {
             let mut qmenu = QMenu::new()?;
             let mut slots = Vec::new();
 
-            SystemTray::qmenu_add_menu_items(&mut qmenu, &mut slots, menu_items);
+            TrayIcon::qmenu_add_menu_items(&mut qmenu, &mut slots, menu_items);
 
             Ok((qmenu, slots))
         }
@@ -107,7 +107,7 @@ impl SystemTray {
     fn qmenu_add_menu_items(
         mut qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_items: &Vec<SystemMenuItem>,
+        menu_items: &Vec<MenuItem>,
     ) -> Result<(), ()> {
         for menu_item in menu_items {
             Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
@@ -118,14 +118,14 @@ impl SystemTray {
     fn qmenu_add_menu_item(
         qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_item: &SystemMenuItem,
+        menu_item: &MenuItem,
     ) -> Result<(), ()> {
         match menu_item {
-            SystemMenuItem::Separator => {
+            MenuItem::Separator => {
                 qmenu.add_separator()?;
             }
 
-            SystemMenuItem::Text {
+            MenuItem::Text {
                 text,
                 shortcut,
                 //icon,

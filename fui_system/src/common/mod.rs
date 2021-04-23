@@ -1,4 +1,4 @@
-pub use system_menu_item::*;
+pub use menu_item::*;
 
 pub mod callback_helper;
-mod system_menu_item;
+mod menu_item;
