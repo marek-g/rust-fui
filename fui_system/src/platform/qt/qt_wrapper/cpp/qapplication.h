@@ -9,6 +9,7 @@ void *QApplication_new(int argc, const char** const argv);
 void QApplication_delete(void *self);
 
 void QApplication_setApplicationDisplayName(const void *text);
+void QApplication_setAttribute(int attr, int enable);
 
 int QApplication_exec();
 void QApplication_exit(int returnCode);

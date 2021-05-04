@@ -35,6 +35,20 @@ impl Window {
     }
 
     ///
+    /// Get window width, excluding any window frame.
+    ///
+    pub fn get_width(&mut self) -> i32 {
+        self.qwindow.get_width()
+    }
+
+    ///
+    /// Get window height, excluding any window frame.
+    ///
+    pub fn get_height(&mut self) -> i32 {
+        self.qwindow.get_height()
+    }
+
+    ///
     /// Resize window, excluding any window frame.
     ///
     pub fn resize(&mut self, width: i32, height: i32) {

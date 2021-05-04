@@ -27,6 +27,18 @@ void QWindow_setVisible(void *self, int visible)
     window->setVisible(visible != 0);
 }
 
+int QWindow_getWidth(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->size().width();
+}
+
+int QWindow_getHeight(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->size().height();
+}
+
 void QWindow_resize(void *self, int width, int height)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

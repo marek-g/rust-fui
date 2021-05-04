@@ -438,8 +438,6 @@ dependencies = [
  "drawing",
  "euclid",
  "gl",
- "glutin",
- "winit",
 ]
 
 [[package]]

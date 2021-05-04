@@ -1,4 +1,7 @@
 #include <QApplication>
+#include <QCoreApplication>
+#include <QSurfaceFormat>
+#include <Qt>
 #include "qapplication.h"
 #include <stdlib.h>
 
@@ -33,6 +36,11 @@ void QApplication_setApplicationDisplayName(const void *text)
 {
     const QString *qtext = static_cast<const QString *>(text);
     QApplication::setApplicationDisplayName(*qtext);
+}
+
+void QApplication_setAttribute(int attr, int enable)
+{
+    QApplication::setAttribute((Qt::ApplicationAttribute)attr, enable != 0);
 }
 
 int QApplication_exec() {

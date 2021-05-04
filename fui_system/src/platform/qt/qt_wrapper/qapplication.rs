@@ -2,6 +2,18 @@ use crate::platform::qt::qt_wrapper::QString;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
+pub enum QApplicationAttribute {
+    ShareOpenGLContexts,
+}
+
+impl QApplicationAttribute {
+    pub fn to_i32(&self) -> i32 {
+        match self {
+            QApplicationAttribute::ShareOpenGLContexts => 18,
+        }
+    }
+}
+
 pub struct QApplication {
     pub this: *mut ::std::os::raw::c_void,
 }
@@ -27,6 +39,15 @@ impl QApplication {
             }
 
             Ok(Self { this })
+        }
+    }
+
+    pub fn set_attribute(attr: QApplicationAttribute, enable: bool) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QApplication_setAttribute(
+                attr.to_i32(),
+                if enable { 1 } else { 0 },
+            );
         }
     }
 

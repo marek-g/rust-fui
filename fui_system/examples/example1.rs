@@ -4,7 +4,11 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 fn main() {
-    let system_app = Application::new("Example: tray");
+    let system_app = Application::new(
+        ApplicationOptionsBuilder::new()
+            .with_title("Example: tray")
+            .build(),
+    );
 
     let window_rc = create_new_window();
 
@@ -72,7 +76,7 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         });
 
         window.on_paint_gl(|| unsafe {
-            gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 1.0f32);
+            gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 0.5f32);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
         });
     }

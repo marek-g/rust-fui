@@ -10,6 +10,7 @@ pub use qopenglcontext::*;
 pub use qpixmap::*;
 pub use qslot::*;
 pub use qstring::*;
+pub use qsurfaceformat::*;
 pub use qsystemtrayicon::*;
 pub use qwindow::*;
 
@@ -23,5 +24,6 @@ mod qopenglcontext;
 mod qpixmap;
 mod qslot;
 mod qstring;
+mod qsurfaceformat;
 mod qsystemtrayicon;
 mod qwindow;

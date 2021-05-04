@@ -12,7 +12,11 @@ void QWindow_delete(void *self);
 
 void QWindow_setTitle(void *self, const void *text);
 void QWindow_setVisible(void *self, int visible);
+
+int QWindow_getWidth(void *self);
+int QWindow_getHeight(void *self);
 void QWindow_resize(void *self, int width, int height);
+
 void QWindow_update(void *self);
 
 void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data);

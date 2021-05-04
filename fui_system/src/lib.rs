@@ -3,6 +3,7 @@ use thiserror::Error;
 pub use common::MenuItem;
 
 pub use platform::Application;
+pub use platform::ApplicationOptionsBuilder;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;
 pub use platform::Window;

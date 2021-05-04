@@ -42,6 +42,14 @@ impl QWindow {
         }
     }
 
+    pub fn get_width(&mut self) -> i32 {
+        unsafe { crate::platform::qt::qt_wrapper::QWindow_getWidth(self.this) }
+    }
+
+    pub fn get_height(&mut self) -> i32 {
+        unsafe { crate::platform::qt::qt_wrapper::QWindow_getHeight(self.this) }
+    }
+
     pub fn resize(&mut self, width: i32, height: i32) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_resize(self.this, width, height);

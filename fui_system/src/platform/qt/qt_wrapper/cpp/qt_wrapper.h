@@ -6,5 +6,6 @@
 #include "qpixmap.h"
 #include "qslot.h"
 #include "qstring.h"
+#include "qsurfaceformat.h"
 #include "qsystemtrayicon.h"
 #include "qwindow.h"

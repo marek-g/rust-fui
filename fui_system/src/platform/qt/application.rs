@@ -1,4 +1,6 @@
-use crate::platform::qt::qt_wrapper::{QApplication, QString};
+use crate::platform::qt::qt_wrapper::QApplicationAttribute;
+use crate::platform::qt::qt_wrapper::{QApplication, QString, QSurfaceFormat};
+use crate::platform::ApplicationOptions;
 
 ///
 /// The application.
@@ -13,12 +15,18 @@ impl Application {
     /// Creates the application object and
     /// sets the application display name.
     ///
-    pub fn new(app_name: &str) -> Result<Self, ()> {
-        let qapp = QApplication::new()?;
-
-        let app_name = QString::from_str(app_name)?;
+    pub fn new(options: ApplicationOptions) -> Result<Self, ()> {
+        let app_name = QString::from_str(&options.title)?;
         QApplication::set_application_display_name(&app_name);
 
+        QApplication::set_attribute(
+            QApplicationAttribute::ShareOpenGLContexts,
+            options.opengl_share_contexts,
+        );
+
+        QSurfaceFormat::set_default(options.opengl_stencil_bits);
+
+        let qapp = QApplication::new()?;
         Ok(Self { qapp })
     }
 
