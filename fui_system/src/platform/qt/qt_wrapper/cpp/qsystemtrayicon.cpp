@@ -3,7 +3,7 @@
 
 void *QSystemTrayIcon_new()
 {
-    return static_cast<void *>(new QSystemTrayIcon());
+    return static_cast<void *>(new (std::nothrow) QSystemTrayIcon());
 }
 
 void QSystemTrayIcon_delete(void *self)

@@ -1,15 +1,16 @@
 use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QString};
+use crate::FUISystemError;
 
 pub struct QSystemTrayIcon {
     pub this: *mut ::std::os::raw::c_void,
 }
 
 impl QSystemTrayIcon {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QSystemTrayIcon_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self { this })
@@ -17,24 +18,21 @@ impl QSystemTrayIcon {
     }
 
     // keeps reference to QMenu, doesn't take ownership
-    pub fn set_context_menu(&mut self, menu: &mut QMenu) -> Result<(), ()> {
+    pub fn set_context_menu(&mut self, menu: &mut QMenu) {
         unsafe {
             crate::platform::qt::qt_wrapper::QSystemTrayIcon_setContextMenu(self.this, menu.this);
-            Ok(())
         }
     }
 
-    pub fn set_icon(&mut self, icon: &QIcon) -> Result<(), ()> {
+    pub fn set_icon(&mut self, icon: &QIcon) {
         unsafe {
             crate::platform::qt::qt_wrapper::QSystemTrayIcon_setIcon(self.this, icon.this);
-            Ok(())
         }
     }
 
-    pub fn set_tool_tip(&mut self, tip: &QString) -> Result<(), ()> {
+    pub fn set_tool_tip(&mut self, tip: &QString) {
         unsafe {
             crate::platform::qt::qt_wrapper::QSystemTrayIcon_setToolTip(self.this, tip.this);
-            Ok(())
         }
     }
 
@@ -47,13 +45,7 @@ impl QSystemTrayIcon {
         }
     }
 
-    pub fn show_message(
-        &mut self,
-        title: &QString,
-        message: &QString,
-        icon: i32,
-        timeout: i32,
-    ) -> Result<(), ()> {
+    pub fn show_message(&mut self, title: &QString, message: &QString, icon: i32, timeout: i32) {
         unsafe {
             crate::platform::qt::qt_wrapper::QSystemTrayIcon_showMessage(
                 self.this,
@@ -62,7 +54,6 @@ impl QSystemTrayIcon {
                 icon,
                 timeout,
             );
-            Ok(())
         }
     }
 
@@ -72,7 +63,7 @@ impl QSystemTrayIcon {
         message: &QString,
         icon: &QIcon,
         timeout: i32,
-    ) -> Result<(), ()> {
+    ) {
         unsafe {
             crate::platform::qt::qt_wrapper::QSystemTrayIcon_showMessage2(
                 self.this,
@@ -81,7 +72,6 @@ impl QSystemTrayIcon {
                 icon.this,
                 timeout,
             );
-            Ok(())
         }
     }
 }

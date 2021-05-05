@@ -1,4 +1,5 @@
 use crate::platform::qt::qt_wrapper::QString;
+use crate::FUISystemError;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
@@ -19,7 +20,7 @@ pub struct QApplication {
 }
 
 impl QApplication {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             // convert args() to argc, argv
             let args = std::env::args()
@@ -35,7 +36,7 @@ impl QApplication {
                 c_args.as_ptr() as *mut *const i8,
             );
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self { this })
@@ -67,6 +68,7 @@ impl QApplication {
         }
     }
 
+    #[allow(dead_code)]
     pub fn about_qt() {
         unsafe {
             crate::platform::qt::qt_wrapper::QApplication_aboutQt();

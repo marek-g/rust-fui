@@ -3,7 +3,7 @@
 
 void *QString_fromUtf8(const char *str, int size)
 {
-    return static_cast<void *>(new QString(QString::fromUtf8(str, size)));
+    return static_cast<void *>(new (std::nothrow) QString(QString::fromUtf8(str, size)));
 }
 
 void QString_delete(void *self)

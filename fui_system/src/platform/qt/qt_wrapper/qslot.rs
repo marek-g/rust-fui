@@ -1,16 +1,16 @@
 use crate::common::callback_helper::RawCallback;
-use std::ffi::c_void;
+use crate::FUISystemError;
 
 pub struct QSlot {
     pub this: *mut ::std::os::raw::c_void,
 }
 
 impl QSlot {
-    pub fn new(raw_callback: &RawCallback) -> Result<Self, ()> {
+    pub fn new(raw_callback: &RawCallback) -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QSlot_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             let result = Self { this };

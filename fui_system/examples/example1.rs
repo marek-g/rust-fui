@@ -1,10 +1,9 @@
 use fui_system::*;
-use gl::types::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 fn main() {
-    let system_app = Application::new(
+    let _system_app = Application::new(
         ApplicationOptionsBuilder::new()
             .with_title("Example: tray")
             .build(),
@@ -19,13 +18,13 @@ fn main() {
                 MenuItem::simple("Show", {
                     let window_rc_clone = window_rc.clone();
                     move || {
-                        window_rc_clone.borrow_mut().set_visible(true);
+                        window_rc_clone.borrow_mut().set_visible(true).unwrap();
                     }
                 }),
                 MenuItem::simple("Hide", {
                     let window_rc_clone = window_rc.clone();
                     move || {
-                        window_rc_clone.borrow_mut().set_visible(false);
+                        window_rc_clone.borrow_mut().set_visible(false).unwrap();
                     }
                 }),
                 MenuItem::simple("New", move || {
@@ -41,9 +40,10 @@ fn main() {
 
     let mut tray = TrayIcon::new().unwrap();
     let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
-    tray.set_menu(&menu_items);
-    tray.set_icon(&icon_data);
-    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
+    tray.set_menu(&menu_items).unwrap();
+    tray.set_icon(&icon_data).unwrap();
+    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4")
+        .unwrap();
     tray.set_visible(true).unwrap();
 
     //drop(menu_items);

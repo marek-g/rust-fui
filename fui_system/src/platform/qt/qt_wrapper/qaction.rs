@@ -1,5 +1,6 @@
 use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QSlot, QString};
+use crate::FUISystemError;
 
 pub struct QAction {
     pub this: *mut ::std::os::raw::c_void,
@@ -7,11 +8,12 @@ pub struct QAction {
 }
 
 impl QAction {
-    pub fn new() -> Result<Self, ()> {
+    #[allow(dead_code)]
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QAction_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self {
@@ -21,15 +23,17 @@ impl QAction {
         }
     }
 
-    pub fn set_text(&mut self, text: &QString) -> Result<(), ()> {
+    pub fn set_text(&mut self, text: &QString) {
         unsafe {
             crate::platform::qt::qt_wrapper::QAction_setText(self.this, text.this);
-            Ok(())
         }
     }
 
-    pub fn connect_triggered(&mut self, raw_callback: &RawCallback) -> Result<QSlot, ()> {
-        let mut slot = QSlot::new(raw_callback)?;
+    pub fn connect_triggered(
+        &mut self,
+        raw_callback: &RawCallback,
+    ) -> Result<QSlot, FUISystemError> {
+        let slot = QSlot::new(raw_callback)?;
         unsafe {
             crate::platform::qt::qt_wrapper::QAction_connectTriggered(self.this, slot.this);
         }

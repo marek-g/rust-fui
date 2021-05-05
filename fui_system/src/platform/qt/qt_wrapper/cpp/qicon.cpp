@@ -3,7 +3,7 @@
 
 void *QIcon_new()
 {
-    return static_cast<void *>(new QIcon());
+    return static_cast<void *>(new (std::nothrow) QIcon());
 }
 
 void QIcon_delete(void *self)

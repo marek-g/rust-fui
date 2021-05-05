@@ -1,6 +1,5 @@
-use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
-use crate::{MenuItem, TrayError};
+use crate::{FUISystemError, MenuItem};
 
 pub enum TrayIconType<'a> {
     NoIcon,
@@ -17,7 +16,7 @@ pub struct TrayIcon {
 }
 
 impl TrayIcon {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, FUISystemError> {
         Ok(TrayIcon {
             qtray: QSystemTrayIcon::new()?,
             qmenu: None,
@@ -25,12 +24,12 @@ impl TrayIcon {
         })
     }
 
-    pub fn set_icon(&mut self, data: &[u8]) -> Result<(), ()> {
-        self.qtray.set_icon(&Self::create_icon(data)?)?;
+    pub fn set_icon(&mut self, data: &[u8]) -> Result<(), FUISystemError> {
+        self.qtray.set_icon(&Self::create_icon(data)?);
         Ok(())
     }
 
-    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), ()> {
+    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), FUISystemError> {
         let (mut qmenu, slots) = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
@@ -38,13 +37,13 @@ impl TrayIcon {
         Ok(())
     }
 
-    pub fn set_tool_tip(&mut self, tip: &str) -> Result<(), ()> {
+    pub fn set_tool_tip(&mut self, tip: &str) -> Result<(), FUISystemError> {
         let tip = QString::from_str(tip)?;
-        self.qtray.set_tool_tip(&tip)?;
+        self.qtray.set_tool_tip(&tip);
         Ok(())
     }
 
-    pub fn set_visible(&mut self, visible: bool) -> Result<(), TrayError> {
+    pub fn set_visible(&mut self, visible: bool) -> Result<(), FUISystemError> {
         self.qtray.set_visible(visible);
         Ok(())
     }
@@ -55,36 +54,36 @@ impl TrayIcon {
         message: &str,
         icon: TrayIconType,
         timeout: i32,
-    ) -> Result<(), ()> {
+    ) -> Result<(), FUISystemError> {
         let title = QString::from_str(title)?;
         let message = QString::from_str(message)?;
 
         match icon {
             TrayIconType::NoIcon => {
-                self.qtray.show_message(&title, &message, 0, timeout)?;
+                self.qtray.show_message(&title, &message, 0, timeout);
             }
 
             TrayIconType::Information => {
-                self.qtray.show_message(&title, &message, 1, timeout)?;
+                self.qtray.show_message(&title, &message, 1, timeout);
             }
             TrayIconType::Warning => {
-                self.qtray.show_message(&title, &message, 2, timeout)?;
+                self.qtray.show_message(&title, &message, 2, timeout);
             }
 
             TrayIconType::Critical => {
-                self.qtray.show_message(&title, &message, 3, timeout)?;
+                self.qtray.show_message(&title, &message, 3, timeout);
             }
 
             TrayIconType::Custom(data) => {
                 self.qtray
-                    .show_message2(&title, &message, &Self::create_icon(data)?, timeout)?;
+                    .show_message2(&title, &message, &Self::create_icon(data)?, timeout);
             }
         }
 
         Ok(())
     }
 
-    fn create_icon(data: &[u8]) -> Result<QIcon, ()> {
+    fn create_icon(data: &[u8]) -> Result<QIcon, FUISystemError> {
         let pixmap = QPixmap::from_data(&data)?;
 
         let mut icon = QIcon::new()?;
@@ -93,22 +92,22 @@ impl TrayIcon {
         Ok(icon)
     }
 
-    fn qmenu_from_menu_items(menu_items: &Vec<MenuItem>) -> Result<(QMenu, Vec<QSlot>), ()> {
-        unsafe {
-            let mut qmenu = QMenu::new()?;
-            let mut slots = Vec::new();
+    fn qmenu_from_menu_items(
+        menu_items: &Vec<MenuItem>,
+    ) -> Result<(QMenu, Vec<QSlot>), FUISystemError> {
+        let mut qmenu = QMenu::new()?;
+        let mut slots = Vec::new();
 
-            TrayIcon::qmenu_add_menu_items(&mut qmenu, &mut slots, menu_items);
+        TrayIcon::qmenu_add_menu_items(&mut qmenu, &mut slots, menu_items)?;
 
-            Ok((qmenu, slots))
-        }
+        Ok((qmenu, slots))
     }
 
     fn qmenu_add_menu_items(
         mut qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
         menu_items: &Vec<MenuItem>,
-    ) -> Result<(), ()> {
+    ) -> Result<(), FUISystemError> {
         for menu_item in menu_items {
             Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
         }
@@ -119,7 +118,7 @@ impl TrayIcon {
         qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
         menu_item: &MenuItem,
-    ) -> Result<(), ()> {
+    ) -> Result<(), FUISystemError> {
         match menu_item {
             MenuItem::Separator => {
                 qmenu.add_separator()?;
@@ -127,7 +126,7 @@ impl TrayIcon {
 
             MenuItem::Text {
                 text,
-                shortcut,
+                shortcut: _,
                 //icon,
                 callback,
                 sub_items,

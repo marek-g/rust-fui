@@ -1,13 +1,15 @@
+use crate::FUISystemError;
+
 pub struct QPixmap {
     pub this: *mut ::std::os::raw::c_void,
 }
 
 impl QPixmap {
-    pub fn from_data(data: &[u8]) -> Result<Self, ()> {
+    pub fn from_data(data: &[u8]) -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QPixmap_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             if crate::platform::qt::qt_wrapper::QPixmap_loadFromData(
@@ -16,7 +18,9 @@ impl QPixmap {
                 data.len() as i32,
             ) == 0
             {
-                return Err(());
+                return Err(FUISystemError::OsError(
+                    "Cannot load pixmap from data.".to_string(),
+                ));
             }
 
             Ok(Self { this })

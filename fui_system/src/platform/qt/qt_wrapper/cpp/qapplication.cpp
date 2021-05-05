@@ -19,7 +19,7 @@ void *QApplication_new(int argc, const char** const argv) {
         strcpy(argv_copy[i], argv[i]);
     }
 
-    return static_cast<void *>(new QApplication(argc_copy, argv_copy));
+    return static_cast<void *>(new (std::nothrow) QApplication(argc_copy, argv_copy));
 }
 
 void QApplication_delete(void *self) {

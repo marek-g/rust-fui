@@ -9,7 +9,7 @@ void *QMenu_new();
 void QMenu_delete(void *self);
 
 // QMenu doesn't take ownership of action
-void QMenu_addAction(void *self, void *action);
+//void QMenu_addAction(void *self, void *action);
 
 // QMenu takes ownership of result
 void* QMenu_addAction_text(void *self, void *text);

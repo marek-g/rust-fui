@@ -6,7 +6,7 @@
 
 void *QAction_new()
 {
-    return static_cast<void *>(new QAction());
+    return static_cast<void *>(new (std::nothrow) QAction());
 }
 
 void QAction_delete(void *self)

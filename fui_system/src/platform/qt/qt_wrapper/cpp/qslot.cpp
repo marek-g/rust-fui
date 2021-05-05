@@ -3,7 +3,7 @@
 
 void *QSlot_new()
 {
-    return static_cast<void *>(new QSlotCpp());
+    return static_cast<void *>(new (std::nothrow) QSlotCpp());
 }
 
 void QSlot_delete(void *self)

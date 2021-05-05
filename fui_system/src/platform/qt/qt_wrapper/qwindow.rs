@@ -1,6 +1,6 @@
-use crate::common::callback_helper::{callback_to_pointer, callback_trampoline, RawCallback};
+use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::{QOpenGLContext, QString};
-use std::ffi::c_void;
+use crate::FUISystemError;
 
 pub struct QWindow {
     pub this: *mut ::std::os::raw::c_void,
@@ -10,13 +10,13 @@ pub struct QWindow {
 }
 
 impl QWindow {
-    pub fn new(parent: Option<&mut QWindow>) -> Result<Self, ()> {
+    pub fn new(parent: Option<&mut QWindow>) -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QWindow_new(
                 parent.map_or(0 as *mut ::std::os::raw::c_void, |p| p.this),
             );
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self {
@@ -86,11 +86,11 @@ impl QWindow {
         }
     }
 
-    pub fn get_context(&self) -> Result<QOpenGLContext, ()> {
+    pub fn get_context(&self) -> Result<QOpenGLContext, FUISystemError> {
         unsafe {
             let context_this = crate::platform::qt::qt_wrapper::QWindow_context(self.this);
             if context_this.is_null() {
-                return Err(());
+                return Err(FUISystemError::NotInitialized);
             }
 
             Ok(QOpenGLContext {

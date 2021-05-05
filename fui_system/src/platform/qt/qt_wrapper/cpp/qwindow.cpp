@@ -6,7 +6,7 @@
 void *QWindow_new(void *parent)
 {
     QWindow *parent_window = static_cast<QWindow *>(parent);
-    return static_cast<void *>(new QWindowExt(parent_window));
+    return static_cast<void *>(new (std::nothrow) QWindowExt(parent_window));
 }
 
 void QWindow_delete(void *self)

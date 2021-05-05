@@ -1,25 +1,25 @@
 use crate::platform::qt::qt_wrapper::QPixmap;
+use crate::FUISystemError;
 
 pub struct QIcon {
     pub this: *mut ::std::os::raw::c_void,
 }
 
 impl QIcon {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QIcon_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self { this })
         }
     }
 
-    pub fn add_pixmap(&mut self, pixmap: &QPixmap) -> Result<(), ()> {
+    pub fn add_pixmap(&mut self, pixmap: &QPixmap) {
         unsafe {
             crate::platform::qt::qt_wrapper::QIcon_addPixmap(self.this, pixmap.this, 0, 1);
-            Ok(())
         }
     }
 }

@@ -1,7 +1,6 @@
 // https://www.mdeditor.tw/pl/pfFY/zh-hk
 
 use std::ffi::c_void;
-use std::marker::PhantomData;
 
 // Wrapper for callback.
 // Allows to pass the callback to C code.

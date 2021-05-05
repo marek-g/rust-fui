@@ -3,7 +3,7 @@
 
 void *QOpenGLContext_new()
 {
-    return static_cast<void *>(new QOpenGLContext());
+    return static_cast<void *>(new (std::nothrow) QOpenGLContext());
 }
 
 void QOpenGLContext_delete(void *self)

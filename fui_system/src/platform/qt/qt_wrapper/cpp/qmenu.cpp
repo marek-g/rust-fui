@@ -3,7 +3,7 @@
 
 void *QMenu_new()
 {
-    return static_cast<void *>(new QMenu());
+    return static_cast<void *>(new (std::nothrow) QMenu());
 }
 
 void QMenu_delete(void *self)

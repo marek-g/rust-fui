@@ -1,4 +1,5 @@
 use crate::platform::qt::qt_wrapper::{QString, QWindow};
+use crate::FUISystemError;
 use std::ffi::c_void;
 
 ///
@@ -12,7 +13,7 @@ impl Window {
     ///
     /// Creates a window as a child of the given parent window.
     ///
-    pub fn new(parent: Option<&mut Window>) -> Result<Self, ()> {
+    pub fn new(parent: Option<&mut Window>) -> Result<Self, FUISystemError> {
         let qwindow = QWindow::new(parent.map(|p| &mut p.qwindow))?;
         Ok(Self { qwindow })
     }
@@ -20,7 +21,7 @@ impl Window {
     ///
     /// Sets the window title.
     ///
-    pub fn set_title(&mut self, title: &str) -> Result<(), ()> {
+    pub fn set_title(&mut self, title: &str) -> Result<(), FUISystemError> {
         let title = QString::from_str(title)?;
         self.qwindow.set_title(&title);
         Ok(())
@@ -29,7 +30,7 @@ impl Window {
     ///
     /// Sets the visibility of the window.
     ///
-    pub fn set_visible(&mut self, visible: bool) -> Result<(), ()> {
+    pub fn set_visible(&mut self, visible: bool) -> Result<(), FUISystemError> {
         self.qwindow.set_visible(visible);
         Ok(())
     }
@@ -85,7 +86,10 @@ impl Window {
         self.qwindow.on_paint_gl(callback);
     }
 
-    pub fn get_opengl_proc_address(&self, proc_name: &str) -> Result<*const c_void, ()> {
+    pub fn get_opengl_proc_address(
+        &self,
+        proc_name: &str,
+    ) -> Result<*const c_void, FUISystemError> {
         let context = self.qwindow.get_context()?;
         Ok(context.get_proc_address(proc_name)?)
     }

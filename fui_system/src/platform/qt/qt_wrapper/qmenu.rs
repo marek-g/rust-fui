@@ -1,4 +1,5 @@
-use crate::platform::qt::qt_wrapper::{QAction, QSlot, QString};
+use crate::platform::qt::qt_wrapper::{QAction, QString};
+use crate::FUISystemError;
 
 pub struct QMenu {
     pub this: *mut ::std::os::raw::c_void,
@@ -6,11 +7,11 @@ pub struct QMenu {
 }
 
 impl QMenu {
-    pub fn new() -> Result<Self, ()> {
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QMenu_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self {
@@ -20,12 +21,12 @@ impl QMenu {
         }
     }
 
-    pub fn add_action_text(&mut self, text: &QString) -> Result<QAction, ()> {
+    pub fn add_action_text(&mut self, text: &QString) -> Result<QAction, FUISystemError> {
         unsafe {
             let qaction_this =
                 crate::platform::qt::qt_wrapper::QMenu_addAction_text(self.this, text.this);
             if qaction_this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             let mut action = QAction {
@@ -39,11 +40,11 @@ impl QMenu {
         }
     }
 
-    pub fn add_separator(&mut self) -> Result<QAction, ()> {
+    pub fn add_separator(&mut self) -> Result<QAction, FUISystemError> {
         unsafe {
             let qaction_this = crate::platform::qt::qt_wrapper::QMenu_addSeparator(self.this);
             if qaction_this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(QAction {
@@ -53,11 +54,11 @@ impl QMenu {
         }
     }
 
-    pub fn add_menu(&mut self, text: &QString) -> Result<QMenu, ()> {
+    pub fn add_menu(&mut self, text: &QString) -> Result<QMenu, FUISystemError> {
         unsafe {
             let qmenu_this = crate::platform::qt::qt_wrapper::QMenu_addMenu(self.this, text.this);
             if qmenu_this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(QMenu {

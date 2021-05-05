@@ -1,6 +1,4 @@
 use crate::common::callback_helper::RawCallback;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub enum MenuItem {
     Separator,

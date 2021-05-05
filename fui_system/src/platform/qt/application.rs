@@ -1,13 +1,14 @@
 use crate::platform::qt::qt_wrapper::QApplicationAttribute;
 use crate::platform::qt::qt_wrapper::{QApplication, QString, QSurfaceFormat};
 use crate::platform::ApplicationOptions;
+use crate::FUISystemError;
 
 ///
 /// The application.
 /// Manages application control flow.
 ///
 pub struct Application {
-    qapp: QApplication,
+    _qapp: QApplication,
 }
 
 impl Application {
@@ -15,7 +16,7 @@ impl Application {
     /// Creates the application object and
     /// sets the application display name.
     ///
-    pub fn new(options: ApplicationOptions) -> Result<Self, ()> {
+    pub fn new(options: ApplicationOptions) -> Result<Self, FUISystemError> {
         let app_name = QString::from_str(&options.title)?;
         QApplication::set_application_display_name(&app_name);
 
@@ -27,7 +28,7 @@ impl Application {
         QSurfaceFormat::set_default(options.opengl_stencil_bits);
 
         let qapp = QApplication::new()?;
-        Ok(Self { qapp })
+        Ok(Self { _qapp: qapp })
     }
 
     ///

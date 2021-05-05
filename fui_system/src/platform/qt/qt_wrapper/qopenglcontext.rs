@@ -1,4 +1,5 @@
-use std::ffi::{c_void, CString, NulError};
+use crate::FUISystemError;
+use std::ffi::{c_void, CString};
 
 pub struct QOpenGLContext {
     pub this: *mut ::std::os::raw::c_void,
@@ -6,11 +7,12 @@ pub struct QOpenGLContext {
 }
 
 impl QOpenGLContext {
-    pub fn new() -> Result<Self, ()> {
+    #[allow(dead_code)]
+    pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QOpenGLContext_new();
             if this.is_null() {
-                return Err(());
+                return Err(FUISystemError::OutOfMemory);
             }
 
             Ok(Self {
@@ -20,9 +22,11 @@ impl QOpenGLContext {
         }
     }
 
-    pub fn get_proc_address(&self, proc_name: &str) -> Result<*const c_void, ()> {
+    pub fn get_proc_address(&self, proc_name: &str) -> Result<*const c_void, FUISystemError> {
         unsafe {
-            let c_str = CString::new(proc_name).map_err(|e| ())?;
+            let c_str = CString::new(proc_name).map_err(|_| {
+                FUISystemError::OsError("Null error for OpenGL procedure address.".to_string())
+            })?;
             let addr = crate::platform::qt::qt_wrapper::QOpenGLContext_getProcAddress(
                 self.this,
                 c_str.as_ptr(),
@@ -30,7 +34,10 @@ impl QOpenGLContext {
             if let Some(addr) = addr {
                 Ok(addr as *const c_void)
             } else {
-                Err(())
+                Err(FUISystemError::OsError(format!(
+                    "Cannot find OpenGL procedure address: {}",
+                    proc_name
+                )))
             }
         }
     }
