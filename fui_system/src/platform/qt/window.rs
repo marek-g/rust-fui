@@ -1,5 +1,5 @@
 use crate::platform::qt::qt_wrapper::{QString, QWindow};
-use crate::FUISystemError;
+use crate::{FUISystemError, Icon};
 use std::ffi::c_void;
 
 ///
@@ -19,11 +19,19 @@ impl Window {
     }
 
     ///
-    /// Sets the window title.
+    /// Sets the window's title.
     ///
     pub fn set_title(&mut self, title: &str) -> Result<(), FUISystemError> {
         let title = QString::from_str(title)?;
         self.qwindow.set_title(&title);
+        Ok(())
+    }
+
+    ///
+    /// Sets the window's icon.
+    ///
+    pub fn set_icon(&mut self, icon: &Icon) -> Result<(), FUISystemError> {
+        self.qwindow.set_icon(&icon.qicon);
         Ok(())
     }
 
@@ -62,18 +70,6 @@ impl Window {
     ///
     pub fn update(&mut self) {
         self.qwindow.update();
-    }
-
-    ///
-    /// OpenGL.
-    ///
-    /// Sets the callback that is called once before the first call to on_paint_gl's callback.
-    /// This callback should set any required OpenGL resources and state.
-    /// You can load OpenGL function addresses here.
-    /// The OpenGL context of the window is already made current.
-    ///
-    pub fn on_initialize_gl<F: 'static + FnMut()>(&mut self, callback: F) {
-        self.qwindow.on_initialize_gl(callback);
     }
 
     ///

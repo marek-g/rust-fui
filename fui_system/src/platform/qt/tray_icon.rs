@@ -1,4 +1,5 @@
-use crate::platform::qt::qt_wrapper::{QIcon, QMenu, QPixmap, QSlot, QString, QSystemTrayIcon};
+use crate::platform::qt::qt_wrapper::{QMenu, QSlot, QString, QSystemTrayIcon};
+use crate::platform::Icon;
 use crate::{FUISystemError, MenuItem};
 
 pub enum TrayIconType<'a> {
@@ -6,7 +7,7 @@ pub enum TrayIconType<'a> {
     Information,
     Warning,
     Critical,
-    Custom(&'a [u8]),
+    Custom(&'a Icon),
 }
 
 pub struct TrayIcon {
@@ -24,8 +25,8 @@ impl TrayIcon {
         })
     }
 
-    pub fn set_icon(&mut self, data: &[u8]) -> Result<(), FUISystemError> {
-        self.qtray.set_icon(&Self::create_icon(data)?);
+    pub fn set_icon(&mut self, icon: &Icon) -> Result<(), FUISystemError> {
+        self.qtray.set_icon(&icon.qicon);
         Ok(())
     }
 
@@ -74,22 +75,13 @@ impl TrayIcon {
                 self.qtray.show_message(&title, &message, 3, timeout);
             }
 
-            TrayIconType::Custom(data) => {
+            TrayIconType::Custom(icon) => {
                 self.qtray
-                    .show_message2(&title, &message, &Self::create_icon(data)?, timeout);
+                    .show_message2(&title, &message, &icon.qicon, timeout);
             }
         }
 
         Ok(())
-    }
-
-    fn create_icon(data: &[u8]) -> Result<QIcon, FUISystemError> {
-        let pixmap = QPixmap::from_data(&data)?;
-
-        let mut icon = QIcon::new()?;
-        icon.add_pixmap(&pixmap);
-
-        Ok(icon)
     }
 
     fn qmenu_from_menu_items(

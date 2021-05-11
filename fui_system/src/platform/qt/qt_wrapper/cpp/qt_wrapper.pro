@@ -1,3 +1,5 @@
+DESTDIR = ./
+
 TEMPLATE = lib
 CONFIG += staticlib
 

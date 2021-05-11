@@ -21,6 +21,13 @@ void QWindow_setTitle(void *self, const void *text)
     window->setTitle(*qtext);
 }
 
+void QWindow_setIcon(void *self, const void *icon)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    const QIcon *qicon = static_cast<const QIcon *>(icon);
+    window->setIcon(*qicon);
+}
+
 void QWindow_setVisible(void *self, int visible)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

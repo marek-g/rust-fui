@@ -17,7 +17,6 @@ thiserror = "1.0"
 [build-dependencies]
 bindgen = "0.57"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-
 [dev-dependencies]
+rust-embed = "5.8.0"
 gl = "0.14.0"

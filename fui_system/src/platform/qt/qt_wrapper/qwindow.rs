@@ -1,5 +1,5 @@
 use crate::common::callback_helper::RawCallback;
-use crate::platform::qt::qt_wrapper::{QOpenGLContext, QString};
+use crate::platform::qt::qt_wrapper::{QIcon, QOpenGLContext, QString};
 use crate::FUISystemError;
 
 pub struct QWindow {
@@ -33,6 +33,12 @@ impl QWindow {
         }
     }
 
+    pub fn set_icon(&mut self, icon: &QIcon) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setIcon(self.this, icon.this);
+        }
+    }
+
     pub fn set_visible(&mut self, is_visible: bool) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_setVisible(
@@ -62,6 +68,14 @@ impl QWindow {
         }
     }
 
+    ///
+    /// Warning! This method on Windows is called from QWindow::create()
+    /// and on Linux from message loop - QApplication::exec().
+    /// It makes it harder to use reference to Window inside
+    /// the callback on Windows.
+    /// It may be safer to initialize gl on the first paintGL callback.
+    ///
+    #[allow(dead_code)]
     pub fn on_initialize_gl<F: 'static + FnMut()>(&mut self, callback: F) {
         unsafe {
             let raw_callback = RawCallback::new(callback);

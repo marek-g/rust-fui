@@ -11,6 +11,7 @@ void *QWindow_new(void *parent);
 void QWindow_delete(void *self);
 
 void QWindow_setTitle(void *self, const void *text);
+void QWindow_setIcon(void *self, const void *icon);
 void QWindow_setVisible(void *self, int visible);
 
 int QWindow_getWidth(void *self);

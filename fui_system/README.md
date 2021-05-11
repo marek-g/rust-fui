@@ -5,7 +5,8 @@ Cross-platform windowing library. Compared to winit / sdl / sfml it is better su
 
 Supported platforms:
 
-- Linux (using Qt)
+- Linux (X11/Wayland using Qt)
+- Windows (using Qt, tested on msys2 / mingw)
 - it should be relatively easy to add other platforms supported by Qt
 
 Features:
