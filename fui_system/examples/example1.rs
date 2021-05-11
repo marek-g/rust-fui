@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"]
+
 use fui_system::*;
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
@@ -96,15 +98,14 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         window.set_icon(&icon).unwrap();
         window.resize(500, 500);
 
-        let initialized_rc = Rc::new(RefCell::new(false));
+        let mut initialized = false;
         let window_weak = Rc::downgrade(&window_rc);
         window.on_paint_gl(move || unsafe {
-            let mut initialized = initialized_rc.borrow_mut();
-            if !*initialized {
+            if !initialized {
                 if let Some(window_rc) = window_weak.upgrade() {
                     gl::load_with(|s| window_rc.borrow().get_opengl_proc_address(s).unwrap());
                 }
-                *initialized = true;
+                initialized = true;
             }
 
             gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 0.5f32);
