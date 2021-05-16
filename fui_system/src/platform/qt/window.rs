@@ -1,3 +1,4 @@
+use crate::common::Event;
 use crate::platform::qt::qt_wrapper::{QString, QWindow};
 use crate::{FUISystemError, Icon};
 use std::ffi::c_void;
@@ -70,6 +71,10 @@ impl Window {
     ///
     pub fn update(&mut self) {
         self.qwindow.update();
+    }
+
+    pub fn on_event<F: 'static + FnMut(&Event) -> bool>(&mut self, callback: F) {
+        self.qwindow.on_event(callback);
     }
 
     ///

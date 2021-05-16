@@ -20,6 +20,7 @@ void QWindow_resize(void *self, int width, int height);
 
 void QWindow_update(void *self);
 
+void QWindow_setEventFunc(void *self, void* (*func)(void*, void*), void *data);
 void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data);
 void QWindow_setPaintGLFunc(void *self, void (*func)(void*), void *data);
 

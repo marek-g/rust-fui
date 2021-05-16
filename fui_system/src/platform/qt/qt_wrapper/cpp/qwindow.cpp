@@ -58,6 +58,12 @@ void QWindow_update(void *self)
     window->update();
 }
 
+void QWindow_setEventFunc(void *self, void* (*func)(void*, void*), void *data)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setEventFunc(func, data);
+}
+
 void QWindow_setInitializeGLFunc(void *self, void (*func)(void*), void *data)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

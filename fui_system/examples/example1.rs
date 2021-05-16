@@ -111,6 +111,11 @@ fn create_new_window() -> Rc<RefCell<Window>> {
             gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 0.5f32);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
         });
+
+        window.on_event(move |event| {
+            println!("Event: {:?}", event);
+            false
+        });
     }
     window_rc
 }

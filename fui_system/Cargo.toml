@@ -15,7 +15,8 @@ edition = "2018"
 thiserror = "1.0"
 
 [build-dependencies]
-bindgen = "0.57"
+cbindgen = "0.19.0"
+bindgen = "0.58.1"
 
 [dev-dependencies]
 rust-embed = "5.8.0"

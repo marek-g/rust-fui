@@ -1,10 +1,13 @@
-use crate::common::callback_helper::RawCallback;
+use crate::common::callback_helper::{RawCallback, RawCallbackWithParam};
+use crate::common::Event;
 use crate::platform::qt::qt_wrapper::{QIcon, QOpenGLContext, QString};
 use crate::FUISystemError;
+use std::ffi::c_void;
 
 pub struct QWindow {
     pub this: *mut ::std::os::raw::c_void,
 
+    event_callback: Option<Box<dyn Drop>>,
     initialize_gl_callback: Option<Box<dyn Drop>>,
     paint_gl_callback: Option<Box<dyn Drop>>,
 }
@@ -21,6 +24,7 @@ impl QWindow {
 
             Ok(Self {
                 this,
+                event_callback: None,
                 initialize_gl_callback: None,
                 paint_gl_callback: None,
             })
@@ -65,6 +69,26 @@ impl QWindow {
     pub fn update(&mut self) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_update(self.this);
+        }
+    }
+
+    pub fn on_event<F: 'static + FnMut(&Event) -> bool>(&mut self, mut callback: F) {
+        unsafe {
+            let raw_callback = RawCallbackWithParam::new(move |ptr| {
+                let event = &*(ptr as *const Event);
+                if callback(event) {
+                    1 as *mut c_void
+                } else {
+                    0 as *mut c_void
+                }
+            });
+
+            crate::platform::qt::qt_wrapper::QWindow_setEventFunc(
+                self.this,
+                Some(raw_callback.get_trampoline_func()),
+                raw_callback.get_trampoline_func_data(),
+            );
+            self.event_callback = Some(Box::new(raw_callback));
         }
     }
 
