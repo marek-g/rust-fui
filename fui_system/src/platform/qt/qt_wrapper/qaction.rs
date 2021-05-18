@@ -29,6 +29,12 @@ impl QAction {
         }
     }
 
+    pub fn set_shortcut(&mut self, text: &QString) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QAction_setShortcut(self.this, text.this);
+        }
+    }
+
     pub fn set_icon(&mut self, icon: &QIcon) {
         unsafe {
             crate::platform::qt::qt_wrapper::QAction_setIcon(self.this, icon.this);
