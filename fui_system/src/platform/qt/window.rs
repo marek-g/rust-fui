@@ -1,4 +1,3 @@
-use crate::common::ScrollDelta::PixelDelta;
 use crate::common::{
     ElementState, Event, KeyModifiers, Keycode, MouseButton, Position, ScrollDelta,
 };
@@ -168,7 +167,7 @@ fn convert_delta(delta: &FFIScrollDelta) -> ScrollDelta {
     }
 }
 
-fn convert_keycode(keycode: i32, modifiers: &FFIKeyModifiers) -> Option<Keycode> {
+fn convert_keycode(keycode: i32, _modifiers: &FFIKeyModifiers) -> Option<Keycode> {
     match keycode {
         0x01000000 => Some(Keycode::Esc),
         0x01000030 => Some(Keycode::F1),

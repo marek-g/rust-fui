@@ -1,5 +1,4 @@
 use crate::common::callback_helper::{RawCallback, RawCallbackWithParam};
-use crate::common::Event;
 use crate::platform::qt::qt_wrapper::ffi_event::FFIEvent;
 use crate::platform::qt::qt_wrapper::{QIcon, QOpenGLContext, QString};
 use crate::FUISystemError;
