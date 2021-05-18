@@ -1,5 +1,6 @@
 use crate::common::callback_helper::{RawCallback, RawCallbackWithParam};
 use crate::common::Event;
+use crate::platform::qt::qt_wrapper::ffi_event::FFIEvent;
 use crate::platform::qt::qt_wrapper::{QIcon, QOpenGLContext, QString};
 use crate::FUISystemError;
 use std::ffi::c_void;
@@ -72,10 +73,10 @@ impl QWindow {
         }
     }
 
-    pub fn on_event<F: 'static + FnMut(&Event) -> bool>(&mut self, mut callback: F) {
+    pub fn on_event<F: 'static + FnMut(&FFIEvent) -> bool>(&mut self, mut callback: F) {
         unsafe {
             let raw_callback = RawCallbackWithParam::new(move |ptr| {
-                let event = &*(ptr as *const Event);
+                let event = &*(ptr as *const FFIEvent);
                 if callback(event) {
                     1 as *mut c_void
                 } else {

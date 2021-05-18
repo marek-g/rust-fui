@@ -29,7 +29,9 @@ private:
     void (*m_funcPaintGL)(void*);
     void *m_dataPaintGL;
 
-    bool convertEventToRust(QEvent *event, Event &rustEvent);
+    static bool convertEventToRust(QEvent *event, FFIEvent &ffiEvent);
+    static void freeEvent(FFIEvent &ffiEvent);
+    static FFIMouseButton convertMouseButton(Qt::MouseButton button);
 };
 
 

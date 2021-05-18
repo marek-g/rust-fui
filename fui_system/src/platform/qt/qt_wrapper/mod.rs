@@ -2,6 +2,7 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+pub(crate) use ffi_event::*;
 pub use qaction::*;
 pub use qapplication::*;
 pub use qicon::*;
@@ -16,6 +17,7 @@ pub use qwindow::*;
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+mod ffi_event;
 mod qaction;
 mod qapplication;
 mod qicon;
