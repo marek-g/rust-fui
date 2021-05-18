@@ -22,6 +22,14 @@ void QAction_setText(void *self, const void *text)
     qAction->setText(*qText);
 }
 
+void QAction_setIcon(void *self, const void *icon)
+{
+    QAction *qAction = static_cast<QAction *>(self);
+    const QIcon *qIcon = static_cast<const QIcon *>(icon);
+
+    qAction->setIcon(*qIcon);
+}
+
 void QAction_connectTriggered(void *self, void *slot)
 {
     QAction *qAction = static_cast<QAction *>(self);

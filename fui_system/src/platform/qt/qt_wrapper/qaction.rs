@@ -1,5 +1,5 @@
 use crate::common::callback_helper::RawCallback;
-use crate::platform::qt::qt_wrapper::{QSlot, QString};
+use crate::platform::qt::qt_wrapper::{QIcon, QSlot, QString};
 use crate::FUISystemError;
 
 pub struct QAction {
@@ -26,6 +26,12 @@ impl QAction {
     pub fn set_text(&mut self, text: &QString) {
         unsafe {
             crate::platform::qt::qt_wrapper::QAction_setText(self.this, text.this);
+        }
+    }
+
+    pub fn set_icon(&mut self, icon: &QIcon) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QAction_setIcon(self.this, icon.this);
         }
     }
 

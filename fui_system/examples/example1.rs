@@ -34,7 +34,7 @@ fn main() {
         MenuItem::folder(
             "Window",
             vec![
-                MenuItem::simple("Show", {
+                MenuItem::full("Show", None, Some(Icon::from_data(&icon_data).unwrap()), {
                     let window_rc_clone = window_rc.clone();
                     move || {
                         window_rc_clone.borrow_mut().set_visible(true).unwrap();

@@ -119,7 +119,7 @@ impl TrayIcon {
             MenuItem::Text {
                 text,
                 shortcut: _,
-                //icon,
+                icon,
                 callback,
                 sub_items,
             } => {
@@ -128,6 +128,9 @@ impl TrayIcon {
                     Self::qmenu_add_menu_items(&mut qsubmenu, slots, sub_items)?;
                 } else {
                     let mut action = qmenu.add_action_text(&QString::from_str(&text)?)?;
+                    if let Some(icon) = icon {
+                        action.set_icon(&icon.qicon);
+                    }
                     if let Some(callback) = callback {
                         let slot = action.connect_triggered(callback)?;
                         slots.push(slot);

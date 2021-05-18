@@ -1,11 +1,12 @@
 use crate::common::callback_helper::RawCallback;
+use crate::Icon;
 
 pub enum MenuItem {
     Separator,
     Text {
         text: String,
         shortcut: Option<String>,
-        //icon: Option<Rc<RefCell<dyn ControlObject>>>,
+        icon: Option<Icon>,
         callback: Option<RawCallback>,
         sub_items: Vec<MenuItem>,
     },
@@ -16,7 +17,7 @@ impl MenuItem {
         MenuItem::Text {
             text: text.into(),
             shortcut: None,
-            //icon: None,
+            icon: None,
             callback: None,
             sub_items,
         }
@@ -29,25 +30,20 @@ impl MenuItem {
         MenuItem::Text {
             text: text.into(),
             shortcut: None,
-            //icon: None,
+            icon: None,
             callback: Some(RawCallback::new(callback)),
             sub_items: Vec::new(),
         }
     }
 
-    pub fn full<F>(
-        text: &str,
-        shortcut: Option<String>,
-        //icon: Option<Rc<RefCell<dyn ControlObject>>>,
-        callback: F,
-    ) -> Self
+    pub fn full<F>(text: &str, shortcut: Option<String>, icon: Option<Icon>, callback: F) -> Self
     where
         F: FnMut() + 'static,
     {
         MenuItem::Text {
             text: text.into(),
             shortcut,
-            //icon,
+            icon,
             callback: Some(RawCallback::new(callback)),
             sub_items: Vec::new(),
         }
