@@ -30,7 +30,7 @@ impl TrayIcon {
         Ok(())
     }
 
-    pub fn set_menu(&mut self, menu_items: &Vec<MenuItem>) -> Result<(), FUISystemError> {
+    pub fn set_menu(&mut self, menu_items: Vec<MenuItem>) -> Result<(), FUISystemError> {
         let (mut qmenu, slots) = Self::qmenu_from_menu_items(menu_items)?;
         self.qtray.set_context_menu(&mut qmenu);
         self.qmenu = Some(qmenu);
@@ -85,7 +85,7 @@ impl TrayIcon {
     }
 
     fn qmenu_from_menu_items(
-        menu_items: &Vec<MenuItem>,
+        menu_items: Vec<MenuItem>,
     ) -> Result<(QMenu, Vec<QSlot>), FUISystemError> {
         let mut qmenu = QMenu::new()?;
         let mut slots = Vec::new();
@@ -98,7 +98,7 @@ impl TrayIcon {
     fn qmenu_add_menu_items(
         mut qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_items: &Vec<MenuItem>,
+        menu_items: Vec<MenuItem>,
     ) -> Result<(), FUISystemError> {
         for menu_item in menu_items {
             Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
@@ -109,7 +109,7 @@ impl TrayIcon {
     fn qmenu_add_menu_item(
         qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
-        menu_item: &MenuItem,
+        menu_item: MenuItem,
     ) -> Result<(), FUISystemError> {
         match menu_item {
             MenuItem::Separator => {
@@ -129,7 +129,7 @@ impl TrayIcon {
                 } else {
                     let mut qaction = qmenu.add_action_text(&QString::from_str(&text)?)?;
                     if let Some(shortcut) = shortcut {
-                        qaction.set_shortcut(&QString::from_str(shortcut)?);
+                        qaction.set_shortcut(&QString::from_str(&shortcut)?);
                     }
                     if let Some(icon) = icon {
                         qaction.set_icon(&icon.qicon);

@@ -3,22 +3,23 @@ use crate::FUISystemError;
 
 pub struct QSlot {
     pub this: *mut ::std::os::raw::c_void,
+    raw_callback: RawCallback,
 }
 
 impl QSlot {
-    pub fn new(raw_callback: &RawCallback) -> Result<Self, FUISystemError> {
+    pub fn new(raw_callback: RawCallback) -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QSlot_new();
             if this.is_null() {
                 return Err(FUISystemError::OutOfMemory);
             }
 
-            let result = Self { this };
+            let result = Self { this, raw_callback };
 
             crate::platform::qt::qt_wrapper::QSlot_setFunc(
                 result.this,
-                Some(raw_callback.get_trampoline_func()),
-                raw_callback.get_trampoline_func_data(),
+                Some(result.raw_callback.get_trampoline_func()),
+                result.raw_callback.get_trampoline_func_data(),
             );
 
             Ok(result)

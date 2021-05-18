@@ -43,7 +43,7 @@ impl QAction {
 
     pub fn connect_triggered(
         &mut self,
-        raw_callback: &RawCallback,
+        raw_callback: RawCallback,
     ) -> Result<QSlot, FUISystemError> {
         let slot = QSlot::new(raw_callback)?;
         unsafe {

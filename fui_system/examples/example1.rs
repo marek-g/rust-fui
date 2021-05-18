@@ -80,14 +80,12 @@ fn main() {
 
     {
         let mut tray = tray_rc.borrow_mut();
-        tray.set_menu(&menu_items).unwrap();
+        tray.set_menu(menu_items).unwrap();
         tray.set_icon(&icon).unwrap();
         tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4")
             .unwrap();
         tray.set_visible(true).unwrap();
     }
-
-    //drop(menu_items);
 
     Application::message_loop();
 }
