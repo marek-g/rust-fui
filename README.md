@@ -2,7 +2,7 @@
 
 [![Crates.io Version](https://img.shields.io/crates/v/fui_core.svg)](https://crates.io/crates/fui_core)
 [![Docs.rs Version](https://docs.rs/fui_core/badge.svg)](https://docs.rs/fui_core)
-[![LGPL-2.1-or-later WITH WxWindows-exception-3.1](https://img.shields.io/crates/l/fui_core.svg)](https://github.com/marek-g/rust-fui/blob/master/LICENSE.md)
+[![GPL-3.0-or-later WITH Classpath-exception-2.0](https://img.shields.io/crates/l/fui_core.svg)](https://github.com/marek-g/rust-fui/blob/master/LICENSE.md)
 
 ![FUI Logo](./doc/images/fui_logo_shadow.png)
 
@@ -123,11 +123,10 @@ fn main() -> anyhow::Result<()> {
 
 Licensed under
 
- * GNU Lesser General Public License, Version 2.1 or newer ([LICENSE-LGPL-2.1](https://opensource.org/licenses/LGPL-2.1))
- * with WxWindows Library Exception 3.1, Version 3.1 or newer ([LICENSE-WxWindows-Exception-3.1](https://spdx.org/licenses/WxWindows-exception-3.1.html)).
+ * GNU Lesser General Public License, Version 3.0 or later ([LICENSE-GPL-3.0+](https://spdx.org/licenses/GPL-3.0-or-later.html))
+ * with Classpath Exception, Version 2.0 ([LICENSE-Classpath-exception-2.0](https://spdx.org/licenses/Classpath-exception-2.0.html)).
 
-It's essentially the GNU L-GPL except it allows static linking and distributing
-derived works in binary form on the user's own terms. 
+It's essentially the GNU GPL except it allows the distribution of an executable with a statically or dynamically linked library under the terms of your choice. The reason it's not LGPL is that dynamic linking is difficult with Rust.
 
 The project is partially based on code from other projects:
 
@@ -135,6 +134,4 @@ The project is partially based on code from other projects:
 
 ### Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, shall be licensed as above, without any
-additional terms or conditions.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, shall be licensed as above, without any additional terms or conditions.
