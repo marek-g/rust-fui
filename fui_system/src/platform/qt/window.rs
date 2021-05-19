@@ -131,7 +131,7 @@ fn convert_event(ffi_event: &FFIEvent) -> Option<Event> {
             state: convert_element_state(state),
             is_repeat: *is_repeat,
             keycode: convert_keycode(*keycode, modifiers),
-            modifiers: convert_modifiers(modifiers),
+            modifiers: convert_modifiers(*keycode, modifiers),
             text: convert_text(*text),
         }),
     }
@@ -200,26 +200,24 @@ fn convert_keycode(keycode: i32, _modifiers: &FFIKeyModifiers) -> Option<Keycode
         0x01000024 => Some(Keycode::CapsLock),
         0x01000004 => Some(Keycode::Enter),
         0x01000005 => Some(Keycode::Enter),
-        0x01000020 => Some(Keycode::LShift),
-        //Some(Keycode::RShift),
-        0x01000021 => Some(Keycode::LCtrl),
-        //Some(Keycode::RCtrl),
-        0x01000023 => Some(Keycode::LAlt),
-        0x01001103 => Some(Keycode::RAlt),
-        0x01000022 => Some(Keycode::LWin),
-        //Some(Keycode::RWin),
+        0x01000020 => Some(Keycode::Shift),
+        0x01000021 => Some(Keycode::Ctrl),
+        0x01000023 => Some(Keycode::Alt),
+        0x01001103 => Some(Keycode::Alt),
+        0x01000022 => Some(Keycode::Win),
         0x01000025 => Some(Keycode::NumLock),
         _ => None,
     }
 }
 
-fn convert_modifiers(modifiers: &FFIKeyModifiers) -> KeyModifiers {
+fn convert_modifiers(keycode: i32, modifiers: &FFIKeyModifiers) -> KeyModifiers {
     KeyModifiers {
         alt: modifiers.alt,
         ctrl: modifiers.ctrl,
         shift: modifiers.shift,
         win: modifiers.win,
         keypad: modifiers.keypad,
+        right: keycode == 0x01001103,
     }
 }
 

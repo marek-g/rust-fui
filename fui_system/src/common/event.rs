@@ -64,6 +64,9 @@ pub enum ScrollDelta {
     PixelDelta(f32, f32),
 }
 
+/// Keycode for the key that is not a printable key.
+/// If there are more than one variant of the same key (like left/right or keypad),
+/// you can use KeyModifiers to distinguish between them.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Keycode {
     Esc,
@@ -96,22 +99,26 @@ pub enum Keycode {
     Tab,
     CapsLock,
     Enter,
-    LShift,
-    RShift,
-    LCtrl,
-    RCtrl,
-    LAlt,
-    RAlt,
-    LWin,
-    RWin,
+    Shift,
+    Ctrl,
+    Alt,
+    Win,
     NumLock,
 }
 
+/// Information of pressed special keys and
+/// about the variant of the pressed key.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct KeyModifiers {
     pub shift: bool,
     pub ctrl: bool,
     pub alt: bool,
     pub win: bool,
+
+    /// does the key belong to the keypad
     pub keypad: bool,
+
+    /// is it the right variant of the key (like right shift, alt, etc.)
+    /// this is not yet behaving correctly
+    pub right: bool,
 }
