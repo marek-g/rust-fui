@@ -27,12 +27,13 @@ fn main() {
 
 fn run_cbindgen() {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let out_dir = env::var("OUT_DIR").unwrap();
 
     cbindgen::Builder::new()
         .with_crate(crate_dir)
         .generate()
         .expect("Unable to generate bindings")
-        .write_to_file("src/platform/qt/qt_wrapper/cpp/rust_ffi.h");
+        .write_to_file(&Path::new(&out_dir).join("rust_ffi.h"));
 }
 
 fn run_qmake(src_dir: &PathBuf, out_dir: &str) {

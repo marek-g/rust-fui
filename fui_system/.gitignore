@@ -2,4 +2,3 @@
 /rls/
 **/*.rs.bk
 Cargo.lock
-/src/platform/qt/qt_wrapper/cpp/rust_ffi.h
