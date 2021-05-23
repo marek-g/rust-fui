@@ -14,8 +14,6 @@ use drawing_gl::*;
 use find_folder;
 use std::fs::File;
 use std::io::Read;
-use winit::event_loop::EventLoop;
-use winit::window::WindowBuilder;
 
 pub type DrawingDevice = GlDevice;
 pub type DrawingTexture = GlTexture;

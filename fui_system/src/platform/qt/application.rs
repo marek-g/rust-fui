@@ -1,7 +1,7 @@
 use crate::platform::qt::qt_wrapper::QApplicationAttribute;
 use crate::platform::qt::qt_wrapper::{QApplication, QString, QSurfaceFormat};
 use crate::platform::ApplicationOptions;
-use crate::FUISystemError;
+use crate::{FUISystemError, LoopProxy};
 
 ///
 /// The application.
@@ -32,10 +32,18 @@ impl Application {
     }
 
     ///
+    /// Gets LoopProxy that allows to communicate
+    /// with main message loop from the same thread.
+    ///
+    pub fn get_loop_proxy(&self) -> LoopProxy {
+        LoopProxy::new()
+    }
+
+    ///
     /// Enters the main event loop and waits until
     /// exit() is called, then returns the value that was set to exit().
     ///
-    pub fn message_loop() -> i32 {
+    pub fn message_loop(&self) -> i32 {
         QApplication::exec()
     }
 
@@ -44,5 +52,16 @@ impl Application {
     ///
     pub fn exit(return_code: i32) {
         QApplication::exit(return_code);
+    }
+
+    ///
+    /// Posts function to be executed on the main event loop.
+    /// Can be called from any thread.
+    ///
+    pub fn post_func<F>(func: F)
+    where
+        F: FnOnce() + 'static + Send,
+    {
+        QApplication::post_func(func);
     }
 }

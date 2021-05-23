@@ -4,17 +4,19 @@ use fui_system::*;
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::thread;
 
 #[derive(RustEmbed)]
 #[folder = "assets/"]
 struct Assets;
 
 fn main() {
-    let _system_app = Application::new(
+    let app = Application::new(
         ApplicationOptionsBuilder::new()
             .with_title("Example: tray")
             .build(),
-    );
+    )
+    .unwrap();
 
     let icon_data = Assets::get("icon.png").unwrap();
     let icon = Icon::from_data(&icon_data).unwrap();
@@ -72,6 +74,13 @@ fn main() {
                 }
             }
         }),
+        MenuItem::simple("Post callback", {
+            let loop_proxy = app.get_loop_proxy();
+            move || {
+                let var = Rc::new(RefCell::new(true));
+                loop_proxy.post_func(move || println!("Posted function! {}", *var.borrow_mut()));
+            }
+        }),
         MenuItem::Separator,
         MenuItem::simple("Exit", || {
             Application::exit(0);
@@ -87,7 +96,13 @@ fn main() {
         tray.set_visible(true).unwrap();
     }
 
-    Application::message_loop();
+    let thread_handler = thread::spawn(move || {
+        Application::post_func(move || println!("Function posted from another thread!"));
+    });
+
+    app.message_loop();
+
+    thread_handler.join().unwrap();
 }
 
 fn create_new_window() -> Rc<RefCell<Window>> {

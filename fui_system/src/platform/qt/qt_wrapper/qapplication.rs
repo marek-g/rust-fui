@@ -1,3 +1,4 @@
+use crate::common::callback_helper::RawCallback;
 use crate::platform::qt::qt_wrapper::QString;
 use crate::FUISystemError;
 use std::ffi::CString;
@@ -65,6 +66,25 @@ impl QApplication {
     pub fn exit(result_code: i32) {
         unsafe {
             crate::platform::qt::qt_wrapper::QApplication_exit(result_code);
+        }
+    }
+
+    ///
+    /// Posts function to be executed on the main event loop.
+    ///
+    pub fn post_func<F>(func: F)
+    where
+        F: FnOnce() + 'static,
+    {
+        unsafe {
+            let raw_callback = RawCallback::new_once(func);
+
+            crate::platform::qt::qt_wrapper::QApplication_postFunc(
+                Some(raw_callback.get_trampoline_func()),
+                raw_callback.get_trampoline_func_data(),
+            );
+
+            std::mem::forget(raw_callback);
         }
     }
 

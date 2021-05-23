@@ -8,7 +8,8 @@
 int argc_copy;
 char **argv_copy;
 
-void *QApplication_new(int argc, const char** const argv) {
+void *QApplication_new(int argc, const char** const argv)
+{
     // copy argc * argv as QApplication requires them
     // to be available all the time
     argc_copy = argc;
@@ -22,7 +23,8 @@ void *QApplication_new(int argc, const char** const argv) {
     return static_cast<void *>(new (std::nothrow) QApplication(argc_copy, argv_copy));
 }
 
-void QApplication_delete(void *self) {
+void QApplication_delete(void *self)
+{
     delete static_cast<QApplication *>(self);
 
     for (int i = 0; i < argc_copy; i++)
@@ -43,14 +45,28 @@ void QApplication_setAttribute(int attr, int enable)
     QApplication::setAttribute((Qt::ApplicationAttribute)attr, enable != 0);
 }
 
-int QApplication_exec() {
+int QApplication_exec()
+{
     return QApplication::exec();
 }
 
-void QApplication_exit(int returnCode) {
+void QApplication_exit(int returnCode)
+{
     QApplication::exit(returnCode);
 }
 
-void QApplication_aboutQt() {
+void QApplication_postFunc(void (*callback_trampoline)(void*), void *callback_data)
+{
+    QCoreApplication *app = QApplication::instance();
+    if (app)
+    {
+        QMetaObject::invokeMethod(QApplication::instance(),
+                                  [callback_trampoline, callback_data] { callback_trampoline(callback_data); },
+                                  Qt::QueuedConnection);
+    }
+}
+
+void QApplication_aboutQt()
+{
     QApplication::aboutQt();
 }

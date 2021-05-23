@@ -5,6 +5,7 @@ pub use common::MenuItem;
 pub use platform::Application;
 pub use platform::ApplicationOptionsBuilder;
 pub use platform::Icon;
+pub use platform::LoopProxy;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;
 pub use platform::Window;

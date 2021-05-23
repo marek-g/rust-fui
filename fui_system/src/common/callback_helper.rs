@@ -22,6 +22,17 @@ impl RawCallback {
         }
     }
 
+    pub fn new_once<F>(callback: F) -> Self
+    where
+        F: FnOnce() + 'static,
+    {
+        Self {
+            trampoline_func: callback_trampoline_once::<F>,
+            trampoline_func_data: callback_to_pointer(callback),
+            drop_trampoline_func: drop_callback_pointer::<F>,
+        }
+    }
+
     pub fn get_trampoline_func(
         &self,
     ) -> unsafe extern "C" fn(callback_pointer: *mut ::std::os::raw::c_void) {
@@ -49,7 +60,7 @@ impl Drop for RawCallback {
 
 pub fn callback_to_pointer<F>(callback: F) -> *mut c_void
 where
-    F: FnMut() + 'static,
+    F: FnOnce() + 'static,
 {
     let b = Box::new(callback);
     Box::into_raw(b) as *mut c_void
@@ -65,6 +76,18 @@ where
 {
     let callback_ptr = callback_pointer as *mut F;
     let callback = unsafe { &mut *callback_ptr };
+    callback();
+}
+
+/// This is a function that can be passed to C code
+/// along with a pointer to the callback.
+///
+/// Calling this method from C will call Rust's callback.
+pub extern "C" fn callback_trampoline_once<F>(callback_pointer: *mut c_void)
+where
+    F: FnOnce() + 'static,
+{
+    let callback = unsafe { Box::from_raw(callback_pointer as *mut F) };
     callback();
 }
 
@@ -128,7 +151,7 @@ impl Drop for RawCallbackWithParam {
 
 pub fn callback_to_pointer_with_param<F>(callback: F) -> *mut c_void
 where
-    F: FnMut(*mut ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void + 'static,
+    F: FnOnce(*mut ::std::os::raw::c_void) -> *mut ::std::os::raw::c_void + 'static,
 {
     let b = Box::new(callback);
     Box::into_raw(b) as *mut c_void

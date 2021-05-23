@@ -12,7 +12,7 @@ use crate::{FuiDrawingContext, WindowManager};
 
 pub struct Application {
     title: &'static str,
-    event_loop: Option<winit::event_loop::EventLoop<()>>,
+    //event_loop: Option<winit::event_loop::EventLoop<()>>,
     event_loop_iteration: Rc<RefCell<Event<()>>>,
     drawing_context: Rc<RefCell<DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
@@ -20,23 +20,24 @@ pub struct Application {
 
 impl Application {
     pub fn new(title: &'static str) -> Result<Self> {
-        crate::high_dpi::set_process_high_dpi_aware();
-
-        let event_loop = winit::event_loop::EventLoop::new();
+        let _app = fui_system::Application::new(
+            fui_system::ApplicationOptionsBuilder::new()
+                .with_title(title)
+                .with_opengl_stencil_bits(8)
+                .build(),
+        )?;
 
         let drawing_context = Rc::new(RefCell::new(DrawingContext::new()?));
 
-        Dispatcher::setup_events_loop_proxy(event_loop.create_proxy());
+        //Dispatcher::setup_events_loop_proxy(event_loop.create_proxy());
 
-        let event_loop_proxy = event_loop.create_proxy();
         Ok(Application {
-            title: title,
-            event_loop: Some(event_loop),
+            title,
             event_loop_iteration: Rc::new(RefCell::new(Event::new())),
             drawing_context: drawing_context.clone(),
             window_manager: Rc::new(RefCell::new(WindowManager::new(
                 drawing_context,
-                event_loop_proxy,
+                //event_loop_proxy,
             ))),
         })
     }
@@ -45,9 +46,9 @@ impl Application {
         self.title
     }
 
-    pub fn get_event_loop(&self) -> Option<&winit::event_loop::EventLoop<()>> {
+    /*pub fn get_event_loop(&self) -> Option<&winit::event_loop::EventLoop<()>> {
         self.event_loop.as_ref()
-    }
+    }*/
 
     pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
         &self.drawing_context
@@ -57,22 +58,22 @@ impl Application {
         &self.window_manager
     }
 
-    pub fn create_loop_proxy(&self) -> Option<winit::event_loop::EventLoopProxy<()>> {
+    /*pub fn create_loop_proxy(&self) -> Option<winit::event_loop::EventLoopProxy<()>> {
         self.event_loop.as_ref().map(|el| el.create_proxy())
-    }
+    }*/
 
-    pub fn get_event_loop_interation(&self) -> &Rc<RefCell<Event<()>>> {
+    /*pub fn get_event_loop_interation(&self) -> &Rc<RefCell<Event<()>>> {
         &self.event_loop_iteration
-    }
+    }*/
 
     pub fn add_window<V: ViewModel>(
         &mut self,
-        window_builder: winit::window::WindowBuilder,
+        window: fui_system::Window,
         view_model: Rc<RefCell<V>>,
-    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
+    ) -> Result<Rc<RefCell<Window<fui_system::Window>>>> {
         self.window_manager.borrow_mut().add_window_view_model(
-            window_builder,
-            self.get_event_loop().unwrap(),
+            window,
+            //self.get_event_loop().unwrap(),
             &view_model,
         )
     }

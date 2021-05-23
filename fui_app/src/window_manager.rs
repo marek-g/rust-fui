@@ -20,7 +20,7 @@ impl WinitWindow {
 
 pub struct WindowManager {
     drawing_context: Rc<RefCell<DrawingContext>>,
-    event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
+    //event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
     main_window_id: Option<winit::window::WindowId>,
     windows: HashMap<winit::window::WindowId, Rc<RefCell<Window<WinitWindow>>>>,
     window_services: HashMap<winit::window::WindowId, Rc<RefCell<Services>>>,
@@ -31,11 +31,11 @@ pub struct WindowManager {
 impl WindowManager {
     pub fn new(
         drawing_context: Rc<RefCell<DrawingContext>>,
-        event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
+        //event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
     ) -> Self {
         WindowManager {
             drawing_context: drawing_context,
-            event_loop_proxy,
+            //event_loop_proxy,
             main_window_id: None,
             windows: HashMap::new(),
             window_services: HashMap::new(),
@@ -57,9 +57,8 @@ impl WindowManager {
 
     pub fn create_window(
         &mut self,
-        window_builder: winit::window::WindowBuilder,
-        event_loop: &winit::event_loop::EventLoop<()>,
-    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
+        window: fui_system::Window,
+    ) -> Result<Rc<RefCell<Window<fui_system::Window>>>> {
         let mut window_target = {
             let first_window = self
                 .windows
@@ -118,11 +117,10 @@ impl WindowManager {
 
     pub fn add_window(
         &mut self,
-        window_builder: winit::window::WindowBuilder,
-        event_loop: &winit::event_loop::EventLoop<()>,
+        window: fui_system::Window,
         view: Rc<RefCell<dyn ControlObject>>,
-    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
-        let mut window_rc = self.create_window(window_builder, event_loop)?;
+    ) -> Result<Rc<RefCell<Window<fui_system::Window>>>> {
+        let mut window_rc = self.create_window(window)?;
 
         window_rc.borrow_mut().add_layer(view);
 
@@ -131,15 +129,10 @@ impl WindowManager {
 
     pub fn add_window_view_model<V: ViewModel>(
         &mut self,
-        window_builder: winit::window::WindowBuilder,
-        event_loop: &winit::event_loop::EventLoop<()>,
+        window: fui_system::Window,
         view_model: &Rc<RefCell<V>>,
-    ) -> Result<Rc<RefCell<Window<WinitWindow>>>> {
-        self.add_window(
-            window_builder,
-            &event_loop,
-            ViewModel::create_view(&view_model),
-        )
+    ) -> Result<Rc<RefCell<Window<fui_system::Window>>>> {
+        self.add_window(window, ViewModel::create_view(&view_model))
     }
 
     pub fn get_main_window_id(&self) -> Option<winit::window::WindowId> {
