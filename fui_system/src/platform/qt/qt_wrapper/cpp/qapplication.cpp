@@ -60,7 +60,7 @@ void QApplication_postFunc(void (*callback_trampoline)(void*), void *callback_da
     QCoreApplication *app = QApplication::instance();
     if (app)
     {
-        QMetaObject::invokeMethod(QApplication::instance(),
+        QMetaObject::invokeMethod(app,
                                   [callback_trampoline, callback_data] { callback_trampoline(callback_data); },
                                   Qt::QueuedConnection);
     }

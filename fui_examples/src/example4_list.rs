@@ -10,7 +10,6 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 struct ItemViewModel {
     pub parent: Weak<RefCell<MainViewModel>>,
@@ -153,10 +152,11 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: list").unwrap();
 
-    app.add_window(
-        WindowBuilder::new().with_title("Example: list"),
-        MainViewModel::new(),
-    )?;
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Example: list");
+    window.resize(800, 600);
+
+    app.add_window(window, MainViewModel::new())?;
 
     app.run();
 

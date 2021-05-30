@@ -30,7 +30,7 @@ where
     V: ViewModel + PartialEq + 'static,
 {
     pub fn to_view(
-        mut self,
+        self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {

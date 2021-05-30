@@ -109,16 +109,16 @@ impl Menu {
 
             MenuItem::Text {
                 text,
-                shortcut,
-                icon,
+                shortcut: _shortcut,
+                icon: _icon,
                 callback,
                 sub_items,
             } => {
                 let has_sub_items = sub_items.len() > 0;
 
-                let mut is_open_prop = Property::new(false);
-                let mut background_property = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
-                let mut foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
+                let is_open_prop = Property::new(false);
+                let background_property = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
+                let foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
 
                 let mut on_hover_callback = Callback::empty();
                 let mut on_tap_down_callback = Callback::empty();
@@ -142,7 +142,7 @@ impl Menu {
                     // hover highlights items even when menu is not active
                     let mut background_property_clone = background_property.clone();
                     let mut foreground_property_clone = foreground_property.clone();
-                    let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
+                    let is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let mut is_open_prop_clone = is_open_prop.clone();
                     let close_siblings_callback_clone = close_siblings_callback_rc.clone();
                     on_hover_callback.set(move |value| {
@@ -264,7 +264,6 @@ impl Menu {
 
                     let mut background_property_clone = background_property.clone();
                     let mut foreground_property_clone = foreground_property.clone();
-                    let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let popup_close_subscription = is_open_prop.on_changed(move |value| {
                         if value == false {
                             background_property_clone.set([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
@@ -405,8 +404,8 @@ impl Menu {
 
             MenuItem::Custom {
                 content,
-                callback,
-                sub_items,
+                callback: _,
+                sub_items: _,
             } => (content, Callback::empty()),
         }
     }

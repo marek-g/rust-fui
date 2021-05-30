@@ -1,11 +1,11 @@
-use crate::common::{
-    ElementState, Event, KeyModifiers, Keycode, MouseButton, Position, ScrollDelta,
-};
 use crate::platform::qt::qt_wrapper::{
     FFIElementState, FFIEvent, FFIKeyModifiers, FFIMouseButton, FFIPosition, FFIScrollDelta,
     QString, QWindow,
 };
 use crate::{FUISystemError, Icon};
+use fui_system_core::{
+    ElementState, Event, KeyModifiers, Keycode, MouseButton, Position, ScrollDelta,
+};
 use std::ffi::{c_void, CStr};
 
 ///
@@ -71,6 +71,13 @@ impl Window {
     }
 
     ///
+    /// Sets minimum window size, excluding any window frame.
+    ///
+    pub fn set_minimum_size(&mut self, width: i32, height: i32) {
+        self.qwindow.set_minimum_size(width, height);
+    }
+
+    ///
     /// Marks the entire window as dirty and schedules a repaint.
     /// Subsequent calls to this function before the next paint event will get ignored.
     ///
@@ -133,6 +140,10 @@ fn convert_event(ffi_event: &FFIEvent) -> Option<Event> {
             keycode: convert_keycode(*keycode, modifiers),
             modifiers: convert_modifiers(*keycode, modifiers),
             text: convert_text(*text),
+        }),
+        FFIEvent::Resize { width, height } => Some(Event::Resize {
+            width: *width,
+            height: *height,
         }),
     }
 }

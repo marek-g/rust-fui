@@ -77,7 +77,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         data: &mut StackPanel,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let mut result = Size::new(0f32, 0f32);
 

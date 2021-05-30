@@ -1,8 +1,8 @@
 [package]
-name = "fui_system"
+name = "fui_system_core"
 version = "0.1.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
-description = "System controls (dialogs, tray etc.) for FUI UI Framework"
+description = "Core system elements for FUI libraries"
 keywords = ["windowing", "gui", "framework", "dialog", "tray"]
 categories = ["gui"]
 license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
@@ -12,7 +12,6 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-fui_system_core = { path = "../fui_system_core", version = "0.1" }
 thiserror = "1.0"
 
 [build-dependencies]

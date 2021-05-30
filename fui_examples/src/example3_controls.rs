@@ -10,12 +10,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 struct MainViewModel {
-    pub window_manager: Rc<RefCell<WindowManager>>,
     pub window: Rc<RefCell<dyn WindowService>>,
-
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
@@ -25,14 +22,9 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(
-        window_manager: Rc<RefCell<WindowManager>>,
-        window: Rc<RefCell<dyn WindowService>>,
-    ) -> Rc<RefCell<Self>> {
+    pub fn new(window: Rc<RefCell<dyn WindowService>>) -> Rc<RefCell<Self>> {
         Rc::new(RefCell::new(MainViewModel {
-            window_manager,
             window,
-
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
             progress: Property::new(0.5f32),
@@ -186,16 +178,14 @@ impl ViewModel for MainViewModel {
         );
 
         let mut exit_callback = Callback::empty();
-        let window_manager = vm.window_manager.clone();
         let window = vm.window.clone();
         exit_callback.set(move |_| {
-            let window_manager = window_manager.clone();
             MessageBox::builder()
                 .message("Do you really want to exit?".to_string())
                 .buttons(vec![
                     (
                         "Yes".to_string(),
-                        Callback::simple(move |_| window_manager.borrow_mut().exit()),
+                        Callback::simple(move |_| Application::exit()),
                     ),
                     ("No".to_string(), Callback::empty()),
                 ])
@@ -261,21 +251,18 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: layout").unwrap();
 
-    let window_manager = app.get_window_manager().clone();
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Example: layout");
+    window.resize(800, 600);
 
-    let mut main_window = window_manager.borrow_mut().create_window(
-        WindowBuilder::new().with_title("Example: layout"),
-        app.get_event_loop().unwrap(),
-    )?;
-    let main_view_model = MainViewModel::new(window_manager, main_window.clone());
-    main_window
+    let mut window_rc = app.create_window(window)?;
+    let vm = MainViewModel::new(window_rc.clone());
+    Application::set_window_vm(&window_rc, vm);
+    window_rc
         .borrow_mut()
-        .add_layer(ViewModel::create_view(&main_view_model));
-
-    /*app.add_window(
-        WindowBuilder::new().with_title("Example: layout"),
-        MainViewModel::new(window_manager),
-    )?;*/
+        .native_window
+        .window
+        .set_visible(true);
 
     app.run();
 

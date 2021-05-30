@@ -66,6 +66,12 @@ impl QWindow {
         }
     }
 
+    pub fn set_minimum_size(&mut self, width: i32, height: i32) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setMinimumSize(self.this, width, height);
+        }
+    }
+
     pub fn update(&mut self) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_update(self.this);

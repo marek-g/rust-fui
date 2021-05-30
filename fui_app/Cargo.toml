@@ -16,13 +16,11 @@ fui_core = { path = "../fui_core", version = "0.2" }
 fui_macros = { path = "../fui_macros", version = "0.2" }
 fui_controls = { path = "../fui_controls", version = "0.2" }
 fui_system = { path = "../fui_system", version = "0.1" }
+fui_system_core = { path = "../fui_system_core", version = "0.1" }
 drawing = { path = "../../rust-drawing/drawing", version = "0.2" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.2" }
-#drawing = "0.1"
-#drawing_gl = "0.1"
 anyhow = "1.0"
 shared_library = "0.1"
-find_folder = "0.3"
 typed-builder = "0.7"
 typemap = "0.3"
 cpu-time = "1.0"

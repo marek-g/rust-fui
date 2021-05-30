@@ -10,7 +10,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 use fui_controls_media::PlayerGl;
 //use fui_controls_media::Player;
@@ -104,12 +103,11 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: video").unwrap();
 
-    let main_view_model = MainViewModel::new(&mut app).unwrap();
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("GStreamer test");
+    window.resize(800, 600);
 
-    app.add_window(
-        WindowBuilder::new().with_title("GStreamer test"),
-        main_view_model,
-    )?;
+    app.add_window(window, MainViewModel::new(&mut app)?)?;
 
     app.run();
 

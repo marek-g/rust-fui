@@ -61,7 +61,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         _data: &mut DataHolder<T>,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {

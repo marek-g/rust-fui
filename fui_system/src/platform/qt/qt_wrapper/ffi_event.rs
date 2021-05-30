@@ -30,6 +30,9 @@ pub enum FFIEvent {
         modifiers: FFIKeyModifiers,
         text: *const c_char,
     },
+
+    /// Window resized.
+    Resize { width: i32, height: i32 },
 }
 
 /// Element state.

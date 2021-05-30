@@ -52,6 +52,13 @@ void QWindow_resize(void *self, int width, int height)
     window->resize(width, height);
 }
 
+void QWindow_setMinimumSize(void *self, int width, int height)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    QSize size(width, height);
+    window->setMinimumSize(size);
+}
+
 void QWindow_update(void *self)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

@@ -11,7 +11,6 @@ use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 struct MainViewModel {
     pub counter: Property<i32>,
@@ -92,10 +91,11 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: button").unwrap();
 
-    app.add_window(
-        WindowBuilder::new().with_title("Example: button"),
-        MainViewModel::new(),
-    )?;
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Example: button");
+    window.resize(800, 600);
+
+    app.add_window(window, MainViewModel::new())?;
 
     app.run();
 

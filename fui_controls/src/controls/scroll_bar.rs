@@ -192,7 +192,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         data: &mut ScrollBar,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         match data.orientation {
             Orientation::Horizontal => {

@@ -7,16 +7,20 @@ use crate::{
 };
 use fui_macros::ui;
 
-pub struct Window<NativeWindow> {
-    pub native_window: NativeWindow,
+pub trait NativeWindow {
+    fn repaint(&mut self);
+}
+
+pub struct Window<NW: NativeWindow> {
+    pub native_window: NW,
     pub event_processor: EventProcessor,
     pub root_control: Rc<RefCell<dyn ControlObject>>,
 
     control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
 }
 
-impl<NativeWindow> Window<NativeWindow> {
-    pub fn new(native_window: NativeWindow) -> Self {
+impl<NW: NativeWindow> Window<NW> {
+    pub fn new(native_window: NW) -> Self {
         let control_layers = ObservableVec::<Rc<RefCell<dyn ControlObject>>>::new();
 
         let content = ui!(
@@ -33,7 +37,7 @@ impl<NativeWindow> Window<NativeWindow> {
         }
     }
 
-    pub fn get_native_window(&self) -> &NativeWindow {
+    pub fn get_native_window(&self) -> &NW {
         &self.native_window
     }
 
@@ -46,7 +50,7 @@ impl<NativeWindow> Window<NativeWindow> {
     }
 }
 
-impl<NativeWindow> WindowService for Window<NativeWindow> {
+impl<NW: NativeWindow> WindowService for Window<NW> {
     fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.push(control);
     }
@@ -54,5 +58,9 @@ impl<NativeWindow> WindowService for Window<NativeWindow> {
     fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
         self.control_layers
             .remove_filter(|el| Rc::ptr_eq(el, control));
+    }
+
+    fn repaint(&mut self) {
+        self.native_window.repaint();
     }
 }

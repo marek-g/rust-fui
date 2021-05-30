@@ -138,6 +138,13 @@ bool QWindowExt::convertEventToRust(QEvent *event, FFIEvent &ffiEvent)
             return true;
         }
 
+        case QEvent::Resize: {
+            ffiEvent.tag = FFIEvent::Tag::Resize;
+            ffiEvent.resize.width = ((QResizeEvent*)event)->size().width();
+            ffiEvent.resize.height = ((QResizeEvent*)event)->size().height();
+            return true;
+        }
+
         default: return false;
     }
 }

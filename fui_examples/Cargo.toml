@@ -16,18 +16,16 @@ fui_core = { path = "../fui_core", version = "0.2" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.2" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.2" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.2" }
-winit = "0.23"
+fui_system = { path = "../../rust-fui/fui_system", version = "0.1" }
 anyhow = "1.0"
 time = "0.2"
 typed-builder = "0.7"
 typemap = "0.3"
 
 fui_controls_media = { path = "../../rust-fui/fui_controls_media", version = "0.2", optional = true }
-fui_system = { path = "../../rust-fui/fui_system", version = "0.1", optional = true }
 
 [features]
 video = ["fui_controls_media"]
-system = ["fui_system"]
 
 [[bin]]
 name = "example1_button"
@@ -57,4 +55,3 @@ required-features = ["video"]
 [[bin]]
 name = "example7_tray"
 path = "src/example7_tray.rs"
-required-features = ["system"]

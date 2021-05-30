@@ -10,11 +10,13 @@ use fui_system::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
 use std::thread;
 use std::time::Duration;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 struct MainViewModel {
     pub counter: Property<i32>,
@@ -93,74 +95,60 @@ impl ViewModel for MainViewModel {
 }
 
 fn main() -> Result<()> {
-    let mut app = Application::new("Example: tray").unwrap();
+    let mut app = fui_app::Application::new("Example: tray").unwrap();
 
-    let tray_thread = thread::spawn(move || {
-        let system_app = SystemApplication::new("Example: tray");
+    let menu_items = vec![
+        fui_system::MenuItem::folder(
+            "File",
+            vec![
+                fui_system::MenuItem::simple("Open...", || {}),
+                fui_system::MenuItem::simple("Save...", || {}),
+                fui_system::MenuItem::folder(
+                    "Export",
+                    vec![
+                        fui_system::MenuItem::simple("PDF...", || {}),
+                        fui_system::MenuItem::simple("PNG...", || {}),
+                        fui_system::MenuItem::simple("HTML...", || {}),
+                    ],
+                ),
+                fui_system::MenuItem::Separator,
+                fui_system::MenuItem::simple("Exit", || fui_app::Application::exit()),
+            ],
+        ),
+        fui_system::MenuItem::folder(
+            "Help",
+            vec![
+                fui_system::MenuItem::simple("Help", || {}),
+                fui_system::MenuItem::Separator,
+                fui_system::MenuItem::simple("About", || {}),
+            ],
+        ),
+    ];
 
-        let menu_items = vec![
-            MenuItem::folder(
-                "File",
-                vec![
-                    MenuItem::simple("Open...", None),
-                    MenuItem::simple("Save...", None),
-                    MenuItem::folder(
-                        "Export",
-                        vec![
-                            MenuItem::simple("PDF...", None),
-                            MenuItem::simple("PNG...", None),
-                            MenuItem::simple("HTML...", None),
-                        ],
-                    ),
-                    MenuItem::Separator,
-                    MenuItem::simple("Exit", None),
-                ],
-            ),
-            MenuItem::folder(
-                "Help",
-                vec![
-                    MenuItem::simple("Help", None),
-                    MenuItem::Separator,
-                    MenuItem::simple("About", None),
-                ],
-            ),
-        ];
+    let icon_path = Path::new("assets")
+        .join("icon.png")
+        .into_os_string()
+        .into_string()
+        .unwrap();
+    let mut file = File::open(icon_path).unwrap();
+    let mut icon_data = Vec::new();
+    file.read_to_end(&mut icon_data)?;
+    let icon = Icon::from_data(&icon_data).unwrap();
 
-        let mut tray = TrayIcon::new().unwrap();
-        let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
-        tray.set_menu(&menu_items);
-        tray.set_icon(&icon_data);
-        tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
-        tray.set_visible(true).unwrap();
+    let mut tray = TrayIcon::new().unwrap();
+    tray.set_menu(menu_items);
+    tray.set_icon(&icon);
+    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
+    tray.set_visible(true).unwrap();
 
-        let mut tray2 = TrayIcon::new().unwrap();
-        tray2.set_menu(&menu_items);
-        tray2.set_icon(&icon_data);
-        tray2.set_visible(true).unwrap();
-
-        let icon_data = std::fs::read("/usr/share/icons/gnome/32x32/actions/add.png").unwrap();
-        tray.show_message(
-            "Title",
-            "Hello world",
-            TrayIconType::Custom(&icon_data),
-            5000,
-        )
+    tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
         .unwrap();
 
-        let mut window = Window::new(None).unwrap();
-        window.set_title("Hello Qt!").unwrap();
-        window.set_visible(true).unwrap();
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Example: tray");
+    window.resize(800, 600);
 
-        SystemApplication::message_loop();
-    });
-
-    //std::thread::sleep(Duration::from_secs(2));
-    //SystemApplication::exit_message_loop();
-
-    app.add_window(
-        WindowBuilder::new().with_title("Example: tray"),
-        MainViewModel::new(),
-    )?;
+    app.add_window(window, MainViewModel::new())?;
 
     app.run();
 

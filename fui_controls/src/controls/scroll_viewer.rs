@@ -32,8 +32,8 @@ impl ScrollViewer {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let mut offset_x_prop = Property::new(0.0f32);
-        let mut offset_y_prop = Property::new(0.0f32);
+        let offset_x_prop = Property::new(0.0f32);
+        let offset_y_prop = Property::new(0.0f32);
 
         let viewport_info_prop_src = Property::new(ViewportInfo::default());
 

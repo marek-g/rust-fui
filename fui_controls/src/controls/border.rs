@@ -7,7 +7,6 @@ use typed_builder::TypedBuilder;
 
 use crate::style::*;
 use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use std::sync::mpsc::channel;
 
 pub enum BorderType {
     None,
@@ -96,7 +95,7 @@ impl Style<Border> for DefaultBorderStyle {
         data: &mut Border,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
 

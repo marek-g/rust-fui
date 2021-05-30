@@ -1,7 +1,7 @@
 use crate::platform::qt::qt_wrapper::QApplicationAttribute;
 use crate::platform::qt::qt_wrapper::{QApplication, QString, QSurfaceFormat};
 use crate::platform::ApplicationOptions;
-use crate::{FUISystemError, LoopProxy};
+use crate::{Dispatcher, FUISystemError};
 
 ///
 /// The application.
@@ -32,11 +32,11 @@ impl Application {
     }
 
     ///
-    /// Gets LoopProxy that allows to communicate
-    /// with main message loop from the same thread.
+    /// Gets Dispatcher that allows to communicate
+    /// with a message loop from the same thread.
     ///
-    pub fn get_loop_proxy(&self) -> LoopProxy {
-        LoopProxy::new()
+    pub fn get_dispatcher(&self) -> Dispatcher {
+        Dispatcher::new()
     }
 
     ///

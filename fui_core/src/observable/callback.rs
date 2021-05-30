@@ -1,18 +1,17 @@
+use crate::post_func_current_thread;
 use std::cell::RefCell;
-use std::collections::VecDeque;
-use std::rc::{Rc, Weak};
-
-thread_local! {
-    static THREAD_CALLBACKS: RefCell<VecDeque<Box<dyn EmittedCallback>>> = RefCell::new(VecDeque::new());
-}
+use std::rc::Rc;
 
 ///
 /// Callback can hold one listener that can be queued to execute with emit() method.
-/// The real execution will be done later on the same thread
-/// (you must explicitly call CallbackExecutor::execute_all_in_queue() to do it).
-/// Callbacks are queued because this prevents mutability problems when callbacks are called from callbacks.
+/// The real execution will be done later on the same thread.
+/// Callbacks are queued because this prevents mutability problems when callbacks are called from callbacks
+/// and you are using Rc<T>.
 ///
 /// Callback is the owner of the listener closure.
+///
+/// Before the first use, you must register your Dispatcher abstraction
+/// with register_current_thread_dispatcher() function.
 ///
 #[derive(Clone)]
 pub struct Callback<A> {
@@ -77,49 +76,13 @@ impl<A: 'static + Clone> Callback<A> {
     }
 
     pub fn emit(&self, args: A) {
-        if let Some(ref f) = self.callback {
-            let e = EmittedCallbackStruct {
-                callback: Rc::downgrade(f),
-                args: args,
-            };
-            THREAD_CALLBACKS.with(|coll| {
-                coll.borrow_mut().push_back(Box::new(e));
-            });
-        }
-    }
-}
-
-///
-/// Allows direct execution of callbacks stored in the thread local queue.
-///
-pub struct CallbackExecutor;
-
-impl CallbackExecutor {
-    pub fn execute_all_in_queue() {
-        THREAD_CALLBACKS.with(|coll| {
-            while coll.borrow().len() > 0 {
-                let emitted = coll.borrow_mut().pop_front();
-                if let Some(el) = emitted {
-                    el.execute();
+        if let Some(f) = &self.callback {
+            let weak = Rc::downgrade(f);
+            post_func_current_thread(Box::new(move || {
+                if let Some(f) = weak.upgrade() {
+                    f.borrow_mut()(args);
                 }
-            }
-        });
-    }
-}
-
-trait EmittedCallback {
-    fn execute(&self);
-}
-
-struct EmittedCallbackStruct<A> {
-    callback: Weak<RefCell<dyn 'static + FnMut(A)>>,
-    args: A,
-}
-
-impl<A: Clone> EmittedCallback for EmittedCallbackStruct<A> {
-    fn execute(&self) {
-        if let Some(callback) = self.callback.upgrade() {
-            callback.borrow_mut()(self.args.clone());
+            }));
         }
     }
 }

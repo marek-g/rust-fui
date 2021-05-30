@@ -1,10 +1,4 @@
-use std::cell::RefCell;
-use std::f32;
-use std::rc::Rc;
-
 use crate::{Rect, Size, Thickness};
-use drawing::primitive::Primitive;
-use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
 //

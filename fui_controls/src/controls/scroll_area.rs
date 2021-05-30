@@ -107,7 +107,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         _data: &mut ScrollArea,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         self.content_size = if let Some(ref content) = children.into_iter().next() {

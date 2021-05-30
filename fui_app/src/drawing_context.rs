@@ -11,19 +11,22 @@ use drawing::resources::Resources;
 use drawing::TextureFont;
 use drawing_gl::*;
 
-use find_folder;
+use crate::GlWindow;
+use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::Read;
+use std::path::Path;
 
 pub type DrawingDevice = GlDevice;
 pub type DrawingTexture = GlTexture;
-pub type DrawingWindowTarget = GlWindowTarget;
 pub type DrawingFont = TextureFont<DrawingDevice>;
 
 pub struct DrawingContext {
-    resources: Resources<DrawingDevice, DrawingFont>,
-    device: DrawingDevice,
-    renderer: Renderer,
+    pub(crate) resources: Resources<DrawingDevice, DrawingFont>,
+    pub(crate) device: DrawingDevice,
+    pub(crate) renderer: Renderer,
+
+    pub(crate) background_texture: i32,
 }
 
 impl DrawingContext {
@@ -32,25 +35,14 @@ impl DrawingContext {
             resources: Resources::new(),
             device: DrawingDevice::new()?,
             renderer: Renderer::new(),
-        })
-    }
 
-    pub fn create_window(
-        &mut self,
-        window_builder: WindowBuilder,
-        event_loop: &EventLoop<()>,
-        shared_window_target: Option<&DrawingWindowTarget>,
-    ) -> Result<DrawingWindowTarget> {
-        Ok(self
-            .device
-            .create_window_target(window_builder, &event_loop, shared_window_target)?)
+            background_texture: -1,
+        })
     }
 
     pub fn get_font(&mut self, font_name: &'static str) -> Result<&mut DrawingFont> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = find_folder::Search::ParentsThenKids(3, 3)
-                .for_folder("assets")
-                .unwrap()
+            let font_path = Path::new("assets")
                 .join(font_name)
                 .into_os_string()
                 .into_string()
@@ -80,9 +72,7 @@ impl DrawingContext {
         text: &str,
     ) -> Result<(u16, u16)> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = find_folder::Search::ParentsThenKids(3, 3)
-                .for_folder("assets")
-                .unwrap()
+            let font_path = Path::new("assets")
                 .join(font_name)
                 .into_os_string()
                 .into_string()
@@ -112,9 +102,7 @@ impl DrawingContext {
         text: &str,
     ) -> Result<(Vec<i16>, u16)> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = find_folder::Search::ParentsThenKids(3, 3)
-                .for_folder("assets")
-                .unwrap()
+            let font_path = Path::new("assets")
                 .join(font_name)
                 .into_os_string()
                 .into_string()
@@ -176,17 +164,14 @@ impl DrawingContext {
         Ok(())
     }
 
-    pub fn update_size(
-        &mut self,
-        window_target: &mut DrawingWindowTarget,
-        width: u16,
-        height: u16,
-    ) {
-        window_target.update_size(width, height);
+    pub fn update_size(&mut self, window_target: &mut GlWindow, width: u16, height: u16) {
+        // TODO:
+        //window_target.update_size(width, height);
     }
 
-    pub fn begin(&mut self, window_target: &DrawingWindowTarget) -> Result<()> {
-        self.device.begin(window_target)
+    pub fn begin(&mut self, window_target: &GlWindow) -> Result<()> {
+        self.device
+            .begin(&window_target.gl_context_data.as_ref().unwrap())
     }
 
     pub fn clear(
@@ -211,8 +196,27 @@ impl DrawingContext {
         )
     }
 
-    pub fn end(&mut self, window_target: &DrawingWindowTarget) {
-        self.device.end(window_target);
+    pub fn end(&mut self, window_target: &GlWindow) {
+        //self.device.end(&window_target.gl_context_data.as_ref().unwrap());
+    }
+
+    pub fn get_background_texture(&mut self) -> i32 {
+        // create background texture
+        if self.background_texture < 0 {
+            let mut data = [0u8; 256 * 256 * 4];
+            for i in 0..256 * 256 {
+                data[i * 4 + 0] = 60;
+                data[i * 4 + 1] = thread_rng().gen_range(90 - 15, 90 + 16);
+                data[i * 4 + 2] = 60;
+                data[i * 4 + 3] = 255;
+            }
+
+            self.background_texture = self
+                .create_texture(&data, 256, 256, ColorFormat::RGBA, false)
+                .unwrap();
+        }
+
+        self.background_texture
     }
 }
 

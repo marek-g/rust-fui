@@ -1476,7 +1476,7 @@ impl Style<Grid> for DefaultGridStyle {
         data: &mut Grid,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let mut grid_desired_size = Size::new(0.0f32, 0.0f32);
 

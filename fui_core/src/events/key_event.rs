@@ -2,6 +2,7 @@
 pub struct KeyEvent {
     pub state: KeyState,
     pub keycode: Option<Keycode>,
+    pub is_repeat: bool,
     pub text: Option<String>,
     pub modifiers: KeyModifiers,
 }
@@ -42,20 +43,13 @@ pub enum Keycode {
     Down,
     Backspace,
     Tab,
+    CapsLock,
     Enter,
-    LShift,
-    RShift,
-    LCtrl,
-    RCtrl,
-    LAlt,
-    RAlt,
-    LWin,
-    RWin,
+    Shift,
+    Ctrl,
+    Alt,
+    Win,
     NumLock,
-    NumpadEnter,
-    Copy,
-    Paste,
-    Cut,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -64,4 +58,11 @@ pub struct KeyModifiers {
     pub ctrl: bool,
     pub alt: bool,
     pub win: bool,
+
+    /// does the key belong to the keypad
+    pub keypad: bool,
+
+    /// is it the right variant of the key (like right shift, alt, etc.)
+    /// this is not yet behaving correctly
+    pub right: bool,
 }

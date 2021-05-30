@@ -1,18 +1,7 @@
 use crate::common::Point;
 use crate::events::key_event::KeyEvent;
 
-pub enum MouseButton {
-    Left,
-    Right,
-    Middle,
-    Other(u8),
-}
-
-pub enum ElementState {
-    Pressed,
-    Released,
-}
-
+#[derive(Debug, Clone)]
 pub enum InputEvent {
     CursorEntered {},
 
@@ -28,4 +17,18 @@ pub enum InputEvent {
     },
 
     KeyboardInput(KeyEvent),
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum ElementState {
+    Pressed,
+    Released,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum MouseButton {
+    Left,
+    Right,
+    Middle,
+    Other(u8),
 }

@@ -105,10 +105,28 @@ impl ControlContext {
     }
 
     pub fn set_is_dirty(&mut self, is_dirty: bool) {
+        let is_change = self.is_dirty != is_dirty;
         self.is_dirty = is_dirty;
+
         if is_dirty {
             if let Some(ref parent) = self.get_parent() {
                 parent.borrow_mut().get_context_mut().set_is_dirty(is_dirty)
+            } else {
+                // this is a root control
+                if is_change {
+                    // post window repaint
+                    // (cannot call it directly because services can be already borrowed)
+                    if let Some(services) = self.services.clone() {
+                        post_func_current_thread(Box::new(move || {
+                            if let Some(services) = services.upgrade() {
+                                services
+                                    .borrow_mut()
+                                    .get_window_service()
+                                    .map(|s| s.borrow_mut().repaint());
+                            }
+                        }));
+                    }
+                }
             }
         }
     }

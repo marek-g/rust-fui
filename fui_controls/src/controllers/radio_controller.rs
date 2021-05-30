@@ -33,8 +33,8 @@ pub struct RadioController<R>
 where
     R: 'static + RadioElement,
 {
-    elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>>,
-    subscriptions: Rc<RefCell<Vec<EventSubscription>>>,
+    _elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>>,
+    _subscriptions: Rc<RefCell<Vec<EventSubscription>>>,
 }
 
 impl<R> RadioController<R>
@@ -103,8 +103,8 @@ where
             }));
 
         RadioController {
-            elements,
-            subscriptions,
+            _elements: elements,
+            _subscriptions: subscriptions,
         }
     }
 }

@@ -6,8 +6,6 @@ use fui_core::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use std::sync::mpsc::channel;
 
 #[derive(TypedBuilder)]
 pub struct Shadow {}
@@ -68,7 +66,7 @@ impl Style<Shadow> for DefaultShadowStyle {
         _data: &mut Shadow,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
 

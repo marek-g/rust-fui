@@ -17,7 +17,6 @@ pub struct EventProcessor {
     captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
     focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
 
-    is_hover_enabled: bool,
     cursor_pos: Option<Point>,
 
     gesture_detector: GestureDetector,
@@ -32,7 +31,6 @@ impl EventProcessor {
             captured_control: None,
             focused_control: None,
 
-            is_hover_enabled: true,
             cursor_pos: None,
 
             gesture_detector: GestureDetector::new(),

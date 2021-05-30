@@ -305,7 +305,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         data: &mut TextBox,
         _control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let (_text_width, text_height) = drawing_context
             .get_resources()

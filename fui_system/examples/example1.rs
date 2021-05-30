@@ -75,10 +75,10 @@ fn main() {
             }
         }),
         MenuItem::simple("Post callback", {
-            let loop_proxy = app.get_loop_proxy();
+            let dispatcher = app.get_dispatcher();
             move || {
                 let var = Rc::new(RefCell::new(true));
-                loop_proxy.post_func(move || println!("Posted function! {}", *var.borrow_mut()));
+                dispatcher.post_func(move || println!("Posted function! {}", *var.borrow_mut()));
             }
         }),
         MenuItem::Separator,

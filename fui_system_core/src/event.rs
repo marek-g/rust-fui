@@ -27,6 +27,9 @@ pub enum Event {
         modifiers: KeyModifiers,
         text: Option<String>,
     },
+
+    /// Window resized.
+    Resize { width: i32, height: i32 },
 }
 
 /// Element state.

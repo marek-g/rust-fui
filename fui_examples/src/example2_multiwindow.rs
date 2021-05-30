@@ -10,7 +10,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use typemap::TypeMap;
-use winit::window::WindowBuilder;
 
 use Property;
 
@@ -70,15 +69,17 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: multiwindow").unwrap();
 
-    app.add_window(
-        WindowBuilder::new().with_title("Window 1"),
-        MainViewModel::new(),
-    )?;
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Window 1");
+    window.resize(800, 600);
 
-    app.add_window(
-        WindowBuilder::new().with_title("Window 2"),
-        MainViewModel::new(),
-    )?;
+    app.add_window(window, MainViewModel::new())?;
+
+    let mut window = fui_system::Window::new(None).unwrap();
+    window.set_title("Window 2");
+    window.resize(800, 600);
+
+    app.add_window(window, MainViewModel::new())?;
 
     app.run();
 

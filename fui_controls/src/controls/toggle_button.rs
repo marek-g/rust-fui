@@ -132,7 +132,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
@@ -525,8 +525,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
                         self.is_tapped.set(true);
                     } else {
                         self.is_tapped.set(false);
@@ -553,7 +553,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
@@ -719,8 +719,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
                         self.is_tapped.set(true);
                     } else {
                         self.is_tapped.set(false);
@@ -747,7 +747,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {
@@ -883,7 +883,7 @@ pub struct DropDownToggleButtonStyle {
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
-    clicked: Callback<()>,
+    _clicked: Callback<()>,
     event_subscriptions: Vec<EventSubscription>,
 }
 
@@ -893,7 +893,7 @@ impl DropDownToggleButtonStyle {
             is_tapped: Property::new(false),
             is_hover: Property::new(false),
             is_focused: Property::new(false),
-            clicked: params.clicked,
+            _clicked: params.clicked,
             event_subscriptions: Vec::new(),
         }
     }
@@ -942,8 +942,8 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
                         self.is_tapped.set(true);
                     } else {
                         self.is_tapped.set(false);
@@ -970,7 +970,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         _data: &mut ToggleButton,
         control_context: &mut ControlContext,
         drawing_context: &mut dyn DrawingContext,
-        mut size: Size,
+        size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = if let Some(ref content) = children.into_iter().next() {

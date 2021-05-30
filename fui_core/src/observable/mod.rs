@@ -1,6 +1,9 @@
 mod callback;
 pub use callback::*;
 
+mod dispatcher;
+pub use dispatcher::*;
+
 mod event;
 pub use event::*;
 

@@ -9,5 +9,5 @@ pub use dispatcher::*;
 
 mod event_converter;
 
-mod window_manager;
-pub use window_manager::*;
+mod gl_window;
+pub use gl_window::*;

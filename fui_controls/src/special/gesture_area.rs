@@ -66,7 +66,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
                 data.tap_down.emit(());
             }
 
-            ControlEvent::TapUp { ref position } => {
+            ControlEvent::TapUp { .. } => {
                 data.tap_up.emit(());
             }
 

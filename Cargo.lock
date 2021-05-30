@@ -488,12 +488,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "find_folder"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f6d018fb95a0b59f854aed68ecd96ce2b80af7911b92b1fed3c4b1fa516b91b"
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -560,11 +554,11 @@ dependencies = [
  "cpu-time",
  "drawing",
  "drawing_gl",
- "find_folder",
  "fui_controls",
  "fui_core",
  "fui_macros",
  "fui_system",
+ "fui_system_core",
  "rand 0.7.3",
  "shared_library",
  "typed-builder",
@@ -630,7 +624,6 @@ dependencies = [
  "time",
  "typed-builder",
  "typemap",
- "winit",
 ]
 
 [[package]]
@@ -646,6 +639,18 @@ dependencies = [
 
 [[package]]
 name = "fui_system"
+version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "cbindgen",
+ "fui_system_core",
+ "gl",
+ "rust-embed",
+ "thiserror",
+]
+
+[[package]]
+name = "fui_system_core"
 version = "0.1.0"
 dependencies = [
  "bindgen",
