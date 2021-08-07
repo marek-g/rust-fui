@@ -28,6 +28,7 @@ pub trait Style<D> {
         drawing_context: &mut dyn DrawingContext,
         size: Size,
     ) -> Size;
+
     fn set_rect(
         &mut self,
         data: &mut D,
