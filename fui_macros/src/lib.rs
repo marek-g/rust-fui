@@ -81,7 +81,7 @@ use crate::parser::CtrlProperty;
 //
 // translates to:
 //
-// <Text>::builder().text("Text").build().to_view(
+// <Text>::builder().text("Text".into()).build().to_view(
 //     Some(Box::new(<DefaultTextStyle>::new(<DefaultTextStyleParams>::builder()
 //         color([1.0, 0.0, 0.0, 1.0].into()).build()))),
 //     ViewContext {
