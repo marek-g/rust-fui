@@ -47,6 +47,10 @@ impl Menu {
             }
         );
 
+        menu.borrow_mut()
+            .get_context_mut()
+            .set_attached_values(context.attached_values);
+
         let uncovered_controls: Vec<_> = vec![Rc::downgrade(&menu)];
 
         for item in self.items.into_iter() {
@@ -79,14 +83,7 @@ impl Menu {
             });
         }
 
-        let data_holder = DataHolder { data: () };
-        data_holder.to_view(
-            None,
-            ViewContext {
-                attached_values: context.attached_values,
-                children: Children::SingleStatic(menu),
-            },
-        )
+        menu
     }
 
     fn menu_item_to_view(

@@ -74,6 +74,10 @@ impl ControlContext {
         &self.attached_values
     }
 
+    pub fn set_attached_values(&mut self, attached_values: TypeMap) {
+        self.attached_values = attached_values;
+    }
+
     ///
     /// Available only when control is added to the window.
     /// Not yet set during control setup().
