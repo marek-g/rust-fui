@@ -7,5 +7,6 @@
   - [Margin](layout_margin.md)
   - [Visible](layout_visible.md)
 - [Events](events.md)
+- [Async support](async.md)
 - [Internationalization](i18n.md)
   - [Text translation](i18n_text_translation.md)

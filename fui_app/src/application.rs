@@ -113,6 +113,9 @@ impl Application {
         self.app.message_loop();
     }
 
+    #[cfg(feature = "async")]
+    pub fn run_async(&mut self) {}
+
     pub fn exit() {
         fui_system::Application::exit(0);
     }

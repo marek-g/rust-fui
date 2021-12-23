@@ -22,9 +22,11 @@ time = "0.2"
 typed-builder = "0.7"
 typemap = "0.3"
 
+tokio = { version = "1", features = ["full"], optional = true }
 fui_controls_media = { path = "../../rust-fui/fui_controls_media", version = "0.2", optional = true }
 
 [features]
+async = ["tokio", "fui_app/async"]
 video = ["fui_controls_media"]
 
 [[bin]]
@@ -55,3 +57,8 @@ required-features = ["video"]
 [[bin]]
 name = "example7_tray"
 path = "src/example7_tray.rs"
+
+[[bin]]
+name = "example8_async"
+path = "src/example8_async.rs"
+required-features = ["async"]
