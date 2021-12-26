@@ -251,14 +251,16 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: layout").unwrap();
 
-    let mut window_rc = app.create_window(
+    let window = app.create_window(
         WindowOptions::new()
             .with_title("Example: layout")
             .with_size(800, 600),
     )?;
-    let vm = MainViewModel::new(window_rc.clone());
-    Application::set_window_vm(&window_rc, vm);
-    window_rc
+    let vm = MainViewModel::new(window.get_window_service().unwrap());
+    Application::set_window_vm(&window, vm);
+    window
+        .get_core_window()
+        .unwrap()
         .borrow_mut()
         .native_window
         .window

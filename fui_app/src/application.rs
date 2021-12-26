@@ -17,7 +17,7 @@ pub struct Application {
     event_loop_iteration: Rc<RefCell<Event<()>>>,
     drawing_context: Rc<RefCell<DrawingContext>>,
 
-    windows: Vec<Rc<RefCell<Window<GlWindow>>>>,
+    windows: Vec<crate::Window>,
     window_services: Vec<Rc<RefCell<Services>>>,
 }
 
@@ -46,39 +46,25 @@ impl Application {
         })
     }
 
-    pub fn get_title(&self) -> &'static str {
-        self.title
-    }
-
-    pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
+    /*pub fn get_drawing_context(&self) -> &Rc<RefCell<DrawingContext>> {
         &self.drawing_context
     }
 
     pub fn get_event_loop_interation(&self) -> &Rc<RefCell<Event<()>>> {
         &self.event_loop_iteration
-    }
+    }*/
 
     pub fn add_window<V: ViewModel>(
         &mut self,
         window_options: WindowOptions,
         view_model: Rc<RefCell<V>>,
-    ) -> Result<Rc<RefCell<Window<GlWindow>>>> {
-        let mut window_rc = self.create_window(window_options)?;
-        Self::set_window_vm(&window_rc, view_model);
-
-        window_rc
-            .borrow_mut()
-            .native_window
-            .window
-            .set_visible(true);
-
-        Ok(window_rc)
+    ) -> Result<crate::Window> {
+        let mut window = self.create_window(window_options)?;
+        Self::set_window_vm(&window, view_model);
+        Ok(window)
     }
 
-    pub fn create_window(
-        &mut self,
-        window_options: WindowOptions,
-    ) -> Result<Rc<RefCell<Window<GlWindow>>>> {
+    pub fn create_window(&mut self, window_options: WindowOptions) -> Result<crate::Window> {
         let mut native_window = fui_system::Window::new(None)?;
         native_window.set_title(&window_options.title)?;
         native_window.resize(window_options.width, window_options.height);
@@ -88,33 +74,40 @@ impl Application {
             native_window.set_icon(&icon);
         }
 
-        let window = Window::new(GlWindow::new(native_window));
-        let window_rc = Rc::new(RefCell::new(window));
+        let core_window = fui_core::Window::new(GlWindow::new(native_window));
+        let mut window = crate::Window::new();
+        window.set_core_window(core_window);
 
-        let window_service_rc: Rc<RefCell<dyn WindowService>> = window_rc.clone();
+        // TODO: do not unwrap when event loop is not yet running
+        let window_service_rc: Rc<RefCell<dyn WindowService>> =
+            window.get_window_service().unwrap().clone();
 
         let services = Rc::new(RefCell::new(Services::new(&window_service_rc)));
-        window_rc
+        window
+            .get_core_window()
+            .unwrap()
             .borrow()
             .get_root_control()
             .borrow_mut()
             .get_context_mut()
             .set_services(Some(Rc::downgrade(&services)));
 
-        self.setup_window(&window_rc);
+        self.setup_window(&window.get_core_window().unwrap());
 
-        self.windows.push(window_rc.clone());
+        self.windows.push(window.clone());
         self.window_services.push(services);
 
-        Ok(window_rc)
+        Ok(window)
     }
 
-    pub fn set_window_vm<V: ViewModel>(
-        window_rc: &Rc<RefCell<Window<GlWindow>>>,
-        view_model: Rc<RefCell<V>>,
-    ) {
+    pub fn set_window_vm<V: ViewModel>(window: &crate::Window, view_model: Rc<RefCell<V>>) {
         let view = ViewModel::create_view(&view_model);
-        window_rc.borrow_mut().add_layer(view);
+        // TODO: do not unwrap when event loop is not yet running
+        window
+            .get_window_service()
+            .unwrap()
+            .borrow_mut()
+            .add_layer(view);
     }
 
     pub fn run(&mut self) {
