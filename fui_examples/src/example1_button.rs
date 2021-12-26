@@ -91,11 +91,12 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: button").unwrap();
 
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Example: button");
-    window.resize(800, 600);
-
-    app.add_window(window, MainViewModel::new())?;
+    app.add_window(
+        WindowOptions::new()
+            .with_title("Example: button")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )?;
 
     app.run();
 

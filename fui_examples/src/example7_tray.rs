@@ -144,11 +144,12 @@ fn main() -> Result<()> {
     tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
         .unwrap();
 
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Example: tray");
-    window.resize(800, 600);
-
-    app.add_window(window, MainViewModel::new())?;
+    app.add_window(
+        WindowOptions::new()
+            .with_title("Example: tray")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )?;
 
     app.run();
 

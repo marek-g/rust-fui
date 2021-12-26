@@ -8,6 +8,7 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::thread;
 
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
@@ -90,16 +91,29 @@ impl ViewModel for MainViewModel {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut app = Application::new("Example: button").unwrap();
+    println!("Running main in thread: {:?}", thread::current().id());
 
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Example: button");
-    window.resize(800, 600);
+    let thread_join_handle = std::thread::Builder::new()
+        .name("GUI".to_string())
+        .spawn(move || {
+            let mut app = Application::new("Example: async").unwrap();
 
-    app.add_window(window, MainViewModel::new())?;
+            app.add_window(
+                WindowOptions::new()
+                    .with_title("Example: async")
+                    .with_size(800, 600),
+                MainViewModel::new(),
+            )
+            .unwrap();
 
-    //app.run();
-    app.run_async();
+            println!("Running qt in thread: {:?}", thread::current().id());
+
+            app.run();
+            //app.run_async();
+        })
+        .unwrap();
+
+    let res = thread_join_handle.join();
 
     Ok(())
 }

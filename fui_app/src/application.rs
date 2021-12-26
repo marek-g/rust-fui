@@ -5,9 +5,9 @@ use anyhow::Result;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::DrawingContext;
 use crate::FuiDrawingContext;
 use crate::GlWindow;
+use crate::{DrawingContext, WindowOptions};
 use drawing_gl::GlRenderTarget;
 use rand::{thread_rng, Rng};
 
@@ -24,11 +24,10 @@ pub struct Application {
 impl Application {
     pub fn new(title: &'static str) -> Result<Self> {
         let app = fui_system::Application::new(
-            fui_system::ApplicationOptionsBuilder::new()
+            fui_system::ApplicationOptions::new()
                 .with_title(title)
                 .with_opengl_share_contexts(true)
-                .with_opengl_stencil_bits(8)
-                .build(),
+                .with_opengl_stencil_bits(8),
         )?;
 
         register_current_thread_dispatcher(Box::new(crate::dispatcher::Dispatcher(
@@ -61,10 +60,10 @@ impl Application {
 
     pub fn add_window<V: ViewModel>(
         &mut self,
-        window: fui_system::Window,
+        window_options: WindowOptions,
         view_model: Rc<RefCell<V>>,
     ) -> Result<Rc<RefCell<Window<GlWindow>>>> {
-        let mut window_rc = self.create_window(window)?;
+        let mut window_rc = self.create_window(window_options)?;
         Self::set_window_vm(&window_rc, view_model);
 
         window_rc
@@ -78,8 +77,17 @@ impl Application {
 
     pub fn create_window(
         &mut self,
-        native_window: fui_system::Window,
+        window_options: WindowOptions,
     ) -> Result<Rc<RefCell<Window<GlWindow>>>> {
+        let mut native_window = fui_system::Window::new(None)?;
+        native_window.set_title(&window_options.title)?;
+        native_window.resize(window_options.width, window_options.height);
+        native_window.set_visible(window_options.visible)?;
+        if window_options.icon.len() > 0 {
+            let icon = fui_system::Icon::from_data(&window_options.icon)?;
+            native_window.set_icon(&icon);
+        }
+
         let window = Window::new(GlWindow::new(native_window));
         let window_rc = Rc::new(RefCell::new(window));
 

@@ -69,17 +69,19 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: multiwindow").unwrap();
 
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Window 1");
-    window.resize(800, 600);
+    app.add_window(
+        WindowOptions::new()
+            .with_title("Window 1")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )?;
 
-    app.add_window(window, MainViewModel::new())?;
-
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Window 2");
-    window.resize(800, 600);
-
-    app.add_window(window, MainViewModel::new())?;
+    app.add_window(
+        WindowOptions::new()
+            .with_title("Window 2")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )?;
 
     app.run();
 

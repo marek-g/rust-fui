@@ -8,7 +8,7 @@ mod window;
 mod qt_wrapper;
 
 pub use application::Application;
-pub use application_options::{ApplicationOptions, ApplicationOptionsBuilder};
+pub use application_options::ApplicationOptions;
 pub use dispatcher::Dispatcher;
 pub use icon::Icon;
 pub use tray_icon::{TrayIcon, TrayIconType};

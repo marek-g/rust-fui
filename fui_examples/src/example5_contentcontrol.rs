@@ -105,11 +105,12 @@ impl ViewModel for Item2ViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: content control").unwrap();
 
-    let mut window = fui_system::Window::new(None).unwrap();
-    window.set_title("Example: content control");
-    window.resize(800, 600);
-
-    app.add_window(window, MainViewModel::new())?;
+    app.add_window(
+        WindowOptions::new()
+            .with_title("Example: content control")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )?;
 
     app.run();
 

@@ -8,17 +8,7 @@ pub struct ApplicationOptions {
     pub opengl_stencil_bits: i32,
 }
 
-///
-/// Builder for ApplicationOptions.
-///
-pub struct ApplicationOptionsBuilder {
-    title: String,
-
-    opengl_share_contexts: bool,
-    opengl_stencil_bits: i32,
-}
-
-impl ApplicationOptionsBuilder {
+impl ApplicationOptions {
     ///
     /// Creates new builder.
     ///
@@ -33,45 +23,25 @@ impl ApplicationOptionsBuilder {
     ///
     /// Sets the application title.
     ///
-    pub fn with_title(self, title: &str) -> Self {
-        Self {
-            title: title.to_string(),
-            opengl_share_contexts: self.opengl_share_contexts,
-            opengl_stencil_bits: self.opengl_stencil_bits,
-        }
+    pub fn with_title(mut self, title: &str) -> Self {
+        self.title = title.to_string();
+        self
     }
 
     ///
     /// Enables automatically created shared contexts between windows.
     ///
-    pub fn with_opengl_share_contexts(self, share: bool) -> Self {
-        Self {
-            title: self.title,
-            opengl_share_contexts: share,
-            opengl_stencil_bits: self.opengl_stencil_bits,
-        }
+    pub fn with_opengl_share_contexts(mut self, share: bool) -> Self {
+        self.opengl_share_contexts = share;
+        self
     }
 
     ///
     /// Sets bits of the the stencil buffer.
     /// 0 - disables stencil buffer, 8 - standard stencil buffer.
     ///
-    pub fn with_opengl_stencil_bits(self, bits: i32) -> Self {
-        Self {
-            title: self.title,
-            opengl_share_contexts: self.opengl_share_contexts,
-            opengl_stencil_bits: bits,
-        }
-    }
-
-    ///
-    /// Creates ApplicationOptions object.
-    ///
-    pub fn build(self) -> ApplicationOptions {
-        ApplicationOptions {
-            title: self.title,
-            opengl_share_contexts: self.opengl_share_contexts,
-            opengl_stencil_bits: self.opengl_stencil_bits,
-        }
+    pub fn with_opengl_stencil_bits(mut self, bits: i32) -> Self {
+        self.opengl_stencil_bits = bits;
+        self
     }
 }
