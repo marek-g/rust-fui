@@ -96,7 +96,7 @@ async fn main() -> Result<()> {
     let thread_join_handle = std::thread::Builder::new()
         .name("GUI".to_string())
         .spawn(move || {
-            let mut app = Application::new("Example: async").unwrap();
+            let mut app = Application::new("Example: async");
 
             app.add_window(
                 WindowOptions::new()
@@ -108,7 +108,7 @@ async fn main() -> Result<()> {
 
             println!("Running qt in thread: {:?}", thread::current().id());
 
-            app.run();
+            app.run().unwrap();
             //app.run_async();
         })
         .unwrap();

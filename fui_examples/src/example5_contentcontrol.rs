@@ -103,7 +103,7 @@ impl ViewModel for Item2ViewModel {
     }
 }
 fn main() -> Result<()> {
-    let mut app = Application::new("Example: content control").unwrap();
+    let mut app = Application::new("Example: content control");
 
     app.add_window(
         WindowOptions::new()
@@ -112,7 +112,7 @@ fn main() -> Result<()> {
         MainViewModel::new(),
     )?;
 
-    app.run();
+    app.run()?;
 
     Ok(())
 }
