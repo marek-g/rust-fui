@@ -1,5 +1,5 @@
 use drawing_gl::GlContextData;
-use fui_core::{NativeWindow, Window, WindowService};
+use fui_core::NativeWindow;
 
 pub struct GlWindow {
     pub window: fui_system::Window,

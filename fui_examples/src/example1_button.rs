@@ -89,7 +89,7 @@ impl ViewModel for MainViewModel {
 }
 
 fn main() -> Result<()> {
-    let mut app = Application::new("Example: button");
+    let mut app = Application::new("Example: button")?;
 
     app.add_window(
         WindowOptions::new()

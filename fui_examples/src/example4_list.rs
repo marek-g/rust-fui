@@ -150,7 +150,7 @@ impl ViewModel for MainViewModel {
 }
 
 fn main() -> Result<()> {
-    let mut app = Application::new("Example: list");
+    let mut app = Application::new("Example: list")?;
 
     app.add_window(
         WindowOptions::new()

@@ -249,7 +249,7 @@ impl ViewModel for MainViewModel {
 }
 
 fn main() -> Result<()> {
-    let mut app = Application::new("Example: layout");
+    let mut app = Application::new("Example: layout")?;
 
     let window = app.create_window(
         WindowOptions::new()

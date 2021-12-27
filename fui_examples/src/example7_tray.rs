@@ -95,7 +95,7 @@ impl ViewModel for MainViewModel {
 }
 
 fn main() -> Result<()> {
-    let mut app = fui_app::Application::new("Example: tray");
+    let mut app = fui_app::Application::new("Example: tray")?;
 
     let menu_items = vec![
         fui_system::MenuItem::folder(

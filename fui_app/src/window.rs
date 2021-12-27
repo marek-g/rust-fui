@@ -1,4 +1,4 @@
-use crate::{Application, DrawingContext, FuiDrawingContext, GlWindow, WindowOptions};
+use crate::{DrawingContext, FuiDrawingContext, GlWindow, WindowOptions};
 use anyhow::Result;
 use drawing_gl::GlRenderTarget;
 use fui_core::ControlObject;
@@ -6,7 +6,7 @@ use fui_core::Rect;
 use fui_core::Size;
 use fui_core::ViewModel;
 use fui_core::WindowService;
-use std::cell::{RefCell, RefMut};
+use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 enum WindowState {
@@ -17,8 +17,8 @@ enum WindowState {
 
     Created {
         core_window: fui_core::Window<GlWindow>,
-        view: Option<Rc<RefCell<dyn ControlObject>>>,
-        window_services: Rc<RefCell<fui_core::Services>>,
+        _view: Option<Rc<RefCell<dyn ControlObject>>>,
+        _window_services: Rc<RefCell<fui_core::Services>>,
     },
 }
 
@@ -71,7 +71,7 @@ impl Window {
                 native_window.set_visible(window_options.visible)?;
                 if window_options.icon.len() > 0 {
                     let icon = fui_system::Icon::from_data(&window_options.icon)?;
-                    native_window.set_icon(&icon);
+                    native_window.set_icon(&icon)?;
                 }
 
                 let window_service_rc: Rc<RefCell<dyn WindowService>> =
@@ -89,8 +89,8 @@ impl Window {
 
                 WindowState::Created {
                     core_window,
-                    view: view_clone,
-                    window_services: services,
+                    _view: view_clone,
+                    _window_services: services,
                 }
             }
             WindowState::Created { .. } => panic!("create() called on already created window!"),
@@ -124,7 +124,7 @@ impl Window {
             let mut initialized = false;
 
             move || {
-                if let Some(mut window) = window_weak.upgrade() {
+                if let Some(window) = window_weak.upgrade() {
                     if let WindowState::Created { core_window, .. } =
                         &mut *window.state.borrow_mut()
                     {
@@ -165,7 +165,7 @@ impl Window {
             let drawing_context_clone = drawing_context.clone();
 
             move |event| {
-                if let Some(mut window) = window_weak.upgrade() {
+                if let Some(window) = window_weak.upgrade() {
                     if let Some(input_event) = crate::event_converter::convert_event(&event) {
                         if let WindowState::Created { core_window, .. } =
                             &mut *window.state.borrow_mut()
