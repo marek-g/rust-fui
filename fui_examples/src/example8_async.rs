@@ -91,29 +91,17 @@ impl ViewModel for MainViewModel {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("Running main thread: {:?}", thread::current().id());
+    let mut app = ApplicationAsync::new("Example: async").unwrap();
 
-    let thread_join_handle = std::thread::Builder::new()
-        .name("GUI".to_string())
-        .spawn(move || {
-            let mut app = Application::new("Example: async").unwrap();
+    /*app.add_window(
+        WindowOptions::new()
+            .with_title("Example: async")
+            .with_size(800, 600),
+        MainViewModel::new(),
+    )
+    .unwrap();*/
 
-            app.add_window(
-                WindowOptions::new()
-                    .with_title("Example: async")
-                    .with_size(800, 600),
-                MainViewModel::new(),
-            )
-            .unwrap();
-
-            println!("Running qt thread: {:?}", thread::current().id());
-
-            app.run().unwrap();
-            //app.run_async();
-        })
-        .unwrap();
-
-    thread_join_handle.join().unwrap();
+    app.run().unwrap();
 
     Ok(())
 }

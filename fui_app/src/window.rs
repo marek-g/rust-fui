@@ -17,7 +17,7 @@ enum WindowState {
 
     Created {
         core_window: fui_core::Window<GlWindow>,
-        _view: Option<Rc<RefCell<dyn ControlObject>>>,
+        view: Option<Rc<RefCell<dyn ControlObject>>>,
         _window_services: Rc<RefCell<fui_core::Services>>,
     },
 }
@@ -52,8 +52,15 @@ impl Window {
             }
             WindowState::Created {
                 ref mut core_window,
+                ref mut view,
                 ..
-            } => core_window.add_layer(new_view),
+            } => {
+                if let Some(view) = view.take() {
+                    core_window.remove_layer(&view);
+                }
+                core_window.add_layer(new_view.clone());
+                view.replace(new_view);
+            }
         }
     }
 
@@ -89,7 +96,7 @@ impl Window {
 
                 WindowState::Created {
                     core_window,
-                    _view: view_clone,
+                    view: view_clone,
                     _window_services: services,
                 }
             }
