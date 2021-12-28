@@ -1,19 +1,22 @@
-use crate::{Application, DrawingContext, WindowManagerAsync, WindowOptions};
+use crate::{Application, DrawingContext, GlWindow, WindowId, WindowManagerAsync, WindowOptions};
 use anyhow::Result;
 use fui_core::{register_current_thread_dispatcher, ViewModel};
 use std::borrow::BorrowMut;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::thread;
 use std::thread::JoinHandle;
 use tokio::sync::oneshot;
 
 thread_local! {
-    static APPLICATION: RefCell<Option<ApplicationContext>> = RefCell::new(None);
+    pub static APPLICATION_CONTEXT: RefCell<Option<ApplicationContext>> = RefCell::new(None);
 }
 
-struct ApplicationContext {
-    drawing_context: Rc<RefCell<DrawingContext>>,
+pub struct ApplicationContext {
+    pub drawing_context: Rc<RefCell<DrawingContext>>,
+    pub next_window_id: WindowId,
+    pub core_windows: HashMap<WindowId, fui_core::Window<GlWindow>>,
 }
 
 pub struct ApplicationAsync {
@@ -42,8 +45,12 @@ impl ApplicationAsync {
 
                 let drawing_context = Rc::new(RefCell::new(DrawingContext::new().unwrap()));
 
-                APPLICATION.with(move |context| {
-                    *context.borrow_mut() = Some(ApplicationContext { drawing_context })
+                APPLICATION_CONTEXT.with(move |context| {
+                    *context.borrow_mut() = Some(ApplicationContext {
+                        drawing_context,
+                        next_window_id: 1,
+                        core_windows: HashMap::new(),
+                    })
                 });
 
                 init_tx.send(()).unwrap();
@@ -65,52 +72,6 @@ impl ApplicationAsync {
     pub fn get_window_manager(&self) -> Rc<RefCell<WindowManagerAsync>> {
         self.window_manager.clone()
     }
-
-    /*pub async fn add_window<V: ViewModel>(
-        &mut self,
-        window_options: WindowOptions,
-        view_model: Rc<RefCell<V>>,
-    ) -> Result<crate::WindowAsync> {
-        let window = self.create_window(window_options).await?;
-
-        //window.set_vm(view_model);
-        Ok(window)
-    }
-
-    pub async fn create_window(
-        &mut self,
-        window_options: WindowOptions,
-    ) -> Result<crate::WindowAsync> {
-        let mut window = crate::WindowAsync::new(window_options.clone());
-
-        fui_system::Application::post_func(move || {
-            println!("Function Thread: {:?}", thread::current().id());
-            println!("Function posted from another thread!");
-
-            println!("{:?}", window_options.title);
-
-            let mut window = crate::Window::new(window_options);
-
-            let drawing_context = APPLICATION.with(|context| {
-                context
-                    .borrow_mut()
-                    .as_ref()
-                    .unwrap()
-                    .drawing_context
-                    .clone()
-            });
-
-            window.create(&drawing_context).unwrap();
-            //self.windows.push(window.clone());
-
-            //let mut native_window = fui_system::Window::new(None).unwrap();
-            //native_window.set_visible(true);
-            Box::leak(Box::new(window));
-        });
-
-        self.windows.push(window.clone());
-        Ok(window)
-    }*/
 
     pub fn run(&mut self) -> Result<()> {
         if let Some(handle) = self.thread_join_handle.take() {

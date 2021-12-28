@@ -29,8 +29,7 @@ impl WindowManagerAsync {
         &mut self,
         window_options: WindowOptions,
     ) -> Result<crate::WindowAsync> {
-        let mut window = crate::WindowAsync::new(window_options);
-        window.create().await?;
+        let mut window = crate::WindowAsync::create(window_options).await?;
         self.windows.push(window.clone());
         Ok(window)
     }
