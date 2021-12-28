@@ -1,16 +1,12 @@
-use fui_core::*;
-
+use crate::WindowManager;
 use anyhow::Result;
-
+use fui_core::register_current_thread_dispatcher;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{DrawingContext, WindowOptions};
-
 pub struct Application {
     app: fui_system::Application,
-    drawing_context: Rc<RefCell<DrawingContext>>,
-    windows: Vec<crate::Window>,
+    window_manager: Rc<RefCell<WindowManager>>,
 }
 
 impl Application {
@@ -26,30 +22,14 @@ impl Application {
             app.get_dispatcher(),
         )));
 
-        let drawing_context = Rc::new(RefCell::new(DrawingContext::new()?));
-
         Ok(Self {
             app,
-            drawing_context,
-            windows: Vec::new(),
+            window_manager: Rc::new(RefCell::new(WindowManager::new()?)),
         })
     }
 
-    pub fn add_window<V: ViewModel>(
-        &mut self,
-        window_options: WindowOptions,
-        view_model: Rc<RefCell<V>>,
-    ) -> Result<crate::Window> {
-        let window = self.create_window(window_options)?;
-        window.set_vm(view_model);
-        Ok(window)
-    }
-
-    pub fn create_window(&mut self, window_options: WindowOptions) -> Result<crate::Window> {
-        let mut window = crate::Window::new(window_options);
-        window.create(&self.drawing_context)?;
-        self.windows.push(window.clone());
-        Ok(window)
+    pub fn get_window_manager(&self) -> Rc<RefCell<WindowManager>> {
+        self.window_manager.clone()
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -57,18 +37,7 @@ impl Application {
         Ok(())
     }
 
-    #[cfg(feature = "async")]
-    pub fn run_async(&mut self) {}
-
     pub fn exit() {
         fui_system::Application::exit(0);
-    }
-}
-
-impl Drop for Application {
-    fn drop(&mut self) {
-        // It is important to drop windows before drawing_context!
-        // Windows cleanup graphics resources and drawing context drops graphics device.
-        self.windows.clear();
     }
 }

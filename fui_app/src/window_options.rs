@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct WindowOptions {
     pub title: String,
     pub icon: Vec<u8>,

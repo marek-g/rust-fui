@@ -1,4 +1,6 @@
+#[cfg(feature = "async")]
 mod async_code;
+#[cfg(feature = "async")]
 pub use async_code::*;
 
 mod application;
@@ -20,3 +22,6 @@ pub use window::*;
 
 mod window_options;
 pub use window_options::*;
+
+mod window_manager;
+pub use window_manager::*;

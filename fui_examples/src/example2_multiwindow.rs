@@ -69,14 +69,14 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: multiwindow")?;
 
-    app.add_window(
+    app.get_window_manager().borrow_mut().add_window(
         WindowOptions::new()
             .with_title("Window 1")
             .with_size(800, 600),
         MainViewModel::new(),
     )?;
 
-    app.add_window(
+    app.get_window_manager().borrow_mut().add_window(
         WindowOptions::new()
             .with_title("Window 2")
             .with_size(800, 600),

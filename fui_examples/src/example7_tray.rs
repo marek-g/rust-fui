@@ -144,7 +144,7 @@ fn main() -> Result<()> {
     tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
         .unwrap();
 
-    app.add_window(
+    app.get_window_manager().borrow_mut().add_window(
         WindowOptions::new()
             .with_title("Example: tray")
             .with_size(800, 600),

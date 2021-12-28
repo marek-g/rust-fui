@@ -152,7 +152,7 @@ impl ViewModel for MainViewModel {
 fn main() -> Result<()> {
     let mut app = Application::new("Example: list")?;
 
-    app.add_window(
+    app.get_window_manager().borrow_mut().add_window(
         WindowOptions::new()
             .with_title("Example: list")
             .with_size(800, 600),
