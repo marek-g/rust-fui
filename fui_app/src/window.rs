@@ -1,6 +1,6 @@
-use crate::{DrawingContext, FuiDrawingContext, GlWindow, WindowOptions};
+use crate::{DrawingContext, FuiDrawingContext, WindowOptions};
 use anyhow::Result;
-use drawing_gl::GlRenderTarget;
+use drawing_gl::{GlContextData, GlRenderTarget};
 use fui_core::Rect;
 use fui_core::Size;
 use fui_core::ViewModel;
@@ -13,7 +13,8 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 struct WindowData {
-    core_window: GlWindow,
+    system_window: fui_system::Window,
+    gl_context_data: Option<GlContextData>,
     event_processor: EventProcessor,
     root_control: Rc<RefCell<dyn ControlObject>>,
     view: Option<Rc<RefCell<dyn ControlObject>>>,
@@ -50,7 +51,8 @@ impl Window {
         );
 
         let window_data_rc = Rc::new(RefCell::new(WindowData {
-            core_window: GlWindow::new(native_window),
+            system_window: native_window,
+            gl_context_data: None,
             event_processor: EventProcessor::new(),
             root_control: content,
             view: None,
@@ -100,7 +102,7 @@ impl Window {
     }
 
     pub fn setup_window_events(&self, drawing_context: &Rc<RefCell<DrawingContext>>) {
-        let window = &mut self.data.borrow_mut().core_window.window;
+        let window = &mut self.data.borrow_mut().system_window;
 
         window.on_paint_gl({
             let window_weak = self.downgrade();
@@ -113,19 +115,18 @@ impl Window {
                     let mut drawing_context = drawing_context_clone.borrow_mut();
 
                     if !initialized {
-                        window_data.core_window.gl_context_data =
+                        window_data.gl_context_data =
                             Some(drawing_context.device.init_context(|symbol| {
                                 window_data
-                                    .core_window
-                                    .window
+                                    .system_window
                                     .get_opengl_proc_address(symbol)
                                     .unwrap()
                             }));
                         initialized = true;
                     }
 
-                    let width = window_data.core_window.window.get_width();
-                    let height = window_data.core_window.window.get_height();
+                    let width = window_data.system_window.get_width();
+                    let height = window_data.system_window.get_height();
                     if width > 0 && height > 0 {
                         Self::update_min_window_size(window_data, &mut drawing_context, 0);
 
@@ -149,11 +150,11 @@ impl Window {
                 if let Some(window) = window_weak.upgrade() {
                     if let Some(input_event) = crate::event_converter::convert_event(&event) {
                         let window_data = &mut window.data.borrow_mut();
-                        let core_window = &mut window_data.core_window;
+                        let system_window = &mut window_data.system_window;
                         let mut drawing_context = drawing_context_clone.borrow_mut();
 
-                        let width = core_window.window.get_width();
-                        let height = core_window.window.get_height();
+                        let width = system_window.get_width();
+                        let height = system_window.get_height();
                         let mut fui_drawing_context = FuiDrawingContext::new(
                             (width as u16, height as u16),
                             &mut drawing_context,
@@ -201,8 +202,7 @@ impl Window {
         };
 
         window_data
-            .core_window
-            .window
+            .system_window
             .set_minimum_size(min_size.width as i32, min_size.height as i32);
     }
 
@@ -260,7 +260,7 @@ impl Window {
             .get_context_mut()
             .set_is_dirty(false);
 
-        let res = drawing_context.begin(&window_data.core_window);
+        let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
         if let Err(err) = res {
             eprintln!("Render error on begin drawing: {}", err);
         } else {
@@ -271,7 +271,7 @@ impl Window {
             if let Err(err) = res {
                 eprintln!("Render error: {}", err);
             }
-            drawing_context.end(&window_data.core_window);
+            drawing_context.end(window_data.gl_context_data.as_ref().unwrap());
         }
     }
 }
@@ -287,7 +287,7 @@ impl fui_core::WindowService for WindowData {
     }
 
     fn repaint(&mut self) {
-        self.core_window.repaint();
+        self.system_window.update();
     }
 }
 

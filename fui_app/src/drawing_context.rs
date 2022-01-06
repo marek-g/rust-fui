@@ -11,7 +11,6 @@ use drawing::resources::Resources;
 use drawing::TextureFont;
 use drawing_gl::*;
 
-use crate::GlWindow;
 use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::Read;
@@ -164,14 +163,13 @@ impl DrawingContext {
         Ok(())
     }
 
-    pub fn update_size(&mut self, window_target: &mut GlWindow, width: u16, height: u16) {
+    /*pub fn update_size(&mut self, window_target: &mut GlWindow, width: u16, height: u16) {
         // TODO:
         //window_target.update_size(width, height);
-    }
+    }*/
 
-    pub fn begin(&mut self, window_target: &GlWindow) -> Result<()> {
-        self.device
-            .begin(&window_target.gl_context_data.as_ref().unwrap())
+    pub fn begin(&mut self, gl_context_data: &GlContextData) -> Result<()> {
+        self.device.begin(gl_context_data)
     }
 
     pub fn clear(
@@ -196,8 +194,8 @@ impl DrawingContext {
         )
     }
 
-    pub fn end(&mut self, window_target: &GlWindow) {
-        //self.device.end(&window_target.gl_context_data.as_ref().unwrap());
+    pub fn end(&mut self, gl_context_data: &GlContextData) {
+        //self.device.end(gl_context_data);
     }
 
     pub fn get_background_texture(&mut self) -> i32 {
