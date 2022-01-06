@@ -1,4 +1,6 @@
-use crate::{Application, DrawingContext, GlWindow, WindowId, WindowManagerAsync, WindowOptions};
+use crate::{
+    Application, DrawingContext, WindowGUIThreadData, WindowId, WindowManagerAsync, WindowOptions,
+};
 use anyhow::Result;
 use fui_core::{register_current_thread_dispatcher, ViewModel};
 use std::borrow::BorrowMut;
@@ -16,7 +18,7 @@ thread_local! {
 pub struct ApplicationContext {
     pub drawing_context: Rc<RefCell<DrawingContext>>,
     pub next_window_id: WindowId,
-    pub core_windows: HashMap<WindowId, fui_core::Window<GlWindow>>,
+    pub windows: HashMap<WindowId, WindowGUIThreadData>,
 }
 
 pub struct ApplicationAsync {
@@ -49,7 +51,7 @@ impl ApplicationAsync {
                     *context.borrow_mut() = Some(ApplicationContext {
                         drawing_context,
                         next_window_id: 1,
-                        core_windows: HashMap::new(),
+                        windows: HashMap::new(),
                     })
                 });
 

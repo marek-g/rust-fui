@@ -15,6 +15,7 @@ use typemap::TypeMap;
 struct WindowData {
     system_window: fui_system::Window,
     gl_context_data: Option<GlContextData>,
+
     event_processor: EventProcessor,
     root_control: Rc<RefCell<dyn ControlObject>>,
     view: Option<Rc<RefCell<dyn ControlObject>>>,
