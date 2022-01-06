@@ -1,5 +1,4 @@
 use drawing_gl::GlContextData;
-use fui_core::NativeWindow;
 
 pub struct GlWindow {
     pub window: fui_system::Window,
@@ -13,10 +12,8 @@ impl GlWindow {
             gl_context_data: None,
         }
     }
-}
 
-impl NativeWindow for GlWindow {
-    fn repaint(&mut self) {
+    pub fn repaint(&mut self) {
         self.window.update();
     }
 }

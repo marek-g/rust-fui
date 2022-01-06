@@ -7,7 +7,6 @@ pub use observable::*;
 pub use services::*;
 pub use style::*;
 pub use view::*;
-pub use window::*;
 
 pub use crate::drawing::*;
 
@@ -21,4 +20,3 @@ mod observable;
 mod services;
 mod style;
 mod view;
-mod window;
