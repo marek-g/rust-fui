@@ -62,6 +62,6 @@ impl Application {
     where
         F: FnOnce() + 'static + Send,
     {
-        QApplication::post_func(func);
+        QApplication::post_func_any_thread(func);
     }
 }

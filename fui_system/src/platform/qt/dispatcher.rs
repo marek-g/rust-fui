@@ -19,10 +19,20 @@ impl Dispatcher {
     ///
     /// Post function to be executed from the message loop.
     ///
-    pub fn post_func<F>(&self, func: F)
+    pub fn post_func_any_thread<F>(&self, func: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        QApplication::post_func_any_thread(func);
+    }
+
+    ///
+    /// Post function to be executed from the message loop.
+    ///
+    pub unsafe fn post_func_same_thread<F>(&self, func: F)
     where
         F: FnOnce() + 'static,
     {
-        QApplication::post_func(func);
+        QApplication::post_func_same_thread(func);
     }
 }

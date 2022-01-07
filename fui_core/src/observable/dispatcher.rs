@@ -12,7 +12,9 @@ pub trait Dispatcher {
     ///
     /// Post function to be executed from the message loop.
     ///
-    fn post_func(&mut self, func: Box<dyn FnOnce() + 'static>);
+    fn post_func_same_thread(&mut self, func: Box<dyn FnOnce() + 'static>);
+
+    fn post_func_any_thread(&mut self, func: Box<dyn FnOnce() + Send + 'static>);
 }
 
 pub fn register_current_thread_dispatcher(dispatcher: Box<dyn Dispatcher>) {
@@ -20,5 +22,5 @@ pub fn register_current_thread_dispatcher(dispatcher: Box<dyn Dispatcher>) {
 }
 
 pub fn post_func_current_thread(func: Box<dyn FnOnce() + 'static>) {
-    THREAD_DISPATCHER.with(|d| d.borrow_mut().as_mut().unwrap().post_func(func))
+    THREAD_DISPATCHER.with(|d| d.borrow_mut().as_mut().unwrap().post_func_same_thread(func))
 }

@@ -1,5 +1,5 @@
 use crate::async_code::application_async::APPLICATION_CONTEXT;
-use crate::WindowOptions;
+use crate::{DrawingContext, WindowOptions};
 use anyhow::Result;
 use drawing_gl::GlContextData;
 use fui_core::{Children, Grid, ViewContext};
@@ -63,9 +63,7 @@ impl WindowAsync {
                     .clone()
             });
 
-            //setup_window_events(&native_window, &drawing_context);
-
-            let thread_window = WindowGUIThreadData {
+            let window_gui_thread_data = WindowGUIThreadData {
                 system_window: native_window,
                 gl_context_data: None,
             };
@@ -75,12 +73,16 @@ impl WindowAsync {
                 let mut app_context = context.as_mut().unwrap();
 
                 let window_id = app_context.next_window_id;
-                app_context.windows.insert(window_id, thread_window);
+                app_context
+                    .windows
+                    .insert(window_id, window_gui_thread_data);
 
                 app_context.next_window_id += 1;
 
                 window_id
             });
+
+            Self::setup_window_events(window_id, &drawing_context);
 
             tx.send(window_id);
         });
@@ -119,18 +121,128 @@ impl WindowAsync {
         })
     }
 
-    pub fn set_vm<V: ViewModel>(&self, view_model: Rc<RefCell<V>>) {}
-
     pub fn downgrade(&self) -> WindowWeakAsync {
         WindowWeakAsync {
             data: Rc::downgrade(&self.data),
         }
     }
+
+    pub fn set_vm<V: ViewModel>(&self, view_model: Rc<RefCell<V>>) {
+        let new_view = ViewModel::create_view(&view_model);
+
+        let mut window_data = self.data.borrow_mut();
+        if let Some(view) = window_data.view.take() {
+            window_data.remove_layer(&view);
+        }
+        window_data.add_layer(new_view.clone());
+        window_data.view.replace(new_view);
+    }
+
+    pub fn get_window_service(&self) -> Rc<RefCell<dyn fui_core::WindowService + 'static>> {
+        let service: Rc<RefCell<dyn fui_core::WindowService + 'static>> = self.data.clone();
+        service
+    }
+
+    fn setup_window_events(window_id: WindowId, drawing_context: &Rc<RefCell<DrawingContext>>) {
+        APPLICATION_CONTEXT.with(move |context| {
+            let mut context = context.borrow_mut();
+            let mut app_context = context.as_mut().unwrap();
+            if let Some(window_data) = app_context.windows.get_mut(&window_id) {
+                window_data.system_window.on_paint_gl({
+                    let drawing_context_clone = drawing_context.clone();
+                    let mut initialized = false;
+
+                    move || {
+                        let drawing_context_clone = drawing_context_clone.clone();
+                        APPLICATION_CONTEXT.with(move |context| {
+                            let mut context = context.borrow_mut();
+                            let mut app_context = context.as_mut().unwrap();
+                            if let Some(window_data) = app_context.windows.get_mut(&window_id) {
+                                let mut drawing_context = drawing_context_clone.borrow_mut();
+
+                                if !initialized {
+                                    window_data.gl_context_data =
+                                        Some(drawing_context.device.init_context(|symbol| {
+                                            window_data
+                                                .system_window
+                                                .get_opengl_proc_address(symbol)
+                                                .unwrap()
+                                        }));
+                                    initialized = true;
+                                }
+
+                                let width = window_data.system_window.get_width();
+                                let height = window_data.system_window.get_height();
+                                /*if width > 0 && height > 0 {
+                                    Self::update_min_window_size(
+                                        window_data,
+                                        &mut drawing_context,
+                                        0,
+                                    );
+
+                                    Self::render(
+                                        window_data,
+                                        &mut drawing_context,
+                                        width as u32,
+                                        height as u32,
+                                        0,
+                                    );
+                                }*/
+                            }
+                        });
+                    }
+                });
+
+                window_data.system_window.on_event({
+                    let drawing_context_clone = drawing_context.clone();
+
+                    move |event| {
+                        let drawing_context_clone = drawing_context_clone.clone();
+                        APPLICATION_CONTEXT.with(move |context| {
+                            let mut context = context.borrow_mut();
+                            let mut app_context = context.as_mut().unwrap();
+                            if let Some(window_data) = app_context.windows.get_mut(&window_id) {
+                                let system_window = &mut window_data.system_window;
+                                let mut drawing_context = drawing_context_clone.borrow_mut();
+
+                                let width = system_window.get_width();
+                                let height = system_window.get_height();
+                                /*let mut fui_drawing_context = FuiDrawingContext::new(
+                                    (width as u16, height as u16),
+                                    &mut drawing_context,
+                                    0,
+                                );
+
+                                // events go to the window's root control
+                                let root_control = window_data.root_control.clone();
+                                window_data.event_processor.handle_event(
+                                    &root_control,
+                                    &mut fui_drawing_context,
+                                    &input_event,
+                                );*/
+
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                    }
+                });
+            }
+        });
+    }
 }
 
 impl Drop for WindowVMThreadData {
     fn drop(&mut self) {
-        todo!("Remove item from ApplicationContext.core_windows on GUI thread.")
+        let window_id = self.id;
+        fui_system::Application::post_func(move || {
+            APPLICATION_CONTEXT.with(move |context| {
+                let mut context = context.borrow_mut();
+                let mut app_context = context.as_mut().unwrap();
+                app_context.windows.remove(&window_id);
+            });
+        });
     }
 }
 
@@ -145,8 +257,16 @@ impl fui_core::WindowService for WindowVMThreadData {
     }
 
     fn repaint(&mut self) {
-        // TODO:
-        //self.system_window.update();
+        let window_id = self.id;
+        fui_system::Application::post_func(move || {
+            APPLICATION_CONTEXT.with(move |context| {
+                let mut context = context.borrow_mut();
+                let mut app_context = context.as_mut().unwrap();
+                if let Some(window) = app_context.windows.get_mut(&window_id) {
+                    window.system_window.update();
+                }
+            });
+        });
     }
 }
 

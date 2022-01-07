@@ -9,8 +9,8 @@ pub use application::*;
 mod drawing_context;
 pub use drawing_context::*;
 
-mod dispatcher;
-pub use dispatcher::*;
+mod gui_dispatcher;
+pub use gui_dispatcher::*;
 
 mod event_converter;
 

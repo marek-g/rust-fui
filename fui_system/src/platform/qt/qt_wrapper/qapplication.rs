@@ -71,12 +71,33 @@ impl QApplication {
 
     ///
     /// Posts function to be executed on the main event loop.
+    /// This function can be called safety only from the QApplication thread.
     ///
-    pub fn post_func<F>(func: F)
+    pub unsafe fn post_func_same_thread<F>(func: F)
     where
         F: FnOnce() + 'static,
     {
+        // TODO: fix memory leak?
+        let raw_callback = RawCallback::new_once(func);
+
+        crate::platform::qt::qt_wrapper::QApplication_postFunc(
+            Some(raw_callback.get_trampoline_func()),
+            raw_callback.get_trampoline_func_data(),
+        );
+
+        std::mem::forget(raw_callback);
+    }
+
+    ///
+    /// Posts function to be executed on the main event loop.
+    /// This function can be called from any thread.
+    ///
+    pub fn post_func_any_thread<F>(func: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
         unsafe {
+            // TODO: fix memory leak?
             let raw_callback = RawCallback::new_once(func);
 
             crate::platform::qt::qt_wrapper::QApplication_postFunc(

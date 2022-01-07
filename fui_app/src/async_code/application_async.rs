@@ -1,5 +1,6 @@
 use crate::{
-    Application, DrawingContext, WindowGUIThreadData, WindowId, WindowManagerAsync, WindowOptions,
+    Application, DrawingContext, VMDispatcher, WindowGUIThreadData, WindowId, WindowManagerAsync,
+    WindowOptions,
 };
 use anyhow::Result;
 use fui_core::{register_current_thread_dispatcher, ViewModel};
@@ -28,6 +29,8 @@ pub struct ApplicationAsync {
 
 impl ApplicationAsync {
     pub async fn new(title: &'static str) -> Result<Self> {
+        register_current_thread_dispatcher(Box::new(VMDispatcher()));
+
         let (init_tx, init_rx) = oneshot::channel();
 
         let thread_join_handle = std::thread::Builder::new()
@@ -41,7 +44,7 @@ impl ApplicationAsync {
                 )
                 .unwrap();
 
-                register_current_thread_dispatcher(Box::new(crate::dispatcher::Dispatcher(
+                register_current_thread_dispatcher(Box::new(crate::gui_dispatcher::GUIDispatcher(
                     app.get_dispatcher(),
                 )));
 

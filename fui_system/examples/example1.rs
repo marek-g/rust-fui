@@ -78,7 +78,9 @@ fn main() {
             let dispatcher = app.get_dispatcher();
             move || {
                 let var = Rc::new(RefCell::new(true));
-                dispatcher.post_func(move || println!("Posted function! {}", *var.borrow_mut()));
+                dispatcher.post_func_any_thread(move || {
+                    println!("Posted function! {}", *var.borrow_mut())
+                });
             }
         }),
         MenuItem::Separator,

@@ -18,7 +18,7 @@ impl Application {
                 .with_opengl_stencil_bits(8),
         )?;
 
-        register_current_thread_dispatcher(Box::new(crate::dispatcher::Dispatcher(
+        register_current_thread_dispatcher(Box::new(crate::gui_dispatcher::GUIDispatcher(
             app.get_dispatcher(),
         )));
 
