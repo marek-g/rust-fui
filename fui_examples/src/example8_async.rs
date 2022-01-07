@@ -90,6 +90,7 @@ impl ViewModel for MainViewModel {
 }
 
 #[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
 async fn main() -> Result<()> {
     println!("Thread: {:?}", thread::current().id());
 
@@ -109,9 +110,9 @@ async fn main() -> Result<()> {
 
     println!("Thread: {:?}", thread::current().id());
 
-    app.run().unwrap();
+    app.run().await?;
 
-    println!("Thread: {:?}", thread::current().id());
+    println!("End, thread: {:?}", thread::current().id());
 
     Ok(())
 }

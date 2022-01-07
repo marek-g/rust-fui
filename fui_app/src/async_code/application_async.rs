@@ -1,39 +1,72 @@
 use crate::{
-    Application, DrawingContext, VMDispatcher, WindowGUIThreadData, WindowId, WindowManagerAsync,
-    WindowOptions,
+    Application, ChannelDispatcher, DrawingContext, WindowGUIThreadData, WindowId,
+    WindowManagerAsync, WindowOptions,
 };
 use anyhow::Result;
-use fui_core::{register_current_thread_dispatcher, ViewModel};
-use std::borrow::BorrowMut;
+use fui_core::{post_func_current_thread, register_current_thread_dispatcher, ViewModel};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::thread;
 use std::thread::JoinHandle;
-use tokio::sync::oneshot;
+use tokio::select;
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::{mpsc, oneshot};
 
 thread_local! {
     pub static APPLICATION_CONTEXT: RefCell<Option<ApplicationContext>> = RefCell::new(None);
 }
 
+///
+/// Application data available only from the GUI thread.
+///
 pub struct ApplicationContext {
     pub drawing_context: Rc<RefCell<DrawingContext>>,
     pub next_window_id: WindowId,
     pub windows: HashMap<WindowId, WindowGUIThreadData>,
+    pub func_gui2vm_thread_tx: mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
 }
 
+///
+/// Application data available only from the VM (View Models) thread.
+///
 pub struct ApplicationAsync {
-    thread_join_handle: Option<JoinHandle<()>>,
     window_manager: Rc<RefCell<WindowManagerAsync>>,
+
+    /// GUI thread handle
+    gui_thread_join_handle: Option<JoinHandle<()>>,
+
+    /// receiver of the exit event sent from the GUI thread
+    gui_thread_exit_rx: oneshot::Receiver<()>,
+
+    /// receiver of closures sent to VM thread from the VM thread
+    func_vm2vm_thread_rx: mpsc::UnboundedReceiver<Box<dyn 'static + FnOnce()>>,
+
+    /// receiver of closures sent to VM thread from the GUI or other threads
+    func_gui2vm_thread_rx: mpsc::UnboundedReceiver<Box<dyn 'static + Send + FnOnce()>>,
 }
 
 impl ApplicationAsync {
     pub async fn new(title: &'static str) -> Result<Self> {
-        register_current_thread_dispatcher(Box::new(VMDispatcher()));
+        // channel to send closures VM thread -> VM thread
+        let (func_vm2vm_thread_tx, mut func_vm2vm_thread_rx) = mpsc::unbounded_channel();
 
-        let (init_tx, init_rx) = oneshot::channel();
+        // channel to send closures GUI (or any) thread -> VM thread
+        let (func_gui2vm_thread_tx, mut func_gui2vm_thread_rx) = mpsc::unbounded_channel();
 
-        let thread_join_handle = std::thread::Builder::new()
+        // fui_core::Callback uses current thread dispatcher to execute callbacks
+        // (callbacks are also used by events, properties, observable collections etc.),
+        // it is only needed on the VM thread
+        register_current_thread_dispatcher(Box::new(ChannelDispatcher::new(
+            func_vm2vm_thread_tx.clone(),
+            func_gui2vm_thread_tx.clone(),
+        )));
+
+        let (gui_thread_init_tx, gui_thread_init_rx) = oneshot::channel();
+        let (gui_thread_exit_tx, gui_thread_exit_rx) = oneshot::channel();
+
+        // start the GUI thread
+        let gui_thread_join_handle = std::thread::Builder::new()
             .name("GUI".to_string())
             .spawn(move || {
                 let app = fui_system::Application::new(
@@ -44,10 +77,6 @@ impl ApplicationAsync {
                 )
                 .unwrap();
 
-                register_current_thread_dispatcher(Box::new(crate::gui_dispatcher::GUIDispatcher(
-                    app.get_dispatcher(),
-                )));
-
                 let drawing_context = Rc::new(RefCell::new(DrawingContext::new().unwrap()));
 
                 APPLICATION_CONTEXT.with(move |context| {
@@ -55,22 +84,40 @@ impl ApplicationAsync {
                         drawing_context,
                         next_window_id: 1,
                         windows: HashMap::new(),
+                        func_gui2vm_thread_tx,
                     })
                 });
 
-                init_tx.send(()).unwrap();
+                // GUI thread reached the initialized state
+                gui_thread_init_tx.send(()).unwrap();
 
                 println!("Running qt thread: {:?}", thread::current().id());
 
                 app.message_loop();
+
+                gui_thread_exit_tx.send(()).unwrap();
             })
             .unwrap();
 
-        init_rx.await?;
+        // wait for GUI thread to reach the initialized state
+        gui_thread_init_rx.await?;
+
+        let text = Rc::new("hello".to_string());
+
+        post_func_current_thread(Box::new(move || {
+            println!("Hello 1! {:?}", text.to_string());
+        }) as Box<dyn 'static + FnOnce()>);
+
+        post_func_current_thread(Box::new(|| {
+            println!("Hello 2!");
+        }) as Box<dyn 'static + FnOnce()>);
 
         Ok(Self {
-            thread_join_handle: Some(thread_join_handle),
             window_manager: Rc::new(RefCell::new(WindowManagerAsync::new()?)),
+            gui_thread_join_handle: Some(gui_thread_join_handle),
+            gui_thread_exit_rx,
+            func_vm2vm_thread_rx,
+            func_gui2vm_thread_rx,
         })
     }
 
@@ -78,10 +125,26 @@ impl ApplicationAsync {
         self.window_manager.clone()
     }
 
-    pub fn run(&mut self) -> Result<()> {
-        if let Some(handle) = self.thread_join_handle.take() {
+    pub async fn run(mut self) -> Result<()> {
+        let mut exit = false;
+        while !exit {
+            select! {
+                // process all closures sent with dispatcher from the same thread
+                f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
+
+                // process all closures sent with dispatcher from any thread
+                f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
+
+                // wait for exit of the gui message loop
+                res = &mut self.gui_thread_exit_rx => exit = true,
+            }
+        }
+
+        // wait for the GUI thread to finish
+        if let Some(handle) = self.gui_thread_join_handle.take() {
             handle.join().unwrap();
         }
+
         Ok(())
     }
 }

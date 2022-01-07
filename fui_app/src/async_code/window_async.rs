@@ -14,11 +14,17 @@ use typemap::TypeMap;
 
 pub type WindowId = i64;
 
+///
+/// Window data available only from the GUI thread.
+///
 pub struct WindowGUIThreadData {
     system_window: fui_system::Window,
     gl_context_data: Option<GlContextData>,
 }
 
+///
+/// Window data available only from the VM (View Models) thread.
+///
 struct WindowVMThreadData {
     id: WindowId,
 
@@ -37,8 +43,8 @@ pub struct WindowAsync {
 
 impl WindowAsync {
     pub async fn create(window_options: WindowOptions) -> Result<Self> {
+        // Run code on the GUI Thread
         let (tx, rx) = oneshot::channel::<WindowId>();
-
         fui_system::Application::post_func(move || {
             println!("Function Thread: {:?}", thread::current().id());
             println!("Function posted from another thread!");
@@ -147,6 +153,13 @@ impl WindowAsync {
         APPLICATION_CONTEXT.with(move |context| {
             let mut context = context.borrow_mut();
             let mut app_context = context.as_mut().unwrap();
+
+            app_context
+                .func_gui2vm_thread_tx
+                .send(Box::new(|| {
+                    println!("Hello From Another thread: {:?}", thread::current().id());
+                }) as Box<dyn 'static + Send + FnOnce()>);
+
             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                 window_data.system_window.on_paint_gl({
                     let drawing_context_clone = drawing_context.clone();
