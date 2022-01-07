@@ -2,7 +2,8 @@ use crate::async_code::application_async::APPLICATION_CONTEXT;
 use crate::{DrawingContext, WindowOptions};
 use anyhow::Result;
 use drawing_gl::GlContextData;
-use fui_core::{Children, Grid, ViewContext};
+use drawing_gl::GlRenderTarget;
+use fui_core::{Children, Grid, Size, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
@@ -18,8 +19,16 @@ pub type WindowId = i64;
 /// Window data available only from the GUI thread.
 ///
 pub struct WindowGUIThreadData {
-    system_window: fui_system::Window,
+    system_window: Option<fui_system::Window>,
     gl_context_data: Option<GlContextData>,
+}
+
+impl Drop for WindowGUIThreadData {
+    fn drop(&mut self) {
+        // It is important to drop window before drawing_context!
+        // Window cleanups graphics resources and drawing context drops graphics device.
+        self.system_window.take();
+    }
 }
 
 ///
@@ -70,7 +79,7 @@ impl WindowAsync {
             });
 
             let window_gui_thread_data = WindowGUIThreadData {
-                system_window: native_window,
+                system_window: Some(native_window),
                 gl_context_data: None,
             };
 
@@ -161,7 +170,7 @@ impl WindowAsync {
                 }) as Box<dyn 'static + Send + FnOnce()>);
 
             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                window_data.system_window.on_paint_gl({
+                window_data.system_window.as_mut().unwrap().on_paint_gl({
                     let drawing_context_clone = drawing_context.clone();
                     let mut initialized = false;
 
@@ -178,20 +187,23 @@ impl WindowAsync {
                                         Some(drawing_context.device.init_context(|symbol| {
                                             window_data
                                                 .system_window
+                                                .as_ref()
+                                                .unwrap()
                                                 .get_opengl_proc_address(symbol)
                                                 .unwrap()
                                         }));
                                     initialized = true;
                                 }
 
-                                let width = window_data.system_window.get_width();
-                                let height = window_data.system_window.get_height();
-                                /*if width > 0 && height > 0 {
-                                    Self::update_min_window_size(
+                                let width = window_data.system_window.as_mut().unwrap().get_width();
+                                let height =
+                                    window_data.system_window.as_mut().unwrap().get_height();
+                                if width > 0 && height > 0 {
+                                    /*Self::update_min_window_size(
                                         window_data,
                                         &mut drawing_context,
                                         0,
-                                    );
+                                    );*/
 
                                     Self::render(
                                         window_data,
@@ -200,13 +212,13 @@ impl WindowAsync {
                                         height as u32,
                                         0,
                                     );
-                                }*/
+                                }
                             }
                         });
                     }
                 });
 
-                window_data.system_window.on_event({
+                window_data.system_window.as_mut().unwrap().on_event({
                     let drawing_context_clone = drawing_context.clone();
 
                     move |event| {
@@ -215,7 +227,7 @@ impl WindowAsync {
                             let mut context = context.borrow_mut();
                             let mut app_context = context.as_mut().unwrap();
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                let system_window = &mut window_data.system_window;
+                                let system_window = window_data.system_window.as_mut().unwrap();
                                 let mut drawing_context = drawing_context_clone.borrow_mut();
 
                                 let width = system_window.get_width();
@@ -243,6 +255,75 @@ impl WindowAsync {
                 });
             }
         });
+    }
+
+    fn render(
+        window_data: &mut WindowGUIThreadData,
+        drawing_context: &mut DrawingContext,
+        width: u32,
+        height: u32,
+        background_texture: i32,
+    ) {
+        let size = Size::new(width as f32, height as f32);
+
+        /*let mut fui_drawing_context = FuiDrawingContext::new(
+            (size.width as u16, size.height as u16),
+            drawing_context,
+            background_texture,
+        );
+
+        let mut primitives = Vec::new();
+
+        // background texture
+        primitives.push(drawing::primitive::Primitive::Image {
+            resource_key: background_texture,
+            rect: drawing::units::PixelRect::new(
+                drawing::units::PixelPoint::new(0.0f32, 0.0f32),
+                drawing::units::PixelSize::new(size.width, size.height),
+            ),
+            uv: [
+                0.0f32,
+                0.0f32,
+                1.0f32 * size.width / 256.0f32,
+                1.0f32 * size.height / 256.0f32,
+            ],
+        });
+
+        window_data
+            .root_control
+            .borrow_mut()
+            .measure(&mut fui_drawing_context, size);
+        window_data.root_control.borrow_mut().set_rect(
+            &mut fui_drawing_context,
+            Rect::new(0f32, 0f32, size.width, size.height),
+        );
+
+        let (mut primitives1, mut overlay) = window_data
+            .root_control
+            .borrow()
+            .to_primitives(&mut fui_drawing_context);
+        primitives.append(&mut primitives1);
+        primitives.append(&mut overlay);
+
+        window_data
+            .root_control
+            .borrow_mut()
+            .get_context_mut()
+            .set_is_dirty(false);*/
+
+        let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
+        if let Err(err) = res {
+            eprintln!("Render error on begin drawing: {}", err);
+        } else {
+            let render_target = GlRenderTarget::new(0, width as u16, height as u16, 1.0f32);
+
+            drawing_context.clear(&render_target, &[0.3f32, 0.4f32, 0.3f32, 1.0f32]);
+            /*let res = drawing_context.draw(&render_target, &primitives);
+            if let Err(err) = res {
+                eprintln!("Render error: {}", err);
+            }*/
+            drawing_context.end(window_data.gl_context_data.as_ref().unwrap());
+        }
     }
 }
 
@@ -276,7 +357,7 @@ impl fui_core::WindowService for WindowVMThreadData {
                 let mut context = context.borrow_mut();
                 let mut app_context = context.as_mut().unwrap();
                 if let Some(window) = app_context.windows.get_mut(&window_id) {
-                    window.system_window.update();
+                    window.system_window.as_mut().unwrap().update();
                 }
             });
         });
