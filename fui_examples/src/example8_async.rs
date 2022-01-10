@@ -94,7 +94,7 @@ impl ViewModel for MainViewModel {
 async fn main() -> Result<()> {
     println!("Thread: {:?}", thread::current().id());
 
-    let mut app = ApplicationAsync::new("Example: async").await?;
+    let app = ApplicationAsync::new("Example: async").await?;
 
     println!("Thread: {:?}", thread::current().id());
 

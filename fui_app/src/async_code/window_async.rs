@@ -1,5 +1,5 @@
-use crate::async_code::application_async::APPLICATION_CONTEXT;
-use crate::{DrawingContext, WindowOptions};
+use crate::async_code::application_async::APPLICATION_GUI_CONTEXT;
+use crate::{ApplicationGuiContext, DrawingContext, Window, WindowOptions};
 use anyhow::Result;
 use drawing_gl::GlContextData;
 use drawing_gl::GlRenderTarget;
@@ -9,8 +9,9 @@ use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
+use std::sync::{Arc, Mutex};
 use std::thread;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 use typemap::TypeMap;
 
 pub type WindowId = i64;
@@ -52,9 +53,10 @@ pub struct WindowAsync {
 
 impl WindowAsync {
     pub async fn create(window_options: WindowOptions) -> Result<Self> {
-        // Run code on the GUI Thread
+        // VM Thread
         let (tx, rx) = oneshot::channel::<WindowId>();
         fui_system::Application::post_func(move || {
+            // GUI Thread
             println!("Function Thread: {:?}", thread::current().id());
             println!("Function posted from another thread!");
 
@@ -69,7 +71,7 @@ impl WindowAsync {
                 native_window.set_icon(&icon).unwrap();
             }
 
-            let drawing_context = APPLICATION_CONTEXT.with(|context| {
+            let drawing_context = APPLICATION_GUI_CONTEXT.with(|context| {
                 context
                     .borrow_mut()
                     .as_ref()
@@ -83,7 +85,7 @@ impl WindowAsync {
                 gl_context_data: None,
             };
 
-            let window_id = APPLICATION_CONTEXT.with(move |context| {
+            let window_id = APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let mut app_context = context.as_mut().unwrap();
 
@@ -158,16 +160,16 @@ impl WindowAsync {
         service
     }
 
-    fn setup_window_events(window_id: WindowId, drawing_context: &Rc<RefCell<DrawingContext>>) {
-        APPLICATION_CONTEXT.with(move |context| {
+    fn setup_window_events(window_id: WindowId, drawing_context: &Arc<Mutex<DrawingContext>>) {
+        APPLICATION_GUI_CONTEXT.with(move |context| {
             let mut context = context.borrow_mut();
             let mut app_context = context.as_mut().unwrap();
 
-            app_context
-                .func_gui2vm_thread_tx
-                .send(Box::new(|| {
-                    println!("Hello From Another thread: {:?}", thread::current().id());
-                }) as Box<dyn 'static + Send + FnOnce()>);
+            app_context.func_gui2vm_thread_tx.send(Box::new(|| {
+                // VM Thread
+                println!("Hello From Another thread: {:?}", thread::current().id());
+            })
+                as Box<dyn 'static + Send + FnOnce()>);
 
             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                 window_data.system_window.as_mut().unwrap().on_paint_gl({
@@ -176,13 +178,12 @@ impl WindowAsync {
 
                     move || {
                         let drawing_context_clone = drawing_context_clone.clone();
-                        APPLICATION_CONTEXT.with(move |context| {
+                        APPLICATION_GUI_CONTEXT.with(move |context| {
                             let mut context = context.borrow_mut();
                             let mut app_context = context.as_mut().unwrap();
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                let mut drawing_context = drawing_context_clone.borrow_mut();
-
                                 if !initialized {
+                                    let mut drawing_context = drawing_context_clone.lock().unwrap();
                                     window_data.gl_context_data =
                                         Some(drawing_context.device.init_context(|symbol| {
                                             window_data
@@ -206,8 +207,10 @@ impl WindowAsync {
                                     );*/
 
                                     Self::render(
+                                        &app_context.func_gui2vm_thread_tx,
+                                        window_id,
                                         window_data,
-                                        &mut drawing_context,
+                                        &drawing_context_clone,
                                         width as u32,
                                         height as u32,
                                         0,
@@ -223,12 +226,12 @@ impl WindowAsync {
 
                     move |event| {
                         let drawing_context_clone = drawing_context_clone.clone();
-                        APPLICATION_CONTEXT.with(move |context| {
+                        APPLICATION_GUI_CONTEXT.with(move |context| {
                             let mut context = context.borrow_mut();
                             let mut app_context = context.as_mut().unwrap();
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                                 let system_window = window_data.system_window.as_mut().unwrap();
-                                let mut drawing_context = drawing_context_clone.borrow_mut();
+                                let mut drawing_context = drawing_context_clone.lock().unwrap();
 
                                 let width = system_window.get_width();
                                 let height = system_window.get_height();
@@ -258,12 +261,24 @@ impl WindowAsync {
     }
 
     fn render(
+        func_gui2vm_thread_tx: &mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
+        window_id: WindowId,
         window_data: &mut WindowGUIThreadData,
-        drawing_context: &mut DrawingContext,
+        drawing_context: &Arc<Mutex<DrawingContext>>,
         width: u32,
         height: u32,
         background_texture: i32,
     ) {
+        // GUI Thread
+        func_gui2vm_thread_tx.send({
+            let drawing_context = drawing_context.clone();
+
+            Box::new(|| {
+                // VM Thread
+                println!("Hello From Another thread: {:?}", thread::current().id());
+            }) as Box<dyn 'static + Send + FnOnce()>
+        });
+
         let size = Size::new(width as f32, height as f32);
 
         /*let mut fui_drawing_context = FuiDrawingContext::new(
@@ -311,6 +326,7 @@ impl WindowAsync {
             .get_context_mut()
             .set_is_dirty(false);*/
 
+        let mut drawing_context = drawing_context.lock().unwrap();
         let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
         if let Err(err) = res {
             eprintln!("Render error on begin drawing: {}", err);
@@ -331,7 +347,7 @@ impl Drop for WindowVMThreadData {
     fn drop(&mut self) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
-            APPLICATION_CONTEXT.with(move |context| {
+            APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let mut app_context = context.as_mut().unwrap();
                 app_context.windows.remove(&window_id);
@@ -353,7 +369,7 @@ impl fui_core::WindowService for WindowVMThreadData {
     fn repaint(&mut self) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
-            APPLICATION_CONTEXT.with(move |context| {
+            APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let mut app_context = context.as_mut().unwrap();
                 if let Some(window) = app_context.windows.get_mut(&window_id) {

@@ -7,6 +7,7 @@ use fui_core::{post_func_current_thread, register_current_thread_dispatcher, Vie
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::thread::JoinHandle;
 use tokio::select;
@@ -14,14 +15,14 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, oneshot};
 
 thread_local! {
-    pub static APPLICATION_CONTEXT: RefCell<Option<ApplicationContext>> = RefCell::new(None);
+    pub static APPLICATION_GUI_CONTEXT: RefCell<Option<ApplicationGuiContext >> = RefCell::new(None);
 }
 
 ///
 /// Application data available only from the GUI thread.
 ///
-pub struct ApplicationContext {
-    pub drawing_context: Rc<RefCell<DrawingContext>>,
+pub struct ApplicationGuiContext {
+    pub drawing_context: Arc<Mutex<DrawingContext>>,
     pub next_window_id: WindowId,
     pub windows: HashMap<WindowId, WindowGUIThreadData>,
     pub func_gui2vm_thread_tx: mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
@@ -77,10 +78,10 @@ impl ApplicationAsync {
                 )
                 .unwrap();
 
-                let drawing_context = Rc::new(RefCell::new(DrawingContext::new().unwrap()));
+                let drawing_context = Arc::new(Mutex::new(DrawingContext::new().unwrap()));
 
-                APPLICATION_CONTEXT.with(move |context| {
-                    *context.borrow_mut() = Some(ApplicationContext {
+                APPLICATION_GUI_CONTEXT.with(move |context| {
+                    *context.borrow_mut() = Some(ApplicationGuiContext {
                         drawing_context,
                         next_window_id: 1,
                         windows: HashMap::new(),
