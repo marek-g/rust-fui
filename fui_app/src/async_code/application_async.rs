@@ -16,6 +16,7 @@ use tokio::sync::{mpsc, oneshot};
 
 thread_local! {
     pub static APPLICATION_GUI_CONTEXT: RefCell<Option<ApplicationGuiContext >> = RefCell::new(None);
+    pub static APPLICATION_VM_CONTEXT: RefCell<Option<ApplicationVmContext >> = RefCell::new(None);
 }
 
 ///
@@ -29,11 +30,16 @@ pub struct ApplicationGuiContext {
 }
 
 ///
+/// Application data available only from the VM thread.
+///
+pub struct ApplicationVmContext {
+    pub window_manager: Rc<RefCell<WindowManagerAsync>>,
+}
+
+///
 /// Application data available only from the VM (View Models) thread.
 ///
 pub struct ApplicationAsync {
-    window_manager: Rc<RefCell<WindowManagerAsync>>,
-
     /// GUI thread handle
     gui_thread_join_handle: Option<JoinHandle<()>>,
 
@@ -113,8 +119,13 @@ impl ApplicationAsync {
             println!("Hello 2!");
         }) as Box<dyn 'static + FnOnce()>);
 
+        APPLICATION_VM_CONTEXT.with(move |context| {
+            *context.borrow_mut() = Some(ApplicationVmContext {
+                window_manager: Rc::new(RefCell::new(WindowManagerAsync::new().unwrap())),
+            })
+        });
+
         Ok(Self {
-            window_manager: Rc::new(RefCell::new(WindowManagerAsync::new()?)),
             gui_thread_join_handle: Some(gui_thread_join_handle),
             gui_thread_exit_rx,
             func_vm2vm_thread_rx,
@@ -123,7 +134,8 @@ impl ApplicationAsync {
     }
 
     pub fn get_window_manager(&self) -> Rc<RefCell<WindowManagerAsync>> {
-        self.window_manager.clone()
+        APPLICATION_VM_CONTEXT
+            .with(move |context| context.borrow().as_ref().unwrap().window_manager.clone())
     }
 
     pub async fn run(mut self) -> Result<()> {

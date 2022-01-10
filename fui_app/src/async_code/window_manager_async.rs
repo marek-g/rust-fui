@@ -1,17 +1,19 @@
-use crate::{DrawingContext, WindowOptions};
+use crate::{DrawingContext, WindowAsync, WindowId, WindowOptions};
 use anyhow::Result;
 use fui_core::ViewModel;
+use std::borrow::Borrow;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct WindowManagerAsync {
-    windows: Vec<crate::WindowAsync>,
+    windows: HashMap<WindowId, crate::WindowAsync>,
 }
 
 impl WindowManagerAsync {
     pub fn new() -> Result<Self> {
         Ok(Self {
-            windows: Vec::new(),
+            windows: HashMap::new(),
         })
     }
 
@@ -30,8 +32,12 @@ impl WindowManagerAsync {
         window_options: WindowOptions,
     ) -> Result<crate::WindowAsync> {
         let mut window = crate::WindowAsync::create(window_options).await?;
-        self.windows.push(window.clone());
+        self.windows.insert(window.get_id(), window.clone());
         Ok(window)
+    }
+
+    pub fn get_window_mut(&mut self, window_id: WindowId) -> Option<&mut WindowAsync> {
+        self.windows.get_mut(&window_id)
     }
 }
 

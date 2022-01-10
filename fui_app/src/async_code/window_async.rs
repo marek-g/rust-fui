@@ -1,9 +1,13 @@
 use crate::async_code::application_async::APPLICATION_GUI_CONTEXT;
-use crate::{ApplicationGuiContext, DrawingContext, Window, WindowOptions};
+use crate::{
+    ApplicationGuiContext, DrawingContext, FuiDrawingContext, Window, WindowOptions,
+    APPLICATION_VM_CONTEXT,
+};
 use anyhow::Result;
+use drawing::primitive::Primitive;
 use drawing_gl::GlContextData;
 use drawing_gl::GlRenderTarget;
-use fui_core::{Children, Grid, Size, ViewContext};
+use fui_core::{Children, Grid, Rect, Size, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
@@ -144,6 +148,10 @@ impl WindowAsync {
         }
     }
 
+    pub fn get_id(&self) -> WindowId {
+        self.data.borrow().id
+    }
+
     pub fn set_vm<V: ViewModel>(&self, view_model: Rc<RefCell<V>>) {
         let new_view = ViewModel::create_view(&view_model);
 
@@ -270,61 +278,78 @@ impl WindowAsync {
         background_texture: i32,
     ) {
         // GUI Thread
+        let (tx, rx) = std::sync::mpsc::channel::<Vec<Primitive>>();
         func_gui2vm_thread_tx.send({
             let drawing_context = drawing_context.clone();
 
-            Box::new(|| {
+            Box::new(move || {
                 // VM Thread
-                println!("Hello From Another thread: {:?}", thread::current().id());
+                println!("Hello Render from thread: {:?}", thread::current().id());
+                let window_manager = APPLICATION_VM_CONTEXT
+                    .with(move |context| context.borrow().as_ref().unwrap().window_manager.clone());
+                let mut window_manager = window_manager.borrow_mut();
+                let window = window_manager.get_window_mut(window_id).unwrap();
+
+                let size = Size::new(width as f32, height as f32);
+
+                let mut drawing_context = drawing_context.lock().unwrap();
+
+                let mut fui_drawing_context = FuiDrawingContext::new(
+                    (size.width as u16, size.height as u16),
+                    &mut drawing_context,
+                    background_texture,
+                );
+
+                let mut primitives = Vec::new();
+
+                // background texture
+                primitives.push(drawing::primitive::Primitive::Image {
+                    resource_key: background_texture,
+                    rect: drawing::units::PixelRect::new(
+                        drawing::units::PixelPoint::new(0.0f32, 0.0f32),
+                        drawing::units::PixelSize::new(size.width, size.height),
+                    ),
+                    uv: [
+                        0.0f32,
+                        0.0f32,
+                        1.0f32 * size.width / 256.0f32,
+                        1.0f32 * size.height / 256.0f32,
+                    ],
+                });
+
+                window
+                    .data
+                    .borrow()
+                    .root_control
+                    .borrow_mut()
+                    .measure(&mut fui_drawing_context, size);
+                window.data.borrow().root_control.borrow_mut().set_rect(
+                    &mut fui_drawing_context,
+                    Rect::new(0f32, 0f32, size.width, size.height),
+                );
+
+                let (mut primitives1, mut overlay) = window
+                    .data
+                    .borrow()
+                    .root_control
+                    .borrow()
+                    .to_primitives(&mut fui_drawing_context);
+                primitives.append(&mut primitives1);
+                primitives.append(&mut overlay);
+
+                window
+                    .data
+                    .borrow()
+                    .root_control
+                    .borrow_mut()
+                    .get_context_mut()
+                    .set_is_dirty(false);
+
+                tx.send(primitives).unwrap();
             }) as Box<dyn 'static + Send + FnOnce()>
         });
 
-        let size = Size::new(width as f32, height as f32);
-
-        /*let mut fui_drawing_context = FuiDrawingContext::new(
-            (size.width as u16, size.height as u16),
-            drawing_context,
-            background_texture,
-        );
-
-        let mut primitives = Vec::new();
-
-        // background texture
-        primitives.push(drawing::primitive::Primitive::Image {
-            resource_key: background_texture,
-            rect: drawing::units::PixelRect::new(
-                drawing::units::PixelPoint::new(0.0f32, 0.0f32),
-                drawing::units::PixelSize::new(size.width, size.height),
-            ),
-            uv: [
-                0.0f32,
-                0.0f32,
-                1.0f32 * size.width / 256.0f32,
-                1.0f32 * size.height / 256.0f32,
-            ],
-        });
-
-        window_data
-            .root_control
-            .borrow_mut()
-            .measure(&mut fui_drawing_context, size);
-        window_data.root_control.borrow_mut().set_rect(
-            &mut fui_drawing_context,
-            Rect::new(0f32, 0f32, size.width, size.height),
-        );
-
-        let (mut primitives1, mut overlay) = window_data
-            .root_control
-            .borrow()
-            .to_primitives(&mut fui_drawing_context);
-        primitives.append(&mut primitives1);
-        primitives.append(&mut overlay);
-
-        window_data
-            .root_control
-            .borrow_mut()
-            .get_context_mut()
-            .set_is_dirty(false);*/
+        let primitives = rx.recv().unwrap();
 
         let mut drawing_context = drawing_context.lock().unwrap();
         let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
@@ -334,10 +359,10 @@ impl WindowAsync {
             let render_target = GlRenderTarget::new(0, width as u16, height as u16, 1.0f32);
 
             drawing_context.clear(&render_target, &[0.3f32, 0.4f32, 0.3f32, 1.0f32]);
-            /*let res = drawing_context.draw(&render_target, &primitives);
+            let res = drawing_context.draw(&render_target, &primitives);
             if let Err(err) = res {
                 eprintln!("Render error: {}", err);
-            }*/
+            }
             drawing_context.end(window_data.gl_context_data.as_ref().unwrap());
         }
     }
