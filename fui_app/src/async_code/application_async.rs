@@ -98,8 +98,6 @@ impl ApplicationAsync {
                 // GUI thread reached the initialized state
                 gui_thread_init_tx.send(()).unwrap();
 
-                println!("Running qt thread: {:?}", thread::current().id());
-
                 app.message_loop();
 
                 gui_thread_exit_tx.send(()).unwrap();
@@ -110,14 +108,6 @@ impl ApplicationAsync {
         gui_thread_init_rx.await?;
 
         let text = Rc::new("hello".to_string());
-
-        post_func_current_thread(Box::new(move || {
-            println!("Hello 1! {:?}", text.to_string());
-        }) as Box<dyn 'static + FnOnce()>);
-
-        post_func_current_thread(Box::new(|| {
-            println!("Hello 2!");
-        }) as Box<dyn 'static + FnOnce()>);
 
         APPLICATION_VM_CONTEXT.with(move |context| {
             *context.borrow_mut() = Some(ApplicationVmContext {

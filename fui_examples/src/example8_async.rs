@@ -8,7 +8,6 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::thread;
 
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
@@ -92,11 +91,7 @@ impl ViewModel for MainViewModel {
 #[tokio::main(flavor = "current_thread")]
 //#[tokio::main]
 async fn main() -> Result<()> {
-    println!("Thread: {:?}", thread::current().id());
-
     let app = ApplicationAsync::new("Example: async").await?;
-
-    println!("Thread: {:?}", thread::current().id());
 
     app.get_window_manager()
         .borrow_mut()
@@ -108,11 +103,7 @@ async fn main() -> Result<()> {
         )
         .await?;
 
-    println!("Thread: {:?}", thread::current().id());
-
     app.run().await?;
-
-    println!("End, thread: {:?}", thread::current().id());
 
     Ok(())
 }

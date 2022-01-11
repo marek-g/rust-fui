@@ -61,11 +61,6 @@ impl WindowAsync {
         let (tx, rx) = oneshot::channel::<WindowId>();
         fui_system::Application::post_func(move || {
             // GUI Thread
-            println!("Function Thread: {:?}", thread::current().id());
-            println!("Function posted from another thread!");
-
-            println!("{:?}", window_options.title);
-
             let mut native_window = fui_system::Window::new(None).unwrap();
             native_window.set_title(&window_options.title).unwrap();
             native_window.resize(window_options.width, window_options.height);
@@ -173,12 +168,6 @@ impl WindowAsync {
             let mut context = context.borrow_mut();
             let mut app_context = context.as_mut().unwrap();
 
-            app_context.func_gui2vm_thread_tx.send(Box::new(|| {
-                // VM Thread
-                println!("Hello From Another thread: {:?}", thread::current().id());
-            })
-                as Box<dyn 'static + Send + FnOnce()>);
-
             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                 window_data.system_window.as_mut().unwrap().on_paint_gl({
                     let drawing_context_clone = drawing_context.clone();
@@ -208,11 +197,13 @@ impl WindowAsync {
                                 let height =
                                     window_data.system_window.as_mut().unwrap().get_height();
                                 if width > 0 && height > 0 {
-                                    /*Self::update_min_window_size(
+                                    Self::update_min_window_size(
+                                        &app_context.func_gui2vm_thread_tx,
+                                        window_id,
                                         window_data,
-                                        &mut drawing_context,
+                                        &drawing_context_clone,
                                         0,
-                                    );*/
+                                    );
 
                                     Self::render(
                                         &app_context.func_gui2vm_thread_tx,
@@ -234,38 +225,119 @@ impl WindowAsync {
 
                     move |event| {
                         let drawing_context_clone = drawing_context_clone.clone();
-                        APPLICATION_GUI_CONTEXT.with(move |context| {
-                            let mut context = context.borrow_mut();
-                            let mut app_context = context.as_mut().unwrap();
-                            if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                let system_window = window_data.system_window.as_mut().unwrap();
-                                let mut drawing_context = drawing_context_clone.lock().unwrap();
+                        if let Some(input_event) = crate::event_converter::convert_event(&event) {
+                            APPLICATION_GUI_CONTEXT.with(move |context| {
+                                let mut context = context.borrow_mut();
+                                let mut app_context = context.as_mut().unwrap();
+                                if let Some(window_data) = app_context.windows.get_mut(&window_id) {
+                                    let system_window = window_data.system_window.as_mut().unwrap();
+                                    let mut drawing_context = drawing_context_clone.lock().unwrap();
 
-                                let width = system_window.get_width();
-                                let height = system_window.get_height();
-                                /*let mut fui_drawing_context = FuiDrawingContext::new(
-                                    (width as u16, height as u16),
-                                    &mut drawing_context,
-                                    0,
-                                );
+                                    let width = system_window.get_width();
+                                    let height = system_window.get_height();
 
-                                // events go to the window's root control
-                                let root_control = window_data.root_control.clone();
-                                window_data.event_processor.handle_event(
-                                    &root_control,
-                                    &mut fui_drawing_context,
-                                    &input_event,
-                                );*/
+                                    &app_context.func_gui2vm_thread_tx.send({
+                                        let drawing_context = drawing_context_clone.clone();
 
-                                true
-                            } else {
-                                false
-                            }
-                        })
+                                        Box::new(move || {
+                                            // VM Thread
+                                            let window_manager =
+                                                APPLICATION_VM_CONTEXT.with(move |context| {
+                                                    context
+                                                        .borrow()
+                                                        .as_ref()
+                                                        .unwrap()
+                                                        .window_manager
+                                                        .clone()
+                                                });
+                                            let mut window_manager = window_manager.borrow_mut();
+                                            let window =
+                                                window_manager.get_window_mut(window_id).unwrap();
+
+                                            let mut drawing_context =
+                                                drawing_context.lock().unwrap();
+
+                                            let mut fui_drawing_context = FuiDrawingContext::new(
+                                                (width as u16, height as u16),
+                                                &mut drawing_context,
+                                                0,
+                                            );
+
+                                            // events go to the window's root control
+                                            let root_control =
+                                                window.data.borrow().root_control.clone();
+                                            window.data.borrow_mut().event_processor.handle_event(
+                                                &root_control,
+                                                &mut fui_drawing_context,
+                                                &input_event,
+                                            );
+                                        })
+                                    });
+
+                                    true
+                                } else {
+                                    false
+                                }
+                            })
+                        } else {
+                            false
+                        }
                     }
                 });
             }
         });
+    }
+
+    fn update_min_window_size(
+        func_gui2vm_thread_tx: &mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
+        window_id: WindowId,
+        window_data: &mut WindowGUIThreadData,
+        drawing_context: &Arc<Mutex<DrawingContext>>,
+        background_texture: i32,
+    ) {
+        // GUI Thread
+        let (tx, rx) = std::sync::mpsc::channel::<Rect>();
+        func_gui2vm_thread_tx.send({
+            let drawing_context = drawing_context.clone();
+
+            Box::new(move || {
+                // VM Thread
+                let window_manager = APPLICATION_VM_CONTEXT
+                    .with(move |context| context.borrow().as_ref().unwrap().window_manager.clone());
+                let mut window_manager = window_manager.borrow_mut();
+                let window = window_manager.get_window_mut(window_id).unwrap();
+
+                let size = Size::new(0.0f32, 0.0f32);
+
+                let mut drawing_context = drawing_context.lock().unwrap();
+
+                let mut fui_drawing_context = FuiDrawingContext::new(
+                    (size.width as u16, size.height as u16),
+                    &mut drawing_context,
+                    background_texture,
+                );
+
+                let min_size = {
+                    window
+                        .data
+                        .borrow()
+                        .root_control
+                        .borrow_mut()
+                        .measure(&mut fui_drawing_context, size);
+                    window.data.borrow().root_control.borrow_mut().get_rect()
+                };
+
+                tx.send(min_size).unwrap();
+            })
+        });
+
+        let min_size = rx.recv().unwrap();
+
+        window_data
+            .system_window
+            .as_mut()
+            .unwrap()
+            .set_minimum_size(min_size.width as i32, min_size.height as i32);
     }
 
     fn render(
@@ -284,7 +356,6 @@ impl WindowAsync {
 
             Box::new(move || {
                 // VM Thread
-                println!("Hello Render from thread: {:?}", thread::current().id());
                 let window_manager = APPLICATION_VM_CONTEXT
                     .with(move |context| context.borrow().as_ref().unwrap().window_manager.clone());
                 let mut window_manager = window_manager.borrow_mut();
