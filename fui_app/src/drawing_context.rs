@@ -50,7 +50,7 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)?;
 
-            let font = DrawingFont::create(&mut self.device, buffer)?;
+            let font = DrawingFont::create(buffer)?;
 
             self.resources
                 .fonts_mut()
@@ -80,7 +80,7 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)?;
 
-            let font = DrawingFont::create(&mut self.device, buffer)?;
+            let font = DrawingFont::create(buffer)?;
 
             self.resources
                 .fonts_mut()
@@ -88,7 +88,7 @@ impl DrawingContext {
         }
 
         if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            font.get_dimensions(&mut self.device, FontParams { size: size }, &text)
+            font.get_dimensions(FontParams { size: size }, &text)
         } else {
             Ok((0, size as u16))
         }
@@ -110,7 +110,7 @@ impl DrawingContext {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer)?;
 
-            let font = DrawingFont::create(&mut self.device, buffer)?;
+            let font = DrawingFont::create(buffer)?;
 
             self.resources
                 .fonts_mut()
@@ -118,7 +118,7 @@ impl DrawingContext {
         }
 
         if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            font.get_dimensions_each_char(&mut self.device, FontParams { size: size }, &text)
+            font.get_dimensions_each_char(FontParams { size: size }, &text)
         } else {
             Ok((Vec::new(), size as u16))
         }
