@@ -100,6 +100,11 @@ impl ApplicationAsync {
 
                 app.message_loop();
 
+                // drop ApplicationGuiContext
+                APPLICATION_GUI_CONTEXT.with(move |context| {
+                    *context.borrow_mut() = None;
+                });
+
                 gui_thread_exit_tx.send(()).unwrap();
             })
             .unwrap();
