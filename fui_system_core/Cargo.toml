@@ -9,15 +9,4 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_system"
 readme = "README.md"
-edition = "2018"
-
-[dependencies]
-thiserror = "1.0"
-
-[build-dependencies]
-cbindgen = "0.19.0"
-bindgen = "0.58.1"
-
-[dev-dependencies]
-rust-embed = "5.8.0"
-gl = "0.14.0"
+edition = "2021"
