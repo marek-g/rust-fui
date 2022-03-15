@@ -110,7 +110,7 @@ impl Window {
         proc_name: &str,
     ) -> Result<*const c_void, FUISystemError> {
         let context = self.qwindow.get_context()?;
-        Ok(context.get_proc_address(proc_name)?)
+        context.get_proc_address(proc_name)
     }
 }
 

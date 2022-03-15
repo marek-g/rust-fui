@@ -96,12 +96,12 @@ impl TrayIcon {
     }
 
     fn qmenu_add_menu_items(
-        mut qmenu: &mut QMenu,
+        qmenu: &mut QMenu,
         slots: &mut Vec<QSlot>,
         menu_items: Vec<MenuItem>,
     ) -> Result<(), FUISystemError> {
         for menu_item in menu_items {
-            Self::qmenu_add_menu_item(&mut qmenu, slots, menu_item)?;
+            Self::qmenu_add_menu_item(qmenu, slots, menu_item)?;
         }
         Ok(())
     }
@@ -123,7 +123,7 @@ impl TrayIcon {
                 callback,
                 sub_items,
             } => {
-                if sub_items.len() > 0 {
+                if !sub_items.is_empty() {
                     let mut qsubmenu = qmenu.add_menu(&QString::from_str(&text)?)?;
                     Self::qmenu_add_menu_items(&mut qsubmenu, slots, sub_items)?;
                 } else {

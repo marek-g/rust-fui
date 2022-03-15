@@ -7,7 +7,7 @@ pub struct Icon {
 
 impl Icon {
     pub fn from_data(data: &[u8]) -> Result<Self, FUISystemError> {
-        let pixmap = QPixmap::from_data(&data)?;
+        let pixmap = QPixmap::from_data(data)?;
 
         let mut icon = QIcon::new()?;
         icon.add_pixmap(&pixmap);

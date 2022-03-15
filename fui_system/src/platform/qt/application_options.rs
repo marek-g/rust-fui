@@ -8,6 +8,12 @@ pub struct ApplicationOptions {
     pub opengl_stencil_bits: i32,
 }
 
+impl Default for ApplicationOptions {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ApplicationOptions {
     ///
     /// Creates new builder.

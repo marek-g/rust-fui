@@ -1,5 +1,5 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 fn main() {
@@ -36,7 +36,7 @@ fn run_cbindgen() {
         .write_to_file(&Path::new(&out_dir).join("rust_ffi.h"));
 }
 
-fn run_qmake(src_dir: &PathBuf, out_dir: &str) {
+fn run_qmake(src_dir: &Path, out_dir: &str) {
     let output = Command::new("qmake")
         .args(&[src_dir])
         .current_dir(&Path::new(&out_dir))

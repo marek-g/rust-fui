@@ -2,21 +2,22 @@ use crate::common::callback_helper::{RawCallback, RawCallbackWithParam};
 use crate::platform::qt::qt_wrapper::ffi_event::FFIEvent;
 use crate::platform::qt::qt_wrapper::{QIcon, QOpenGLContext, QString};
 use crate::FUISystemError;
+use std::any::Any;
 use std::ffi::c_void;
 
 pub struct QWindow {
     pub this: *mut ::std::os::raw::c_void,
 
-    event_callback: Option<Box<dyn Drop>>,
-    initialize_gl_callback: Option<Box<dyn Drop>>,
-    paint_gl_callback: Option<Box<dyn Drop>>,
+    event_callback: Option<Box<dyn Any>>,
+    initialize_gl_callback: Option<Box<dyn Any>>,
+    paint_gl_callback: Option<Box<dyn Any>>,
 }
 
 impl QWindow {
     pub fn new(parent: Option<&mut QWindow>) -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QWindow_new(
-                parent.map_or(0 as *mut ::std::os::raw::c_void, |p| p.this),
+                parent.map_or(std::ptr::null_mut::<::std::os::raw::c_void>(), |p| p.this),
             );
             if this.is_null() {
                 return Err(FUISystemError::OutOfMemory);
