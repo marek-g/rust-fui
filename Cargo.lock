@@ -742,12 +742,12 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "drawing",
  "fui_macros",
- "typed-builder 0.7.1",
+ "typed-builder 0.10.0",
  "typemap",
 ]
 

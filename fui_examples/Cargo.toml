@@ -12,7 +12,7 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.2" }
+fui_core = { path = "../fui_core", version = "0.3" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.2" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.2" }

@@ -50,10 +50,10 @@ Note! The visual aspect of the library is a subject to change. Margins are missi
 - cross-platform (currently: Windows, Linux)
 - renderer agnostic (sample integration with OpenGL)
 - MVVM model with properties, bindings, observable collections
+- async support
 - you do not care about redraw calls
 - `ui!` macro for easier view creation
 - extensive styling (style can change behavior)
-- async support (enabled as a feature) - IN PROGRESS
 
 ## Example
 
