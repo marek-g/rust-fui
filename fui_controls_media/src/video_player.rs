@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 pub struct Player {
     pub texture: PlayerTexture,
     pipeline: Option<gstreamer::Pipeline>,
-    dispatcher: Arc<Mutex<Dispatcher>>,
+    //dispatcher: Arc<Mutex<dyn Dispatcher>>,
     receiver: Option<Receiver<Vec<u8>>>,
 }
 
@@ -22,7 +22,7 @@ impl Player {
         Player {
             texture: PlayerTexture::new(drawing_context),
             pipeline: None,
-            dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
+            //dispatcher: Arc::new(Mutex::new(Dispatcher>:for_current_thread())),
             receiver: None,
         }
     }
@@ -42,11 +42,11 @@ impl Player {
         );
         self.texture.set_size(1280, 544);
 
-        let dispatcher_clone = self.dispatcher.clone();
+        //let dispatcher_clone = self.dispatcher.clone();
         video_app_sink.set_callbacks(
             gstreamer_app::AppSinkCallbacks::builder()
                 .new_sample(move |app_sink| {
-                    let timespec = time::Time::now();
+                    let timespec = time::OffsetDateTime::now_utc();
                     let mills: f64 = timespec.second() as f64
                         + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                     println!(
@@ -60,11 +60,11 @@ impl Player {
                         Ok(sample) => sample,
                     };
 
-                    let caps = sample.get_caps().unwrap();
-                    let s = caps.get_structure(0).unwrap();
-                    let width: i32 = s.get("width").unwrap().unwrap();
-                    let height: i32 = s.get("height").unwrap().unwrap();
-                    let buffer = sample.get_buffer().unwrap();
+                    let caps = sample.caps().unwrap();
+                    let s = caps.structure(0).unwrap();
+                    let width: i32 = s.get("width").unwrap();
+                    let height: i32 = s.get("height").unwrap();
+                    let buffer = sample.buffer().unwrap();
                     let map = buffer.map_readable().unwrap();
                     let data = map.as_slice();
 
@@ -72,9 +72,9 @@ impl Player {
 
                     sender.lock().unwrap().send(Vec::from(data)).unwrap();
 
-                    dispatcher_clone.lock().unwrap().send_async(|| {
-                        //texture_clone.lock().unwrap().update_texture();
-                    });
+                    //dispatcher_clone.lock().unwrap().send_async(|| {
+                    //texture_clone.lock().unwrap().update_texture();
+                    //});
 
                     Ok(gstreamer::FlowSuccess::Ok)
                 })
@@ -95,7 +95,7 @@ impl Player {
     pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
             while let Ok(buffer) = receiver.try_recv() {
-                let timespec = time::Time::now();
+                let timespec = time::OffsetDateTime::now_utc();
                 let mills: f64 = timespec.second() as f64
                     + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 println!(
@@ -144,7 +144,7 @@ impl PlayerTexture {
     }
 
     fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
-        let timespec = time::Time::now();
+        let timespec = time::OffsetDateTime::now_utc();
         let mills: f64 =
             timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(

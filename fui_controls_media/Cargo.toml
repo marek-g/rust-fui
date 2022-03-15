@@ -1,6 +1,6 @@
 [package]
 name = "fui_controls_media"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Media controls for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_media"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.3" }
@@ -21,13 +21,13 @@ media_gstreamer = { path = "../../rust-media/media_gstreamer", version = "0.2" }
 #drawing_gl = "0.1"
 #media_gstreamer = "0.1"
 anyhow = "1.0"
-gstreamer = "0.16"
-gstreamer-sys = "0.9"
-gstreamer-app = "0.16"
-gstreamer-video = "0.16"
-gstreamer-video-sys = "0.9"
-glib = "0.10"
-glutin = "0.25"
+gstreamer = "0.18"
+gstreamer-sys = "0.18"
+gstreamer-app = "0.18"
+gstreamer-video = "0.18"
+gstreamer-video-sys = "0.18"
+glib = "0.15"
+glutin = "0.28"
 gl = "0.14"
-winit = "0.23"
-time = "0.2"
+winit = "0.26"
+time = "0.3"

@@ -25,7 +25,7 @@ pub struct PlayerGl {
     drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
     window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<gstreamer::Pipeline>,
-    dispatcher: Arc<Mutex<Dispatcher>>,
+    //dispatcher: Arc<Mutex<dyn Dispatcher>>,
     receiver: Option<Receiver<GLuint>>,
     event_loop_proxy: winit::event_loop::EventLoopProxy<()>,
 }
@@ -44,7 +44,7 @@ impl PlayerGl {
             drawing_context: drawing_context.clone(),
             window_manager: window_manager.clone(),
             pipeline: None,
-            dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
+            //dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
             event_loop_proxy: event_loop.create_proxy(),
         })
@@ -77,7 +77,7 @@ impl PlayerGl {
         self.receiver = Some(receiver);
         let sender = Arc::new(Mutex::new(sender));
 
-        let main_window_id = self.window_manager.borrow().get_main_window_id();
+        /*let main_window_id = self.window_manager.borrow().get_main_window_id();
         if let Some(main_window_id) = main_window_id {
             if let Some(main_window) = self
                 .window_manager
@@ -216,7 +216,9 @@ impl PlayerGl {
             }
         } else {
             Err(format_err!("Cannot find GL Context. There is no window!",))
-        }
+        }*/
+
+        Err(format_err!("Method not implemented yet"))
     }
 
     #[cfg(target_os = "windows")]
@@ -377,7 +379,7 @@ impl PlayerGl {
     pub fn on_loop_interation(&mut self) -> Result<()> {
         if let Some(ref receiver) = self.receiver {
             while let Ok(texture_id) = receiver.try_recv() {
-                let timespec = time::Time::now();
+                let timespec = time::OffsetDateTime::now_utc();
                 let mills: f64 = timespec.second() as f64
                     + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 //println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
@@ -421,7 +423,7 @@ impl PlayerTexture {
     }
 
     fn update_texture(&mut self, texture_id: GLuint) -> Result<()> {
-        let timespec = time::Time::now();
+        let timespec = time::OffsetDateTime::now_utc();
         let mills: f64 =
             timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
         println!(
