@@ -194,7 +194,7 @@ impl DrawingContext {
         )
     }
 
-    pub fn end(&mut self, gl_context_data: &GlContextData) {
+    pub fn end(&mut self, _gl_context_data: &GlContextData) {
         //self.device.end(gl_context_data);
     }
 

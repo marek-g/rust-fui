@@ -1,6 +1,6 @@
 [package]
 name = "fui_macros"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Macros for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -9,16 +9,16 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_macros"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [lib]
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0.17", features=["full"] }
-quote = "1"
-proc-macro2 = "1"
+syn = { version = "1.0", features=["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"
 
 [dev-dependencies]
-typed-builder = "0.7"
+typed-builder = "0.10"
 typemap = "0.3"

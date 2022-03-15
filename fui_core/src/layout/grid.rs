@@ -60,7 +60,7 @@ pub enum Length {
 struct DefinitionBase {
     pub user_size: Length,
     pub size_type: Length,
-    pub user_min_size: f32,
+    //pub user_min_size: f32,
     pub user_max_size: f32,
 
     //  used during measure to accumulate size for "Auto" and "Fill" DefinitionBase's
@@ -108,7 +108,7 @@ impl DefinitionBase {
         DefinitionBase {
             user_size: user_size,
             size_type: size_type,
-            user_min_size: user_min_size,
+            //user_min_size: user_min_size,
             user_max_size: user_max_size,
             min_size: user_min_size,
             measure_size: user_min_size.max(user_size_value.min(user_max_size)),

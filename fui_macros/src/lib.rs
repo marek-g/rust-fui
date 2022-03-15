@@ -110,7 +110,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
     let (style, properties, attached_values, children) = decouple_params(params);
 
     let properties_builder = get_properties_builder(control_name.clone(), properties);
-    let style_builder = get_style_builder(control_name.clone(), style);
+    let style_builder = get_style_builder(control_name, style);
     let attached_values_typemap = get_attached_values_typemap(attached_values);
     let children_source = get_children_source(children);
 

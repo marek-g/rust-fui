@@ -26,8 +26,8 @@ use syn::{braced, Expr, Ident, Token};
 ///     Horizontal {
 ///         spacing: 5,
 ///
-/// 		Button { Text { text: "Button".to_string() } },
-/// 		Text { text: "Label".to_string() }
+///         Button { Text { text: "Button".to_string() } },
+///         Text { text: "Label".to_string() }
 ///     }
 /// );
 /// ```

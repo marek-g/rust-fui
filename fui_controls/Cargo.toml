@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.2" }
-fui_macros = { path = "../../rust-fui/fui_macros", version = "0.2" }
+fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
 drawing = { path = "../../rust-drawing/drawing", version = "0.3" }
 #drawing = "0.1"
 euclid = "0.22"

@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.2" }
-fui_macros = { path = "../fui_macros", version = "0.2" }
+fui_macros = { path = "../fui_macros", version = "0.3" }
 fui_controls = { path = "../fui_controls", version = "0.2" }
 fui_system = { path = "../fui_system", version = "0.3" }
 fui_system_core = { path = "../fui_system_core", version = "0.1" }

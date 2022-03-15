@@ -12,7 +12,7 @@ readme = "../README.md"
 edition = "2018"
 
 [dependencies]
-fui_macros = { path = "../fui_macros", version = "0.2" }
+fui_macros = { path = "../fui_macros", version = "0.3" }
 drawing = { path = "../../rust-drawing/drawing", version = "0.3" }
 #drawing = "0.1"
 anyhow = "1.0"
