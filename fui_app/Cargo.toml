@@ -1,6 +1,6 @@
 [package]
 name = "fui_app"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Application backend of FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_app"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.3" }
@@ -21,10 +21,10 @@ drawing = { path = "../../rust-drawing/drawing", version = "0.3" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.3" }
 anyhow = "1.0"
 shared_library = "0.1"
-typed-builder = "0.7"
+typed-builder = "0.10"
 typemap = "0.3"
 cpu-time = "1.0"
-rand = "0.7"
+rand = "0.8"
 
 tokio = { version = "1", features = ["full"], optional = true }
 

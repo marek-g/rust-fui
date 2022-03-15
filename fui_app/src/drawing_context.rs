@@ -204,7 +204,7 @@ impl DrawingContext {
             let mut data = [0u8; 256 * 256 * 4];
             for i in 0..256 * 256 {
                 data[i * 4 + 0] = 60;
-                data[i * 4 + 1] = thread_rng().gen_range(90 - 15, 90 + 16);
+                data[i * 4 + 1] = thread_rng().gen_range(90 - 15..=90 + 15);
                 data[i * 4 + 2] = 60;
                 data[i * 4 + 3] = 255;
             }

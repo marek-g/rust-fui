@@ -15,7 +15,7 @@ edition = "2018"
 fui_core = { path = "../fui_core", version = "0.3" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.3" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
-fui_app = { path = "../../rust-fui/fui_app", version = "0.2" }
+fui_app = { path = "../../rust-fui/fui_app", version = "0.3" }
 fui_system = { path = "../../rust-fui/fui_system", version = "0.3" }
 anyhow = "1.0"
 time = "0.2"
