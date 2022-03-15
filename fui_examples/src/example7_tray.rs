@@ -13,8 +13,6 @@ use std::rc::Rc;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use std::thread;
-use std::time::Duration;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
@@ -136,9 +134,10 @@ fn main() -> Result<()> {
     let icon = Icon::from_data(&icon_data).unwrap();
 
     let mut tray = TrayIcon::new().unwrap();
-    tray.set_menu(menu_items);
-    tray.set_icon(&icon);
-    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4");
+    tray.set_menu(menu_items).unwrap();
+    tray.set_icon(&icon).unwrap();
+    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4")
+        .unwrap();
     tray.set_visible(true).unwrap();
 
     tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)

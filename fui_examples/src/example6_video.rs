@@ -22,9 +22,9 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(app: &mut Application) -> Result<Rc<RefCell<Self>>> {
+    /*pub fn new(app: &mut Application) -> Result<Rc<RefCell<Self>>> {
         let player = Rc::new(RefCell::new(PlayerGl::new(
-            app.get_drawing_context(),
+            app.get_window_manager().get_drawing_context(),
             app.get_window_manager(),
             app.get_event_loop().unwrap(),
         )?));
@@ -48,7 +48,7 @@ impl MainViewModel {
             texture_id: Property::new(-1),
             player_loop_subscription,
         })))
-    }
+    }*/
 
     pub fn play(&mut self) {
         self.player.borrow_mut().open();
@@ -107,7 +107,7 @@ fn main() -> Result<()> {
     window.set_title("GStreamer test");
     window.resize(800, 600);
 
-    app.add_window(window, MainViewModel::new(&mut app)?)?;
+    //app.add_window(window, MainViewModel::new(&mut app)?)?;
 
     app.run();
 

@@ -1,6 +1,6 @@
 [package]
 name = "fui_examples"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Examples for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_examples"
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.3" }
@@ -18,8 +18,8 @@ fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.3" }
 fui_system = { path = "../../rust-fui/fui_system", version = "0.3" }
 anyhow = "1.0"
-time = "0.2"
-typed-builder = "0.7"
+time = "0.3"
+typed-builder = "0.10"
 typemap = "0.3"
 
 tokio = { version = "1", features = ["full"], optional = true }

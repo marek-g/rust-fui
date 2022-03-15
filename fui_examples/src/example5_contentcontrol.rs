@@ -7,7 +7,7 @@ use fui_core::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
 use typemap::TypeMap;
 
@@ -72,9 +72,7 @@ impl Item1ViewModel {
 }
 
 impl ViewModel for Item1ViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm = &mut view_model.borrow_mut();
-
+    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
                 Text { text: "Item 1" },
@@ -92,9 +90,7 @@ impl Item2ViewModel {
 }
 
 impl ViewModel for Item2ViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm = &mut view_model.borrow_mut();
-
+    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
                 Text { text: "Item 2" },
