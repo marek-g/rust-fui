@@ -235,6 +235,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             }
 
             ControlEvent::KeyboardInput(ref key_event) => {
+                let mut handled = false;
                 if key_event.state == KeyState::Pressed {
                     if let Some(ref key_code) = key_event.keycode {
                         match key_code {
@@ -247,6 +248,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
                             }
                             Keycode::Delete => {
                                 let text = data.text.get();
@@ -258,6 +260,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
                             }
                             Keycode::Home => {
                                 let text = self.get_display_text(data.text.get());
@@ -269,6 +272,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
                             }
                             Keycode::End => {
                                 let text = self.get_display_text(data.text.get());
@@ -281,6 +285,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
                             }
                             Keycode::Left => {
                                 let text = self.get_display_text(data.text.get());
@@ -292,6 +297,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
                             }
                             Keycode::Right => {
                                 let text = self.get_display_text(data.text.get());
@@ -303,18 +309,24 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         drawing_context.get_resources(),
                                     );
                                 }
+                                handled = true;
+                            }
+                            Keycode::Esc | Keycode::Tab | Keycode::Enter => {
+                                handled = true;
                             }
                             _ => (),
                         }
                     }
 
-                    if let Some(ref text) = key_event.text {
-                        self.insert_str(
-                            data,
-                            &text,
-                            control_context.get_rect(),
-                            drawing_context.get_resources(),
-                        );
+                    if !handled {
+                        if let Some(ref text) = key_event.text {
+                            self.insert_str(
+                                data,
+                                &text,
+                                control_context.get_rect(),
+                                drawing_context.get_resources(),
+                            );
+                        }
                     }
 
                     control_context.set_is_dirty(true);
