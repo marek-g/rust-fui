@@ -66,7 +66,7 @@ fn run_make(dir: &str) {
 
 fn cargo_link_static(dir: &str, lib: &str) {
     println!("cargo:rustc-link-search={}", dir);
-    println!("cargo:rustc-link-lib=static={}", lib);
+    println!("cargo:rustc-link-lib={}", lib);
 }
 
 fn qmake_query(var: &str) -> String {
