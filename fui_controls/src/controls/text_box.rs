@@ -87,7 +87,7 @@ impl DefaultTextBoxStyle {
             .get_font_dimensions_each_char(self.font_name, self.font_size, &text)
             .unwrap_or((Vec::new(), 0));
 
-        let pos = (pos.x - rect.x - 4.0f32) as i32;
+        let pos = ((pos.x - rect.x - 4.0f32) + self.offset_x) as i32;
 
         let mut cursor_char = 0;
         let mut cursor_px = 0;
