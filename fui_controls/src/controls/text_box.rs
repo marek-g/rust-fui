@@ -40,9 +40,14 @@ impl TextBox {
 //
 
 #[derive(TypedBuilder)]
-pub struct DefaultTextBoxStyleParams {}
+pub struct DefaultTextBoxStyleParams {
+    #[builder(default = false)]
+    pub password: bool,
+}
 
 pub struct DefaultTextBoxStyle {
+    params: DefaultTextBoxStyleParams,
+
     is_hover: bool,
     is_focused: bool,
     event_subscriptions: Vec<EventSubscription>,
@@ -55,8 +60,10 @@ pub struct DefaultTextBoxStyle {
 }
 
 impl DefaultTextBoxStyle {
-    pub fn new(_params: DefaultTextBoxStyleParams) -> Self {
+    pub fn new(params: DefaultTextBoxStyleParams) -> Self {
         DefaultTextBoxStyle {
+            params,
+
             is_hover: false,
             is_focused: false,
             event_subscriptions: Vec::new(),
@@ -138,7 +145,12 @@ impl DefaultTextBoxStyle {
 
         let new_cursor_pos_char = self.cursor_pos_char + text.chars().count();
 
-        self.move_cursor(&t, new_cursor_pos_char, rect, resources);
+        self.move_cursor(
+            &self.get_display_text(t.clone()),
+            new_cursor_pos_char,
+            rect,
+            resources,
+        );
         data.text.set(t);
     }
 
@@ -153,7 +165,12 @@ impl DefaultTextBoxStyle {
         let t: String = t.chars().take(pos).chain(t.chars().skip(pos + 1)).collect();
 
         if pos < self.cursor_pos_char {
-            self.move_cursor(&t, self.cursor_pos_char - 1, rect, resources);
+            self.move_cursor(
+                &self.get_display_text(t.clone()),
+                self.cursor_pos_char - 1,
+                rect,
+                resources,
+            );
         }
 
         data.text.set(t);
@@ -168,6 +185,14 @@ impl DefaultTextBoxStyle {
             }
         } else {
             self.offset_x = 0.0f32;
+        }
+    }
+
+    fn get_display_text(&self, text: String) -> String {
+        if self.params.password {
+            text.chars().map(|_| '*').collect()
+        } else {
+            text
         }
     }
 }
@@ -199,7 +224,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
             ControlEvent::TapDown { ref position } => {
                 let cursor_pos = self.calc_cursor_pos(
-                    &data.text.get(),
+                    &self.get_display_text(data.text.get()),
                     position,
                     control_context.get_rect(),
                     drawing_context.get_resources(),
@@ -235,7 +260,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                 }
                             }
                             Keycode::Home => {
-                                let text = data.text.get();
+                                let text = self.get_display_text(data.text.get());
                                 if self.cursor_pos_char > 0 {
                                     self.move_cursor(
                                         &text,
@@ -246,7 +271,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                 }
                             }
                             Keycode::End => {
-                                let text = data.text.get();
+                                let text = self.get_display_text(data.text.get());
                                 let len = text.chars().count();
                                 if self.cursor_pos_char + 1 <= len {
                                     self.move_cursor(
@@ -258,7 +283,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                 }
                             }
                             Keycode::Left => {
-                                let text = data.text.get();
+                                let text = self.get_display_text(data.text.get());
                                 if self.cursor_pos_char > 0 {
                                     self.move_cursor(
                                         &text,
@@ -269,7 +294,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                 }
                             }
                             Keycode::Right => {
-                                let text = data.text.get();
+                                let text = self.get_display_text(data.text.get());
                                 if self.cursor_pos_char + 1 <= text.chars().count() {
                                     self.move_cursor(
                                         &text,
@@ -309,7 +334,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     ) -> Size {
         let (_text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(
+                self.font_name,
+                self.font_size,
+                &self.get_display_text(data.text.get()),
+            )
             .unwrap_or((0, 0));
 
         let width = if size.width.is_infinite() {
@@ -358,9 +387,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         let width = rect.width;
         let height = rect.height;
 
+        let display_text = self.get_display_text(data.text.get());
+
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(self.font_name, self.font_size, &display_text)
             .unwrap_or((0, 0));
 
         default_theme::border_3d_edit(
@@ -406,7 +437,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 PixelSize::new(text_width as f32, height),
             ),
             size: Length::new(self.font_size as f32),
-            text: data.text.get(),
+            text: display_text,
         });
 
         // draw cursor

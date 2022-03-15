@@ -81,14 +81,17 @@ impl ViewModel for MainViewModel {
                 },
 
                 TextBox {
+                    Style: Default {
+                        password: true,
+                    },
                     Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                     text: &mut vm.text2,
                 },
                 Text {
-                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     Style: Default {
                         color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
                     },
+                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                     text: &vm.text2,
                 },
 
