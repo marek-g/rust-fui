@@ -1,6 +1,6 @@
 [package]
 name = "fui_system"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "System controls (dialogs, tray etc.) for FUI UI Framework"
 keywords = ["windowing", "gui", "framework", "dialog", "tray"]
