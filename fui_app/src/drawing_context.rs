@@ -96,7 +96,7 @@ impl DrawingContext {
 
     fn ensure_font(&mut self, font_name: &str) -> Result<()> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let buffer = if (font_name.ends_with(".ttf")) {
+            let buffer = if font_name.ends_with(".ttf") {
                 let mut file = File::open(font_name).unwrap();
                 let mut buffer = Vec::new();
                 file.read_to_end(&mut buffer)?;
