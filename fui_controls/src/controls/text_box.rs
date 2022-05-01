@@ -67,7 +67,7 @@ impl DefaultTextBoxStyle {
             is_hover: false,
             is_focused: false,
             event_subscriptions: Vec::new(),
-            font_name: "OpenSans-Regular.ttf",
+            font_name: "assets/OpenSans-Regular.ttf",
             font_size: 20u8,
 
             cursor_pos_char: 0,

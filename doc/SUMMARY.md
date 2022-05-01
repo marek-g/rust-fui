@@ -10,3 +10,5 @@
 - [Async support](async.md)
 - [Internationalization](i18n.md)
   - [Text translation](i18n_text_translation.md)
+
+- [Fonts](fonts.md)

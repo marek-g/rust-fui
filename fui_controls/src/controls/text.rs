@@ -52,7 +52,7 @@ impl DefaultTextStyle {
         DefaultTextStyle {
             params,
             event_subscriptions: Vec::new(),
-            font_name: "OpenSans-Regular.ttf",
+            font_name: "assets/OpenSans-Regular.ttf",
             font_size: 20u8,
         }
     }
@@ -169,7 +169,7 @@ impl DynamicTextStyle {
         DynamicTextStyle {
             params,
             event_subscriptions: Vec::new(),
-            font_name: "OpenSans-Regular.ttf",
+            font_name: "assets/OpenSans-Regular.ttf",
             font_size: 20u8,
             is_hover: false,
         }

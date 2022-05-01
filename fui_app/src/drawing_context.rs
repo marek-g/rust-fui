@@ -41,7 +41,7 @@ impl DrawingContext {
 
     pub fn get_font(&mut self, font_name: &'static str) -> Result<&mut DrawingFont> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = Path::new("assets")
+            let font_path = Path::new("./")
                 .join(font_name)
                 .into_os_string()
                 .into_string()
@@ -70,22 +70,7 @@ impl DrawingContext {
         size: u8,
         text: &str,
     ) -> Result<(u16, u16)> {
-        if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = Path::new("assets")
-                .join(font_name)
-                .into_os_string()
-                .into_string()
-                .unwrap();
-            let mut file = File::open(font_path).unwrap();
-            let mut buffer = Vec::new();
-            file.read_to_end(&mut buffer)?;
-
-            let font = DrawingFont::create(buffer)?;
-
-            self.resources
-                .fonts_mut()
-                .insert(font_name.to_string(), font);
-        }
+        self.ensure_font(&font_name)?;
 
         if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
             font.get_dimensions(FontParams { size: size }, &text)
@@ -100,15 +85,25 @@ impl DrawingContext {
         size: u8,
         text: &str,
     ) -> Result<(Vec<i16>, u16)> {
+        self.ensure_font(&font_name)?;
+
+        if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
+            font.get_dimensions_each_char(FontParams { size: size }, &text)
+        } else {
+            Ok((Vec::new(), size as u16))
+        }
+    }
+
+    fn ensure_font(&mut self, font_name: &str) -> Result<()> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = Path::new("assets")
-                .join(font_name)
-                .into_os_string()
-                .into_string()
-                .unwrap();
-            let mut file = File::open(font_path).unwrap();
-            let mut buffer = Vec::new();
-            file.read_to_end(&mut buffer)?;
+            let buffer = if (font_name.ends_with(".ttf")) {
+                let mut file = File::open(font_name).unwrap();
+                let mut buffer = Vec::new();
+                file.read_to_end(&mut buffer)?;
+                Ok(buffer)
+            } else {
+                Err(format_err!("Only .ttf font files are supported"))
+            }?;
 
             let font = DrawingFont::create(buffer)?;
 
@@ -117,11 +112,7 @@ impl DrawingContext {
                 .insert(font_name.to_string(), font);
         }
 
-        if let Some(font) = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            font.get_dimensions_each_char(FontParams { size: size }, &text)
-        } else {
-            Ok((Vec::new(), size as u16))
-        }
+        Ok(())
     }
 
     pub fn get_resources(&self) -> &Resources<DrawingDevice, DrawingFont> {
