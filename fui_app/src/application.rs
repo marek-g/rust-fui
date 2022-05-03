@@ -12,6 +12,7 @@ use std::thread::JoinHandle;
 use tokio::select;
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, oneshot};
+use tokio::task::LocalSet;
 
 thread_local! {
     pub static APPLICATION_GUI_CONTEXT: RefCell<Option<ApplicationGuiContext >> = RefCell::new(None);
@@ -137,24 +138,32 @@ impl Application {
     }
 
     pub async fn run(mut self) -> Result<()> {
-        let mut exit = false;
-        while !exit {
-            select! {
-                // process all closures sent with dispatcher from the same thread
-                f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
+        // LocalSet allows us to call task::spawn_local()
+        // to spawn futures on the same thread
+        let local = LocalSet::new();
 
-                // process all closures sent with dispatcher from any thread
-                f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
+        local.spawn_local(async move {
+            let mut exit = false;
+            while !exit {
+                select! {
+                    // process all closures sent with dispatcher from the same thread
+                    f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
 
-                // wait for exit of the gui message loop
-                res = &mut self.gui_thread_exit_rx => exit = true,
+                    // process all closures sent with dispatcher from any thread
+                    f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
+
+                    // wait for exit of the gui message loop
+                    res = &mut self.gui_thread_exit_rx => exit = true,
+                }
             }
-        }
 
-        // wait for the GUI thread to finish
-        if let Some(handle) = self.gui_thread_join_handle.take() {
-            handle.join().unwrap();
-        }
+            // wait for the GUI thread to finish
+            if let Some(handle) = self.gui_thread_join_handle.take() {
+                handle.join().unwrap();
+            }
+        });
+
+        local.await;
 
         Ok(())
     }
