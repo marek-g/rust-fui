@@ -66,24 +66,32 @@ impl ViewModel for MainViewModel {
     }
 }
 
-fn main() -> Result<()> {
-    let mut app = Application::new("Example: multiwindow")?;
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    let app = Application::new("Example: multiwindow").await?;
 
-    app.get_window_manager().borrow_mut().add_window(
-        WindowOptions::new()
-            .with_title("Window 1")
-            .with_size(800, 600),
-        MainViewModel::new(),
-    )?;
+    app.get_window_manager()
+        .borrow_mut()
+        .add_window(
+            WindowOptions::new()
+                .with_title("Window 1")
+                .with_size(800, 600),
+            MainViewModel::new(),
+        )
+        .await?;
 
-    app.get_window_manager().borrow_mut().add_window(
-        WindowOptions::new()
-            .with_title("Window 2")
-            .with_size(800, 600),
-        MainViewModel::new(),
-    )?;
+    app.get_window_manager()
+        .borrow_mut()
+        .add_window(
+            WindowOptions::new()
+                .with_title("Window 2")
+                .with_size(800, 600),
+            MainViewModel::new(),
+        )
+        .await?;
 
-    app.run()?;
+    app.run().await?;
 
     Ok(())
 }

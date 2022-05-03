@@ -92,8 +92,11 @@ impl ViewModel for MainViewModel {
     }
 }
 
-fn main() -> Result<()> {
-    let mut app = fui_app::Application::new("Example: tray")?;
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    // TODO: tray must be still ported to async
+    let mut app = fui_app::Application::new("Example: tray").await?;
 
     let menu_items = vec![
         fui_system::MenuItem::folder(
@@ -143,14 +146,17 @@ fn main() -> Result<()> {
     tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
         .unwrap();
 
-    app.get_window_manager().borrow_mut().add_window(
-        WindowOptions::new()
-            .with_title("Example: tray")
-            .with_size(800, 600),
-        MainViewModel::new(),
-    )?;
+    app.get_window_manager()
+        .borrow_mut()
+        .add_window(
+            WindowOptions::new()
+                .with_title("Example: tray")
+                .with_size(800, 600),
+            MainViewModel::new(),
+        )
+        .await?;
 
-    app.run()?;
+    app.run().await?;
 
     Ok(())
 }

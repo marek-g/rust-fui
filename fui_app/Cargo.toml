@@ -25,8 +25,4 @@ typed-builder = "0.10"
 typemap = "0.3"
 cpu-time = "1.0"
 rand = "0.8"
-
-tokio = { version = "1", features = ["full"], optional = true }
-
-[features]
-async = ["tokio"]
+tokio = { version = "1", features = ["full"] }

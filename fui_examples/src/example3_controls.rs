@@ -251,18 +251,24 @@ impl ViewModel for MainViewModel {
     }
 }
 
-fn main() -> Result<()> {
-    let mut app = Application::new("Example: layout")?;
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    let app = Application::new("Example: layout").await?;
 
-    let window = app.get_window_manager().borrow_mut().create_window(
-        WindowOptions::new()
-            .with_title("Example: layout")
-            .with_size(800, 600),
-    )?;
+    let window = app
+        .get_window_manager()
+        .borrow_mut()
+        .create_window(
+            WindowOptions::new()
+                .with_title("Example: layout")
+                .with_size(800, 600),
+        )
+        .await?;
     let vm = MainViewModel::new(window.get_window_service());
     window.set_vm(vm);
 
-    app.run()?;
+    app.run().await?;
 
     Ok(())
 }

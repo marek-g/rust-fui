@@ -98,17 +98,23 @@ impl ViewModel for Item2ViewModel {
         )
     }
 }
-fn main() -> Result<()> {
-    let mut app = Application::new("Example: content control")?;
 
-    app.get_window_manager().borrow_mut().add_window(
-        WindowOptions::new()
-            .with_title("Example: content control")
-            .with_size(800, 600),
-        MainViewModel::new(),
-    )?;
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    let app = Application::new("Example: content control").await?;
 
-    app.run()?;
+    app.get_window_manager()
+        .borrow_mut()
+        .add_window(
+            WindowOptions::new()
+                .with_title("Example: content control")
+                .with_size(800, 600),
+            MainViewModel::new(),
+        )
+        .await?;
+
+    app.run().await?;
 
     Ok(())
 }

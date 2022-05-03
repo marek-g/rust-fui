@@ -88,17 +88,22 @@ impl ViewModel for MainViewModel {
     }
 }
 
-fn main() -> Result<()> {
-    let mut app = Application::new("Example: button")?;
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    let app = Application::new("Example: button").await?;
 
-    app.get_window_manager().borrow_mut().add_window(
-        WindowOptions::new()
-            .with_title("Example: button")
-            .with_size(800, 600),
-        MainViewModel::new(),
-    )?;
+    app.get_window_manager()
+        .borrow_mut()
+        .add_window(
+            WindowOptions::new()
+                .with_title("Example: button")
+                .with_size(800, 600),
+            MainViewModel::new(),
+        )
+        .await?;
 
-    app.run()?;
+    app.run().await?;
 
     Ok(())
 }

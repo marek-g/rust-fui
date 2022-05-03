@@ -1,36 +1,40 @@
-use crate::{DrawingContext, WindowOptions};
+use crate::{DrawingContext, Window, WindowId, WindowOptions};
 use anyhow::Result;
 use fui_core::ViewModel;
+use std::borrow::Borrow;
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct WindowManager {
-    drawing_context: Rc<RefCell<DrawingContext>>,
-    windows: Vec<crate::Window>,
+    windows: HashMap<WindowId, crate::Window>,
 }
 
 impl WindowManager {
     pub fn new() -> Result<Self> {
         Ok(Self {
-            drawing_context: Rc::new(RefCell::new(DrawingContext::new()?)),
-            windows: Vec::new(),
+            windows: HashMap::new(),
         })
     }
 
-    pub fn add_window<V: ViewModel>(
+    pub async fn add_window<V: ViewModel>(
         &mut self,
         window_options: WindowOptions,
         view_model: Rc<RefCell<V>>,
     ) -> Result<crate::Window> {
-        let window = self.create_window(window_options)?;
+        let window = self.create_window(window_options).await?;
         window.set_vm(view_model);
         Ok(window)
     }
 
-    pub fn create_window(&mut self, window_options: WindowOptions) -> Result<crate::Window> {
-        let window = crate::Window::create(window_options, &self.drawing_context)?;
-        self.windows.push(window.clone());
+    pub async fn create_window(&mut self, window_options: WindowOptions) -> Result<crate::Window> {
+        let mut window = crate::Window::create(window_options).await?;
+        self.windows.insert(window.get_id(), window.clone());
         Ok(window)
+    }
+
+    pub fn get_window_mut(&mut self, window_id: WindowId) -> Option<&mut Window> {
+        self.windows.get_mut(&window_id)
     }
 }
 

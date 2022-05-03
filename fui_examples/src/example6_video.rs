@@ -100,16 +100,19 @@ impl ViewModel for MainViewModel {
     }
 }
 
-fn main() -> Result<()> {
-    let mut app = Application::new("Example: video").unwrap();
+#[tokio::main(flavor = "current_thread")]
+//#[tokio::main]
+async fn main() -> Result<()> {
+    let app = Application::new("Example: video").await?;
 
     let mut window = fui_system::Window::new(None).unwrap();
     window.set_title("GStreamer test");
     window.resize(800, 600);
 
+    // TODO: video player must be updated
     //app.add_window(window, MainViewModel::new(&mut app)?)?;
 
-    app.run();
+    app.run().await?;
 
     Ok(())
 }
