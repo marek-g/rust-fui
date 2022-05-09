@@ -2,6 +2,8 @@
 
 The FUI library supports async code using `Tokio` runtime.
 
+You can explicitly use `task::spawn_local()` call to run async code from callbacks.
+
 ## Threads
 
 Both `async` runtime and `fui_system` have their own message loops. The `FUI` library creates a separate thread for `fui_system` message loop. The two threads are:
