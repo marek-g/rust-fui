@@ -8,6 +8,7 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
+use tokio::task;
 
 use typemap::TypeMap;
 
@@ -181,19 +182,26 @@ impl ViewModel for MainViewModel {
         );
 
         let mut exit_callback = Callback::empty();
-        let window = vm.window.clone();
-        exit_callback.set(move |_| {
-            MessageBox::builder()
-                .message("Do you really want to exit?".to_string())
-                .buttons(vec![
-                    (
-                        "Yes".to_string(),
-                        Callback::simple(move |_| Application::exit()),
-                    ),
-                    ("No".to_string(), Callback::empty()),
-                ])
-                .build()
-                .show(&window);
+        exit_callback.set({
+            let window = vm.window.clone();
+            move |_| {
+                task::spawn_local({
+                    let window = window.clone();
+                    async move {
+                        let result = MessageBox::builder()
+                            .message("Do you really want to exit?".to_string())
+                            .buttons(vec!["Yes".to_string(), "No".to_string()])
+                            .build()
+                            .show(&window)
+                            .await
+                            .unwrap();
+
+                        if result == 0 {
+                            Application::exit();
+                        }
+                    }
+                });
+            }
         });
 
         let menu_items = vec![

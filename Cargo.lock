@@ -560,6 +560,7 @@ dependencies = [
  "euclid",
  "fui_core",
  "fui_macros",
+ "futures-channel",
  "typed-builder",
  "typemap",
 ]

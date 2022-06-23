@@ -1,7 +1,10 @@
 use crate::*;
 use fui_core::*;
 use fui_macros::ui;
+use futures_channel::oneshot;
+use futures_channel::oneshot::{Canceled, Sender};
 use std::cell::RefCell;
+use std::future::Future;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
@@ -39,12 +42,18 @@ pub struct MessageBox {
     message: String,
 
     #[builder(default = Vec::new())]
-    buttons: Vec<(String, Callback<()>)>,
+    buttons: Vec<String>,
 }
 
 impl MessageBox {
-    pub fn show(self, window: &Rc<RefCell<dyn WindowService>>) {
+    pub fn show(
+        self,
+        window: &Rc<RefCell<dyn WindowService>>,
+    ) -> impl Future<Output = Result<i32, Canceled>> {
         let mut buttons = ObservableVec::<Rc<RefCell<DialogButtonViewModel>>>::new();
+
+        let (sender, receiver) = oneshot::channel::<i32>();
+        let sender = Rc::new(RefCell::new(Some(sender)));
 
         let content = ui! {
             Border {
@@ -78,14 +87,21 @@ impl MessageBox {
             }
         };
 
-        for (text, callback) in self.buttons {
+        for (button_index, text) in self.buttons.into_iter().enumerate() {
             // create new_callback that closes dialog layer
             // and calls button callback
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
-            let new_callback = Callback::simple(move |_| {
-                window_clone.borrow_mut().remove_layer(&content_clone);
-                callback.emit(());
+            let new_callback = Callback::simple({
+                let mut sender = sender.clone();
+                move |_| {
+                    window_clone.borrow_mut().remove_layer(&content_clone);
+                    sender
+                        .borrow_mut()
+                        .take()
+                        .unwrap()
+                        .send(button_index as i32);
+                }
             });
 
             buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
@@ -95,5 +111,7 @@ impl MessageBox {
         }
 
         window.borrow_mut().add_layer(content);
+
+        receiver
     }
 }
