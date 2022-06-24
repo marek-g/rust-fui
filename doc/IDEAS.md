@@ -1,9 +1,10 @@
 TODO:
 
-- [2020-09-15] I have found two interesting projects to investigate:
+- I have found two interesting projects to investigate:
+  - https://github.com/Pauan/rust-signals
+  - https://github.com/DioxusLabs/dioxus
   - https://github.com/ogoffart/propertybindings-rs (QML inspired macros)
   - https://github.com/d9n/pebl/tree/master/src (properties, bindings)
-- [2020-09-21] More interesting projects:
   - https://github.com/sixtyfpsui/sixtyfps
   - https://github.com/mrDIMAS/rg3d-ui
 
