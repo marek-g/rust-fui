@@ -19,24 +19,20 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
-        let mut data = Mutable::new(src_property.get());
-        spawn_local(src_property.data.signal_cloned().for_each({
-            let data = data.clone();
-            move |v| {
-                data.set_neq(v);
-                async {}
-            }
-        }));
-        Property { data }
+        let mut new_property = Property {
+            data: Mutable::new(src_property.get()),
+        };
+        new_property.bind(src_property);
+        new_property
     }
 
     pub fn binded_c_from<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
         src_property: &Property<TSrc>,
         f: F,
     ) -> Self {
-        let mut property = Property::new(f(src_property.get()));
-        property.bind_c(src_property, f);
-        property
+        let mut new_property = Property::new(f(src_property.get()));
+        new_property.bind_c(src_property, f);
+        new_property
     }
 
     pub fn binded_to(dst_property: &mut Property<T>, init_value: T) -> Self {
