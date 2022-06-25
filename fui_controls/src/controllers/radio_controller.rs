@@ -8,7 +8,7 @@ use fui_core::{EventSubscription, ObservableCollection, StyledControl};
 pub trait RadioElement {
     fn is_checked(&self) -> bool;
     fn set_is_checked(&mut self, is_checked: bool);
-    fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription;
+    fn on_checked(&self, f: Box<dyn Fn()>) -> Box<dyn Drop>;
 }
 
 impl RadioElement for StyledControl<ToggleButton> {
@@ -20,12 +20,12 @@ impl RadioElement for StyledControl<ToggleButton> {
         self.data.is_checked.set(is_checked)
     }
 
-    fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription {
-        self.data.is_checked.on_changed(move |is_checked| {
+    fn on_checked(&self, f: Box<dyn Fn()>) -> Box<dyn Drop> {
+        Box::new(self.data.is_checked.on_changed(move |is_checked| {
             if is_checked {
                 f();
             }
-        })
+        }))
     }
 }
 
@@ -34,7 +34,7 @@ where
     R: 'static + RadioElement,
 {
     _elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>>,
-    _subscriptions: Rc<RefCell<Vec<EventSubscription>>>,
+    _subscriptions: Rc<RefCell<Vec<Box<dyn Drop>>>>,
 }
 
 impl<R> RadioController<R>

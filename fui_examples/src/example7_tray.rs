@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
@@ -13,6 +13,7 @@ use std::rc::Rc;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
+use tokio::task::LocalSet;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
@@ -95,68 +96,72 @@ impl ViewModel for MainViewModel {
 #[tokio::main(flavor = "current_thread")]
 //#[tokio::main]
 async fn main() -> Result<()> {
-    // TODO: tray must be still ported to async
-    let mut app = fui_app::Application::new("Example: tray").await?;
+    LocalSet::new()
+        .run_until(async {
+            // TODO: tray must be still ported to async
+            let app = fui_app::Application::new("Example: tray").await?;
 
-    let menu_items = vec![
-        fui_system::MenuItem::folder(
-            "File",
-            vec![
-                fui_system::MenuItem::simple("Open...", || {}),
-                fui_system::MenuItem::simple("Save...", || {}),
+            let menu_items = vec![
                 fui_system::MenuItem::folder(
-                    "Export",
+                    "File",
                     vec![
-                        fui_system::MenuItem::simple("PDF...", || {}),
-                        fui_system::MenuItem::simple("PNG...", || {}),
-                        fui_system::MenuItem::simple("HTML...", || {}),
+                        fui_system::MenuItem::simple("Open...", || {}),
+                        fui_system::MenuItem::simple("Save...", || {}),
+                        fui_system::MenuItem::folder(
+                            "Export",
+                            vec![
+                                fui_system::MenuItem::simple("PDF...", || {}),
+                                fui_system::MenuItem::simple("PNG...", || {}),
+                                fui_system::MenuItem::simple("HTML...", || {}),
+                            ],
+                        ),
+                        fui_system::MenuItem::Separator,
+                        fui_system::MenuItem::simple("Exit", || fui_app::Application::exit()),
                     ],
                 ),
-                fui_system::MenuItem::Separator,
-                fui_system::MenuItem::simple("Exit", || fui_app::Application::exit()),
-            ],
-        ),
-        fui_system::MenuItem::folder(
-            "Help",
-            vec![
-                fui_system::MenuItem::simple("Help", || {}),
-                fui_system::MenuItem::Separator,
-                fui_system::MenuItem::simple("About", || {}),
-            ],
-        ),
-    ];
+                fui_system::MenuItem::folder(
+                    "Help",
+                    vec![
+                        fui_system::MenuItem::simple("Help", || {}),
+                        fui_system::MenuItem::Separator,
+                        fui_system::MenuItem::simple("About", || {}),
+                    ],
+                ),
+            ];
 
-    let icon_path = Path::new("assets")
-        .join("icon.png")
-        .into_os_string()
-        .into_string()
-        .unwrap();
-    let mut file = File::open(icon_path).unwrap();
-    let mut icon_data = Vec::new();
-    file.read_to_end(&mut icon_data)?;
-    let icon = Icon::from_data(&icon_data).unwrap();
+            let icon_path = Path::new("assets")
+                .join("icon.png")
+                .into_os_string()
+                .into_string()
+                .unwrap();
+            let mut file = File::open(icon_path).unwrap();
+            let mut icon_data = Vec::new();
+            file.read_to_end(&mut icon_data)?;
+            let icon = Icon::from_data(&icon_data).unwrap();
 
-    let mut tray = TrayIcon::new().unwrap();
-    tray.set_menu(menu_items).unwrap();
-    tray.set_icon(&icon).unwrap();
-    tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4")
-        .unwrap();
-    tray.set_visible(true).unwrap();
+            let mut tray = TrayIcon::new().unwrap();
+            tray.set_menu(menu_items).unwrap();
+            tray.set_icon(&icon).unwrap();
+            tray.set_tool_tip("Mądrej Głowie dość po słowie!\nLinia 2\nLinia 3\nLinia 4")
+                .unwrap();
+            tray.set_visible(true).unwrap();
 
-    tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
-        .unwrap();
+            tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
+                .unwrap();
 
-    app.get_window_manager()
-        .borrow_mut()
-        .add_window(
-            WindowOptions::new()
-                .with_title("Example: tray")
-                .with_size(800, 600),
-            MainViewModel::new(),
-        )
-        .await?;
+            app.get_window_manager()
+                .borrow_mut()
+                .add_window(
+                    WindowOptions::new()
+                        .with_title("Example: tray")
+                        .with_size(800, 600),
+                    MainViewModel::new(),
+                )
+                .await?;
 
-    app.run().await?;
+            app.run().await?;
 
-    Ok(())
+            Ok::<(), Error>(())
+        })
+        .await
 }

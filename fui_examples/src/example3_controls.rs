@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
@@ -9,6 +9,7 @@ use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task;
+use tokio::task::LocalSet;
 
 use typemap::TypeMap;
 
@@ -262,21 +263,25 @@ impl ViewModel for MainViewModel {
 #[tokio::main(flavor = "current_thread")]
 //#[tokio::main]
 async fn main() -> Result<()> {
-    let app = Application::new("Example: layout").await?;
+    LocalSet::new()
+        .run_until(async {
+            let app = Application::new("Example: layout").await?;
 
-    let window = app
-        .get_window_manager()
-        .borrow_mut()
-        .create_window(
-            WindowOptions::new()
-                .with_title("Example: layout")
-                .with_size(800, 600),
-        )
-        .await?;
-    let vm = MainViewModel::new(window.get_window_service());
-    window.set_vm(vm);
+            let window = app
+                .get_window_manager()
+                .borrow_mut()
+                .create_window(
+                    WindowOptions::new()
+                        .with_title("Example: layout")
+                        .with_size(800, 600),
+                )
+                .await?;
+            let vm = MainViewModel::new(window.get_window_service());
+            window.set_vm(vm);
 
-    app.run().await?;
+            app.run().await?;
 
-    Ok(())
+            Ok::<(), Error>(())
+        })
+        .await
 }

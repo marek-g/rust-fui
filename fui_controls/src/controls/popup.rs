@@ -83,7 +83,7 @@ pub struct DefaultPopupStyleParams {}
 
 pub struct DefaultPopupStyle {
     popup_content: Rc<Cell<Option<Rc<RefCell<dyn ControlObject>>>>>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl DefaultPopupStyle {
@@ -163,15 +163,16 @@ impl Style<Popup> for DefaultPopupStyle {
                         popup_content_rc.set(Some(content.clone()));
                         window_service.borrow_mut().add_layer(content);
                     } else {
-                        let content = popup_content_rc.replace(None).unwrap();
-                        window_service.borrow_mut().remove_layer(&content);
+                        if let Some(content) = popup_content_rc.replace(None) {
+                            window_service.borrow_mut().remove_layer(&content);
+                        }
                     }
                 }
             }
         };
 
         self.event_subscriptions
-            .push(data.is_open.on_changed(is_open_handler));
+            .push(Box::new(data.is_open.on_changed(is_open_handler)));
     }
 
     fn handle_event(

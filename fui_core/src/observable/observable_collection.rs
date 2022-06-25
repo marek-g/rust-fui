@@ -1,4 +1,4 @@
-use crate::EventSubscription;
+use crate::{EventSubscription, PropertySubscription};
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {
@@ -9,10 +9,7 @@ pub enum ObservableChangedEventArgs<T: 'static + Clone> {
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> Option<T>;
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription>;
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>>;
 }
 
 ///
@@ -88,10 +85,7 @@ where
         self.as_slice().get(index).map(|el| el.clone())
     }
 
-    fn on_changed(
-        &self,
-        _: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
+    fn on_changed(&self, _: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
         None
     }
 }

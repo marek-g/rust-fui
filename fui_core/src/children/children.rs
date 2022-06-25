@@ -1,6 +1,6 @@
 use crate::{
     ControlObject, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
-    ObservableComposite,
+    ObservableComposite, PropertySubscription,
 };
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -156,7 +156,7 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Children {
     fn on_changed(
         &self,
         f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>,
-    ) -> Option<EventSubscription> {
+    ) -> Option<Box<dyn Drop>> {
         match self {
             Children::None | Children::SingleStatic(_) | Children::MultipleStatic(_) => None,
 

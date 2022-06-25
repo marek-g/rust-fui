@@ -1,24 +1,33 @@
+use futures_signals::signal::{Mutable, SignalExt};
 use std::cell::RefCell;
 use std::rc::Rc;
+use tokio::task;
+use tokio::task::{spawn_local, JoinHandle};
 
 use crate::{Color, EventSubscription};
 use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
 
 pub struct Property<T> {
-    data: Rc<RefCell<PropertyData<T>>>,
+    data: Mutable<T>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
-            data: Rc::new(RefCell::new(PropertyData::new(val.into()))),
+            data: Mutable::new(val.into()),
         }
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
-        let mut property = Property::new(src_property.get());
-        property.bind(src_property);
-        property
+        let mut data = Mutable::new(src_property.get());
+        spawn_local(src_property.data.signal_cloned().for_each({
+            let data = data.clone();
+            move |v| {
+                data.set_neq(v);
+                async {}
+            }
+        }));
+        Property { data }
     }
 
     pub fn binded_c_from<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -66,35 +75,26 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn set(&mut self, val: T) {
-        self.data.borrow_mut().set(val);
+        self.data.set(val);
     }
 
     pub fn change<F: 'static + Fn(T) -> T>(&mut self, f: F) {
-        let val = self.data.borrow().get();
-        self.data.borrow_mut().set(f(val));
+        let val = self.data.get_cloned();
+        self.data.set(f(val));
     }
 
     pub fn get(&self) -> T {
-        self.data.borrow().get()
+        self.data.get_cloned()
     }
 
     pub fn bind(&mut self, src_property: &Property<T>) {
-        self.set(src_property.get());
-
-        let weak_data_dest = Rc::downgrade(&self.data);
-        let subscription = src_property
-            .data
-            .borrow_mut()
-            .changed
-            .subscribe(move |src_val| {
-                if let Some(dest_property_data) = weak_data_dest.upgrade() {
-                    dest_property_data.borrow_mut().set(src_val.clone());
-                }
-            });
-        self.data
-            .borrow_mut()
-            .binding_subscriptions
-            .push(subscription);
+        spawn_local(src_property.data.signal_cloned().for_each({
+            let data = self.data.clone();
+            move |v| {
+                data.set_neq(v);
+                async {}
+            }
+        }));
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -102,27 +102,20 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         src_property: &Property<TSrc>,
         f: F,
     ) {
-        self.set(f(src_property.get()));
-
-        let weak_data_dest = Rc::downgrade(&self.data);
-        let boxed_f = Box::new(f);
-        let subscription = src_property
-            .data
-            .borrow_mut()
-            .changed
-            .subscribe(move |src_val| {
-                if let Some(dest_property_data) = weak_data_dest.upgrade() {
-                    dest_property_data.borrow_mut().set(boxed_f(src_val));
-                }
-            });
-        self.data
-            .borrow_mut()
-            .binding_subscriptions
-            .push(subscription);
+        spawn_local(src_property.data.signal_cloned().for_each({
+            let data = self.data.clone();
+            move |v| {
+                data.set_neq(f(v));
+                async {}
+            }
+        }));
     }
 
-    pub fn on_changed<F: 'static + FnMut(T)>(&self, f: F) -> EventSubscription {
-        self.data.borrow_mut().changed.subscribe(f)
+    pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> PropertySubscription {
+        PropertySubscription::new(spawn_local(self.data.signal_cloned().for_each(move |v| {
+            f(v);
+            async {}
+        })))
     }
 }
 
@@ -138,30 +131,22 @@ impl<T: 'static + Clone + PartialEq> Clone for Property<T> {
     }
 }
 
-struct PropertyData<T> {
-    value: T,
-    changed: Event<T>,
-    binding_subscriptions: Vec<EventSubscription>,
+///
+/// PropertySubscription will cancel the task when dropped.
+///
+pub struct PropertySubscription {
+    handle: JoinHandle<()>,
 }
 
-impl<T: 'static + Clone + PartialEq> PropertyData<T> {
-    fn new(val: T) -> Self {
-        PropertyData {
-            value: val,
-            changed: Event::new(),
-            binding_subscriptions: Vec::new(),
-        }
+impl PropertySubscription {
+    pub fn new(handle: JoinHandle<()>) -> Self {
+        PropertySubscription { handle }
     }
+}
 
-    fn set(&mut self, val: T) {
-        if self.value != val {
-            self.value = val.clone();
-            self.changed.emit(val);
-        }
-    }
-
-    fn get(&self) -> T {
-        self.value.clone()
+impl Drop for PropertySubscription {
+    fn drop(&mut self) {
+        self.handle.abort();
     }
 }
 
@@ -300,14 +285,11 @@ where
         }
     }
 
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
-        Some(Property::on_changed(self, move |v| {
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+        Some(Box::new(Property::on_changed(self, move |v| {
             f(ObservableChangedEventArgs::Remove { index: 0 });
             f(ObservableChangedEventArgs::Insert { index: 0, value: v });
-        }))
+        })))
     }
 }
 
@@ -331,17 +313,14 @@ where
         }
     }
 
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
-        Some(Property::on_changed(self, move |v| {
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+        Some(Box::new(Property::on_changed(self, move |v| {
             // TODO: should only emit Remove(0) if previous value wasn't None
             //f(ObservableChangedEventArgs::Remove { index: 0 });
             f(ObservableChangedEventArgs::Insert {
                 index: 0,
                 value: v.unwrap(),
             });
-        }))
+        })))
     }
 }

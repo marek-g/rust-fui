@@ -1,4 +1,7 @@
-use crate::{Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection};
+use crate::{
+    Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
+    PropertySubscription,
+};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -10,7 +13,7 @@ use std::rc::Rc;
 pub struct ObservableComposite<T: 'static + Clone> {
     sources: Vec<Box<dyn ObservableCollection<T>>>,
     changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<T>>>>,
-    _source_changed_event_subscriptions: Vec<EventSubscription>,
+    _source_changed_event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl<T: 'static + Clone> ObservableComposite<T> {
@@ -91,14 +94,11 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableComposite<T> {
         None
     }
 
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
-        Some(
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+        Some(Box::new(
             self.changed_event
                 .borrow_mut()
                 .subscribe(move |args| f(args)),
-        )
+        ))
     }
 }

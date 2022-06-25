@@ -109,7 +109,7 @@ where
     pub clicked_callback: Callback<()>,
     pub source_vm: Rc<RefCell<V>>,
     pub selected_item: Property<Option<Rc<RefCell<V>>>>,
-    pub event_subscription: Option<EventSubscription>,
+    pub event_subscription: Option<Box<dyn Drop>>,
 }
 
 impl<V> MenuItemViewModel<V>
@@ -137,7 +137,7 @@ where
             let weak_vm = Rc::downgrade(&vm_rc);
             let mut vm = vm_rc.borrow_mut();
             let clicked_callback = vm.clicked_callback.clone();
-            vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
+            vm.event_subscription = Some(Box::new(vm.is_checked.on_changed(move |is_checked| {
                 if is_checked {
                     weak_vm.upgrade().map(|vm| {
                         let source_vm_clone = vm.borrow().source_vm.clone();
@@ -145,7 +145,7 @@ where
                     });
                     clicked_callback.emit(());
                 }
-            }));
+            })));
         }
 
         vm_rc
@@ -184,11 +184,11 @@ where
         self.is_checked.set(is_checked)
     }
 
-    fn on_checked(&self, f: Box<dyn Fn()>) -> EventSubscription {
-        self.is_checked.on_changed(move |is_checked| {
+    fn on_checked(&self, f: Box<dyn Fn()>) -> Box<dyn Drop> {
+        Box::new(self.is_checked.on_changed(move |is_checked| {
             if is_checked {
                 f();
             }
-        })
+        }))
     }
 }

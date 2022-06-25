@@ -10,7 +10,7 @@ pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
     children: Children,
-    children_collection_changed_event_subscription: Option<EventSubscription>,
+    children_collection_changed_event_subscription: Option<Box<dyn Drop>>,
 
     attached_values: TypeMap,
 
@@ -63,10 +63,7 @@ impl ControlContext {
         &self.children
     }
 
-    pub fn set_children_collection_changed_event_subscription(
-        &mut self,
-        s: Option<EventSubscription>,
-    ) {
+    pub fn set_children_collection_changed_event_subscription(&mut self, s: Option<Box<dyn Drop>>) {
         self.children_collection_changed_event_subscription = s;
     }
 

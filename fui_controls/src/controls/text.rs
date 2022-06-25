@@ -42,7 +42,7 @@ pub struct DefaultTextStyleParams {
 
 pub struct DefaultTextStyle {
     params: DefaultTextStyleParams,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
     font_name: &'static str,
     font_size: u8,
 }
@@ -60,8 +60,9 @@ impl DefaultTextStyle {
 
 impl Style<Text> for DefaultTextStyle {
     fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(Box::new(
+            data.text.dirty_watching(&control_context.get_self_rc()),
+        ));
     }
 
     fn handle_event(
@@ -158,7 +159,7 @@ pub struct DynamicTextStyleParams {
 
 pub struct DynamicTextStyle {
     params: DynamicTextStyleParams,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
     font_name: &'static str,
     font_size: u8,
     is_hover: bool,
@@ -178,13 +179,14 @@ impl DynamicTextStyle {
 
 impl Style<Text> for DynamicTextStyle {
     fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
+            data.text.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.params
                 .color
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(

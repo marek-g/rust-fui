@@ -1,4 +1,7 @@
-use crate::{Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection};
+use crate::{
+    Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
+    PropertySubscription,
+};
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
@@ -8,7 +11,7 @@ use std::rc::Rc;
 pub struct ObservableCollectionMap<TDst: 'static + Clone> {
     items: Rc<RefCell<Vec<TDst>>>,
     changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<TDst>>>>,
-    _items_changed_event_subscription: Option<EventSubscription>,
+    _items_changed_event_subscription: Option<Box<dyn Drop>>,
 }
 
 impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> {
@@ -24,11 +27,8 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
             .map(|el| el.clone())
     }
 
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
-        Some(self.changed_event.borrow_mut().subscribe(f))
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+        Some(Box::new(self.changed_event.borrow_mut().subscribe(f)))
     }
 }
 

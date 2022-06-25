@@ -54,7 +54,7 @@ pub struct DefaultScrollAreaStyleParams {}
 
 pub struct DefaultScrollAreaStyle {
     content_size: Size,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl DefaultScrollAreaStyle {
@@ -86,10 +86,12 @@ impl DefaultScrollAreaStyle {
 
 impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn setup(&mut self, data: &mut ScrollArea, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.offset_x.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions
-            .push(data.offset_y.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(Box::new(
+            data.offset_x.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
+            data.offset_y.dirty_watching(&control_context.get_self_rc()),
+        ));
     }
 
     fn handle_event(

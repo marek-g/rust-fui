@@ -5,6 +5,7 @@ use anyhow::Result;
 use fui_core::{post_func_current_thread, register_current_thread_dispatcher, ViewModel};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::future::Future;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -138,32 +139,24 @@ impl Application {
     }
 
     pub async fn run(mut self) -> Result<()> {
-        // LocalSet allows us to call task::spawn_local()
-        // to spawn futures on the same thread
-        let local = LocalSet::new();
+        let mut exit = false;
+        while !exit {
+            select! {
+                // process all closures sent with dispatcher from the same thread
+                f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
 
-        local.spawn_local(async move {
-            let mut exit = false;
-            while !exit {
-                select! {
-                    // process all closures sent with dispatcher from the same thread
-                    f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
+                // process all closures sent with dispatcher from any thread
+                f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
 
-                    // process all closures sent with dispatcher from any thread
-                    f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
-
-                    // wait for exit of the gui message loop
-                    res = &mut self.gui_thread_exit_rx => exit = true,
-                }
+                // wait for exit of the gui message loop
+                res = &mut self.gui_thread_exit_rx => exit = true,
             }
+        }
 
-            // wait for the GUI thread to finish
-            if let Some(handle) = self.gui_thread_join_handle.take() {
-                handle.join().unwrap();
-            }
-        });
-
-        local.await;
+        // wait for the GUI thread to finish
+        if let Some(handle) = self.gui_thread_join_handle.take() {
+            handle.join().unwrap();
+        }
 
         Ok(())
     }

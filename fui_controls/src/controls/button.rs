@@ -44,7 +44,7 @@ pub struct DefaultButtonStyle {
     is_hover: Property<bool>,
     is_pressed: Property<bool>,
     is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl DefaultButtonStyle {
@@ -60,16 +60,17 @@ impl DefaultButtonStyle {
 
 impl Style<Button> for DefaultButtonStyle {
     fn setup(&mut self, _data: &mut Button, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_pressed
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(

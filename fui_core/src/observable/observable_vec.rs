@@ -2,7 +2,9 @@ use std::cell::RefCell;
 use std::iter::FromIterator;
 
 use crate::observable::observable_collection::ObservableChangedEventArgs;
-use crate::{observable::event::Event, EventSubscription, ObservableCollection};
+use crate::{
+    observable::event::Event, EventSubscription, ObservableCollection, PropertySubscription,
+};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
@@ -95,10 +97,7 @@ where
         ObservableVec::get(self, index)
     }
 
-    fn on_changed(
-        &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<T>)>,
-    ) -> Option<EventSubscription> {
-        Some(ObservableVec::on_changed(self, f))
+    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+        Some(Box::new(ObservableVec::on_changed(self, f)))
     }
 }

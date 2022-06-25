@@ -29,6 +29,10 @@ impl EventSubscription {
     }
 }
 
+impl Drop for EventSubscription {
+    fn drop(&mut self) {}
+}
+
 pub trait CallbackObject {}
 impl<A> CallbackObject for Callback<A> {}
 
@@ -67,7 +71,7 @@ impl<A: 'static + Clone> Event<A> {
         }
 
         if cleanup {
-            self.callbacks.borrow_mut().retain(|ref weak_callback| {
+            self.callbacks.borrow_mut().retain(|weak_callback| {
                 let got_ref = weak_callback.clone().upgrade();
                 match got_ref {
                     None => false,

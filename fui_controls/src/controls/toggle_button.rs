@@ -47,7 +47,7 @@ pub struct DefaultToggleButtonStyle {
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl DefaultToggleButtonStyle {
@@ -63,20 +63,21 @@ impl DefaultToggleButtonStyle {
 
 impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
             data.is_checked
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_tapped
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(
@@ -239,7 +240,7 @@ pub struct CheckBoxToggleButtonStyle {
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl CheckBoxToggleButtonStyle {
@@ -255,20 +256,21 @@ impl CheckBoxToggleButtonStyle {
 
 impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
             data.is_checked
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_tapped
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(
@@ -468,7 +470,7 @@ pub struct TabToggleButtonStyle {
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl TabToggleButtonStyle {
@@ -484,20 +486,21 @@ impl TabToggleButtonStyle {
 
 impl Style<ToggleButton> for TabToggleButtonStyle {
     fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
             data.is_checked
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_tapped
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(
@@ -662,7 +665,7 @@ pub struct RadioToggleButtonStyle {
     is_tapped: Property<bool>,
     is_hover: Property<bool>,
     is_focused: Property<bool>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl RadioToggleButtonStyle {
@@ -678,20 +681,21 @@ impl RadioToggleButtonStyle {
 
 impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
             data.is_checked
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_tapped
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(
@@ -884,7 +888,7 @@ pub struct DropDownToggleButtonStyle {
     is_hover: Property<bool>,
     is_focused: Property<bool>,
     _clicked: Callback<()>,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
 impl DropDownToggleButtonStyle {
@@ -901,20 +905,21 @@ impl DropDownToggleButtonStyle {
 
 impl Style<ToggleButton> for DropDownToggleButtonStyle {
     fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
+        self.event_subscriptions.push(Box::new(
             data.is_checked
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_tapped
                 .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(self.is_hover.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
+        ));
+        self.event_subscriptions.push(Box::new(
+            self.is_hover.dirty_watching(&control_context.get_self_rc()),
+        ));
+        self.event_subscriptions.push(Box::new(
             self.is_focused
                 .dirty_watching(&control_context.get_self_rc()),
-        );
+        ));
     }
 
     fn handle_event(

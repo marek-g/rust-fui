@@ -50,7 +50,7 @@ pub struct DefaultTextBoxStyle {
 
     is_hover: bool,
     is_focused: bool,
-    event_subscriptions: Vec<EventSubscription>,
+    event_subscriptions: Vec<Box<dyn Drop>>,
     font_name: &'static str,
     font_size: u8,
 
@@ -199,8 +199,9 @@ impl DefaultTextBoxStyle {
 
 impl Style<TextBox> for DefaultTextBoxStyle {
     fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(Box::new(
+            data.text.dirty_watching(&control_context.get_self_rc()),
+        ));
     }
 
     fn handle_event(
