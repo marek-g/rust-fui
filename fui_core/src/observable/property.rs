@@ -71,12 +71,12 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn set(&mut self, val: T) {
-        self.data.set(val);
+        self.data.set_neq(val);
     }
 
     pub fn change<F: 'static + Fn(T) -> T>(&mut self, f: F) {
         let val = self.data.get_cloned();
-        self.data.set(f(val));
+        self.data.set_neq(f(val));
     }
 
     pub fn get(&self) -> T {
