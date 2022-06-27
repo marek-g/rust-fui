@@ -1,7 +1,6 @@
 use crate::control::control_behavior::ControlBehavior;
 use crate::{
-    control::control_context::ControlContext, EventSubscription, Point, Property,
-    PropertySubscription,
+    control::control_context::ControlContext, EventSubscription, JoinHandle, Point, Property,
 };
 use std::rc::Weak;
 use std::{
@@ -63,14 +62,14 @@ impl PartialEq for dyn ControlObject {
 }
 
 pub trait PropertyDirtyExtension {
-    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> PropertySubscription;
+    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> JoinHandle<()>;
 }
 
 impl<T> PropertyDirtyExtension for Property<T>
 where
     T: 'static + Clone + PartialEq,
 {
-    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> PropertySubscription {
+    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> JoinHandle<()> {
         let weak_control = Rc::downgrade(control);
         self.on_changed(move |_| {
             weak_control.upgrade().map(|control| {

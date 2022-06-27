@@ -1,6 +1,6 @@
 use crate::{
     ControlObject, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
-    ObservableComposite, PropertySubscription,
+    ObservableComposite,
 };
 use std::cell::RefCell;
 use std::rc::Rc;

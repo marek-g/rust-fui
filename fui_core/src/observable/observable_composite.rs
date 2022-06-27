@@ -1,7 +1,4 @@
-use crate::{
-    Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
-    PropertySubscription,
-};
+use crate::{Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection};
 use std::cell::RefCell;
 use std::rc::Rc;
 

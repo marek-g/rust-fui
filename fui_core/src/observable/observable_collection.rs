@@ -1,4 +1,4 @@
-use crate::{EventSubscription, PropertySubscription};
+use crate::EventSubscription;
 
 #[derive(Clone)]
 pub enum ObservableChangedEventArgs<T: 'static + Clone> {

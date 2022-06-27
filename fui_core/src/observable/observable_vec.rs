@@ -2,9 +2,7 @@ use std::cell::RefCell;
 use std::iter::FromIterator;
 
 use crate::observable::observable_collection::ObservableChangedEventArgs;
-use crate::{
-    observable::event::Event, EventSubscription, ObservableCollection, PropertySubscription,
-};
+use crate::{observable::event::Event, EventSubscription, ObservableCollection};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,

@@ -1,26 +1,28 @@
 use futures_signals::signal::{Mutable, SignalExt};
 use std::cell::RefCell;
 use std::rc::Rc;
-use tokio::task;
-use tokio::task::{spawn_local, JoinHandle};
+use std::sync::{Arc, RwLock};
 
-use crate::{Color, EventSubscription};
+use crate::{spawn_local, Color, EventSubscription, JoinHandle};
 use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
 
 pub struct Property<T> {
     data: Mutable<T>,
+    bind_handle: Arc<RwLock<Option<JoinHandle<()>>>>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
             data: Mutable::new(val.into()),
+            bind_handle: Arc::new(RwLock::new(None)),
         }
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
         let mut new_property = Property {
             data: Mutable::new(src_property.get()),
+            bind_handle: Arc::new(RwLock::new(None)),
         };
         new_property.bind(src_property);
         new_property
@@ -84,13 +86,14 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn bind(&mut self, src_property: &Property<T>) {
-        spawn_local(src_property.data.signal_cloned().for_each({
+        let handle = spawn_local(src_property.data.signal_cloned().for_each({
             let data = self.data.clone();
             move |v| {
                 data.set_neq(v);
                 async {}
             }
         }));
+        self.bind_handle.write().unwrap().replace(handle);
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -98,20 +101,21 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         src_property: &Property<TSrc>,
         f: F,
     ) {
-        spawn_local(src_property.data.signal_cloned().for_each({
+        let handle = spawn_local(src_property.data.signal_cloned().for_each({
             let data = self.data.clone();
             move |v| {
                 data.set_neq(f(v));
                 async {}
             }
         }));
+        self.bind_handle.write().unwrap().replace(handle);
     }
 
-    pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> PropertySubscription {
-        PropertySubscription::new(spawn_local(self.data.signal_cloned().for_each(move |v| {
+    pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> JoinHandle<()> {
+        spawn_local(self.data.signal_cloned().for_each(move |v| {
             f(v);
             async {}
-        })))
+        }))
     }
 }
 
@@ -119,30 +123,13 @@ impl<T: 'static + Clone + PartialEq> Clone for Property<T> {
     fn clone(&self) -> Self {
         Property::<T> {
             data: self.data.clone(),
+            bind_handle: self.bind_handle.clone(),
         }
     }
 
     fn clone_from(&mut self, source: &Self) {
         self.data.clone_from(&source.data);
-    }
-}
-
-///
-/// PropertySubscription will cancel the task when dropped.
-///
-pub struct PropertySubscription {
-    handle: JoinHandle<()>,
-}
-
-impl PropertySubscription {
-    pub fn new(handle: JoinHandle<()>) -> Self {
-        PropertySubscription { handle }
-    }
-}
-
-impl Drop for PropertySubscription {
-    fn drop(&mut self) {
-        self.handle.abort();
+        self.bind_handle.clone_from(&source.bind_handle);
     }
 }
 
