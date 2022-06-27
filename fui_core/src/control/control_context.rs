@@ -4,7 +4,7 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::{observable::*, Children, Rect, Services};
+use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
@@ -118,14 +118,14 @@ impl ControlContext {
                     // post window repaint
                     // (cannot call it directly because services can be already borrowed)
                     if let Some(services) = self.services.clone() {
-                        post_func_current_thread(Box::new(move || {
+                        spawn_local_and_forget(async move {
                             if let Some(services) = services.upgrade() {
                                 services
                                     .borrow_mut()
                                     .get_window_service()
                                     .map(|s| s.borrow_mut().repaint());
                             }
-                        }));
+                        });
                     }
                 }
             }

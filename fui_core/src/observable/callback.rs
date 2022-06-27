@@ -1,4 +1,4 @@
-use crate::{post_func_current_thread, spawn_local_and_forget};
+use crate::spawn_local_and_forget;
 use std::cell::RefCell;
 use std::rc::Rc;
 
