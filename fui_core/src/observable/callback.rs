@@ -1,4 +1,4 @@
-use crate::post_func_current_thread;
+use crate::{post_func_current_thread, spawn_local_and_forget};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -78,11 +78,11 @@ impl<A: 'static + Clone> Callback<A> {
     pub fn emit(&self, args: A) {
         if let Some(f) = &self.callback {
             let weak = Rc::downgrade(f);
-            post_func_current_thread(Box::new(move || {
+            spawn_local_and_forget(async move {
                 if let Some(f) = weak.upgrade() {
                     f.borrow_mut()(args);
                 }
-            }));
+            });
         }
     }
 }
