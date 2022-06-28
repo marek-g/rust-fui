@@ -78,6 +78,10 @@ where
         elements
             .borrow_mut()
             .on_changed(Box::new(move |args| match args {
+                VecDiff::Clear {} => {
+                    subscriptions_clone.borrow_mut().clear();
+                }
+
                 VecDiff::InsertAt {
                     index,
                     value: radio_element,
@@ -97,11 +101,10 @@ where
                     }));
                     subscriptions_clone.borrow_mut().insert(index, subscription);
                 }
+
                 VecDiff::RemoveAt { index } => {
                     subscriptions_clone.borrow_mut().remove(index);
                 }
-                // TODO:
-                _ => (),
             }));
 
         RadioController {

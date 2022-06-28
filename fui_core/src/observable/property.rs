@@ -1,10 +1,9 @@
 use futures_signals::signal::{Mutable, SignalExt};
-use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-use crate::{spawn_local, Color, EventSubscription, JoinHandle, Subscription};
+use crate::{spawn_local, Color, EventSubscription, JoinHandle, Subscription, VecDiff};
 use crate::{Event, ObservableCollection};
 
 pub struct Property<T> {
@@ -277,7 +276,8 @@ where
 
     fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
         Some(Property::on_changed(self, move |v| {
-            f(VecDiff::UpdateAt { index: 0, value: v });
+            f(VecDiff::RemoveAt { index: 0 });
+            f(VecDiff::InsertAt { index: 0, value: v });
         }))
     }
 }

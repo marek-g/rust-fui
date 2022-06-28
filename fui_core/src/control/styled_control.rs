@@ -9,7 +9,6 @@ use crate::style::*;
 use crate::{view::ViewContext, DrawingContext, EventContext};
 
 use drawing::primitive::Primitive;
-use futures_signals::signal_vec::VecDiff;
 
 pub struct StyledControl<D> {
     pub data: D,

@@ -1,5 +1,13 @@
 use crate::{EventSubscription, JoinHandle, Subscription};
-pub use futures_signals::signal_vec::VecDiff;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VecDiff<A> {
+    Clear {},
+
+    InsertAt { index: usize, value: A },
+
+    RemoveAt { index: usize },
+}
 
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;

@@ -1,9 +1,9 @@
-use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::iter::FromIterator;
 
 use crate::{
     observable::event::Event, EventSubscription, JoinHandle, ObservableCollection, Subscription,
+    VecDiff,
 };
 
 pub struct ObservableVec<T: 'static + Clone> {

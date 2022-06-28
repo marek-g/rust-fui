@@ -1,5 +1,4 @@
-use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription};
-use futures_signals::signal_vec::VecDiff;
+use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription, VecDiff};
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
@@ -61,6 +60,11 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
         let items_rc_clone = items_rc.clone();
         let changed_event_rc_clone = changed_event_rc.clone();
         let handler = Box::new(move |changed_args| match changed_args {
+            VecDiff::Clear {} => {
+                (items_rc_clone.borrow_mut() as RefMut<'_, Vec<TDst>>).clear();
+                changed_event_rc_clone.borrow().emit(VecDiff::Clear {});
+            }
+
             VecDiff::InsertAt { index, value } => {
                 let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
                 let new_item = f(&value);
@@ -74,16 +78,11 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
             }
 
             VecDiff::RemoveAt { index } => {
-                let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
-                vec.remove(index);
-
+                items_rc_clone.borrow_mut().remove(index);
                 changed_event_rc_clone
                     .borrow()
                     .emit(VecDiff::RemoveAt { index });
             }
-
-            // TODO:
-            _ => {}
         });
         let event_subscription = self.on_changed(handler);
 

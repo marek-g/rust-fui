@@ -1,5 +1,4 @@
-use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription};
-use futures_signals::signal_vec::VecDiff;
+use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription, VecDiff};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -39,29 +38,45 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                 let offset: usize = lengths_clone.borrow().iter().take(source_index).sum();
 
                 // apply offset to event args and update lengths collection
-                let updated_args = match changed_args {
-                    VecDiff::InsertAt { index, value } => {
-                        lengths_clone.borrow_mut()[source_index] += 1;
-                        VecDiff::InsertAt {
-                            index: offset + index,
-                            value,
+                match changed_args {
+                    VecDiff::Clear {} => {
+                        let number_of_sources = lengths_clone.borrow().len();
+                        let mut lengths = lengths_clone.borrow_mut();
+                        let other_collections_size: usize = (0..number_of_sources)
+                            .filter(|i| *i != source_index)
+                            .map(|i| lengths[i])
+                            .sum();
+                        if other_collections_size == 0 {
+                            changed_event_clone.borrow().emit(VecDiff::Clear {});
+                        } else {
+                            for i in (0..lengths[source_index]).rev() {
+                                changed_event_clone
+                                    .borrow()
+                                    .emit(VecDiff::RemoveAt { index: offset + i });
+                            }
+                            lengths[source_index] = 0;
                         }
                     }
+
+                    VecDiff::InsertAt { index, value } => {
+                        lengths_clone.borrow_mut()[source_index] += 1;
+                        changed_event_clone.borrow().emit(VecDiff::InsertAt {
+                            index: offset + index,
+                            value,
+                        });
+                    }
+
                     VecDiff::RemoveAt { index } => {
                         let mut lengths = lengths_clone.borrow_mut();
                         if lengths[source_index] > 0 {
                             lengths[source_index] -= 1;
                         }
-                        VecDiff::RemoveAt {
+
+                        changed_event_clone.borrow().emit(VecDiff::RemoveAt {
                             index: offset + index,
-                        }
+                        });
                     }
-
-                    // TODO:
-                    a => a,
                 };
-
-                changed_event_clone.borrow().emit(updated_args)
             });
 
             if let Some(subscription) = source.on_changed(handler) {

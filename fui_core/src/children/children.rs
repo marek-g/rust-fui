@@ -1,8 +1,7 @@
 use crate::{
     ControlObject, EventSubscription, JoinHandle, ObservableCollection, ObservableComposite,
-    Subscription,
+    Subscription, VecDiff,
 };
-use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
 
