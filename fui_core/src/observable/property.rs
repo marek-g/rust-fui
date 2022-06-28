@@ -1,10 +1,11 @@
 use futures_signals::signal::{Mutable, SignalExt};
+use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 use crate::{spawn_local, Color, EventSubscription, JoinHandle};
-use crate::{Event, ObservableChangedEventArgs, ObservableCollection};
+use crate::{Event, ObservableCollection};
 
 pub struct Property<T> {
     data: Mutable<T>,
@@ -268,10 +269,10 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         Some(Box::new(Property::on_changed(self, move |v| {
-            f(ObservableChangedEventArgs::Remove { index: 0 });
-            f(ObservableChangedEventArgs::Insert { index: 0, value: v });
+            f(VecDiff::RemoveAt { index: 0 });
+            f(VecDiff::InsertAt { index: 0, value: v });
         })))
     }
 }
@@ -296,11 +297,11 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         Some(Box::new(Property::on_changed(self, move |v| {
             // TODO: should only emit Remove(0) if previous value wasn't None
             //f(ObservableChangedEventArgs::Remove { index: 0 });
-            f(ObservableChangedEventArgs::Insert {
+            f(VecDiff::InsertAt {
                 index: 0,
                 value: v.unwrap(),
             });

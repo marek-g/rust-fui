@@ -1,4 +1,5 @@
-use crate::{Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection};
+use crate::{Event, EventSubscription, ObservableCollection};
+use futures_signals::signal_vec::VecDiff;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
 
@@ -7,7 +8,7 @@ use std::rc::Rc;
 ///
 pub struct ObservableCollectionMap<TDst: 'static + Clone> {
     items: Rc<RefCell<Vec<TDst>>>,
-    changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<TDst>>>>,
+    changed_event: Rc<RefCell<Event<VecDiff<TDst>>>>,
     _items_changed_event_subscription: Option<Box<dyn Drop>>,
 }
 
@@ -24,7 +25,7 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
             .map(|el| el.clone())
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         Some(Box::new(self.changed_event.borrow_mut().subscribe(f)))
     }
 }
@@ -58,28 +59,29 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
         let items_rc_clone = items_rc.clone();
         let changed_event_rc_clone = changed_event_rc.clone();
         let handler = Box::new(move |changed_args| match changed_args {
-            ObservableChangedEventArgs::Insert { index, value } => {
+            VecDiff::InsertAt { index, value } => {
                 let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
                 let new_item = f(&value);
                 let new_item_clone = new_item.clone();
                 vec.insert(index, new_item);
 
-                changed_event_rc_clone
-                    .borrow()
-                    .emit(ObservableChangedEventArgs::Insert {
-                        index,
-                        value: new_item_clone,
-                    });
+                changed_event_rc_clone.borrow().emit(VecDiff::InsertAt {
+                    index,
+                    value: new_item_clone,
+                });
             }
 
-            ObservableChangedEventArgs::Remove { index } => {
+            VecDiff::RemoveAt { index } => {
                 let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
                 vec.remove(index);
 
                 changed_event_rc_clone
                     .borrow()
-                    .emit(ObservableChangedEventArgs::Remove { index });
+                    .emit(VecDiff::RemoveAt { index });
             }
+
+            // TODO:
+            _ => {}
         });
         let event_subscription = self.on_changed(handler);
 

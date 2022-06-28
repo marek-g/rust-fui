@@ -1,12 +1,12 @@
+use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::iter::FromIterator;
 
-use crate::observable::observable_collection::ObservableChangedEventArgs;
 use crate::{observable::event::Event, EventSubscription, ObservableCollection};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
-    changed_event: RefCell<Event<ObservableChangedEventArgs<T>>>,
+    changed_event: RefCell<Event<VecDiff<T>>>,
 }
 
 impl<T: 'static + Clone> ObservableVec<T> {
@@ -27,13 +27,13 @@ impl<T: 'static + Clone> ObservableVec<T> {
 
     pub fn on_changed<F>(&self, f: F) -> EventSubscription
     where
-        F: 'static + Fn(ObservableChangedEventArgs<T>),
+        F: 'static + Fn(VecDiff<T>),
     {
         self.changed_event.borrow_mut().subscribe(f)
     }
 
     pub fn push(&mut self, value: T) {
-        let event_args = ObservableChangedEventArgs::Insert {
+        let event_args = VecDiff::InsertAt {
             index: self.items.len(),
             value: value.clone(),
         };
@@ -48,7 +48,7 @@ impl<T: 'static + Clone> ObservableVec<T> {
         let mut i = 0;
         while i != self.items.len() {
             if filter(&mut self.items[i]) {
-                let event_args = ObservableChangedEventArgs::Remove { index: i };
+                let event_args = VecDiff::RemoveAt { index: i };
                 self.items.remove(i);
                 self.changed_event.borrow().emit(event_args);
             } else {
@@ -95,7 +95,7 @@ where
         ObservableVec::get(self, index)
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         Some(Box::new(ObservableVec::on_changed(self, f)))
     }
 }

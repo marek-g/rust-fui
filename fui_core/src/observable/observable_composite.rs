@@ -1,4 +1,5 @@
-use crate::{Event, EventSubscription, ObservableChangedEventArgs, ObservableCollection};
+use crate::{Event, EventSubscription, ObservableCollection};
+use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -9,7 +10,7 @@ use std::rc::Rc;
 ///
 pub struct ObservableComposite<T: 'static + Clone> {
     sources: Vec<Box<dyn ObservableCollection<T>>>,
-    changed_event: Rc<RefCell<Event<ObservableChangedEventArgs<T>>>>,
+    changed_event: Rc<RefCell<Event<VecDiff<T>>>>,
     _source_changed_event_subscriptions: Vec<Box<dyn Drop>>,
 }
 
@@ -39,22 +40,25 @@ impl<T: 'static + Clone> ObservableComposite<T> {
 
                 // apply offset to event args and update lengths collection
                 let updated_args = match changed_args {
-                    ObservableChangedEventArgs::Insert { index, value } => {
+                    VecDiff::InsertAt { index, value } => {
                         lengths_clone.borrow_mut()[source_index] += 1;
-                        ObservableChangedEventArgs::Insert {
+                        VecDiff::InsertAt {
                             index: offset + index,
                             value,
                         }
                     }
-                    ObservableChangedEventArgs::Remove { index } => {
+                    VecDiff::RemoveAt { index } => {
                         let mut lengths = lengths_clone.borrow_mut();
                         if lengths[source_index] > 0 {
                             lengths[source_index] -= 1;
                         }
-                        ObservableChangedEventArgs::Remove {
+                        VecDiff::RemoveAt {
                             index: offset + index,
                         }
                     }
+
+                    // TODO:
+                    a => a,
                 };
 
                 changed_event_clone.borrow().emit(updated_args)
@@ -91,7 +95,7 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableComposite<T> {
         None
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         Some(Box::new(
             self.changed_event
                 .borrow_mut()

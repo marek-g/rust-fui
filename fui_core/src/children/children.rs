@@ -1,7 +1,5 @@
-use crate::{
-    ControlObject, EventSubscription, ObservableChangedEventArgs, ObservableCollection,
-    ObservableComposite,
-};
+use crate::{ControlObject, EventSubscription, ObservableCollection, ObservableComposite};
+use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -155,7 +153,7 @@ impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Children {
 
     fn on_changed(
         &self,
-        f: Box<dyn Fn(ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>)>,
+        f: Box<dyn Fn(VecDiff<Rc<RefCell<dyn ControlObject>>>)>,
     ) -> Option<Box<dyn Drop>> {
         match self {
             Children::None | Children::SingleStatic(_) | Children::MultipleStatic(_) => None,

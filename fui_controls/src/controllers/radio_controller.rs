@@ -3,7 +3,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use crate::ToggleButton;
-use fui_core::{EventSubscription, ObservableCollection, StyledControl};
+use fui_core::{EventSubscription, ObservableCollection, StyledControl, VecDiff};
 
 pub trait RadioElement {
     fn is_checked(&self) -> bool;
@@ -78,7 +78,7 @@ where
         elements
             .borrow_mut()
             .on_changed(Box::new(move |args| match args {
-                fui_core::ObservableChangedEventArgs::Insert {
+                VecDiff::InsertAt {
                     index,
                     value: radio_element,
                 } => {
@@ -97,9 +97,11 @@ where
                     }));
                     subscriptions_clone.borrow_mut().insert(index, subscription);
                 }
-                fui_core::ObservableChangedEventArgs::Remove { index } => {
+                VecDiff::RemoveAt { index } => {
                     subscriptions_clone.borrow_mut().remove(index);
                 }
+                // TODO:
+                _ => (),
             }));
 
         RadioController {

@@ -1,15 +1,10 @@
 use crate::EventSubscription;
-
-#[derive(Clone)]
-pub enum ObservableChangedEventArgs<T: 'static + Clone> {
-    Insert { index: usize, value: T },
-    Remove { index: usize },
-}
+pub use futures_signals::signal_vec::VecDiff;
 
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> Option<T>;
-    fn on_changed(&self, f: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>>;
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>>;
 }
 
 ///
@@ -85,7 +80,7 @@ where
         self.as_slice().get(index).map(|el| el.clone())
     }
 
-    fn on_changed(&self, _: Box<dyn Fn(ObservableChangedEventArgs<T>)>) -> Option<Box<dyn Drop>> {
+    fn on_changed(&self, _: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
         None
     }
 }

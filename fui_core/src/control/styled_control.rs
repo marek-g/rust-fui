@@ -9,6 +9,7 @@ use crate::style::*;
 use crate::{view::ViewContext, DrawingContext, EventContext};
 
 use drawing::primitive::Primitive;
+use futures_signals::signal_vec::VecDiff;
 
 pub struct StyledControl<D> {
     pub data: D,
@@ -30,8 +31,8 @@ impl<D: 'static> StyledControl<D> {
 
         let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
         let handler = Box::new(
-            move |changed_args: ObservableChangedEventArgs<Rc<RefCell<dyn ControlObject>>>| {
-                if let ObservableChangedEventArgs::Insert {
+            move |changed_args: VecDiff<Rc<RefCell<dyn ControlObject>>>| {
+                if let VecDiff::InsertAt {
                     index: _,
                     value: child,
                 } = changed_args
