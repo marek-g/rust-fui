@@ -4,12 +4,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-use crate::{spawn_local, Color, EventSubscription, JoinHandle};
+use crate::{spawn_local, Color, EventSubscription, JoinHandle, Subscription};
 use crate::{Event, ObservableCollection};
 
 pub struct Property<T> {
     data: Mutable<T>,
-    bind_handle: Arc<RwLock<Option<JoinHandle<()>>>>,
+    bind_handle: Arc<RwLock<Option<Subscription>>>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
@@ -94,7 +94,10 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
                 async {}
             }
         }));
-        self.bind_handle.write().unwrap().replace(handle);
+        self.bind_handle
+            .write()
+            .unwrap()
+            .replace(Subscription::SpawnLocal(handle));
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -109,14 +112,17 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
                 async {}
             }
         }));
-        self.bind_handle.write().unwrap().replace(handle);
+        self.bind_handle
+            .write()
+            .unwrap()
+            .replace(Subscription::SpawnLocal(handle));
     }
 
-    pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> JoinHandle<()> {
-        spawn_local(self.data.signal_cloned().for_each(move |v| {
+    pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> Subscription {
+        Subscription::SpawnLocal(spawn_local(self.data.signal_cloned().for_each(move |v| {
             f(v);
             async {}
-        }))
+        })))
     }
 }
 
@@ -269,11 +275,10 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
-        Some(Box::new(Property::on_changed(self, move |v| {
-            f(VecDiff::RemoveAt { index: 0 });
-            f(VecDiff::InsertAt { index: 0, value: v });
-        })))
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+        Some(Property::on_changed(self, move |v| {
+            f(VecDiff::UpdateAt { index: 0, value: v });
+        }))
     }
 }
 
@@ -297,14 +302,12 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
-        Some(Box::new(Property::on_changed(self, move |v| {
-            // TODO: should only emit Remove(0) if previous value wasn't None
-            //f(ObservableChangedEventArgs::Remove { index: 0 });
-            f(VecDiff::InsertAt {
-                index: 0,
-                value: v.unwrap(),
-            });
-        })))
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+        Some(Property::on_changed(self, move |v| {
+            f(VecDiff::Clear {});
+            if let Some(v) = v {
+                f(VecDiff::InsertAt { index: 0, value: v });
+            }
+        }))
     }
 }

@@ -1,4 +1,4 @@
-use crate::{Event, EventSubscription, ObservableCollection};
+use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription};
 use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -11,7 +11,7 @@ use std::rc::Rc;
 pub struct ObservableComposite<T: 'static + Clone> {
     sources: Vec<Box<dyn ObservableCollection<T>>>,
     changed_event: Rc<RefCell<Event<VecDiff<T>>>>,
-    _source_changed_event_subscriptions: Vec<Box<dyn Drop>>,
+    _source_changed_event_subscriptions: Vec<Subscription>,
 }
 
 impl<T: 'static + Clone> ObservableComposite<T> {
@@ -95,8 +95,8 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableComposite<T> {
         None
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
-        Some(Box::new(
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+        Some(Subscription::EventSubscription(
             self.changed_event
                 .borrow_mut()
                 .subscribe(move |args| f(args)),

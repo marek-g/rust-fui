@@ -4,13 +4,13 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
+use crate::{observable::*, spawn_local_and_forget, Children, JoinHandle, Rect, Services};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
     children: Children,
-    children_collection_changed_event_subscription: Option<Box<dyn Drop>>,
+    children_collection_changed_event_subscription: Option<Subscription>,
 
     attached_values: TypeMap,
 
@@ -63,7 +63,7 @@ impl ControlContext {
         &self.children
     }
 
-    pub fn set_children_collection_changed_event_subscription(&mut self, s: Option<Box<dyn Drop>>) {
+    pub fn set_children_collection_changed_event_subscription(&mut self, s: Option<Subscription>) {
         self.children_collection_changed_event_subscription = s;
     }
 

@@ -65,7 +65,7 @@ pub struct DefaultScrollBarStyle {
     is_thumb_pressed: Property<bool>,
     pressed_offset: f32,
 
-    event_subscriptions: Vec<Box<dyn Drop>>,
+    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultScrollBarStyle {
@@ -102,30 +102,29 @@ impl DefaultScrollBarStyle {
 
 impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn setup(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(Box::new(
+        self.event_subscriptions.push(
             self.is_thumb_hover
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
+        );
+        self.event_subscriptions.push(
             self.is_thumb_pressed
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
+        );
 
-        self.event_subscriptions.push(Box::new(
+        self.event_subscriptions.push(
             data.min_value
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
+        );
+        self.event_subscriptions.push(
             data.max_value
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
-            data.value.dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
+        );
+        self.event_subscriptions
+            .push(data.value.dirty_watching(&control_context.get_self_rc()));
+        self.event_subscriptions.push(
             data.viewport_size
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
+        );
     }
 
     fn handle_event(

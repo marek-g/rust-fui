@@ -1,4 +1,4 @@
-use crate::{Event, EventSubscription, ObservableCollection};
+use crate::{Event, EventSubscription, JoinHandle, ObservableCollection, Subscription};
 use futures_signals::signal_vec::VecDiff;
 use std::cell::{RefCell, RefMut};
 use std::rc::Rc;
@@ -9,7 +9,7 @@ use std::rc::Rc;
 pub struct ObservableCollectionMap<TDst: 'static + Clone> {
     items: Rc<RefCell<Vec<TDst>>>,
     changed_event: Rc<RefCell<Event<VecDiff<TDst>>>>,
-    _items_changed_event_subscription: Option<Box<dyn Drop>>,
+    _items_changed_event_subscription: Option<Subscription>,
 }
 
 impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> {
@@ -25,8 +25,10 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
             .map(|el| el.clone())
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
-        Some(Box::new(self.changed_event.borrow_mut().subscribe(f)))
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+        Some(Subscription::EventSubscription(
+            self.changed_event.borrow_mut().subscribe(f),
+        ))
     }
 }
 

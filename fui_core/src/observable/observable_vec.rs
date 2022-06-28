@@ -2,7 +2,9 @@ use futures_signals::signal_vec::VecDiff;
 use std::cell::RefCell;
 use std::iter::FromIterator;
 
-use crate::{observable::event::Event, EventSubscription, ObservableCollection};
+use crate::{
+    observable::event::Event, EventSubscription, JoinHandle, ObservableCollection, Subscription,
+};
 
 pub struct ObservableVec<T: 'static + Clone> {
     items: Vec<T>,
@@ -95,7 +97,9 @@ where
         ObservableVec::get(self, index)
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Box<dyn Drop>> {
-        Some(Box::new(ObservableVec::on_changed(self, f)))
+    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+        Some(Subscription::EventSubscription(ObservableVec::on_changed(
+            self, f,
+        )))
     }
 }

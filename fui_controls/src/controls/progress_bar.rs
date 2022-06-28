@@ -54,7 +54,7 @@ const MIN_SIZE: f32 = 22.0f32;
 pub struct DefaultProgressBarStyleParams {}
 
 pub struct DefaultProgressBarStyle {
-    event_subscriptions: Vec<Box<dyn Drop>>,
+    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultProgressBarStyle {
@@ -67,17 +67,16 @@ impl DefaultProgressBarStyle {
 
 impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn setup(&mut self, data: &mut ProgressBar, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(Box::new(
+        self.event_subscriptions.push(
             data.min_value
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
+        );
+        self.event_subscriptions.push(
             data.max_value
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
-        self.event_subscriptions.push(Box::new(
-            data.value.dirty_watching(&control_context.get_self_rc()),
-        ));
+        );
+        self.event_subscriptions
+            .push(data.value.dirty_watching(&control_context.get_self_rc()));
     }
 
     fn handle_event(

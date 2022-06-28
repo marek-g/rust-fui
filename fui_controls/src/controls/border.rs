@@ -52,7 +52,7 @@ pub struct DefaultBorderStyleParams {
 
 pub struct DefaultBorderStyle {
     params: DefaultBorderStyleParams,
-    event_subscriptions: Vec<Box<dyn Drop>>,
+    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultBorderStyle {
@@ -73,11 +73,11 @@ impl DefaultBorderStyle {
 
 impl Style<Border> for DefaultBorderStyle {
     fn setup(&mut self, _data: &mut Border, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(Box::new(
+        self.event_subscriptions.push(
             self.params
                 .background_color
                 .dirty_watching(&control_context.get_self_rc()),
-        ));
+        );
     }
 
     fn handle_event(
