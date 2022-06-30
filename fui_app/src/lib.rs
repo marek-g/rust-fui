@@ -7,9 +7,6 @@ pub use channel_dispatcher::*;
 mod drawing_context;
 pub use drawing_context::*;
 
-mod gui_dispatcher;
-pub use gui_dispatcher::*;
-
 mod event_converter;
 
 mod window;
