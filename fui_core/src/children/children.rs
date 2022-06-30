@@ -1,7 +1,4 @@
-use crate::{
-    ControlObject, EventSubscription, JoinHandle, ObservableCollection, ObservableComposite,
-    Subscription, VecDiff,
-};
+use crate::{ControlObject, ObservableCollection, ObservableComposite, Subscription, VecDiff};
 use std::cell::RefCell;
 use std::rc::Rc;
 

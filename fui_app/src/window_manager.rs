@@ -1,7 +1,6 @@
-use crate::{DrawingContext, Window, WindowId, WindowOptions};
+use crate::{Window, WindowId, WindowOptions};
 use anyhow::Result;
 use fui_core::ViewModel;
-use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -28,7 +27,7 @@ impl WindowManager {
     }
 
     pub async fn create_window(&mut self, window_options: WindowOptions) -> Result<crate::Window> {
-        let mut window = crate::Window::create(window_options).await?;
+        let window = crate::Window::create(window_options).await?;
         self.windows.insert(window.get_id(), window.clone());
         Ok(window)
     }

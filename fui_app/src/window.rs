@@ -1,7 +1,5 @@
 use crate::APPLICATION_GUI_CONTEXT;
-use crate::{
-    ApplicationGuiContext, DrawingContext, FuiDrawingContext, WindowOptions, APPLICATION_VM_CONTEXT,
-};
+use crate::{DrawingContext, FuiDrawingContext, WindowOptions, APPLICATION_VM_CONTEXT};
 use anyhow::Result;
 use drawing::primitive::Primitive;
 use drawing_gl::GlContextData;
@@ -13,7 +11,6 @@ use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::sync::{Arc, Mutex};
-use std::thread;
 use tokio::sync::{mpsc, oneshot};
 use typemap::TypeMap;
 
@@ -99,7 +96,7 @@ impl Window {
 
             Self::setup_window_events(window_id, &drawing_context);
 
-            tx.send(window_id);
+            tx.send(window_id).unwrap();
         });
 
         let window_id = rx.await?;
@@ -165,20 +162,19 @@ impl Window {
     fn setup_window_events(window_id: WindowId, drawing_context: &Arc<Mutex<DrawingContext>>) {
         APPLICATION_GUI_CONTEXT.with(move |context| {
             let mut context = context.borrow_mut();
-            let mut app_context = context.as_mut().unwrap();
+            let app_context = context.as_mut().unwrap();
 
             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                 window_data.system_window.as_mut().unwrap().on_paint_gl({
                     let drawing_context_clone = drawing_context.clone();
-                    let mut initialized = false;
 
                     move || {
                         let drawing_context_clone = drawing_context_clone.clone();
                         APPLICATION_GUI_CONTEXT.with(move |context| {
                             let mut context = context.borrow_mut();
-                            let mut app_context = context.as_mut().unwrap();
+                            let app_context = context.as_mut().unwrap();
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                if !initialized {
+                                if window_data.gl_context_data.is_none() {
                                     let mut drawing_context = drawing_context_clone.lock().unwrap();
                                     window_data.gl_context_data =
                                         Some(drawing_context.device.init_context(|symbol| {
@@ -189,7 +185,6 @@ impl Window {
                                                 .get_opengl_proc_address(symbol)
                                                 .unwrap()
                                         }));
-                                    initialized = true;
                                 }
 
                                 let width = window_data.system_window.as_mut().unwrap().get_width();
@@ -227,15 +222,14 @@ impl Window {
                         if let Some(input_event) = crate::event_converter::convert_event(&event) {
                             APPLICATION_GUI_CONTEXT.with(move |context| {
                                 let mut context = context.borrow_mut();
-                                let mut app_context = context.as_mut().unwrap();
+                                let app_context = context.as_mut().unwrap();
                                 if let Some(window_data) = app_context.windows.get_mut(&window_id) {
                                     let system_window = window_data.system_window.as_mut().unwrap();
-                                    let mut drawing_context = drawing_context_clone.lock().unwrap();
 
                                     let width = system_window.get_width();
                                     let height = system_window.get_height();
 
-                                    &app_context.func_gui2vm_thread_tx.send({
+                                    app_context.func_gui2vm_thread_tx.send({
                                         let drawing_context = drawing_context_clone.clone();
 
                                         Box::new(move || {
@@ -444,7 +438,7 @@ impl Drop for WindowVMThreadData {
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
-                let mut app_context = context.as_mut().unwrap();
+                let app_context = context.as_mut().unwrap();
                 app_context.windows.remove(&window_id);
             });
         });
@@ -466,7 +460,7 @@ impl fui_core::WindowService for WindowVMThreadData {
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
-                let mut app_context = context.as_mut().unwrap();
+                let app_context = context.as_mut().unwrap();
                 if let Some(window) = app_context.windows.get_mut(&window_id) {
                     window.system_window.as_mut().unwrap().update();
                 }

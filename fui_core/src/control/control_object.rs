@@ -1,8 +1,5 @@
 use crate::control::control_behavior::ControlBehavior;
-use crate::{
-    control::control_context::ControlContext, EventSubscription, JoinHandle, Point, Property,
-    Subscription,
-};
+use crate::{control::control_context::ControlContext, Point, Property, Subscription};
 use std::rc::Weak;
 use std::{
     cell::{RefCell, RefMut},

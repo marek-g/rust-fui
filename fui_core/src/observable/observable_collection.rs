@@ -1,4 +1,4 @@
-use crate::{EventSubscription, JoinHandle, Subscription};
+use crate::Subscription;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VecDiff<A> {

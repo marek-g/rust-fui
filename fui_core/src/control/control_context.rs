@@ -4,7 +4,7 @@ use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
 use crate::control::*;
-use crate::{observable::*, spawn_local_and_forget, Children, JoinHandle, Rect, Services};
+use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,

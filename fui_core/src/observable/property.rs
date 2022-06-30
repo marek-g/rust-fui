@@ -1,10 +1,8 @@
 use futures_signals::signal::{Mutable, SignalExt};
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
-use crate::{spawn_local, Color, EventSubscription, JoinHandle, Subscription, VecDiff};
-use crate::{Event, ObservableCollection};
+use crate::ObservableCollection;
+use crate::{spawn_local, Color, Subscription, VecDiff};
 
 pub struct Property<T> {
     data: Mutable<T>,

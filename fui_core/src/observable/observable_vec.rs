@@ -2,8 +2,7 @@ use std::cell::RefCell;
 use std::iter::FromIterator;
 
 use crate::{
-    observable::event::Event, EventSubscription, JoinHandle, ObservableCollection, Subscription,
-    VecDiff,
+    observable::event::Event, EventSubscription, ObservableCollection, Subscription, VecDiff,
 };
 
 pub struct ObservableVec<T: 'static + Clone> {

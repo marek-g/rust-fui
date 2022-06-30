@@ -3,7 +3,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use crate::ToggleButton;
-use fui_core::{EventSubscription, ObservableCollection, StyledControl, Subscription, VecDiff};
+use fui_core::{ObservableCollection, StyledControl, Subscription, VecDiff};
 
 pub trait RadioElement {
     fn is_checked(&self) -> bool;

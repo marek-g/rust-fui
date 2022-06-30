@@ -1,17 +1,12 @@
-use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowManager, WindowOptions};
+use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowManager};
 use anyhow::Result;
-use fui_core::ViewModel;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::future::Future;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use std::thread::JoinHandle;
 use tokio::select;
-use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::{mpsc, oneshot};
-use tokio::task::LocalSet;
 
 thread_local! {
     pub static APPLICATION_GUI_CONTEXT: RefCell<Option<ApplicationGuiContext >> = RefCell::new(None);
@@ -52,7 +47,7 @@ pub struct Application {
 impl Application {
     pub async fn new(title: &'static str) -> Result<Self> {
         // channel to send closures GUI (or any) thread -> VM thread
-        let (func_gui2vm_thread_tx, mut func_gui2vm_thread_rx) = mpsc::unbounded_channel();
+        let (func_gui2vm_thread_tx, func_gui2vm_thread_rx) = mpsc::unbounded_channel();
 
         let (gui_thread_init_tx, gui_thread_init_rx) = oneshot::channel();
         let (gui_thread_exit_tx, gui_thread_exit_rx) = oneshot::channel();
@@ -97,8 +92,6 @@ impl Application {
         // wait for GUI thread to reach the initialized state
         gui_thread_init_rx.await?;
 
-        let text = Rc::new("hello".to_string());
-
         APPLICATION_VM_CONTEXT.with(move |context| {
             *context.borrow_mut() = Some(ApplicationVmContext {
                 window_manager: Rc::new(RefCell::new(WindowManager::new().unwrap())),
@@ -129,7 +122,7 @@ impl Application {
                 f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
 
                 // wait for exit of the gui message loop
-                res = &mut self.gui_thread_exit_rx => exit = true,
+                _res = &mut self.gui_thread_exit_rx => exit = true,
             }
         }
 

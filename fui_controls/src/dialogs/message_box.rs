@@ -2,7 +2,7 @@ use crate::*;
 use fui_core::*;
 use fui_macros::ui;
 use futures_channel::oneshot;
-use futures_channel::oneshot::{Canceled, Sender};
+use futures_channel::oneshot::Canceled;
 use std::cell::RefCell;
 use std::future::Future;
 use std::rc::Rc;
@@ -93,14 +93,15 @@ impl MessageBox {
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
             let new_callback = Callback::simple({
-                let mut sender = sender.clone();
+                let sender = sender.clone();
                 move |_| {
                     window_clone.borrow_mut().remove_layer(&content_clone);
                     sender
                         .borrow_mut()
                         .take()
                         .unwrap()
-                        .send(button_index as i32);
+                        .send(button_index as i32)
+                        .unwrap();
                 }
             });
 
