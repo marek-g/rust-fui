@@ -3,6 +3,7 @@
 use fui_system::*;
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
+use std::error::Error;
 use std::rc::Rc;
 use std::thread;
 
@@ -10,16 +11,11 @@ use std::thread;
 #[folder = "assets/"]
 struct Assets;
 
-fn main() {
-    let app = Application::new(
-        ApplicationOptionsBuilder::new()
-            .with_title("Example: tray")
-            .build(),
-    )
-    .unwrap();
+fn main() -> Result<(), Box<(dyn Error + 'static)>> {
+    let app = Application::new(ApplicationOptions::new().with_title("Example: tray")).unwrap();
 
     let icon_data = Assets::get("icon.png").unwrap();
-    let icon = Icon::from_data(&icon_data).unwrap();
+    let icon = Icon::from_data(&icon_data.data).unwrap();
 
     // first window
     let window_rc = create_new_window();
@@ -39,7 +35,7 @@ fn main() {
                 MenuItem::full(
                     "Show",
                     Some("Ctrl+S".to_string()),
-                    Some(Icon::from_data(&icon_data).unwrap()),
+                    Some(Icon::from_data(&icon_data.data).unwrap()),
                     {
                         let window_rc_clone = window_rc.clone();
                         move || {
@@ -64,7 +60,7 @@ fn main() {
         MenuItem::simple("Show tray message", {
             let tray_weak = Rc::downgrade(&tray_rc);
             let icon_data = Assets::get("icon.png").unwrap();
-            let icon = Icon::from_data(&icon_data).unwrap();
+            let icon = Icon::from_data(&icon_data.data).unwrap();
             move || {
                 if let Some(tray_rc) = tray_weak.upgrade() {
                     tray_rc
@@ -78,7 +74,7 @@ fn main() {
             let dispatcher = app.get_dispatcher();
             move || {
                 let var = Rc::new(RefCell::new(true));
-                dispatcher.post_func_any_thread(move || {
+                dispatcher.post_func_same_thread(move || {
                     println!("Posted function! {}", *var.borrow_mut())
                 });
             }
@@ -105,13 +101,15 @@ fn main() {
     app.message_loop();
 
     thread_handler.join().unwrap();
+
+    Ok(())
 }
 
 fn create_new_window() -> Rc<RefCell<Window>> {
     let window_rc = Rc::new(RefCell::new(Window::new(None).unwrap()));
     {
         let icon_data = Assets::get("icon.png").unwrap();
-        let icon = Icon::from_data(&icon_data).unwrap();
+        let icon = Icon::from_data(&icon_data.data).unwrap();
 
         let mut window = window_rc.borrow_mut();
         window.set_title("Hello Qt!").unwrap();

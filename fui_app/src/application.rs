@@ -1,8 +1,6 @@
-use crate::{
-    ChannelDispatcher, DrawingContext, WindowGUIThreadData, WindowId, WindowManager, WindowOptions,
-};
+use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowManager, WindowOptions};
 use anyhow::Result;
-use fui_core::{post_func_current_thread, register_current_thread_dispatcher, ViewModel};
+use fui_core::ViewModel;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::future::Future;
@@ -47,28 +45,14 @@ pub struct Application {
     /// receiver of the exit event sent from the GUI thread
     gui_thread_exit_rx: oneshot::Receiver<()>,
 
-    /// receiver of closures sent to VM thread from the VM thread
-    func_vm2vm_thread_rx: mpsc::UnboundedReceiver<Box<dyn 'static + FnOnce()>>,
-
     /// receiver of closures sent to VM thread from the GUI or other threads
     func_gui2vm_thread_rx: mpsc::UnboundedReceiver<Box<dyn 'static + Send + FnOnce()>>,
 }
 
 impl Application {
     pub async fn new(title: &'static str) -> Result<Self> {
-        // channel to send closures VM thread -> VM thread
-        let (func_vm2vm_thread_tx, mut func_vm2vm_thread_rx) = mpsc::unbounded_channel();
-
         // channel to send closures GUI (or any) thread -> VM thread
         let (func_gui2vm_thread_tx, mut func_gui2vm_thread_rx) = mpsc::unbounded_channel();
-
-        // fui_core::Callback uses current thread dispatcher to execute callbacks
-        // (callbacks are also used by events, properties, observable collections etc.),
-        // it is only needed on the VM thread
-        register_current_thread_dispatcher(Box::new(ChannelDispatcher::new(
-            func_vm2vm_thread_tx.clone(),
-            func_gui2vm_thread_tx.clone(),
-        )));
 
         let (gui_thread_init_tx, gui_thread_init_rx) = oneshot::channel();
         let (gui_thread_exit_tx, gui_thread_exit_rx) = oneshot::channel();
@@ -124,7 +108,6 @@ impl Application {
         Ok(Self {
             gui_thread_join_handle: Some(gui_thread_join_handle),
             gui_thread_exit_rx,
-            func_vm2vm_thread_rx,
             func_gui2vm_thread_rx,
         })
     }
@@ -142,9 +125,6 @@ impl Application {
         let mut exit = false;
         while !exit {
             select! {
-                // process all closures sent with dispatcher from the same thread
-                f = self.func_vm2vm_thread_rx.recv() => f.unwrap()(),
-
                 // process all closures sent with dispatcher from any thread
                 f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
 

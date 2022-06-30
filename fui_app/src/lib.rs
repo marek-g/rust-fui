@@ -1,9 +1,6 @@
 mod application;
 pub use application::*;
 
-mod channel_dispatcher;
-pub use channel_dispatcher::*;
-
 mod drawing_context;
 pub use drawing_context::*;
 
