@@ -8,7 +8,6 @@ use fui_macros::ui;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use tokio::task;
 use tokio::task::LocalSet;
 
 use typemap::TypeMap;
@@ -186,7 +185,7 @@ impl ViewModel for MainViewModel {
         exit_callback.set({
             let window = vm.window.clone();
             move |_| {
-                task::spawn_local({
+                spawn_local_and_forget({
                     let window = window.clone();
                     async move {
                         let result = MessageBox::builder()
