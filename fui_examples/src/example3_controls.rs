@@ -187,15 +187,13 @@ impl ViewModel for MainViewModel {
                 spawn_local_and_forget({
                     let window = window.clone();
                     async move {
-                        let result = MessageBox::builder()
-                            .message("Do you really want to exit?".to_string())
-                            .buttons(vec!["Yes".to_string(), "No".to_string()])
-                            .build()
+                        if MessageBox::new("Do you really want to exit?")
+                            .with_button("Yes")
+                            .with_button("No")
                             .show(&window)
                             .await
-                            .unwrap();
-
-                        if result == 0 {
+                            == 0
+                        {
                             Application::exit();
                         }
                     }

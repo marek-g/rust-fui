@@ -6,7 +6,6 @@ use futures_channel::oneshot::Canceled;
 use std::cell::RefCell;
 use std::future::Future;
 use std::rc::Rc;
-use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
 pub struct DialogButtonViewModel {
@@ -36,17 +35,29 @@ impl ViewModel for DialogButtonViewModel {
     }
 }
 
-#[derive(TypedBuilder)]
 pub struct MessageBox {
-    #[builder(default = String::new())]
     message: String,
-
-    #[builder(default = Vec::new())]
     buttons: Vec<String>,
 }
 
 impl MessageBox {
-    pub fn show(
+    pub fn new<S: Into<String>>(message: S) -> Self {
+        MessageBox {
+            message: message.into(),
+            buttons: Vec::new(),
+        }
+    }
+
+    pub fn with_button<S: Into<String>>(mut self, text: S) -> Self {
+        self.buttons.push(text.into());
+        self
+    }
+
+    pub async fn show(self, window: &Rc<RefCell<dyn WindowService>>) -> i32 {
+        self.show_internal(window).await.unwrap()
+    }
+
+    fn show_internal(
         self,
         window: &Rc<RefCell<dyn WindowService>>,
     ) -> impl Future<Output = Result<i32, Canceled>> {
