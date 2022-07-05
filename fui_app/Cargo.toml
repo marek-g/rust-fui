@@ -1,6 +1,6 @@
 [package]
 name = "fui_app"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Application backend of FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -12,10 +12,10 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.3" }
+fui_core = { path = "../fui_core", version = "0.5" }
 fui_macros = { path = "../fui_macros", version = "0.3" }
-fui_controls = { path = "../fui_controls", version = "0.4" }
-fui_system = { path = "../fui_system", version = "0.3" }
+fui_controls = { path = "../fui_controls", version = "0.5" }
+fui_system = { path = "../fui_system", version = "0.5" }
 fui_system_core = { path = "../fui_system_core", version = "0.1" }
 drawing = { path = "../../rust-drawing/drawing", version = "0.3" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.3" }

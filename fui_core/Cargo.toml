@@ -1,6 +1,6 @@
 [package]
 name = "fui_core"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Core library of FUI MVVM UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
