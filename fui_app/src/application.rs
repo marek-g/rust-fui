@@ -119,7 +119,7 @@ impl Application {
         while !exit {
             select! {
                 // process all closures sent with dispatcher from any thread
-                f = self.func_gui2vm_thread_rx.recv() => f.unwrap()(),
+                f = self.func_gui2vm_thread_rx.recv() => if let Some(f) = f { f() },
 
                 // wait for exit of the gui message loop
                 _res = &mut self.gui_thread_exit_rx => exit = true,
