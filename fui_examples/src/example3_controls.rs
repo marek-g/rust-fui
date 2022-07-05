@@ -181,8 +181,7 @@ impl ViewModel for MainViewModel {
             }
         );
 
-        let mut exit_callback = Callback::empty();
-        exit_callback.set({
+        let exit_callback = Callback::simple({
             let window = vm.window.clone();
             move |_| {
                 spawn_local_and_forget({
