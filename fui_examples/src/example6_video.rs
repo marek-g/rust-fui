@@ -72,11 +72,11 @@ impl ViewModel for MainViewModel {
                 },
                 Horizontal {
                     Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.play()),
+                        clicked: Callback::new_vm(view_model, |vm, _| vm.play()),
                         Text { text: "Play" }
                     },
                     Button {
-                        clicked: Callback::new(view_model, |vm, _| vm.stop()),
+                        clicked: Callback::new_vm(view_model, |vm, _| vm.stop()),
                         Text { text: "Stop" }
                     },
                 },

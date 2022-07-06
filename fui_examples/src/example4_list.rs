@@ -42,7 +42,7 @@ impl ViewModel for ItemViewModel {
                 Text { text: (&vm.number, |n| format!(" - {}", n)) },
                 Button {
                     Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                    clicked: Callback::new_rc(view_model, |vm, _| {
+                    clicked: Callback::new_vm_rc(view_model, |vm, _| {
                         let parent = vm.borrow().parent.clone();
                         if let Some(parent) = parent.upgrade() {
                             parent.delete(vm);
@@ -124,15 +124,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0f32),
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| vm.add()),
+                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.add()),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| vm.add_n(100)),
+                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new_rc(view_model, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
                 },

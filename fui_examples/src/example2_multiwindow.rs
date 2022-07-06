@@ -51,11 +51,11 @@ impl ViewModel for MainViewModel {
                     text: (&vm.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.decrease()),
+                    clicked: Callback::new_vm(view_model, |vm, _| vm.decrease()),
                     Text { text: "Decrease" }
                 },
                 Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
+                    clicked: Callback::new_vm(view_model, |vm, _| vm.increase()),
                     Text { text: "Increase" }
                 },
                 Text {

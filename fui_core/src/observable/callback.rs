@@ -1,5 +1,6 @@
 use crate::spawn_local_and_forget;
 use std::cell::RefCell;
+use std::future::Future;
 use std::rc::Rc;
 
 ///
@@ -23,39 +24,51 @@ impl<A: 'static + Clone> Callback<A> {
         Callback { callback: None }
     }
 
-    pub fn new<T: 'static, F: 'static + FnMut(&mut T, A)>(vm: &Rc<RefCell<T>>, mut f: F) -> Self {
-        let vm_clone = vm.clone();
-        let f2 = move |args: A| {
-            let mut vm = vm_clone.borrow_mut();
-            f(&mut vm, args);
-        };
-        Callback {
-            callback: Some(Rc::new(RefCell::new(f2))),
-        }
+    pub fn new_sync<F: 'static + FnMut(A)>(f: F) -> Self {
+        let mut callback = Callback::empty();
+        callback.set_sync(f);
+        callback
     }
 
-    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
+    pub fn new_async<F, Fut>(f: F) -> Self
+    where
+        F: FnMut(A) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
+        let mut callback = Callback::empty();
+        callback.set_async(f);
+        callback
+    }
+
+    pub fn new_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(vm: &Rc<RefCell<T>>, f: F) -> Self {
+        let mut callback = Callback::empty();
+        callback.set_vm(vm, f);
+        callback
+    }
+
+    pub fn new_vm_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
         vm: &Rc<RefCell<T>>,
-        mut f: F,
+        f: F,
     ) -> Self {
-        let vm_clone = vm.clone();
-        let f2 = move |args: A| {
-            let vm = vm_clone.clone();
-            f(vm, args);
-        };
-        Callback {
-            callback: Some(Rc::new(RefCell::new(f2))),
-        }
+        let mut callback = Callback::empty();
+        callback.set_vm_rc(vm, f);
+        callback
     }
 
-    pub fn simple<F: 'static + FnMut(A)>(f: F) -> Self {
-        Self {
-            callback: Some(Rc::new(RefCell::new(f))),
-        }
-    }
-
-    pub fn set<F: 'static + FnMut(A)>(&mut self, f: F) {
+    pub fn set_sync<F: 'static + FnMut(A)>(&mut self, f: F) {
         self.callback = Some(Rc::new(RefCell::new(f)));
+    }
+
+    pub fn set_async<F, Fut>(&mut self, mut f: F)
+    where
+        F: FnMut(A) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
+        let f2 = move |args: A| {
+            spawn_local_and_forget(f(args));
+        };
+
+        self.callback = Some(Rc::new(RefCell::new(f2)));
     }
 
     pub fn set_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(
@@ -67,6 +80,19 @@ impl<A: 'static + Clone> Callback<A> {
         let f2 = move |args: A| {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);
+        };
+        self.callback = Some(Rc::new(RefCell::new(f2)));
+    }
+
+    pub fn set_vm_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
+        &mut self,
+        vm: &Rc<RefCell<T>>,
+        mut f: F,
+    ) {
+        let vm_clone = vm.clone();
+        let f2 = move |args: A| {
+            let vm = vm_clone.clone();
+            f(vm, args);
         };
         self.callback = Some(Rc::new(RefCell::new(f2)));
     }

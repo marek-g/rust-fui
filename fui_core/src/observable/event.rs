@@ -49,7 +49,7 @@ impl<A: 'static + Clone> Event<A> {
 
     pub fn subscribe<F: 'static + FnMut(A)>(&mut self, f: F) -> EventSubscription {
         let mut callback = Callback::<A>::empty();
-        callback.set(f);
+        callback.set_sync(f);
         let rc_callback = Rc::new(callback);
         let weak_callback = Rc::downgrade(&rc_callback);
         self.callbacks.borrow_mut().push(weak_callback);

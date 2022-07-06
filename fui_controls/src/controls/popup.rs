@@ -106,7 +106,7 @@ impl Style<Popup> for DefaultPopupStyle {
 
         let mut auto_hide_request_callback = Callback::empty();
         let mut is_open_property_clone = data.is_open.clone();
-        auto_hide_request_callback.set(move |_| {
+        auto_hide_request_callback.set_sync(move |_| {
             is_open_property_clone.set(false);
             auto_hide_occured.emit(());
         });
