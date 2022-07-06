@@ -199,26 +199,6 @@ impl ViewModel for MainViewModel {
             }
         });
 
-        /*let exit_callback = Callback::simple({
-            let window = vm.window.clone();
-            move |_| {
-                spawn_local_and_forget({
-                    let window = window.clone();
-                    async move {
-                        if MessageBox::new("Do you really want to exit?")
-                            .with_button("Yes")
-                            .with_button("No")
-                            .show(&window)
-                            .await
-                            == 0
-                        {
-                            Application::exit();
-                        }
-                    }
-                });
-            }
-        });*/
-
         let menu_items = vec![
             MenuItem::folder(
                 "File",
