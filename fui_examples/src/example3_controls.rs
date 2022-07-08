@@ -199,6 +199,28 @@ impl ViewModel for MainViewModel {
             }
         });
 
+        let input_text_callback = Callback::new_async({
+            let window = vm.window.clone();
+            move |_| {
+                let window = window.clone();
+                async move {
+                    let _ = InputDialog::new("Enter text").get_text(&window, "").await;
+                }
+            }
+        });
+
+        let input_password_callback = Callback::new_async({
+            let window = vm.window.clone();
+            move |_| {
+                let window = window.clone();
+                async move {
+                    let _ = InputDialog::new("Enter password")
+                        .get_password(&window)
+                        .await;
+                }
+            }
+        });
+
         let menu_items = vec![
             MenuItem::folder(
                 "File",
@@ -215,6 +237,13 @@ impl ViewModel for MainViewModel {
                     ),
                     MenuItem::Separator,
                     MenuItem::simple("Exit", exit_callback),
+                ],
+            ),
+            MenuItem::folder(
+                "Dialogs",
+                vec![
+                    MenuItem::simple("Input text", input_text_callback),
+                    MenuItem::simple("Input password", input_password_callback),
                 ],
             ),
             MenuItem::folder(
