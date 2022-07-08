@@ -16,12 +16,14 @@ use std::rc::Rc;
 ///
 #[derive(Clone)]
 pub struct Callback<A> {
-    callback: Option<Rc<RefCell<dyn 'static + FnMut(A)>>>,
+    callback: Rc<RefCell<Option<Box<dyn 'static + FnMut(A)>>>>,
 }
 
 impl<A: 'static + Clone> Callback<A> {
     pub fn empty() -> Self {
-        Callback { callback: None }
+        Callback {
+            callback: Rc::new(RefCell::new(None)),
+        }
     }
 
     pub fn new_sync<F: 'static + FnMut(A)>(f: F) -> Self {
@@ -56,7 +58,7 @@ impl<A: 'static + Clone> Callback<A> {
     }
 
     pub fn set_sync<F: 'static + FnMut(A)>(&mut self, f: F) {
-        self.callback = Some(Rc::new(RefCell::new(f)));
+        *self.callback.borrow_mut() = Some(Box::new(f));
     }
 
     pub fn set_async<F, Fut>(&mut self, mut f: F)
@@ -68,7 +70,7 @@ impl<A: 'static + Clone> Callback<A> {
             spawn_local_and_forget(f(args));
         };
 
-        self.callback = Some(Rc::new(RefCell::new(f2)));
+        *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
     pub fn set_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(
@@ -81,7 +83,8 @@ impl<A: 'static + Clone> Callback<A> {
             let mut vm = vm_clone.borrow_mut();
             f(&mut vm, args);
         };
-        self.callback = Some(Rc::new(RefCell::new(f2)));
+
+        *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
     pub fn set_vm_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
@@ -94,19 +97,22 @@ impl<A: 'static + Clone> Callback<A> {
             let vm = vm_clone.clone();
             f(vm, args);
         };
-        self.callback = Some(Rc::new(RefCell::new(f2)));
+
+        *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
     pub fn clear(&mut self) {
-        self.callback = None;
+        *self.callback.borrow_mut() = None;
     }
 
     pub fn emit(&self, args: A) {
-        if let Some(f) = &self.callback {
-            let weak = Rc::downgrade(f);
+        if self.callback.borrow_mut().is_some() {
+            let weak = Rc::downgrade(&self.callback);
             spawn_local_and_forget(async move {
                 if let Some(f) = weak.upgrade() {
-                    f.borrow_mut()(args);
+                    if let Some(f2) = &mut *f.borrow_mut() {
+                        f2(args);
+                    }
                 }
             });
         }
