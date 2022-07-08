@@ -540,7 +540,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "cpu-time",
@@ -560,7 +560,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "drawing",
  "euclid",
@@ -573,7 +573,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -595,7 +595,7 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "fui_app",
