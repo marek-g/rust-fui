@@ -70,7 +70,7 @@ impl RelativeLayout {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<StyledControl<Self>>> {
+    ) -> Rc<RefCell<dyn ControlObject>> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {

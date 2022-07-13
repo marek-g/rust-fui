@@ -21,7 +21,7 @@ impl StackPanel {
         self,
         style: Option<Box<dyn Style<Self>>>,
         mut context: ViewContext,
-    ) -> Rc<RefCell<StyledControl<Self>>> {
+    ) -> Rc<RefCell<dyn ControlObject>> {
         // set default alignment to Start
         context
             .attached_values
