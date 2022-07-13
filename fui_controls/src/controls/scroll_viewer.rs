@@ -1,6 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
 use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
@@ -27,11 +24,7 @@ pub struct ScrollViewer {
 }
 
 impl ScrollViewer {
-    pub fn to_view(
-        self,
-        _style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
         let offset_x_prop = Property::new(0.0f32);
         let offset_y_prop = Property::new(0.0f32);
 

@@ -8,13 +8,13 @@ use std::rc::Rc;
 /// This is a composite collection of any number of observable collections.
 ///
 pub struct ObservableComposite<T: 'static + Clone> {
-    sources: Vec<Box<dyn ObservableCollection<T>>>,
+    sources: Vec<Rc<dyn ObservableCollection<T>>>,
     changed_event: Rc<RefCell<Event<VecDiff<T>>>>,
     _source_changed_event_subscriptions: Vec<Subscription>,
 }
 
 impl<T: 'static + Clone> ObservableComposite<T> {
-    pub fn from(sources: Vec<Box<dyn ObservableCollection<T>>>) -> Self {
+    pub fn from(sources: Vec<Rc<dyn ObservableCollection<T>>>) -> Self {
         let changed_event = Rc::new(RefCell::new(Event::new()));
         let mut source_changed_event_subscriptions = Vec::new();
 

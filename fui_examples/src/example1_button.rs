@@ -44,11 +44,7 @@ pub struct ButtonText {
 }
 
 impl ButtonText {
-    pub fn to_view(
-        self,
-        _style: Option<Box<dyn Style<Self>>>,
-        _context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, _context: ViewContext) -> Children {
         ui! {
             Button {
                 clicked: self.clicked,
@@ -59,7 +55,7 @@ impl ButtonText {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);

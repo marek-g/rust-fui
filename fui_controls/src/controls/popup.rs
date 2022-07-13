@@ -57,12 +57,8 @@ pub struct Popup {
 }
 
 impl Popup {
-    pub fn to_view(
-        self,
-        style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
+        Children::SingleStatic(StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultPopupStyle::new(
@@ -70,7 +66,7 @@ impl Popup {
                 ))
             }),
             context,
-        )
+        ))
     }
 }
 
@@ -158,7 +154,8 @@ impl Style<Popup> for DefaultPopupStyle {
 
                                 first_child,
                             }
-                        };
+                        }
+                        .single();
 
                         popup_content_rc.set(Some(content.clone()));
                         window_service.borrow_mut().add_layer(content);

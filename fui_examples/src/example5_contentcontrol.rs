@@ -23,7 +23,7 @@ impl MainViewModel {
     pub fn new() -> Rc<RefCell<Self>> {
         let item1 = Item1ViewModel::new();
         let item2 = Item2ViewModel::new();
-        let content = Property::new(ViewModel::create_view(&item1));
+        let content = Property::new(ViewModel::create_view(&item1).single());
 
         let main_vm = Rc::new(RefCell::new(MainViewModel {
             item1,
@@ -36,7 +36,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -48,13 +48,13 @@ impl ViewModel for MainViewModel {
                     Button {
                         Text { text: " - Content 1 - " },
                         clicked: Callback::new_vm(view_model, |vm, _| {
-                            vm.content.set(ViewModel::create_view(&vm.item1));
+                            vm.content.set(ViewModel::create_view(&vm.item1).single());
                         }),
                     },
                     Button {
                         Text { text: " - Content 2 - " },
                         clicked: Callback::new_vm(view_model, |vm, _| {
-                            vm.content.set(ViewModel::create_view(&vm.item2));
+                            vm.content.set(ViewModel::create_view(&vm.item2).single());
                         }),
                     },
                 },
@@ -73,7 +73,7 @@ impl Item1ViewModel {
 }
 
 impl ViewModel for Item1ViewModel {
-    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Children {
         ui!(
             Horizontal {
                 Text { text: "Item 1" },
@@ -91,7 +91,7 @@ impl Item2ViewModel {
 }
 
 impl ViewModel for Item2ViewModel {
-    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(_view_model: &Rc<RefCell<Self>>) -> Children {
         ui!(
             Horizontal {
                 Text { text: "Item 2" },

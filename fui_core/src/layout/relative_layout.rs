@@ -2,8 +2,8 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::{
-    Callback, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext, Point,
-    Rect, Size, Style, StyledControl, ViewContext,
+    Callback, Children, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext,
+    Point, Rect, Size, Style, StyledControl, ViewContext,
 };
 use drawing::primitive::Primitive;
 use typed_builder::TypedBuilder;
@@ -66,12 +66,8 @@ pub struct RelativeLayout {
 }
 
 impl RelativeLayout {
-    pub fn to_view(
-        self,
-        style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
+        Children::SingleStatic(StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultRelativeLayoutStyle::new(
@@ -79,7 +75,7 @@ impl RelativeLayout {
                 ))
             }),
             context,
-        )
+        ))
     }
 }
 

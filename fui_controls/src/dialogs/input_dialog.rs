@@ -93,7 +93,8 @@ impl InputDialog {
                     }
                 }
             }
-        };
+        }
+        .single();
 
         cancel_callback.set_sync({
             let sender = sender.clone();

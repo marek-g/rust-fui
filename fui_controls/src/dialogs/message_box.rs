@@ -23,7 +23,7 @@ impl DialogButtonViewModel {
 }
 
 impl ViewModel for DialogButtonViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let vm: &mut DialogButtonViewModel = &mut view_model.borrow_mut();
 
         ui! {
@@ -96,7 +96,8 @@ impl MessageBox {
                     }
                 }
             }
-        };
+        }
+        .single();
 
         for (button_index, text) in self.buttons.into_iter().enumerate() {
             // create new_callback that closes dialog layer

@@ -28,12 +28,8 @@ pub struct ScrollArea {
 }
 
 impl ScrollArea {
-    pub fn to_view(
-        self,
-        style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
-        StyledControl::new(
+    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
+        Children::SingleStatic(StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultScrollAreaStyle::new(
@@ -41,7 +37,7 @@ impl ScrollArea {
                 ))
             }),
             context,
-        )
+        ))
     }
 }
 

@@ -29,11 +29,7 @@ impl<V> DropDown<V>
 where
     V: ViewModel + PartialEq + 'static,
 {
-    pub fn to_view(
-        self,
-        _style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
         let is_popup_open_property = Property::new(false);
 
         let mut is_popup_open_property_clone = is_popup_open_property.clone();
@@ -59,7 +55,7 @@ where
         });
         let menu_item_controls = (&menu_item_vms
             as &dyn ObservableCollection<Rc<RefCell<MenuItemViewModel<V>>>>)
-            .map(|vm| vm.create_view());
+            .map(|vm| ViewModel::create_view(vm).single());
 
         let content = ui! {
             Button {
@@ -104,7 +100,7 @@ where
             None,
             ViewContext {
                 attached_values: context.attached_values,
-                children: Children::SingleStatic(content),
+                children: content,
             },
         )
     }
@@ -165,7 +161,7 @@ impl<V> ViewModel for MenuItemViewModel<V>
 where
     V: ViewModel + PartialEq + 'static,
 {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let mut vm = view_model.borrow_mut();
         let clicked_callback = vm.clicked_callback.clone();
         let content = vm.source_vm.create_view();

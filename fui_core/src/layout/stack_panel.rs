@@ -3,7 +3,7 @@ use std::f32;
 use std::rc::Rc;
 
 use crate::{
-    Alignment, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext,
+    Alignment, Children, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext,
     HorizontalAlignment, Orientation, Point, Rect, Size, Style, StyledControl, VerticalAlignment,
     ViewContext,
 };
@@ -21,7 +21,7 @@ impl StackPanel {
         self,
         style: Option<Box<dyn Style<Self>>>,
         mut context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Children {
         // set default alignment to Start
         context
             .attached_values
@@ -32,7 +32,7 @@ impl StackPanel {
             .entry::<VerticalAlignment>()
             .or_insert(Alignment::Start);
 
-        StyledControl::new(
+        Children::SingleStatic(StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultStackPanelStyle::new(
@@ -40,7 +40,7 @@ impl StackPanel {
                 ))
             }),
             context,
-        )
+        ))
     }
 }
 

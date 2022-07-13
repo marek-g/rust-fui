@@ -1,5 +1,5 @@
 use crate::Text;
-use fui_core::{Children, ControlObject, ViewContext, ViewModel};
+use fui_core::{Children, ViewContext, ViewModel};
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -22,7 +22,7 @@ impl StringViewModel {
 }
 
 impl ViewModel for StringViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         ui! {
             Text { text: &*view_model.borrow().text }
         }

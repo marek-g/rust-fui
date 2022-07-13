@@ -31,11 +31,7 @@ pub struct TabControl {
 }
 
 impl TabControl {
-    pub fn to_view(
-        self,
-        _style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
         let tabs_source =
             &context.children as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>;
         let selected_tab = Property::new(tabs_source.get(0).unwrap());
@@ -45,7 +41,7 @@ impl TabControl {
             tabs_source.map(move |c| TabButtonViewModel::new(&c, &selected_tab_clone));
         let tab_button_vms_controls = (&tab_button_vms
             as &dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>)
-            .map(|vm| vm.create_view());
+            .map(|vm| vm.create_view().single());
 
         let content = ui! {
             Grid {
@@ -77,7 +73,7 @@ impl TabControl {
             None,
             ViewContext {
                 attached_values: context.attached_values,
-                children: Children::SingleStatic(content),
+                children: content,
             },
         )
     }
@@ -130,7 +126,7 @@ impl TabButtonViewModel {
 }
 
 impl ViewModel for TabButtonViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let mut vm = view_model.borrow_mut();
         ui! {
             ToggleButton {

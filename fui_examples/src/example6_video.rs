@@ -62,7 +62,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
         let vm = &mut view_model.borrow_mut();
 
         let root_control = ui!(
@@ -81,7 +81,8 @@ impl ViewModel for MainViewModel {
                     },
                 },
             }
-        );
+        )
+        .single();
 
         let root_control_copy = root_control.clone();
         vm.player
@@ -97,7 +98,7 @@ impl ViewModel for MainViewModel {
                     .set_is_dirty(true);
             });
 
-        root_control
+        Children::SingleStatic(root_control)
     }
 }
 
