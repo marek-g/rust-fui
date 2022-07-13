@@ -77,6 +77,17 @@ where
     }
 }
 
+impl From<&ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+{
+    fn from(src: &ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>) -> Self {
+        Box::new(
+            (src as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>)
+                .map(|view| view.clone()),
+        )
+    }
+}
+
 impl<V> From<&Box<dyn ObservableCollection<Rc<RefCell<V>>>>>
     for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
 where

@@ -8,7 +8,7 @@ use fui_core::*;
 use fui_macros::ui;
 
 use crate::controls::*;
-use crate::{DataHolder, RadioController, RadioElement};
+use crate::{DataHolder, RadioController};
 
 //
 // DropDown.
@@ -57,6 +57,9 @@ where
                 hide_callback_clone.clone(),
             )
         });
+        let menu_item_controls = (&menu_item_vms
+            as &dyn ObservableCollection<Rc<RefCell<MenuItemViewModel<V>>>>)
+            .map(|vm| vm.create_view());
 
         let content = ui! {
             Button {
@@ -78,7 +81,7 @@ where
                                 VerticalAlignment: Alignment::Start,
                                 columns: 1,
 
-                                &menu_item_vms,
+                                &menu_item_controls,
                             }
                         }
                     }
@@ -86,10 +89,16 @@ where
             }
         };
 
-        let radio_controller = RadioController::new(menu_item_vms);
+        let radio_controller =
+            RadioController::<StyledControl<ToggleButton>>::new(menu_item_controls);
 
         let data_holder = DataHolder {
-            data: (self.selected_item, self.items, radio_controller),
+            data: (
+                self.selected_item,
+                self.items,
+                radio_controller,
+                menu_item_vms,
+            ),
         };
         data_holder.to_view(
             None,
@@ -169,26 +178,5 @@ where
                 content,
             }
         }
-    }
-}
-
-impl<V> RadioElement for MenuItemViewModel<V>
-where
-    V: ViewModel + PartialEq + 'static,
-{
-    fn is_checked(&self) -> bool {
-        self.is_checked.get()
-    }
-
-    fn set_is_checked(&mut self, is_checked: bool) {
-        self.is_checked.set(is_checked)
-    }
-
-    fn on_checked(&self, f: Box<dyn Fn()>) -> Subscription {
-        self.is_checked.on_changed(move |is_checked| {
-            if is_checked {
-                f();
-            }
-        })
     }
 }

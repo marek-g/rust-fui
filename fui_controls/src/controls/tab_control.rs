@@ -9,7 +9,7 @@ use fui_macros::ui;
 
 use crate::controls::border::Border;
 use crate::controls::*;
-use crate::{DataHolder, RadioController, RadioElement};
+use crate::{DataHolder, RadioController};
 
 //
 // Attached values.
@@ -43,6 +43,9 @@ impl TabControl {
         let selected_tab_clone = selected_tab.clone();
         let tab_button_vms =
             tabs_source.map(move |c| TabButtonViewModel::new(&c, &selected_tab_clone));
+        let tab_button_vms_controls = (&tab_button_vms
+            as &dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>)
+            .map(|vm| vm.create_view());
 
         let content = ui! {
             Grid {
@@ -50,7 +53,7 @@ impl TabControl {
                 heights: vec![(0, Length::Auto), (1, Length::Fill(1.0f32))],
 
                 Horizontal {
-                    &tab_button_vms,
+                    &tab_button_vms_controls,
                 },
 
                 Shadow {
@@ -64,10 +67,11 @@ impl TabControl {
             }
         };
 
-        let radio_controller = RadioController::new(tab_button_vms);
+        let radio_controller =
+            RadioController::<StyledControl<ToggleButton>>::new(tab_button_vms_controls);
 
         let data_holder = DataHolder {
-            data: (selected_tab, radio_controller),
+            data: (selected_tab, radio_controller, tab_button_vms),
         };
         data_holder.to_view(
             None,
@@ -137,23 +141,5 @@ impl ViewModel for TabButtonViewModel {
                 Text { text: &vm.title },
             }
         }
-    }
-}
-
-impl RadioElement for TabButtonViewModel {
-    fn is_checked(&self) -> bool {
-        self.is_checked.get()
-    }
-
-    fn set_is_checked(&mut self, is_checked: bool) {
-        self.is_checked.set(is_checked)
-    }
-
-    fn on_checked(&self, f: Box<dyn Fn()>) -> Subscription {
-        self.is_checked.on_changed(move |is_checked| {
-            if is_checked {
-                f();
-            }
-        })
     }
 }

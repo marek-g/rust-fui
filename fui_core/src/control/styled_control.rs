@@ -1,4 +1,5 @@
 use crate::events::ControlEvent;
+use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -138,6 +139,14 @@ impl<D: 'static> ControlExtensions<D> for Rc<RefCell<StyledControl<D>>> {
 }
 
 impl<D: 'static> ControlObject for StyledControl<D> {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
     fn get_context(&self) -> &ControlContext {
         self.get_context()
     }

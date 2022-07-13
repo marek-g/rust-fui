@@ -1,5 +1,6 @@
 use crate::control::control_behavior::ControlBehavior;
 use crate::{control::control_context::ControlContext, Point, Property, Subscription};
+use std::any::Any;
 use std::rc::Weak;
 use std::{
     cell::{RefCell, RefMut},
@@ -7,6 +8,9 @@ use std::{
 };
 
 pub trait ControlObject: ControlBehavior {
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+
     fn get_context(&self) -> &ControlContext;
     fn get_context_mut(&mut self) -> &mut ControlContext;
 

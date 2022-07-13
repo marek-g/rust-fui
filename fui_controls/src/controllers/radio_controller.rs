@@ -1,9 +1,10 @@
 use std::cell::RefCell;
-use std::ops::Deref;
+use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
 use crate::ToggleButton;
-use fui_core::{ObservableCollection, StyledControl, Subscription, VecDiff};
+use fui_core::{ControlObject, ObservableCollection, StyledControl, Subscription, VecDiff};
 
 pub trait RadioElement {
     fn is_checked(&self) -> bool;
@@ -33,8 +34,10 @@ pub struct RadioController<R>
 where
     R: 'static + RadioElement,
 {
-    _elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>>,
+    _elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
     _subscriptions: Rc<RefCell<Vec<Subscription>>>,
+
+    _phantom_data: PhantomData<R>,
 }
 
 impl<R> RadioController<R>
@@ -43,31 +46,51 @@ where
 {
     pub fn new<E>(elements: E) -> Self
     where
-        E: 'static + ObservableCollection<Rc<RefCell<R>>>,
+        E: 'static + ObservableCollection<Rc<RefCell<dyn ControlObject>>>,
     {
         let mut subscriptions = Vec::new();
-        let elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<R>>>>> =
+        let elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> =
             Rc::new(RefCell::new(elements));
 
         for radio_element in elements.borrow_mut().deref() {
             let elements_clone = elements.clone();
             let radio_element_clone = radio_element.clone();
-            subscriptions.push(radio_element.borrow().on_checked(Box::new(move || {
-                for el in elements_clone.borrow_mut().deref() {
-                    if !Rc::ptr_eq(&el, &radio_element_clone) {
-                        el.borrow_mut().set_is_checked(false);
-                    }
-                }
-            })));
+            subscriptions.push(
+                radio_element
+                    .borrow()
+                    .as_any()
+                    .downcast_ref::<R>()
+                    .unwrap()
+                    .on_checked(Box::new(move || {
+                        for el in elements_clone.borrow_mut().deref() {
+                            if !Rc::ptr_eq(&el, &radio_element_clone) {
+                                el.borrow_mut()
+                                    .deref_mut()
+                                    .as_any_mut()
+                                    .downcast_mut::<R>()
+                                    .unwrap()
+                                    .set_is_checked(false);
+                            }
+                        }
+                    })),
+            );
         }
 
-        let is_checked = elements
-            .borrow_mut()
-            .into_iter()
-            .fold(false, |acc, el| acc || el.borrow().is_checked());
+        let is_checked = elements.borrow_mut().into_iter().fold(false, |acc, el| {
+            acc || el
+                .borrow()
+                .as_any()
+                .downcast_ref::<R>()
+                .unwrap()
+                .is_checked()
+        });
         if !is_checked {
             if let Some(el) = elements.borrow_mut().into_iter().next() {
-                el.borrow_mut().set_is_checked(true);
+                el.borrow_mut()
+                    .as_any_mut()
+                    .downcast_mut::<R>()
+                    .unwrap()
+                    .set_is_checked(true);
             }
         }
 
@@ -87,18 +110,32 @@ where
                     value: radio_element,
                 } => {
                     if elements_clone.borrow().len() == 0 {
-                        radio_element.borrow_mut().set_is_checked(true);
+                        radio_element
+                            .borrow_mut()
+                            .as_any_mut()
+                            .downcast_mut::<R>()
+                            .unwrap()
+                            .set_is_checked(true);
                     }
 
                     let elements_clone = elements_clone.clone();
                     let radio_element_clone = radio_element.clone();
-                    let subscription = radio_element.borrow().on_checked(Box::new(move || {
-                        for el in elements_clone.borrow_mut().deref() {
-                            if !Rc::ptr_eq(&el, &radio_element_clone) {
-                                el.borrow_mut().set_is_checked(false);
+                    let subscription = radio_element
+                        .borrow()
+                        .as_any()
+                        .downcast_ref::<R>()
+                        .unwrap()
+                        .on_checked(Box::new(move || {
+                            for el in elements_clone.borrow_mut().deref() {
+                                if !Rc::ptr_eq(&el, &radio_element_clone) {
+                                    el.borrow_mut()
+                                        .as_any_mut()
+                                        .downcast_mut::<R>()
+                                        .unwrap()
+                                        .set_is_checked(false);
+                                }
                             }
-                        }
-                    }));
+                        }));
                     subscriptions_clone.borrow_mut().insert(index, subscription);
                 }
 
@@ -110,6 +147,7 @@ where
         RadioController {
             _elements: elements,
             _subscriptions: subscriptions,
+            _phantom_data: PhantomData,
         }
     }
 }

@@ -53,17 +53,29 @@ impl ViewModel for MainViewModel {
         vm.counter2.bind(&mut vm.counter);
         vm.counter.bind(&mut vm.counter2);
 
-        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} });
-        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} });
-        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
-        let radio_controller =
-            RadioController::new(vec![radio1.clone(), radio2.clone(), radio3.clone()]);
+        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
+            radio1.clone(),
+            radio2.clone(),
+            radio3.clone(),
+        ]);
 
-        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} });
-        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} });
-        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
-        let radio_controller2 =
-            RadioController::new(vec![radio4.clone(), radio5.clone(), radio6.clone()]);
+        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio_controller2 = RadioController::<StyledControl<ToggleButton>>::new(vec![
+            radio4.clone(),
+            radio5.clone(),
+            radio6.clone(),
+        ]);
 
         let tab1 = ui!(
             Grid {
