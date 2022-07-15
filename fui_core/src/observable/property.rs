@@ -272,7 +272,7 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, mut f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         Some(Property::on_changed(self, move |v| {
             f(VecDiff::RemoveAt { index: 0 });
             f(VecDiff::InsertAt { index: 0, value: v });
@@ -300,7 +300,7 @@ where
         }
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, mut f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         Some(Property::on_changed(self, move |v| {
             f(VecDiff::Clear {});
             if let Some(v) = v {

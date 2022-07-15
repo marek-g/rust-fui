@@ -59,7 +59,7 @@ impl Menu {
                 &uncovered_controls,
                 &close_siblings_callback_rc,
             );
-            content_prop.push(view);
+            content_prop.push(view.single());
             close_item_popup_callbacks.push(close_item_popup_callback);
             close_siblings_callbacks.push(close_siblings_callback_rc);
         }

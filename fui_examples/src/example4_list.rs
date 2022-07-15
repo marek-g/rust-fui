@@ -141,7 +141,29 @@ impl ViewModel for MainViewModel {
                     Vertical {
                         Margin: Thickness::all(5.0f32),
                         Text { text: "The dynamic list can be mixed with static controls." },
-                        &vm.items,
+
+                        Grid {
+                            columns: 3,
+
+                            vm.items.flat_map(|item| {
+                                let vm = item.borrow_mut();
+                                vec![
+                                    ui!(Text { text: &vm.name }).single(),
+                                    ui!(Text { text: (&vm.number, |n| format!("{}", n)) }).single(),
+                                    ui!(Button {
+                                        Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
+                                        clicked: Callback::new_vm_rc(item, |vm, _| {
+                                            let parent = vm.borrow().parent.clone();
+                                            if let Some(parent) = parent.upgrade() {
+                                                parent.delete(vm);
+                                            }
+                                        }),
+                                        Text { text: "Delete" },
+                                    }).single(),
+                                ]
+                            }),
+                        },
+
                         Text { text: "This is the end." },
                     },
                 }

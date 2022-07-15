@@ -28,7 +28,7 @@ impl<T: 'static + Clone> ObservableVec<T> {
 
     pub fn on_changed<F>(&self, f: F) -> EventSubscription
     where
-        F: 'static + Fn(VecDiff<T>),
+        F: 'static + FnMut(VecDiff<T>),
     {
         self.changed_event.borrow_mut().subscribe(f)
     }
@@ -96,7 +96,7 @@ where
         ObservableVec::get(self, index)
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         Some(Subscription::EventSubscription(ObservableVec::on_changed(
             self, f,
         )))

@@ -110,7 +110,7 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableComposite<T> {
         None
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, mut f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         Some(Subscription::EventSubscription(
             self.changed_event
                 .borrow_mut()

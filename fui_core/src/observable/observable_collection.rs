@@ -12,7 +12,7 @@ pub enum VecDiff<A> {
 pub trait ObservableCollection<T: 'static + Clone> {
     fn len(&self) -> usize;
     fn get(&self, index: usize) -> Option<T>;
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription>;
+    fn on_changed(&self, f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription>;
 }
 
 ///
@@ -88,7 +88,7 @@ where
         self.as_slice().get(index).map(|el| el.clone())
     }
 
-    fn on_changed(&self, _: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, _: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         None
     }
 }

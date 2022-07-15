@@ -24,7 +24,7 @@ impl<T: 'static + Clone> ObservableCollection<T> for ObservableCollectionMap<T> 
             .map(|el| el.clone())
     }
 
-    fn on_changed(&self, f: Box<dyn Fn(VecDiff<T>)>) -> Option<Subscription> {
+    fn on_changed(&self, f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
         Some(Subscription::EventSubscription(
             self.changed_event.borrow_mut().subscribe(f),
         ))
@@ -53,35 +53,35 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
         F: 'static + Fn(&T) -> TDst,
     {
         let items_vec = self.into_iter().map(|item| f(&item)).collect();
-
         let items_rc = Rc::new(RefCell::new(items_vec));
+
         let changed_event_rc = Rc::new(RefCell::new(Event::new()));
 
-        let items_rc_clone = items_rc.clone();
-        let changed_event_rc_clone = changed_event_rc.clone();
-        let handler = Box::new(move |changed_args| match changed_args {
-            VecDiff::Clear {} => {
-                (items_rc_clone.borrow_mut() as RefMut<'_, Vec<TDst>>).clear();
-                changed_event_rc_clone.borrow().emit(VecDiff::Clear {});
-            }
+        let handler = Box::new({
+            let items_rc = items_rc.clone();
+            let changed_event_rc = changed_event_rc.clone();
+            move |changed_args| match changed_args {
+                VecDiff::Clear {} => {
+                    (items_rc.borrow_mut() as RefMut<'_, Vec<TDst>>).clear();
+                    changed_event_rc.borrow().emit(VecDiff::Clear {});
+                }
 
-            VecDiff::InsertAt { index, value } => {
-                let mut vec: RefMut<'_, Vec<TDst>> = items_rc_clone.borrow_mut();
-                let new_item = f(&value);
-                let new_item_clone = new_item.clone();
-                vec.insert(index, new_item);
+                VecDiff::InsertAt { index, value } => {
+                    let mut vec: RefMut<'_, Vec<TDst>> = items_rc.borrow_mut();
+                    let new_item = f(&value);
+                    let new_item_clone = new_item.clone();
+                    vec.insert(index, new_item);
 
-                changed_event_rc_clone.borrow().emit(VecDiff::InsertAt {
-                    index,
-                    value: new_item_clone,
-                });
-            }
+                    changed_event_rc.borrow().emit(VecDiff::InsertAt {
+                        index,
+                        value: new_item_clone,
+                    });
+                }
 
-            VecDiff::RemoveAt { index } => {
-                items_rc_clone.borrow_mut().remove(index);
-                changed_event_rc_clone
-                    .borrow()
-                    .emit(VecDiff::RemoveAt { index });
+                VecDiff::RemoveAt { index } => {
+                    items_rc.borrow_mut().remove(index);
+                    changed_event_rc.borrow().emit(VecDiff::RemoveAt { index });
+                }
             }
         });
         let event_subscription = self.on_changed(handler);
