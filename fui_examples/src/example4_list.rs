@@ -7,56 +7,25 @@ use fui_core::*;
 use fui_macros::ui;
 
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 use tokio::task::LocalSet;
 
 use typemap::TypeMap;
 
+#[derive(Clone)]
 struct ItemViewModel {
-    pub parent: Weak<RefCell<MainViewModel>>,
-    pub name: Property<String>,
-    pub number: Property<i32>,
+    pub id: i32,
+    pub name: String,
 }
 
 impl ItemViewModel {
-    pub fn new(
-        parent: Weak<RefCell<MainViewModel>>,
-        name: Property<String>,
-        number: Property<i32>,
-    ) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(ItemViewModel {
-            parent,
-            name,
-            number,
-        }))
-    }
-}
-
-impl ViewModel for ItemViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
-        let vm = &mut view_model.borrow_mut();
-
-        ui!(
-            Horizontal {
-                Text { text: &vm.name },
-                Text { text: (&vm.number, |n| format!(" - {}", n)) },
-                Button {
-                    Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                    clicked: Callback::new_vm_rc(view_model, |vm, _| {
-                        let parent = vm.borrow().parent.clone();
-                        if let Some(parent) = parent.upgrade() {
-                            parent.delete(vm);
-                        }
-                    }),
-                    Text { text: "Delete" },
-                }
-            }
-        )
+    pub fn new(id: i32, name: String) -> Self {
+        ItemViewModel { id, name }
     }
 }
 
 struct MainViewModel {
-    pub items: ObservableVec<Rc<RefCell<ItemViewModel>>>,
+    pub items: ObservableVec<ItemViewModel>,
     counter: i32,
 }
 
@@ -77,19 +46,18 @@ trait MainViewModelMethods {
     fn add(&self);
     fn add_n(&self, n: i32);
     fn remove_all(&self);
-    fn delete(&self, item: Rc<RefCell<ItemViewModel>>);
+    fn delete(&self, item_id: i32);
 }
 
 impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
     fn add(&self) {
         let new_item = ItemViewModel::new(
-            Rc::downgrade(self),
-            Property::new(format!("Element {}", self.borrow().counter)),
-            Property::new(self.borrow().counter + 10),
+            self.borrow().counter + 10,
+            format!("Element {}", self.borrow().counter),
         );
         self.borrow_mut().counter += 1;
 
-        println!("Add {}!", new_item.borrow().name.get());
+        println!("Add {}!", new_item.name);
         self.borrow_mut().items.push(new_item);
     }
 
@@ -104,11 +72,9 @@ impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
         self.borrow_mut().items.remove_filter(|_i| true);
     }
 
-    fn delete(&self, item: Rc<RefCell<ItemViewModel>>) {
-        println!("Delete {}!", item.borrow().name.get());
-        self.borrow_mut()
-            .items
-            .remove_filter(|i| std::ptr::eq(i.as_ref(), item.as_ref()));
+    fn delete(&self, item_id: i32) {
+        println!("Delete {}!", item_id);
+        self.borrow_mut().items.remove_filter(|i| i.id == item_id);
     }
 }
 
@@ -145,23 +111,22 @@ impl ViewModel for MainViewModel {
                         Grid {
                             columns: 3,
 
-                            vm.items.flat_map(|item| {
-                                let vm = item.borrow_mut();
+                            vm.items.flat_map({
+                                let view_model = view_model.clone();
+                                move |item| {
                                 vec![
-                                    ui!(Text { text: &vm.name }).single(),
-                                    ui!(Text { text: (&vm.number, |n| format!("{}", n)) }).single(),
+                                    ui!(Text { text: &item.name }).single(),
+                                    ui!(Text { text: format!("{}", item.id) }).single(),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                        clicked: Callback::new_vm_rc(item, |vm, _| {
-                                            let parent = vm.borrow().parent.clone();
-                                            if let Some(parent) = parent.upgrade() {
-                                                parent.delete(vm);
-                                            }
+                                        clicked: Callback::new_vm_rc(&view_model, {
+                                            let item_id = item.id;
+                                            move |vm, _| { vm.delete(item_id); }
                                         }),
                                         Text { text: "Delete" },
                                     }).single(),
                                 ]
-                            }),
+                            }}),
                         },
 
                         Text { text: "This is the end." },

@@ -144,6 +144,7 @@ impl<T: 'static + Clone + PartialEq> Clone for Property<T> {
 pub trait IntoProperty {}
 
 impl IntoProperty for String {}
+impl IntoProperty for &String {}
 impl IntoProperty for &str {}
 impl IntoProperty for bool {}
 impl IntoProperty for char {}
