@@ -6,7 +6,6 @@ use std::rc::Rc;
 ///
 /// The collection is an enum to make it optimized for the cases with
 /// having static list of controls.
-#[derive(Clone)]
 pub enum Children {
     /// The collection has no items.
     None,
@@ -18,7 +17,7 @@ pub enum Children {
     MultipleStatic(Vec<Rc<RefCell<dyn ControlObject>>>),
 
     /// The children comes from a single observable collection.
-    SingleDynamic(Rc<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>),
+    SingleDynamic(Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>),
 }
 
 impl Children {
@@ -31,7 +30,7 @@ impl Children {
     /// vector of Children collections.
     pub fn from(children_vec: Vec<Children>) -> Self {
         let mut sources_to_compose: Vec<
-            Rc<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+            Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
         > = Vec::new();
         let mut static_children: Vec<Rc<RefCell<dyn ControlObject>>> = Vec::new();
 
@@ -46,7 +45,7 @@ impl Children {
                 }
                 Children::SingleDynamic(items) => {
                     if static_children.len() > 0 {
-                        sources_to_compose.push(Rc::new(static_children));
+                        sources_to_compose.push(Box::new(static_children));
                         static_children = Vec::new();
                     }
                     sources_to_compose.push(items);
@@ -55,7 +54,7 @@ impl Children {
         }
 
         if sources_to_compose.len() > 0 && static_children.len() > 0 {
-            sources_to_compose.push(Rc::new(static_children));
+            sources_to_compose.push(Box::new(static_children));
             static_children = Vec::new();
         }
 
@@ -66,7 +65,7 @@ impl Children {
         } else if sources_to_compose.len() == 1 {
             Children::SingleDynamic(sources_to_compose.into_iter().next().unwrap())
         } else if sources_to_compose.len() > 1 {
-            Children::SingleDynamic(Rc::new(ObservableComposite::from(sources_to_compose)))
+            Children::SingleDynamic(Box::new(ObservableComposite::from(sources_to_compose)))
         } else {
             Children::None
         }
@@ -95,14 +94,6 @@ impl Children {
             }
             Children::MultipleStatic(x) => x.get(index),
             Children::SingleDynamic(x) => x.get(index),
-        }
-    }
-
-    /// Unwraps the single static element.
-    pub fn single(self) -> Rc<RefCell<dyn ControlObject>> {
-        match self {
-            Children::SingleStatic(single) => single,
-            _ => panic!("Children::SingleStatic expected!"),
         }
     }
 }
@@ -143,13 +134,7 @@ impl<T: 'static + ControlObject> From<Vec<Rc<RefCell<T>>>> for Children {
 /// Converts an observable collection to Children collection.
 impl<T: Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>> From<T> for Children {
     fn from(items: T) -> Children {
-        Children::SingleDynamic(Rc::from(items.into()))
-    }
-}
-
-impl From<Rc<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> for Children {
-    fn from(items: Rc<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>) -> Children {
-        Children::SingleDynamic(items)
+        Children::SingleDynamic(items.into())
     }
 }
 

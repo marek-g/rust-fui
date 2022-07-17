@@ -18,8 +18,12 @@ pub struct GestureArea {
 }
 
 impl GestureArea {
-    pub fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
-        Children::SingleStatic(StyledControl::new(
+    pub fn to_view(
+        self,
+        style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
+        StyledControl::new(
             self,
             style.unwrap_or_else(|| {
                 Box::new(DefaultGestureAreaStyle::new(
@@ -27,7 +31,7 @@ impl GestureArea {
                 ))
             }),
             context,
-        ))
+        )
     }
 }
 

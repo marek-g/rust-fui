@@ -47,28 +47,34 @@ impl MainViewModel {
 type DropDown1 = DropDown<StringViewModel>;
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm: &mut MainViewModel = &mut view_model.borrow_mut();
 
         vm.counter2.bind(&mut vm.counter);
         vm.counter.bind(&mut vm.counter2);
 
-        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} });
-        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} });
-        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} });
+        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} })
+            as Rc<RefCell<dyn ControlObject>>;
         let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
-            radio1.clone().single(),
-            radio2.clone().single(),
-            radio3.clone().single(),
+            radio1.clone(),
+            radio2.clone(),
+            radio3.clone(),
         ]);
 
-        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} });
-        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} });
-        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} });
+        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} })
+            as Rc<RefCell<dyn ControlObject>>;
+        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} })
+            as Rc<RefCell<dyn ControlObject>>;
         let radio_controller2 = RadioController::<StyledControl<ToggleButton>>::new(vec![
-            radio4.clone().single(),
-            radio5.clone().single(),
-            radio6.clone().single(),
+            radio4.clone(),
+            radio5.clone(),
+            radio6.clone(),
         ]);
 
         let tab1 = ui!(
@@ -283,7 +289,7 @@ impl ViewModel for MainViewModel {
             None,
             ViewContext {
                 attached_values: TypeMap::new(),
-                children: content,
+                children: Children::SingleStatic(content),
             },
         )
     }

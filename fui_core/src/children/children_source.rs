@@ -4,8 +4,7 @@ use std::rc::Rc;
 use crate::control::ControlObject;
 use crate::observable::ObservableVec;
 use crate::{
-    observable::ObservableCollectionExt, Children, ObservableCollectionFlatMap,
-    ObservableCollectionMap,
+    observable::ObservableCollectionExt, ObservableCollectionFlatMap, ObservableCollectionMap,
 };
 use crate::{view::ViewModel, ObservableCollection, Property};
 
@@ -25,13 +24,7 @@ impl<V: ViewModel + 'static> From<&Vec<Rc<RefCell<V>>>>
 {
     fn from(src: &Vec<Rc<RefCell<V>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| {
-                if let Children::SingleStatic(res) = ViewModel::create_view(vm) {
-                    res
-                } else {
-                    panic!("Not implemented");
-                }
-            }),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
     }
 }
@@ -46,29 +39,8 @@ where
 {
     fn from(src: &ObservableVec<Rc<RefCell<V>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| {
-                if let Children::SingleStatic(res) = ViewModel::create_view(vm) {
-                    res
-                } else {
-                    panic!("Not implemented");
-                }
-            }),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
-    }
-}
-
-impl From<&ObservableVec<Children>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-{
-    fn from(src: &ObservableVec<Children>) -> Self {
-        Box::new((src as &dyn ObservableCollection<Children>).map(|el| {
-            if let Children::SingleStatic(res) = el {
-                res.clone()
-            } else {
-                // TODO:
-                panic!("Not implemented");
-            }
-        }))
     }
 }
 
@@ -93,30 +65,8 @@ where
 {
     fn from(src: &ObservableCollectionMap<Rc<RefCell<V>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| {
-                if let Children::SingleStatic(res) = ViewModel::create_view(vm) {
-                    res
-                } else {
-                    // TODO:
-                    panic!("Not implemented");
-                }
-            }),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
-    }
-}
-
-impl From<&ObservableCollectionMap<Children>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
-{
-    fn from(src: &ObservableCollectionMap<Children>) -> Self {
-        Box::new((src as &dyn ObservableCollection<Children>).map(|el| {
-            if let Children::SingleStatic(res) = el {
-                res.clone()
-            } else {
-                // TODO:
-                panic!("Not implemented");
-            }
-        }))
     }
 }
 
@@ -162,14 +112,7 @@ where
 {
     fn from(src: &Property<Rc<RefCell<V>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| {
-                if let Children::SingleStatic(res) = ViewModel::create_view(vm) {
-                    res
-                } else {
-                    // TODO:
-                    panic!("Not implemented");
-                }
-            }),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
     }
 }
@@ -181,14 +124,7 @@ where
 {
     fn from(src: &Property<Option<Rc<RefCell<V>>>>) -> Self {
         Box::new(
-            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| {
-                if let Children::SingleStatic(res) = ViewModel::create_view(vm) {
-                    res
-                } else {
-                    // TODO:
-                    panic!("Not implemented");
-                }
-            }),
+            (src as &dyn ObservableCollection<Rc<RefCell<V>>>).map(|vm| ViewModel::create_view(vm)),
         )
     }
 }

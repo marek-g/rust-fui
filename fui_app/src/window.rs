@@ -107,8 +107,7 @@ impl Window {
             Grid {
                 &control_layers,
             }
-        )
-        .single();
+        );
 
         let window_data_rc = Rc::new(RefCell::new(WindowVMThreadData {
             id: window_id,
@@ -145,7 +144,7 @@ impl Window {
     }
 
     pub fn set_vm<V: ViewModel>(&self, view_model: Rc<RefCell<V>>) {
-        let new_view = ViewModel::create_view(&view_model).single();
+        let new_view = ViewModel::create_view(&view_model);
 
         let mut window_data = self.data.borrow_mut();
         if let Some(view) = window_data.view.take() {

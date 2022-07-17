@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use typemap::TypeMap;
 
-use crate::Children;
+use crate::{control::ControlObject, Children};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
@@ -47,21 +47,21 @@ impl ViewContext {
 /// trait which is an object safe trait.
 ///
 pub trait ViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children;
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 ///
 /// Object safe version of ViewModel's trait.
 ///
 pub trait ViewModelObject {
-    fn create_view(&self) -> Children;
+    fn create_view(&self) -> Rc<RefCell<dyn ControlObject>>;
 
     fn box_clone(&self) -> Box<dyn ViewModelObject>;
     fn downgrade(&self) -> Box<dyn WeakViewModelObject>;
 }
 
 impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
-    fn create_view(&self) -> Children {
+    fn create_view(&self) -> Rc<RefCell<dyn ControlObject>> {
         ViewModel::create_view(self)
     }
 

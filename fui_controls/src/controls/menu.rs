@@ -18,7 +18,11 @@ pub struct Menu {
 }
 
 impl Menu {
-    pub fn to_view(self, _style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Children {
+    pub fn to_view(
+        self,
+        _style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
         // menu is active when tapped
         let is_menu_active_prop = Property::new(false);
 
@@ -26,7 +30,7 @@ impl Menu {
         let mut close_item_popup_callbacks = Vec::new();
         let mut close_siblings_callbacks = Vec::new();
 
-        let menu = ui!(
+        let menu: Rc<RefCell<dyn ControlObject>> = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
 
@@ -41,8 +45,7 @@ impl Menu {
                     }
                 }
             }
-        )
-        .single();
+        );
 
         menu.borrow_mut()
             .get_context_mut()
@@ -59,7 +62,7 @@ impl Menu {
                 &uncovered_controls,
                 &close_siblings_callback_rc,
             );
-            content_prop.push(view.single());
+            content_prop.push(view);
             close_item_popup_callbacks.push(close_item_popup_callback);
             close_siblings_callbacks.push(close_siblings_callback_rc);
         }
@@ -80,7 +83,7 @@ impl Menu {
             });
         }
 
-        Children::SingleStatic(menu)
+        menu
     }
 
     fn menu_item_to_view(
@@ -89,10 +92,10 @@ impl Menu {
         is_menu_active_prop: &Property<bool>,
         uncovered_controls: &Vec<Weak<RefCell<dyn ControlObject>>>,
         close_siblings_callback_rc: &Rc<RefCell<Callback<()>>>,
-    ) -> (Children, Callback<()>) {
+    ) -> (Rc<RefCell<dyn ControlObject>>, Callback<()>) {
         match menu_item {
             MenuItem::Separator => {
-                let separator = ui! {
+                let separator: Rc<RefCell<dyn ControlObject>> = ui! {
                     Text {
                         Style: Default { color: [0.0f32, 0.0f32, 0.0f32, 1.0f32] },
                         text: "---------"
@@ -204,7 +207,7 @@ impl Menu {
                     });
                 }
 
-                let title_content = if is_top {
+                let title_content: Rc<RefCell<dyn ControlObject>> = if is_top {
                     ui!(Text {
                         Row: 0,
                         Column: 1,
@@ -269,7 +272,7 @@ impl Menu {
                         }
                     });
 
-                    let popup_content = ui!(
+                    let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
                         Shadow {
                             Style: Default { size: 12.0f32 },
 
@@ -292,9 +295,7 @@ impl Menu {
                     let mut close_siblings_callbacks = Vec::new();
 
                     let mut uncovered_controls = uncovered_controls.to_vec();
-                    if let Children::SingleStatic(popup_content) = &popup_content {
-                        uncovered_controls.push(Rc::downgrade(popup_content));
-                    }
+                    uncovered_controls.push(Rc::downgrade(&popup_content));
                     for item in sub_items.into_iter() {
                         let close_siblings_callback_rc = Rc::new(RefCell::new(Callback::empty()));
                         let (view, close_item_popup_callback) = Self::menu_item_to_view(
@@ -376,7 +377,7 @@ impl Menu {
                         data_holder,
                     });
 
-                    popup
+                    Children::SingleStatic(popup)
                 };
 
                 let content = ui!(
@@ -402,7 +403,7 @@ impl Menu {
                 content,
                 callback: _,
                 sub_items: _,
-            } => (Children::SingleStatic(content), Callback::empty()),
+            } => (content, Callback::empty()),
         }
     }
 }

@@ -79,7 +79,7 @@ impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Children {
+    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
         let vm = &mut view_model.borrow_mut();
 
         ui!(
@@ -115,8 +115,8 @@ impl ViewModel for MainViewModel {
                                 let view_model = view_model.clone();
                                 move |item| {
                                 vec![
-                                    ui!(Text { text: &item.name }).single(),
-                                    ui!(Text { text: format!("{}", item.id) }).single(),
+                                    ui!(Text { text: &item.name }),
+                                    ui!(Text { text: format!("{}", item.id) }),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
                                         clicked: Callback::new_vm_rc(&view_model, {
@@ -124,7 +124,7 @@ impl ViewModel for MainViewModel {
                                             move |vm, _| { vm.delete(item_id); }
                                         }),
                                         Text { text: "Delete" },
-                                    }).single(),
+                                    }),
                                 ]
                             }}),
                         },
