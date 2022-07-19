@@ -38,15 +38,10 @@ pub trait ObservableCollectionExt<T: 'static + Clone> {
         F: 'static + Fn(&T) -> TDst;
 }
 
-impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection<T> {
-    /// Map creates new observable collection.
-    ///
-    /// It keeps mapped copy of every item.
-    ///
-    /// The only connection between it and original observable collection
-    /// is by subscribing on the `on_changed` event of the source collection,
-    /// so we don't have to keep implicit reference to the source collection.
-    /// The `on_change` event of source collection keeps a weak reference to our handler.
+impl<T> ObservableCollectionExt<T> for dyn ObservableCollection<T>
+where
+    T: 'static + Clone,
+{
     fn map<TDst, F>(&self, f: F) -> ObservableCollectionMap<TDst>
     where
         TDst: 'static + Clone,
@@ -91,5 +86,28 @@ impl<T: 'static + Clone> ObservableCollectionExt<T> for dyn ObservableCollection
             changed_event: changed_event_rc,
             _items_changed_event_subscription: event_subscription,
         }
+    }
+}
+
+impl<T, TSrcColl> ObservableCollectionExt<T> for TSrcColl
+where
+    T: 'static + Clone,
+    TSrcColl: ObservableCollection<T> + 'static,
+    Self: Sized,
+{
+    /// Map creates new observable collection.
+    ///
+    /// It keeps mapped copy of every item.
+    ///
+    /// The only connection between it and original observable collection
+    /// is by subscribing on the `on_changed` event of the source collection,
+    /// so we don't have to keep implicit reference to the source collection.
+    /// The `on_change` event of source collection keeps a weak reference to our handler.
+    fn map<TDst, F>(&self, f: F) -> ObservableCollectionMap<TDst>
+    where
+        TDst: 'static + Clone,
+        F: 'static + Fn(&T) -> TDst,
+    {
+        (self as &dyn ObservableCollection<T>).map(f)
     }
 }

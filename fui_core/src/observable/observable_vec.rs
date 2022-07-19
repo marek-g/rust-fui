@@ -64,7 +64,7 @@ impl<'a, T: 'static + Clone> IntoIterator for &'a ObservableVec<T> {
     type IntoIter = ::std::slice::Iter<'a, T>;
 
     fn into_iter(self) -> ::std::slice::Iter<'a, T> {
-        self.items.iter()
+        (&self.items as &[T]).iter()
     }
 }
 

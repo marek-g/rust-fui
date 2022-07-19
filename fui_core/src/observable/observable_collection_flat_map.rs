@@ -52,10 +52,9 @@ where
         F: 'static + FnMut(&TSrc) -> TDstColl;
 }
 
-impl<TSrc, TSrcColl> ObservableCollectionFlatMapExt<TSrc> for TSrcColl
+impl<TSrc> ObservableCollectionFlatMapExt<TSrc> for dyn ObservableCollection<TSrc>
 where
     TSrc: Clone + 'static,
-    TSrcColl: ObservableCollection<TSrc>,
 {
     /// Flat map creates new observable collection.
     ///
@@ -307,4 +306,27 @@ where
         }
     });
     new_items.on_changed(handler)
+}
+
+impl<TSrc, TSrcColl> ObservableCollectionFlatMapExt<TSrc> for TSrcColl
+where
+    TSrc: Clone + 'static,
+    TSrcColl: ObservableCollection<TSrc> + 'static,
+{
+    /// Flat map creates new observable collection.
+    ///
+    /// It keeps mapped copy of every item.
+    ///
+    /// The only connection between it and original observable collection
+    /// is by subscribing on the `on_changed` event of the source collection,
+    /// so we don't have to keep implicit reference to the source collection.
+    /// The `on_change` event of source collection keeps a weak reference to our handler.
+    fn flat_map<TDst, TDstColl, F>(&self, f: F) -> ObservableCollectionFlatMap<TDst>
+    where
+        TDst: Clone + 'static,
+        TDstColl: ObservableCollection<TDst> + IntoIterator<Item = TDst>,
+        F: FnMut(&TSrc) -> TDstColl + 'static,
+    {
+        (self as &dyn ObservableCollection<TSrc>).flat_map(f)
+    }
 }

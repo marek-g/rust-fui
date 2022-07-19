@@ -127,6 +127,10 @@ impl ViewModel for MainViewModel {
                                     }),
                                 ]
                             }}),
+
+                            vm.items.map(|_| {
+                                ui!(Text { text: "Simple map!" })
+                            })
                         },
 
                         Text { text: "This is the end." },
