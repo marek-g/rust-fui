@@ -52,7 +52,7 @@ trait MainViewModelMethods {
 impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
     fn add(&self) {
         let new_item = ItemViewModel::new(
-            self.borrow().counter + 10,
+            self.borrow().counter,
             format!("Element {}", self.borrow().counter),
         );
         self.borrow_mut().counter += 1;
@@ -115,8 +115,8 @@ impl ViewModel for MainViewModel {
                                 let view_model = view_model.clone();
                                 move |item| {
                                 vec![
+                                    ui!(Text { text: "Flat map!" }),
                                     ui!(Text { text: &item.name }),
-                                    ui!(Text { text: format!("{}", item.id) }),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
                                         clicked: Callback::new_vm_rc(&view_model, {
@@ -128,8 +128,8 @@ impl ViewModel for MainViewModel {
                                 ]
                             }}),
 
-                            vm.items.map(|_| {
-                                ui!(Text { text: "Simple map!" })
+                            vm.items.map(|item| {
+                                ui!(Text { text: format!("Simple map! ({})", item.id) })
                             })
                         },
 
