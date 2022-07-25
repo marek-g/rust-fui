@@ -64,7 +64,7 @@ impl ScrollViewer {
                 info.content_height > info.viewport_height
             });
 
-        ui! {
+        let view = ui! {
             Grid {
                 columns: 2,
                 widths: vec![(0, Length::Fill(1.0f32)), (1, Length::Auto)],
@@ -96,6 +96,12 @@ impl ScrollViewer {
                     viewport_size: viewport_width_prop,
                 },
             }
-        }
+        };
+
+        view.borrow_mut()
+            .get_context_mut()
+            .set_attached_values(context.attached_values);
+
+        view
     }
 }
