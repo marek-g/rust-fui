@@ -1,6 +1,9 @@
 mod application;
 pub use application::*;
 
+mod assets;
+pub use assets::*;
+
 mod drawing_context;
 pub use drawing_context::*;
 

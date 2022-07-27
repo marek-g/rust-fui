@@ -43,6 +43,10 @@ impl TextBox {
 pub struct DefaultTextBoxStyleParams {
     #[builder(default = false)]
     pub password: bool,
+    #[builder(default = "sans-serif")]
+    font_name: &'static str,
+    #[builder(default = 20u8)]
+    font_size: u8,
 }
 
 pub struct DefaultTextBoxStyle {
@@ -51,8 +55,6 @@ pub struct DefaultTextBoxStyle {
     is_hover: bool,
     is_focused: bool,
     event_subscriptions: Vec<Subscription>,
-    font_name: &'static str,
-    font_size: u8,
 
     cursor_pos_char: usize,
     cursor_pos_px: f32,
@@ -67,8 +69,6 @@ impl DefaultTextBoxStyle {
             is_hover: false,
             is_focused: false,
             event_subscriptions: Vec::new(),
-            font_name: "assets/OpenSans-Regular.ttf",
-            font_size: 20u8,
 
             cursor_pos_char: 0,
             cursor_pos_px: 0.0f32,
@@ -84,7 +84,7 @@ impl DefaultTextBoxStyle {
         resources: &mut dyn Resources,
     ) -> (usize, f32) {
         let (char_widths, _) = resources
-            .get_font_dimensions_each_char(self.font_name, self.font_size, &text)
+            .get_font_dimensions_each_char(self.params.font_name, self.params.font_size, &text)
             .unwrap_or((Vec::new(), 0));
 
         let pos = ((pos.x - rect.x - 4.0f32) + self.offset_x) as i32;
@@ -109,7 +109,7 @@ impl DefaultTextBoxStyle {
     ) -> f32 {
         let subtext: String = text.chars().take(cursor_pos_char).collect();
         let (text_width, _) = resources
-            .get_font_dimensions(self.font_name, self.font_size, &subtext)
+            .get_font_dimensions(self.params.font_name, self.params.font_size, &subtext)
             .unwrap_or((0, 0));
         text_width as f32
     }
@@ -347,8 +347,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         let (_text_width, text_height) = drawing_context
             .get_resources()
             .get_font_dimensions(
-                self.font_name,
-                self.font_size,
+                self.params.font_name,
+                self.params.font_size,
                 &self.get_display_text(data.text.get()),
             )
             .unwrap_or((0, 0));
@@ -403,7 +403,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &display_text)
+            .get_font_dimensions(self.params.font_name, self.params.font_size, &display_text)
             .unwrap_or((0, 0));
 
         default_theme::border_3d_edit(
@@ -441,14 +441,14 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         let mut vec2 = Vec::new();
 
         vec2.push(Primitive::Text {
-            resource_key: self.font_name.to_string(),
+            resource_key: self.params.font_name.to_string(),
             color: [0.0, 0.0, 0.0, 1.0],
             position: PixelPoint::new(x + 4.0f32, y + (height - text_height as f32) / 2.0),
             clipping_rect: PixelRect::new(
                 PixelPoint::new(x + 4.0f32, y + 4.0f32),
                 PixelSize::new(text_width as f32, height),
             ),
-            size: Length::new(self.font_size as f32),
+            size: Length::new(self.params.font_size as f32),
             text: display_text,
         });
 

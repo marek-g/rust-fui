@@ -38,13 +38,17 @@ impl Text {
 pub struct DefaultTextStyleParams {
     #[builder(default = [1.0f32, 1.0f32, 1.0f32, 1.0f32])]
     pub color: Color,
+
+    #[builder(default = "sans-serif")]
+    font_name: &'static str,
+
+    #[builder(default = 20u8)]
+    font_size: u8,
 }
 
 pub struct DefaultTextStyle {
     params: DefaultTextStyleParams,
     event_subscriptions: Vec<Subscription>,
-    font_name: &'static str,
-    font_size: u8,
 }
 
 impl DefaultTextStyle {
@@ -52,8 +56,6 @@ impl DefaultTextStyle {
         DefaultTextStyle {
             params,
             event_subscriptions: Vec::new(),
-            font_name: "assets/OpenSans-Regular.ttf",
-            font_size: 20u8,
         }
     }
 }
@@ -83,7 +85,11 @@ impl Style<Text> for DefaultTextStyle {
     ) -> Size {
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(
+                self.params.font_name,
+                self.params.font_size,
+                &data.text.get(),
+            )
             .unwrap_or((0, 0));
 
         Size::new(text_width as f32, text_height as f32)
@@ -127,18 +133,22 @@ impl Style<Text> for DefaultTextStyle {
 
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(
+                self.params.font_name,
+                self.params.font_size,
+                &data.text.get(),
+            )
             .unwrap_or((0, 0));
 
         vec.push(Primitive::Text {
-            resource_key: self.font_name.to_string(),
+            resource_key: self.params.font_name.to_string(),
             color: self.params.color,
             position: PixelPoint::new(
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,
             ),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-            size: Length::new(self.font_size as f32),
+            size: Length::new(self.params.font_size as f32),
             text: data.text.get(),
         });
 
@@ -154,13 +164,17 @@ impl Style<Text> for DefaultTextStyle {
 pub struct DynamicTextStyleParams {
     #[builder(default = Property::new([1.0f32, 1.0f32, 1.0f32, 1.0f32]))]
     pub color: Property<Color>,
+
+    #[builder(default = Property::new("sans-serif"))]
+    pub font_name: Property<String>,
+
+    #[builder(default = Property::new(20u8))]
+    pub font_size: Property<u8>,
 }
 
 pub struct DynamicTextStyle {
     params: DynamicTextStyleParams,
     event_subscriptions: Vec<Subscription>,
-    font_name: &'static str,
-    font_size: u8,
     is_hover: bool,
 }
 
@@ -169,8 +183,6 @@ impl DynamicTextStyle {
         DynamicTextStyle {
             params,
             event_subscriptions: Vec::new(),
-            font_name: "assets/OpenSans-Regular.ttf",
-            font_size: 20u8,
             is_hover: false,
         }
     }
@@ -214,7 +226,11 @@ impl Style<Text> for DynamicTextStyle {
     ) -> Size {
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(
+                &self.params.font_name.get(),
+                self.params.font_size.get(),
+                &data.text.get(),
+            )
             .unwrap_or((0, 0));
 
         Size::new(text_width as f32, text_height as f32)
@@ -258,18 +274,22 @@ impl Style<Text> for DynamicTextStyle {
 
         let (text_width, text_height) = drawing_context
             .get_resources()
-            .get_font_dimensions(self.font_name, self.font_size, &data.text.get())
+            .get_font_dimensions(
+                &self.params.font_name.get(),
+                self.params.font_size.get(),
+                &data.text.get(),
+            )
             .unwrap_or((0, 0));
 
         vec.push(Primitive::Text {
-            resource_key: self.font_name.to_string(),
+            resource_key: self.params.font_name.get(),
             color: self.params.color.get(),
             position: PixelPoint::new(
                 x + (width - text_width as f32) / 2.0,
                 y + (height - text_height as f32) / 2.0,
             ),
             clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-            size: Length::new(self.font_size as f32),
+            size: Length::new(self.params.font_size.get() as f32),
             text: data.text.get(),
         });
 

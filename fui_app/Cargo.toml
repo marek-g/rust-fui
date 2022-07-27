@@ -17,6 +17,7 @@ fui_macros = { path = "../fui_macros", version = "0.3" }
 fui_controls = { path = "../fui_controls", version = "0.8" }
 fui_system = { path = "../fui_system", version = "0.5" }
 fui_system_core = { path = "../fui_system_core", version = "0.1" }
+rust-embed = "6.4"
 drawing = { path = "../../rust-drawing/drawing", version = "0.3" }
 drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.3" }
 anyhow = "1.0"

@@ -11,6 +11,7 @@ use drawing::resources::Resources;
 use drawing::TextureFont;
 use drawing_gl::*;
 
+use crate::Assets;
 use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::Read;
@@ -40,22 +41,7 @@ impl DrawingContext {
     }
 
     pub fn get_font(&mut self, font_name: &'static str) -> Result<&mut DrawingFont> {
-        if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let font_path = Path::new("./")
-                .join(font_name)
-                .into_os_string()
-                .into_string()
-                .unwrap();
-            let mut file = File::open(font_path).unwrap();
-            let mut buffer = Vec::new();
-            file.read_to_end(&mut buffer)?;
-
-            let font = DrawingFont::create(buffer)?;
-
-            self.resources
-                .fonts_mut()
-                .insert(font_name.to_string(), font);
-        }
+        self.ensure_font(font_name)?;
 
         Ok(self
             .resources
@@ -66,7 +52,7 @@ impl DrawingContext {
 
     pub fn get_font_dimensions(
         &mut self,
-        font_name: &'static str,
+        font_name: &str,
         size: u8,
         text: &str,
     ) -> Result<(u16, u16)> {
@@ -81,7 +67,7 @@ impl DrawingContext {
 
     pub fn get_font_dimensions_each_char(
         &mut self,
-        font_name: &'static str,
+        font_name: &str,
         size: u8,
         text: &str,
     ) -> Result<(Vec<i16>, u16)> {
@@ -96,14 +82,23 @@ impl DrawingContext {
 
     fn ensure_font(&mut self, font_name: &str) -> Result<()> {
         if let None = self.resources.fonts_mut().get_mut(&font_name.to_string()) {
-            let buffer = if font_name.ends_with(".ttf") {
-                let mut file = File::open(font_name).unwrap();
-                let mut buffer = Vec::new();
-                file.read_to_end(&mut buffer)?;
-                Ok(buffer)
-            } else {
-                Err(format_err!("Only .ttf font files are supported"))
-            }?;
+            let buffer = {
+                if font_name == "sans-serif" {
+                    Assets::get("Rajdhani-Medium.ttf").unwrap().data.to_vec()
+                } else if font_name == "monospace" {
+                    Assets::get("NovaMono-Regular.ttf").unwrap().data.to_vec()
+                } else {
+                    let font_path = Path::new("./")
+                        .join(font_name)
+                        .into_os_string()
+                        .into_string()
+                        .unwrap();
+                    let mut file = File::open(font_path).unwrap();
+                    let mut buffer = Vec::new();
+                    file.read_to_end(&mut buffer)?;
+                    buffer
+                }
+            };
 
             let font = DrawingFont::create(buffer)?;
 
@@ -210,18 +205,13 @@ impl DrawingContext {
 }
 
 impl fui_core::Resources for DrawingContext {
-    fn get_font_dimensions(
-        &mut self,
-        font_name: &'static str,
-        size: u8,
-        text: &str,
-    ) -> Result<(u16, u16)> {
+    fn get_font_dimensions(&mut self, font_name: &str, size: u8, text: &str) -> Result<(u16, u16)> {
         self.get_font_dimensions(font_name, size, text)
     }
 
     fn get_font_dimensions_each_char(
         &mut self,
-        font_name: &'static str,
+        font_name: &str,
         size: u8,
         text: &str,
     ) -> Result<(Vec<i16>, u16)> {

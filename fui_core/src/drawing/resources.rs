@@ -3,16 +3,11 @@ pub use drawing::color::ColorFormat;
 use anyhow::Result;
 
 pub trait Resources {
-    fn get_font_dimensions(
-        &mut self,
-        font_name: &'static str,
-        size: u8,
-        text: &str,
-    ) -> Result<(u16, u16)>;
+    fn get_font_dimensions(&mut self, font_name: &str, size: u8, text: &str) -> Result<(u16, u16)>;
 
     fn get_font_dimensions_each_char(
         &mut self,
-        font_name: &'static str,
+        font_name: &str,
         size: u8,
         text: &str,
     ) -> Result<(Vec<i16>, u16)>;
