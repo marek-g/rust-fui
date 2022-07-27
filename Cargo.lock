@@ -540,7 +540,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.9.2"
+version = "0.9.3"
 dependencies = [
  "anyhow",
  "cpu-time",
