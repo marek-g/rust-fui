@@ -86,7 +86,7 @@ impl DrawingContext {
                 if font_name == "sans-serif" {
                     Assets::get("Rajdhani-Medium.ttf").unwrap().data.to_vec()
                 } else if font_name == "monospace" {
-                    Assets::get("NovaMono-Regular.ttf").unwrap().data.to_vec()
+                    Assets::get("mplus-1m-regular.ttf").unwrap().data.to_vec()
                 } else {
                     let font_path = Path::new("./")
                         .join(font_name)
