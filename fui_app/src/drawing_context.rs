@@ -85,8 +85,15 @@ impl DrawingContext {
             let buffer = {
                 if font_name == "sans-serif" {
                     Assets::get("Rajdhani-Medium.ttf").unwrap().data.to_vec()
+                } else if font_name == "sans-serif bold" {
+                    Assets::get("Rajdhani-Bold.ttf").unwrap().data.to_vec()
                 } else if font_name == "monospace" {
-                    Assets::get("mplus-1m-regular.ttf").unwrap().data.to_vec()
+                    Assets::get("RajdhaniMono-Medium.ttf")
+                        .unwrap()
+                        .data
+                        .to_vec()
+                } else if font_name == "monospace bold" {
+                    Assets::get("RajdhaniMono-Bold.ttf").unwrap().data.to_vec()
                 } else {
                     let font_path = Path::new("./")
                         .join(font_name)

@@ -14,5 +14,5 @@ Text {
 Font name can be:
 
 - a string ended with `.ttf` like `"assets/OpenSans-Regular.ttf"` which points to the file in the file system
-- `sans-serif` for default sans-serif font or `monospace` for default monospace font
+- `sans-serif` for default sans-serif font, `sans-serif bold` for default sans-serif bold font, `monospace` for default monospace font or `monospace bold` for default monospace bold font
 - TODO: a list of font families separated with `,` like `Times New Roman, Arial, serif` that the system will be searched for in provided order; the `serif`, `sans-serif`, `monospace`, `cursive`, `fantasy` are fallback names
