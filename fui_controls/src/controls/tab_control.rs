@@ -138,7 +138,15 @@ impl ViewModel for TabButtonViewModel {
 
                 is_checked: &mut vm.is_checked,
 
-                Text { text: &vm.title },
+                Text {
+                    Style: Dynamic {
+                        color: (&vm.is_checked, |is_checked|
+                            if is_checked { [1.0f32, 0.8f32, 0.0f32, 1.0f32] }
+                            else { [1.0f32, 1.0f32, 1.0f32, 1.0f32] }),
+                    },
+
+                    text: &vm.title
+                },
             }
         }
     }

@@ -146,7 +146,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
             / (data.max_value.get() - data.min_value.get()))
         .round();
 
-        let foreground = [1.0, 1.0, 0.0, 0.75];
+        let foreground = [1.0, 0.8, 0.0, 0.75];
         let background = [0.0, 0.0, 0.0, 0.25];
 
         let mut vec = Vec::new();
