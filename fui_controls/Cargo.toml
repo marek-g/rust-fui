@@ -1,6 +1,6 @@
 [package]
 name = "fui_controls"
-version = "0.9.0"
+version = "0.9.1"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Standard controls for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]

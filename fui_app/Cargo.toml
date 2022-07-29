@@ -1,6 +1,6 @@
 [package]
 name = "fui_app"
-version = "0.9.3"
+version = "0.9.4"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Application backend of FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
