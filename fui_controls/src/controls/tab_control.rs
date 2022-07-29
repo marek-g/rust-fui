@@ -59,7 +59,7 @@ impl TabControl {
                 Shadow {
                     Border {
                         border_type: BorderType::Raisen,
-                        Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.15f32], },
+                        Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.05f32], },
 
                         &selected_tab,
                     }

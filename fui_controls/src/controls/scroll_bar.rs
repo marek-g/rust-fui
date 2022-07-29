@@ -254,7 +254,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
             Orientation::Vertical => height - START_MARGIN - END_MARGIN,
         };
 
-        let background = [0.1, 0.5, 0.0, 0.2];
+        let background = [0.0, 0.0, 0.0, 0.25];
 
         let mut vec = Vec::new();
         if self.thumb_pos_px > 0.0f32 {

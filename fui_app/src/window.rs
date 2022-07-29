@@ -174,17 +174,25 @@ impl Window {
                             let mut context = context.borrow_mut();
                             let app_context = context.as_mut().unwrap();
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                if window_data.gl_context_data.is_none() {
+                                let background_texture_id;
+
+                                {
                                     let mut drawing_context = drawing_context_clone.lock().unwrap();
-                                    window_data.gl_context_data =
-                                        Some(drawing_context.device.init_context(|symbol| {
-                                            window_data
-                                                .system_window
-                                                .as_ref()
-                                                .unwrap()
-                                                .get_opengl_proc_address(symbol)
-                                                .unwrap()
-                                        }));
+
+                                    if window_data.gl_context_data.is_none() {
+                                        window_data.gl_context_data =
+                                            Some(drawing_context.device.init_context(|symbol| {
+                                                window_data
+                                                    .system_window
+                                                    .as_ref()
+                                                    .unwrap()
+                                                    .get_opengl_proc_address(symbol)
+                                                    .unwrap()
+                                            }));
+                                    }
+
+                                    background_texture_id =
+                                        drawing_context.get_background_texture();
                                 }
 
                                 let width = window_data.system_window.as_mut().unwrap().get_width();
@@ -196,7 +204,7 @@ impl Window {
                                         window_id,
                                         window_data,
                                         &drawing_context_clone,
-                                        0,
+                                        background_texture_id,
                                     );
 
                                     Self::render(
@@ -206,7 +214,7 @@ impl Window {
                                         &drawing_context_clone,
                                         width as u32,
                                         height as u32,
-                                        0,
+                                        background_texture_id,
                                     );
                                 }
                             }

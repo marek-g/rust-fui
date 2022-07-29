@@ -195,11 +195,26 @@ impl DrawingContext {
         // create background texture
         if self.background_texture < 0 {
             let mut data = [0u8; 256 * 256 * 4];
-            for i in 0..256 * 256 {
-                data[i * 4 + 0] = 60;
-                data[i * 4 + 1] = thread_rng().gen_range(90 - 15..=90 + 15);
-                data[i * 4 + 2] = 60;
-                data[i * 4 + 3] = 255;
+
+            let step = 4;
+            for y in (0..256).step_by(step) {
+                for x in (0..256).step_by(step) {
+                    let color_value = thread_rng().gen_range(0..15);
+
+                    for x_step in 0..step {
+                        for y_step in 0..step {
+                            /*data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 0] = color_g - 15;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 1] = color_g + 10;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 2] = color_g - 15;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 255;*/
+
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 0] = color_value + 25;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 1] = color_value + 25;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 2] = color_value + 25;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 255;
+                        }
+                    }
+                }
             }
 
             self.background_texture = self
