@@ -4,6 +4,7 @@ use fui_system::*;
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
 use std::error::Error;
+use std::ptr::null;
 use std::rc::Rc;
 use std::thread;
 
@@ -121,7 +122,7 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         window.on_paint_gl(move || unsafe {
             if !initialized {
                 if let Some(window_rc) = window_weak.upgrade() {
-                    gl::load_with(|s| window_rc.borrow().get_opengl_proc_address(s).unwrap());
+                    gl::load_with(|s| window_rc.borrow().get_opengl_proc_address(s).unwrap_or_else(|_| null()));
                 }
                 initialized = true;
             }
