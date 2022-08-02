@@ -36,7 +36,7 @@ impl Drop for WindowGUIThreadData {
 ///
 /// Window data available only from the VM (View Models) thread.
 ///
-struct WindowVMThreadData {
+pub struct WindowVMThreadData {
     id: WindowId,
 
     event_processor: EventProcessor,
@@ -141,7 +141,7 @@ impl Window {
                     .as_mut()
                     .unwrap()
                     .windows
-                    .insert(window_id, window)
+                    .insert(window_id, Rc::downgrade(&window.data))
             }
         });
 
@@ -259,7 +259,7 @@ impl Window {
 
                                             Box::new(move || {
                                                 // VM Thread
-                                                let window =
+                                                let window_data =
                                                     APPLICATION_VM_CONTEXT.with(move |context| {
                                                         context
                                                             .borrow()
@@ -268,31 +268,32 @@ impl Window {
                                                             .windows
                                                             .get(&window_id)
                                                             .unwrap()
-                                                            .clone()
+                                                            .upgrade()
                                                     });
 
-                                                let mut drawing_context =
-                                                    drawing_context.lock().unwrap();
+                                                if let Some(window_data) = window_data {
+                                                    let mut drawing_context =
+                                                        drawing_context.lock().unwrap();
 
-                                                let mut fui_drawing_context =
-                                                    FuiDrawingContext::new(
-                                                        (width as u16, height as u16),
-                                                        &mut drawing_context,
-                                                        0,
-                                                    );
+                                                    let mut fui_drawing_context =
+                                                        FuiDrawingContext::new(
+                                                            (width as u16, height as u16),
+                                                            &mut drawing_context,
+                                                            0,
+                                                        );
 
-                                                // events go to the window's root control
-                                                let root_control =
-                                                    window.data.borrow().root_control.clone();
-                                                window
-                                                    .data
-                                                    .borrow_mut()
-                                                    .event_processor
-                                                    .handle_event(
-                                                        &root_control,
-                                                        &mut fui_drawing_context,
-                                                        &input_event,
-                                                    );
+                                                    // events go to the window's root control
+                                                    let root_control =
+                                                        window_data.borrow().root_control.clone();
+                                                    window_data
+                                                        .borrow_mut()
+                                                        .event_processor
+                                                        .handle_event(
+                                                            &root_control,
+                                                            &mut fui_drawing_context,
+                                                            &input_event,
+                                                        );
+                                                }
                                             })
                                         })
                                         .unwrap_or_else(|e| panic!("Cannot send GUI event! {e}"));
@@ -319,14 +320,14 @@ impl Window {
         background_texture: i32,
     ) {
         // GUI Thread
-        let (tx, rx) = std::sync::mpsc::channel::<Rect>();
+        let (tx, rx) = std::sync::mpsc::channel::<Option<Rect>>();
         func_gui2vm_thread_tx
             .send({
                 let drawing_context = drawing_context.clone();
 
                 Box::new(move || {
                     // VM Thread
-                    let window =
+                    let window_data =
                         APPLICATION_VM_CONTEXT.with(move |context| {
                             context
                                 .borrow()
@@ -335,41 +336,46 @@ impl Window {
                                 .windows
                                 .get(&window_id)
                                 .unwrap()
-                                .clone()
+                                .upgrade()
                         });
 
-                    let size = Size::new(0.0f32, 0.0f32);
+                    if let Some(window_data) = window_data {
+                        let size = Size::new(0.0f32, 0.0f32);
 
-                    let mut drawing_context = drawing_context.lock().unwrap();
+                        let mut drawing_context = drawing_context.lock().unwrap();
 
-                    let mut fui_drawing_context = FuiDrawingContext::new(
-                        (size.width as u16, size.height as u16),
-                        &mut drawing_context,
-                        background_texture,
-                    );
+                        let mut fui_drawing_context = FuiDrawingContext::new(
+                            (size.width as u16, size.height as u16),
+                            &mut drawing_context,
+                            background_texture,
+                        );
 
-                    let min_size = {
-                        window
-                            .data
-                            .borrow()
-                            .root_control
-                            .borrow_mut()
-                            .measure(&mut fui_drawing_context, size);
-                        window.data.borrow().root_control.borrow_mut().get_rect()
-                    };
+                        let min_size = {
+                            window_data
+                                .borrow()
+                                .root_control
+                                .borrow_mut()
+                                .measure(&mut fui_drawing_context, size);
+                            window_data.borrow().root_control.borrow_mut().get_rect()
+                        };
 
-                    tx.send(min_size).unwrap();
+                        tx.send(Some(min_size)).unwrap();
+                    } else {
+                        tx.send(None).unwrap();
+                    }
                 })
             })
             .unwrap_or_else(|e| panic!("Cannot update min window size! {e}"));
 
         let min_size = rx.recv().unwrap();
 
-        window_data
-            .system_window
-            .as_mut()
-            .unwrap()
-            .set_minimum_size(min_size.width as i32, min_size.height as i32);
+        if let Some(min_size) = min_size {
+            window_data
+                .system_window
+                .as_mut()
+                .unwrap()
+                .set_minimum_size(min_size.width as i32, min_size.height as i32);
+        }
     }
 
     fn render(
@@ -382,14 +388,14 @@ impl Window {
         background_texture: i32,
     ) {
         // GUI Thread
-        let (tx, rx) = std::sync::mpsc::channel::<Vec<Primitive>>();
+        let (tx, rx) = std::sync::mpsc::channel::<Option<Vec<Primitive>>>();
         func_gui2vm_thread_tx
             .send({
                 let drawing_context = drawing_context.clone();
 
                 Box::new(move || {
                     // VM Thread
-                    let window =
+                    let window_data =
                         APPLICATION_VM_CONTEXT.with(move |context| {
                             context
                                 .borrow()
@@ -398,84 +404,87 @@ impl Window {
                                 .windows
                                 .get(&window_id)
                                 .unwrap()
-                                .clone()
+                                .upgrade()
                         });
 
-                    let size = Size::new(width as f32, height as f32);
+                    if let Some(window_data) = window_data {
+                        let size = Size::new(width as f32, height as f32);
 
-                    let mut drawing_context = drawing_context.lock().unwrap();
+                        let mut drawing_context = drawing_context.lock().unwrap();
 
-                    let mut fui_drawing_context = FuiDrawingContext::new(
-                        (size.width as u16, size.height as u16),
-                        &mut drawing_context,
-                        background_texture,
-                    );
+                        let mut fui_drawing_context = FuiDrawingContext::new(
+                            (size.width as u16, size.height as u16),
+                            &mut drawing_context,
+                            background_texture,
+                        );
 
-                    let mut primitives = Vec::new();
+                        let mut primitives = Vec::new();
 
-                    // background texture
-                    primitives.push(drawing::primitive::Primitive::Image {
-                        resource_key: background_texture,
-                        rect: drawing::units::PixelRect::new(
-                            drawing::units::PixelPoint::new(0.0f32, 0.0f32),
-                            drawing::units::PixelSize::new(size.width, size.height),
-                        ),
-                        uv: [
-                            0.0f32,
-                            0.0f32,
-                            1.0f32 * size.width / 256.0f32,
-                            1.0f32 * size.height / 256.0f32,
-                        ],
-                    });
+                        // background texture
+                        primitives.push(drawing::primitive::Primitive::Image {
+                            resource_key: background_texture,
+                            rect: drawing::units::PixelRect::new(
+                                drawing::units::PixelPoint::new(0.0f32, 0.0f32),
+                                drawing::units::PixelSize::new(size.width, size.height),
+                            ),
+                            uv: [
+                                0.0f32,
+                                0.0f32,
+                                1.0f32 * size.width / 256.0f32,
+                                1.0f32 * size.height / 256.0f32,
+                            ],
+                        });
 
-                    window
-                        .data
-                        .borrow()
-                        .root_control
-                        .borrow_mut()
-                        .measure(&mut fui_drawing_context, size);
-                    window.data.borrow().root_control.borrow_mut().set_rect(
-                        &mut fui_drawing_context,
-                        Rect::new(0f32, 0f32, size.width, size.height),
-                    );
+                        window_data
+                            .borrow()
+                            .root_control
+                            .borrow_mut()
+                            .measure(&mut fui_drawing_context, size);
+                        window_data.borrow().root_control.borrow_mut().set_rect(
+                            &mut fui_drawing_context,
+                            Rect::new(0f32, 0f32, size.width, size.height),
+                        );
 
-                    let (mut primitives1, mut overlay) = window
-                        .data
-                        .borrow()
-                        .root_control
-                        .borrow()
-                        .to_primitives(&mut fui_drawing_context);
-                    primitives.append(&mut primitives1);
-                    primitives.append(&mut overlay);
+                        let (mut primitives1, mut overlay) = window_data
+                            .borrow()
+                            .root_control
+                            .borrow()
+                            .to_primitives(&mut fui_drawing_context);
+                        primitives.append(&mut primitives1);
+                        primitives.append(&mut overlay);
 
-                    window
-                        .data
-                        .borrow()
-                        .root_control
-                        .borrow_mut()
-                        .get_context_mut()
-                        .set_is_dirty(false);
+                        window_data
+                            .borrow()
+                            .root_control
+                            .borrow_mut()
+                            .get_context_mut()
+                            .set_is_dirty(false);
 
-                    tx.send(primitives).unwrap();
+                        tx.send(Some(primitives)).unwrap();
+                    } else {
+                        tx.send(None).unwrap();
+                    }
                 }) as Box<dyn 'static + Send + FnOnce()>
             })
             .unwrap_or_else(|e| panic!("Cannot render! {e}"));
 
         let primitives = rx.recv().unwrap();
 
-        let mut drawing_context = drawing_context.lock().unwrap();
-        let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
-        if let Err(err) = res {
-            eprintln!("Render error on begin drawing: {}", err);
-        } else {
-            let render_target = GlRenderTarget::new(0, width as u16, height as u16, 1.0f32);
-
-            drawing_context.clear(&render_target, &[0.3f32, 0.4f32, 0.3f32, 1.0f32]);
-            let res = drawing_context.draw(&render_target, &primitives);
+        if let Some(primitives) = primitives {
+            let mut drawing_context = drawing_context.lock().unwrap();
+            let res = drawing_context.begin(window_data.gl_context_data.as_ref().unwrap());
             if let Err(err) = res {
-                eprintln!("Render error: {}", err);
+                eprintln!("Render error on begin drawing: {}", err);
+            } else {
+                let render_target = GlRenderTarget::new(0, width as u16, height as u16, 1.0f32);
+
+                drawing_context.clear(&render_target, &[0.3f32, 0.4f32, 0.3f32, 1.0f32]);
+                let res = drawing_context.draw(&render_target, &primitives);
+                if let Err(err) = res {
+                    eprintln!("Render error: {}", err);
+                }
+                drawing_context.end(window_data.gl_context_data.as_ref().unwrap());
             }
-            drawing_context.end(window_data.gl_context_data.as_ref().unwrap());
         }
     }
 }

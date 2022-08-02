@@ -1,7 +1,8 @@
-use crate::{DrawingContext, WindowGUIThreadData, WindowId};
+use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowVMThreadData};
 use anyhow::Result;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Weak;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use tokio::select;
@@ -26,8 +27,8 @@ pub struct ApplicationGuiContext {
 /// Application data available only from the VM thread.
 ///
 pub struct ApplicationVmContext {
-    // translates WindowId to Window - used to translate events
-    pub windows: HashMap<WindowId, crate::Window>,
+    // translates WindowId to window data - needed for events
+    pub windows: HashMap<WindowId, Weak<RefCell<WindowVMThreadData>>>,
 }
 
 ///
