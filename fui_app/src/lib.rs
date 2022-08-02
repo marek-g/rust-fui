@@ -14,6 +14,3 @@ pub use window::*;
 
 mod window_options;
 pub use window_options::*;
-
-mod window_manager;
-pub use window_manager::*;

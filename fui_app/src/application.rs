@@ -1,8 +1,7 @@
-use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowManager};
+use crate::{DrawingContext, WindowGUIThreadData, WindowId};
 use anyhow::Result;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 use tokio::select;
@@ -27,7 +26,8 @@ pub struct ApplicationGuiContext {
 /// Application data available only from the VM thread.
 ///
 pub struct ApplicationVmContext {
-    pub window_manager: Rc<RefCell<WindowManager>>,
+    // translates WindowId to Window - used to translate events
+    pub windows: HashMap<WindowId, crate::Window>,
 }
 
 ///
@@ -94,7 +94,7 @@ impl Application {
 
         APPLICATION_VM_CONTEXT.with(move |context| {
             *context.borrow_mut() = Some(ApplicationVmContext {
-                window_manager: Rc::new(RefCell::new(WindowManager::new().unwrap())),
+                windows: HashMap::new(),
             })
         });
 
@@ -103,11 +103,6 @@ impl Application {
             gui_thread_exit_rx,
             func_gui2vm_thread_rx,
         })
-    }
-
-    pub fn get_window_manager(&self) -> Rc<RefCell<WindowManager>> {
-        APPLICATION_VM_CONTEXT
-            .with(move |context| context.borrow().as_ref().unwrap().window_manager.clone())
     }
 
     pub fn exit() {

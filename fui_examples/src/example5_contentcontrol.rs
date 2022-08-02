@@ -107,15 +107,11 @@ async fn main() -> Result<()> {
         .run_until(async {
             let app = Application::new("Example: content control").await?;
 
-            app.get_window_manager()
-                .borrow_mut()
-                .add_window(
-                    WindowOptions::new()
-                        .with_title("Example: content control")
-                        .with_size(800, 600),
-                    MainViewModel::new(),
-                )
-                .await?;
+            let mut window = Window::create(WindowOptions::new()
+                .with_title("Example: content control")
+                .with_size(800, 600)).await?;
+
+            window.set_vm(MainViewModel::new());
 
             app.run().await?;
 

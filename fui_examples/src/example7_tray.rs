@@ -149,15 +149,11 @@ async fn main() -> Result<()> {
             tray.show_message("Title", "Hello world", TrayIconType::Custom(&icon), 5000)
                 .unwrap();
 
-            app.get_window_manager()
-                .borrow_mut()
-                .add_window(
-                    WindowOptions::new()
-                        .with_title("Example: tray")
-                        .with_size(800, 600),
-                    MainViewModel::new(),
-                )
-                .await?;
+            let mut window = fui_app::Window::create(WindowOptions::new()
+                .with_title("Example: tray")
+                .with_size(800, 600)).await?;
+
+            window.set_vm(MainViewModel::new());
 
             app.run().await?;
 

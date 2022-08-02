@@ -129,9 +129,23 @@ impl Window {
             .set_services(Some(Rc::downgrade(&services)));
         window_data_rc.borrow_mut().services = Some(services);
 
-        Ok(Window {
+        let window = Window {
             data: window_data_rc,
-        })
+        };
+
+        APPLICATION_VM_CONTEXT.with({
+            let window = window.clone();
+            move |context| {
+                context
+                    .borrow_mut()
+                    .as_mut()
+                    .unwrap()
+                    .windows
+                    .insert(window_id, window)
+            }
+        });
+
+        Ok(window)
     }
 
     pub fn downgrade(&self) -> WindowWeakAsync {
@@ -144,7 +158,7 @@ impl Window {
         self.data.borrow().id
     }
 
-    pub fn set_vm<V: ViewModel>(&self, view_model: Rc<RefCell<V>>) {
+    pub fn set_vm<V: ViewModel>(&mut self, view_model: Rc<RefCell<V>>) {
         let new_view = ViewModel::create_view(&view_model);
 
         let mut window_data = self.data.borrow_mut();
@@ -245,20 +259,17 @@ impl Window {
 
                                             Box::new(move || {
                                                 // VM Thread
-                                                let window_manager =
+                                                let window =
                                                     APPLICATION_VM_CONTEXT.with(move |context| {
                                                         context
                                                             .borrow()
                                                             .as_ref()
                                                             .unwrap()
-                                                            .window_manager
+                                                            .windows
+                                                            .get(&window_id)
+                                                            .unwrap()
                                                             .clone()
                                                     });
-                                                let mut window_manager =
-                                                    window_manager.borrow_mut();
-                                                let window = window_manager
-                                                    .get_window_mut(window_id)
-                                                    .unwrap();
 
                                                 let mut drawing_context =
                                                     drawing_context.lock().unwrap();
@@ -315,11 +326,17 @@ impl Window {
 
                 Box::new(move || {
                     // VM Thread
-                    let window_manager = APPLICATION_VM_CONTEXT.with(move |context| {
-                        context.borrow().as_ref().unwrap().window_manager.clone()
-                    });
-                    let mut window_manager = window_manager.borrow_mut();
-                    let window = window_manager.get_window_mut(window_id).unwrap();
+                    let window =
+                        APPLICATION_VM_CONTEXT.with(move |context| {
+                            context
+                                .borrow()
+                                .as_ref()
+                                .unwrap()
+                                .windows
+                                .get(&window_id)
+                                .unwrap()
+                                .clone()
+                        });
 
                     let size = Size::new(0.0f32, 0.0f32);
 
@@ -372,11 +389,17 @@ impl Window {
 
                 Box::new(move || {
                     // VM Thread
-                    let window_manager = APPLICATION_VM_CONTEXT.with(move |context| {
-                        context.borrow().as_ref().unwrap().window_manager.clone()
-                    });
-                    let mut window_manager = window_manager.borrow_mut();
-                    let window = window_manager.get_window_mut(window_id).unwrap();
+                    let window =
+                        APPLICATION_VM_CONTEXT.with(move |context| {
+                            context
+                                .borrow()
+                                .as_ref()
+                                .unwrap()
+                                .windows
+                                .get(&window_id)
+                                .unwrap()
+                                .clone()
+                        });
 
                     let size = Size::new(width as f32, height as f32);
 
