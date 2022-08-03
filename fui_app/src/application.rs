@@ -38,20 +38,17 @@ pub struct Application {
     /// GUI thread handle
     gui_thread_join_handle: Option<JoinHandle<()>>,
 
-    /// receiver of the exit event sent from the GUI thread
-    gui_thread_exit_rx: oneshot::Receiver<()>,
-
-    /// receiver of closures sent to VM thread from the GUI or other threads
-    func_gui2vm_thread_rx: mpsc::UnboundedReceiver<Box<dyn 'static + Send + FnOnce()>>,
+    /// handle to message loop of VM thread
+    message_loop_handle: tokio::task::JoinHandle<()>,
 }
 
 impl Application {
     pub async fn new(title: &'static str) -> Result<Self> {
         // channel to send closures GUI (or any) thread -> VM thread
-        let (func_gui2vm_thread_tx, func_gui2vm_thread_rx) = mpsc::unbounded_channel();
+        let (func_gui2vm_thread_tx, mut func_gui2vm_thread_rx) = mpsc::unbounded_channel();
 
         let (gui_thread_init_tx, gui_thread_init_rx) = oneshot::channel();
-        let (gui_thread_exit_tx, gui_thread_exit_rx) = oneshot::channel();
+        let (gui_thread_exit_tx, mut gui_thread_exit_rx) = oneshot::channel();
 
         // start the GUI thread
         let gui_thread_join_handle = std::thread::Builder::new()
@@ -99,10 +96,28 @@ impl Application {
             })
         });
 
+        // spawn task to handle closures sent from other threads
+        //
+        // it is spawned from Application::new() and not from run(),
+        // because some operations like painting newly created windows
+        // require it to be running to enable communication between
+        // GUI and VM threads without deadlocks
+        let message_loop_handle = tokio::task::spawn_local(async move {
+            let mut exit = false;
+                while !exit {
+                    select! {
+                    // process all closures sent with from other threads
+                    f = func_gui2vm_thread_rx.recv() => if let Some(f) = f { f() },
+
+                    // wait for exit of the gui message loop
+                    _res = &mut gui_thread_exit_rx => exit = true,
+                }
+            }
+        });
+
         Ok(Self {
             gui_thread_join_handle: Some(gui_thread_join_handle),
-            gui_thread_exit_rx,
-            func_gui2vm_thread_rx,
+            message_loop_handle,
         })
     }
 
@@ -111,16 +126,7 @@ impl Application {
     }
 
     pub async fn run(mut self) -> Result<()> {
-        let mut exit = false;
-        while !exit {
-            select! {
-                // process all closures sent with dispatcher from any thread
-                f = self.func_gui2vm_thread_rx.recv() => if let Some(f) = f { f() },
-
-                // wait for exit of the gui message loop
-                _res = &mut self.gui_thread_exit_rx => exit = true,
-            }
-        }
+        self.message_loop_handle.await?;
 
         // wait for the GUI thread to finish
         if let Some(handle) = self.gui_thread_join_handle.take() {
