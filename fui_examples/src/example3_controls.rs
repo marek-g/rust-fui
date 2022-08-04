@@ -10,6 +10,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
+use fui_system::FileDialog;
 use typemap::TypeMap;
 
 struct MainViewModel {
@@ -233,11 +234,21 @@ impl ViewModel for MainViewModel {
             }
         });
 
+        let file_open_callback = Callback::new_async({
+            let window = vm.window.clone();
+            move |_| {
+                let window = window.clone();
+                async move {
+                    FileDialog::get_open_file_name(None, None);
+                }
+            }
+        });
+
         let menu_items = vec![
             MenuItem::folder(
                 "File",
                 vec![
-                    MenuItem::simple("Open...", Callback::empty()),
+                    MenuItem::simple("Open...", file_open_callback),
                     MenuItem::simple("Save...", Callback::empty()),
                     MenuItem::folder(
                         "Export",
@@ -302,9 +313,12 @@ async fn main() -> Result<()> {
         .run_until(async {
             let app = Application::new("Example: layout").await?;
 
-            let mut window = Window::create(WindowOptions::new()
-                .with_title("Example: layout")
-                .with_size(800, 600)).await?;
+            let mut window = Window::create(
+                WindowOptions::new()
+                    .with_title("Example: layout")
+                    .with_size(800, 600),
+            )
+            .await?;
 
             window.set_vm(MainViewModel::new(window.get_window_service()));
 

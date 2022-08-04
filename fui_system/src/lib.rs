@@ -5,6 +5,7 @@ pub use common::MenuItem;
 pub use platform::Application;
 pub use platform::ApplicationOptions;
 pub use platform::Dispatcher;
+pub use platform::FileDialog;
 pub use platform::Icon;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;

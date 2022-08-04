@@ -1,5 +1,6 @@
 #include "qaction.h"
 #include "qapplication.h"
+#include "qfiledialog.h"
 #include "qicon.h"
 #include "qmenu.h"
 #include "qopenglcontext.h"

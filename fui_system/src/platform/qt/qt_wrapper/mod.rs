@@ -5,6 +5,7 @@
 pub(crate) use ffi_event::*;
 pub use qaction::*;
 pub use qapplication::*;
+pub use qfiledialog::*;
 pub use qicon::*;
 pub use qmenu::*;
 pub use qopenglcontext::*;
@@ -20,6 +21,7 @@ include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 mod ffi_event;
 mod qaction;
 mod qapplication;
+mod qfiledialog;
 mod qicon;
 mod qmenu;
 mod qopenglcontext;
