@@ -14,6 +14,7 @@ void QApplication_setAttribute(int attr, int enable);
 int QApplication_exec();
 void QApplication_exit(int returnCode);
 
+int QApplication_isGuiThread();
 void QApplication_postFunc(void (*callback_trampoline)(void*), void *callback_data);
 
 void QApplication_aboutQt();

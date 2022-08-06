@@ -10,7 +10,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
-use fui_system::FileDialog;
 use typemap::TypeMap;
 
 struct MainViewModel {

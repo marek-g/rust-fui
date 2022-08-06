@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QSurfaceFormat>
+#include <QThread>
 #include <Qt>
 #include "qapplication.h"
 #include <stdlib.h>
@@ -53,6 +54,12 @@ int QApplication_exec()
 void QApplication_exit(int returnCode)
 {
     QApplication::exit(returnCode);
+}
+
+int QApplication_isGuiThread()
+{
+    return QCoreApplication::instance() != nullptr &&
+        QThread::currentThread() == QCoreApplication::instance()->thread();
 }
 
 void QApplication_postFunc(void (*callback_trampoline)(void*), void *callback_data)

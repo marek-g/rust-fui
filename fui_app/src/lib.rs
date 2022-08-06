@@ -9,6 +9,9 @@ pub use drawing_context::*;
 
 mod event_converter;
 
+mod file_dialog;
+pub use file_dialog::*;
+
 mod window;
 pub use window::*;
 

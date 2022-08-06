@@ -69,6 +69,10 @@ impl QApplication {
         }
     }
 
+    pub fn is_gui_thread() -> bool {
+        unsafe { crate::platform::qt::qt_wrapper::QApplication_isGuiThread() != 0 }
+    }
+
     ///
     /// Posts function to be executed on the main event loop.
     /// This function can be called safety only from the QApplication thread.

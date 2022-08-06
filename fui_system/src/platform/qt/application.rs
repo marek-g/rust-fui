@@ -54,6 +54,10 @@ impl Application {
         QApplication::exit(return_code);
     }
 
+    pub fn is_gui_thread() -> bool {
+        QApplication::is_gui_thread()
+    }
+
     ///
     /// Posts function to be executed on the main event loop.
     /// Can be called from any thread.
