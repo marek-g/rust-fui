@@ -8,7 +8,7 @@ void *QFileDialog_getOpenFileName(void *parent,
                               void *filter, void *selected_filter,
                               int options)
 {
-     QWidget *qparent = static_cast<QWidget *>(parent);
+    QWidget *qparent = static_cast<QWidget *>(parent);
     const QString *qcaption = static_cast<const QString *>(caption);
     const QString *qdir = static_cast<const QString *>(dir);
     const QString *qfilter = static_cast<const QString *>(filter);
@@ -18,5 +18,8 @@ void *QFileDialog_getOpenFileName(void *parent,
                                         *qcaption, *qdir,
                                         *qfilter, qselectedfilter,
                                         qoptions);
+    if (result.isNull()) {
+        return nullptr;
+    }
     return new QString(result);
 }
