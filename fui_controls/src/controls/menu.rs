@@ -118,7 +118,7 @@ impl Menu {
                 let foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
 
                 let mut on_hover_callback = Callback::empty();
-                let mut on_tap_down_callback = Callback::empty();
+                let mut on_tap_up_callback = Callback::empty();
 
                 if is_top {
                     // top bar menu case
@@ -126,7 +126,7 @@ impl Menu {
                     // open sub menu on tap down
                     let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let mut is_open_prop_clone = is_open_prop.clone();
-                    on_tap_down_callback.set_sync(move |_| {
+                    on_tap_up_callback.set_sync(move |_| {
                         if has_sub_items {
                             is_menu_active_prop_clone.set(true);
                             is_open_prop_clone.set(true);
@@ -197,7 +197,7 @@ impl Menu {
                     });
 
                     let mut is_menu_active_prop_clone = is_menu_active_prop.clone();
-                    on_tap_down_callback.set_sync(move |_| {
+                    on_tap_up_callback.set_sync(move |_| {
                         if !has_sub_items {
                             // close menu
                             is_menu_active_prop_clone.set(false);
@@ -383,7 +383,7 @@ impl Menu {
                 let content = ui!(
                     GestureArea {
                         hover_change: on_hover_callback,
-                        tap_down: on_tap_down_callback,
+                        tap_up: on_tap_up_callback,
 
                         Border {
                             border_type: BorderType::None,
