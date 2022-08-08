@@ -10,6 +10,20 @@ void *QFileDialog_getOpenFileName(void *parent,
                               void *filter, void *selected_filter,
                               int options);
 
+void *QFileDialog_getOpenFileNames(void *parent,
+                                   void *caption, void *dir,
+                                   void *filter, void *selected_filter,
+                                   int options);
+
+void *QFileDialog_getExistingDirectory(void *parent,
+                                       void *caption, void *dir,
+                                       int options);
+
+void *QFileDialog_getSaveFileName(void *parent,
+                                  void *caption, void *dir,
+                                  void *filter, void *selected_filter,
+                                  int options);
+
 #ifdef __cplusplus
 }
 #endif

@@ -238,7 +238,37 @@ impl ViewModel for MainViewModel {
             move |_| {
                 let window = window.clone();
                 async move {
-                    FileDialog::get_open_file_name(None, None);
+                    let file = FileDialog::new()
+                        .with_title("Please select a file!")
+                        .with_starting_directory("/tmp")
+                        .with_filter("All files (*.*)", &["*.*"])
+                        .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"])
+                        .pick_file()
+                        .await;
+                    MessageBox::new(format!("{:?}", file))
+                        .with_button("Ok")
+                        .show(&window)
+                        .await;
+                }
+            }
+        });
+
+        let file_save_callback = Callback::new_async({
+            let window = vm.window.clone();
+            move |_| {
+                let window = window.clone();
+                async move {
+                    let file = FileDialog::new()
+                        .with_title("Please select a file!")
+                        .with_starting_directory("/tmp")
+                        .with_filter("All files (*.*)", &["*.*"])
+                        .with_filter("Markdown (*.md)", &["*.md"])
+                        .pick_save_file()
+                        .await;
+                    MessageBox::new(format!("{:?}", file))
+                        .with_button("Ok")
+                        .show(&window)
+                        .await;
                 }
             }
         });
@@ -248,7 +278,7 @@ impl ViewModel for MainViewModel {
                 "File",
                 vec![
                     MenuItem::simple("Open...", file_open_callback),
-                    MenuItem::simple("Save...", Callback::empty()),
+                    MenuItem::simple("Save...", file_save_callback),
                     MenuItem::folder(
                         "Export",
                         vec![
