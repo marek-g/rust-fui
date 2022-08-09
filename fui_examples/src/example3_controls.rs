@@ -240,7 +240,7 @@ impl ViewModel for MainViewModel {
                 async move {
                     let file = FileDialog::new()
                         .with_title("Please select a file!")
-                        .with_starting_directory("/tmp")
+                        .with_initial_path("/tmp")
                         .with_filter("All files (*.*)", &["*.*"])
                         .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"])
                         .pick_file()
@@ -259,8 +259,8 @@ impl ViewModel for MainViewModel {
                 let window = window.clone();
                 async move {
                     let file = FileDialog::new()
-                        .with_title("Please select a file!")
-                        .with_starting_directory("/tmp")
+                        .with_title("Please select a file to save to!")
+                        .with_initial_path("test.dat")
                         .with_filter("All files (*.*)", &["*.*"])
                         .with_filter("Markdown (*.md)", &["*.md"])
                         .pick_save_file()

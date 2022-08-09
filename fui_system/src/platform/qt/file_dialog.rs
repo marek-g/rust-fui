@@ -8,7 +8,7 @@ impl FileDialog {
     /// Can be called only from GUI thread.
     pub fn get_open_file_name(
         title: Option<&str>,
-        starting_directory: Option<&Path>,
+        initial_path: Option<&Path>,
         filters: Option<&str>,
     ) -> Option<PathBuf> {
         if !Application::is_gui_thread() {
@@ -19,7 +19,7 @@ impl FileDialog {
             .map_or_else(|| QString::null(), |v| QString::from_str(v))
             .unwrap();
 
-        let dir = starting_directory
+        let dir = initial_path
             .map_or_else(
                 || QString::null(),
                 |v| QString::from_str(v.to_str().unwrap()),
@@ -39,7 +39,7 @@ impl FileDialog {
     /// Can be called only from GUI thread.
     pub fn get_open_file_names(
         title: Option<&str>,
-        starting_directory: Option<&Path>,
+        initial_path: Option<&Path>,
         filters: Option<&str>,
     ) -> Vec<PathBuf> {
         if !Application::is_gui_thread() {
@@ -50,7 +50,7 @@ impl FileDialog {
             .map_or_else(|| QString::null(), |v| QString::from_str(v))
             .unwrap();
 
-        let dir = starting_directory
+        let dir = initial_path
             .map_or_else(
                 || QString::null(),
                 |v| QString::from_str(v.to_str().unwrap()),
@@ -75,7 +75,7 @@ impl FileDialog {
     /// Can be called only from GUI thread.
     pub fn get_existing_directory(
         title: Option<&str>,
-        starting_directory: Option<&Path>,
+        initial_path: Option<&Path>,
     ) -> Option<PathBuf> {
         if !Application::is_gui_thread() {
             panic!("FileDialog::get_existing_directory can be called only from GUI thread");
@@ -85,7 +85,7 @@ impl FileDialog {
             .map_or_else(|| QString::null(), |v| QString::from_str(v))
             .unwrap();
 
-        let dir = starting_directory
+        let dir = initial_path
             .map_or_else(
                 || QString::null(),
                 |v| QString::from_str(v.to_str().unwrap()),
@@ -98,7 +98,7 @@ impl FileDialog {
     /// Can be called only from GUI thread.
     pub fn get_save_file_name(
         title: Option<&str>,
-        starting_directory: Option<&Path>,
+        initial_path: Option<&Path>,
         filters: Option<&str>,
     ) -> Option<PathBuf> {
         if !Application::is_gui_thread() {
@@ -109,7 +109,7 @@ impl FileDialog {
             .map_or_else(|| QString::null(), |v| QString::from_str(v))
             .unwrap();
 
-        let dir = starting_directory
+        let dir = initial_path
             .map_or_else(
                 || QString::null(),
                 |v| QString::from_str(v.to_str().unwrap()),

@@ -11,7 +11,7 @@ pub struct Filter {
 #[derive(Default)]
 pub struct FileDialog {
     pub title: Option<String>,
-    pub starting_directory: Option<PathBuf>,
+    pub initial_path: Option<PathBuf>,
     pub filters: Vec<Filter>,
 }
 
@@ -25,8 +25,8 @@ impl FileDialog {
         self
     }
 
-    pub fn with_starting_directory<P: AsRef<Path>>(mut self, dir: P) -> Self {
-        self.starting_directory = Some(dir.as_ref().to_path_buf());
+    pub fn with_initial_path<P: AsRef<Path>>(mut self, dir: P) -> Self {
+        self.initial_path = Some(dir.as_ref().to_path_buf());
         self
     }
 
@@ -61,7 +61,7 @@ impl FileDialog {
             move || {
                 let result = fui_system::FileDialog::get_open_file_name(
                     self.title.as_deref(),
-                    self.starting_directory.as_deref(),
+                    self.initial_path.as_deref(),
                     filters_to_string(self.filters).as_deref(),
                 );
                 sender.send(result).unwrap();
@@ -78,7 +78,7 @@ impl FileDialog {
             move || {
                 let result = fui_system::FileDialog::get_open_file_names(
                     self.title.as_deref(),
-                    self.starting_directory.as_deref(),
+                    self.initial_path.as_deref(),
                     filters_to_string(self.filters).as_deref(),
                 );
                 sender.send(result).unwrap();
@@ -95,7 +95,7 @@ impl FileDialog {
             move || {
                 let result = fui_system::FileDialog::get_existing_directory(
                     self.title.as_deref(),
-                    self.starting_directory.as_deref(),
+                    self.initial_path.as_deref(),
                 );
                 sender.send(result).unwrap();
             }
@@ -111,7 +111,7 @@ impl FileDialog {
             move || {
                 let result = fui_system::FileDialog::get_save_file_name(
                     self.title.as_deref(),
-                    self.starting_directory.as_deref(),
+                    self.initial_path.as_deref(),
                     filters_to_string(self.filters).as_deref(),
                 );
                 sender.send(result).unwrap();
