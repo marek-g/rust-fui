@@ -5,6 +5,7 @@ pub struct QByteArray {
 }
 
 impl QByteArray {
+    #[allow(dead_code)]
     pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             let this = crate::platform::qt::qt_wrapper::QByteArray_new();
