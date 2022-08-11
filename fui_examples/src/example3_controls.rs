@@ -17,6 +17,7 @@ struct MainViewModel {
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
+    pub is_busy: Property<bool>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
     pub drop_down_selected_item: Property<Option<Rc<RefCell<StringViewModel>>>>,
@@ -29,6 +30,7 @@ impl MainViewModel {
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
             progress: Property::new(0.5f32),
+            is_busy: Property::new(false),
             counter: Property::new(10),
             counter2: Property::new(0),
             drop_down_selected_item: Property::new(None),
@@ -53,25 +55,13 @@ impl ViewModel for MainViewModel {
         vm.counter2.bind(&mut vm.counter);
         vm.counter.bind(&mut vm.counter2);
 
-        let radio1 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 1"} })
-            as Rc<RefCell<dyn ControlObject>>;
-        let radio2 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 2"} })
-            as Rc<RefCell<dyn ControlObject>>;
-        let radio3 = ui!(ToggleButton { Style: Tab {}, Text { text: "Radio 3"} })
-            as Rc<RefCell<dyn ControlObject>>;
-        let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
-            radio1.clone(),
-            radio2.clone(),
-            radio3.clone(),
-        ]);
-
         let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
             as Rc<RefCell<dyn ControlObject>>;
         let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} })
             as Rc<RefCell<dyn ControlObject>>;
         let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} })
             as Rc<RefCell<dyn ControlObject>>;
-        let radio_controller2 = RadioController::<StyledControl<ToggleButton>>::new(vec![
+        let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
             radio4.clone(),
             radio5.clone(),
             radio6.clone(),
@@ -80,90 +70,113 @@ impl ViewModel for MainViewModel {
         let tab1 = ui!(
             Grid {
                 Title: "Tab 1",
-                Margin: Thickness::all(8.0f32),
 
-                columns: 2,
+                columns: 1,
                 default_height: Length::Auto,
 
-                TextBox {
-                    text: &mut vm.text,
-                },
-                Text {
-                    Margin: Thickness::left(5.0f32),
-                    text: &vm.text,
-                },
+                Grid {
+                    Margin: Thickness::all(8.0f32),
 
-                TextBox {
-                    Style: Default {
-                        password: true,
+                    columns: 2,
+                    default_height: Length::Auto,
+
+                    TextBox {
+                        text: &mut vm.text,
                     },
-                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    text: &mut vm.text2,
-                },
-                Text {
-                    Style: Default {
-                        color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
+                    Text {
+                        Margin: Thickness::left(5.0f32),
+                        text: &vm.text,
                     },
-                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    text: &vm.text2,
+
+                    TextBox {
+                        Style: Default {
+                            password: true,
+                        },
+                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        text: &mut vm.text2,
+                    },
+                    Text {
+                        Style: Default {
+                            color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
+                        },
+                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        text: &vm.text2,
+                    },
+
+                    ScrollBar {
+                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        orientation: Orientation::Horizontal,
+                        value: &mut vm.progress,
+                    },
+                    ProgressBar {
+                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        value: &vm.progress,
+                    },
+
+                    DropDown1 {
+                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Column: 0,
+                        Row: 3,
+
+                        selected_item: &mut vm.drop_down_selected_item,
+                        items: vec![
+                            StringViewModel::new("Element A"),
+                            StringViewModel::new("Element B"),
+                            StringViewModel::new("Element C"),
+                            StringViewModel::new("Element D"),
+                            StringViewModel::new("Element E"),
+                        ],
+                    },
+                    Text {
+                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
+                            None => "-".to_string(),
+                            Some(vm) => vm.borrow().text.clone(),
+                        }),
+                    },
                 },
 
-                ScrollBar {
-                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    orientation: Orientation::Horizontal,
-                    value: &mut vm.progress,
-                },
-                ProgressBar {
-                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    value: &vm.progress,
+                BusyIndicator {
+                    Column: 0, Row: 0,
+                    is_busy: &vm.is_busy,
                 },
 
-                DropDown1 {
-                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    Column: 0,
-                    Row: 3,
+                Grid {
+                    Column: 0, Row: 1,
+                    Margin: Thickness::all(8.0f32),
 
-                    selected_item: &mut vm.drop_down_selected_item,
-                    items: vec![
-                        StringViewModel::new("Element A"),
-                        StringViewModel::new("Element B"),
-                        StringViewModel::new("Element C"),
-                        StringViewModel::new("Element D"),
-                        StringViewModel::new("Element E"),
-                    ],
-                },
-                Text {
-                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
-                        None => "-".to_string(),
-                        Some(vm) => vm.borrow().text.clone(),
-                    }),
-                },
+                    columns: 3,
+                    default_height: Length::Auto,
 
-                Vertical {
-                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    Column: 0,
-                    Row: 4,
+                    Vertical {
+                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
 
-                    radio1,
-                    radio2,
-                    radio3,
-                },
-                Vertical {
-                    Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    radio4,
-                    radio5,
-                    radio6,
-                },
+                        ToggleButton {
+                            Style: Tab {},
+                            is_checked: &mut vm.is_busy,
+                            Text { text: "Busy Start"}
+                        },
+                        ToggleButton {
+                            Style: Tab {},
+                            is_checked: (&mut vm.is_busy, |v: bool| { !v }, |v: bool| { !v }),
+                            Text { text: "Busy Stop"}
+                        },
+                    },
 
-                Vertical {
-                    Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                    Column: 0,
-                    Row: 5,
+                    Vertical {
+                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        radio4,
+                        radio5,
+                        radio6,
+                    },
 
-                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
-                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
-                    ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
+                    Vertical {
+                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
+                        ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
+                    },
                 },
             }
         );
@@ -323,7 +336,7 @@ impl ViewModel for MainViewModel {
         });
 
         let data_holder = DataHolder {
-            data: (radio_controller, radio_controller2),
+            data: (radio_controller),
         };
         data_holder.to_view(
             None,

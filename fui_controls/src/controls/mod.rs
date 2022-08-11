@@ -1,5 +1,6 @@
 pub use bitmap::*;
 pub use border::*;
+pub use busy_indicator::*;
 pub use button::*;
 pub use drop_down::*;
 pub use menu::*;
@@ -17,6 +18,7 @@ pub use toggle_button::*;
 
 mod bitmap;
 mod border;
+mod busy_indicator;
 mod button;
 mod drop_down;
 mod menu;
