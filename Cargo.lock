@@ -561,7 +561,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "drawing",
  "euclid",
@@ -609,7 +609,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "anyhow",
  "fui_app",

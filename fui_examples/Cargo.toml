@@ -1,6 +1,6 @@
 [package]
 name = "fui_examples"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Examples for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
