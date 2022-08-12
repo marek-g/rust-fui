@@ -139,6 +139,8 @@ impl ViewModel for MainViewModel {
                 BusyIndicator {
                     Column: 0, Row: 0,
                     is_busy: &vm.is_busy,
+
+                    Text { text: "Please Wait..." }
                 },
 
                 Grid {

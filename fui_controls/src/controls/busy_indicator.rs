@@ -27,7 +27,7 @@ impl BusyIndicator {
                     border_type: BorderType::None,
                     Style: Default { background_color: [0.0f32, 0.0f32, 0.0f32, 0.7f32], },
 
-                    Text { text: "Loading..." },
+                    context.children,
                 }
             }
         };
