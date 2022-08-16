@@ -86,6 +86,7 @@ impl ScrollViewer {
                     value: offset_y_prop,
                     max_value: max_offset_y_prop,
                     viewport_size: viewport_height_prop,
+                    single_step_size: 70.0f32,
                 },
 
                 ScrollBar {
@@ -94,6 +95,7 @@ impl ScrollViewer {
                     value: offset_x_prop,
                     max_value: max_offset_x_prop,
                     viewport_size: viewport_width_prop,
+                    single_step_size: 70.0f32,
                 },
             }
         };

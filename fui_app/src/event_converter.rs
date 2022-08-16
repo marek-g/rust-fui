@@ -1,4 +1,4 @@
-use fui_system_core::Event;
+use fui_system_core::{Event, ScrollDelta};
 
 pub fn convert_event(event: &Event) -> Option<fui_core::InputEvent> {
     match event {
@@ -21,6 +21,13 @@ pub fn convert_event(event: &Event) -> Option<fui_core::InputEvent> {
                 fui_system_core::MouseButton::Right => fui_core::MouseButton::Right,
                 fui_system_core::MouseButton::Middle => fui_core::MouseButton::Middle,
                 fui_system_core::MouseButton::Other(other) => fui_core::MouseButton::Other(*other),
+            },
+        }),
+
+        Event::ScrollWheel { delta } => Some(fui_core::InputEvent::ScrollWheel {
+            delta: match delta {
+                ScrollDelta::LineDelta(x, y) => fui_core::ScrollDelta::LineDelta(*x, *y),
+                ScrollDelta::PixelDelta(x, y) => fui_core::ScrollDelta::PixelDelta(*x, *y),
             },
         }),
 

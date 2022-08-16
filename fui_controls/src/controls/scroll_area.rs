@@ -94,12 +94,39 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
 
     fn handle_event(
         &mut self,
-        _data: &mut ScrollArea,
+        data: &mut ScrollArea,
         _control_context: &mut ControlContext,
         _drawing_context: &mut dyn DrawingContext,
         _event_context: &mut dyn EventContext,
-        _event: ControlEvent,
+        event: ControlEvent,
     ) {
+        match event {
+            ControlEvent::ScrollWheel { delta } => {
+                let viewport_info = data.viewport_info.get();
+
+                let max_offset_x =
+                    (viewport_info.content_width - viewport_info.viewport_width).max(0.0f32);
+                let max_offset_y =
+                    (viewport_info.content_height - viewport_info.viewport_height).max(0.0f32);
+
+                match delta {
+                    ScrollDelta::LineDelta(x, y) => {
+                        data.offset_x
+                            .change(move |v| (v - x * 70.0f32).min(max_offset_x).max(0.0f32));
+                        data.offset_y
+                            .change(move |v| (v - y * 70.0f32).min(max_offset_y).max(0.0f32));
+                    }
+                    ScrollDelta::PixelDelta(x, y) => {
+                        data.offset_x
+                            .change(move |v| (v - x).min(max_offset_x).max(0.0f32));
+                        data.offset_y
+                            .change(move |v| (v - y).min(max_offset_y).max(0.0f32))
+                    }
+                };
+            }
+
+            _ => (),
+        }
     }
 
     fn measure(

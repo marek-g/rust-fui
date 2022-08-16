@@ -95,19 +95,19 @@ bool QWindowExt::convertEventToRust(QEvent *event, FFIEvent &ffiEvent)
         case QEvent::Wheel: {
             ffiEvent.tag = FFIEvent::Tag::ScrollWheel;
 
-            QPoint pixels = ((QWheelEvent*)event)->pixelDelta();
-            if (!pixels.isNull()) {
-                ffiEvent.scroll_wheel.delta.tag = FFIScrollDelta::Tag::PixelDelta;
-                ffiEvent.scroll_wheel.delta.pixel_delta._0 = pixels.x();
-                ffiEvent.scroll_wheel.delta.pixel_delta._1 = pixels.y();
-                return true;
-            }
-
             QPoint degrees = ((QWheelEvent*)event)->angleDelta();
             if (!degrees.isNull()) {
                 ffiEvent.scroll_wheel.delta.tag = FFIScrollDelta::Tag::LineDelta;
                 ffiEvent.scroll_wheel.delta.line_delta._0 = degrees.x() / 120.0;
                 ffiEvent.scroll_wheel.delta.line_delta._1 = degrees.y() / 120.0;
+                return true;
+            }
+
+            QPoint pixels = ((QWheelEvent*)event)->pixelDelta();
+            if (!pixels.isNull()) {
+                ffiEvent.scroll_wheel.delta.tag = FFIScrollDelta::Tag::PixelDelta;
+                ffiEvent.scroll_wheel.delta.pixel_delta._0 = pixels.x();
+                ffiEvent.scroll_wheel.delta.pixel_delta._1 = pixels.y();
                 return true;
             }
 

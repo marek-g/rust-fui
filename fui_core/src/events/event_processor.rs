@@ -92,6 +92,13 @@ impl EventProcessor {
                 );
             }
 
+            InputEvent::ScrollWheel { delta } => {
+                let controls: Vec<_> = self.hovered_controls.iter().map(|c| c.upgrade()).collect();
+                for c in controls {
+                    self.queue_event(c, ControlEvent::ScrollWheel { delta: *delta });
+                }
+            }
+
             _ => (),
         }
     }

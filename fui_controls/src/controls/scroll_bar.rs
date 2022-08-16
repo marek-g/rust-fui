@@ -22,8 +22,14 @@ pub struct ScrollBar {
     #[builder(default = Property::new(0.0f32))]
     pub value: Property<f32>,
 
+    /// How much of the range of value is visible on the screen
+    /// (affects the length of thumb)
     #[builder(default = Property::new(0.0f32))]
     pub viewport_size: Property<f32>,
+
+    /// How much to modify the value on mouse wheel
+    #[builder(default = Property::new(0.05f32))]
+    pub single_step_size: Property<f32>,
 }
 
 impl ScrollBar {
@@ -177,6 +183,29 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
                         data.value.set(new_value);
                     }
                 }
+            }
+
+            ControlEvent::ScrollWheel { delta } => {
+                match delta {
+                    ScrollDelta::LineDelta(x, y) => {
+                        let single_step = data.single_step_size.get();
+                        let min_value = data.min_value.get();
+                        let max_value = data.max_value.get();
+                        let steps = if let Orientation::Vertical = data.orientation {
+                            y
+                        } else {
+                            if x != 0.0f32 {
+                                x
+                            } else {
+                                y
+                            }
+                        };
+                        data.value.change(move |v| {
+                            (v - steps * single_step).min(max_value).max(min_value)
+                        });
+                    }
+                    ScrollDelta::PixelDelta(_, _) => (),
+                };
             }
 
             ControlEvent::HoverChange(value) => {
