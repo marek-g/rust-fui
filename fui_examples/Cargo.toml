@@ -1,6 +1,6 @@
 [package]
 name = "fui_examples"
-version = "0.10.1"
+version = "0.11.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Examples for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -12,18 +12,18 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.10" }
-fui_controls = { path = "../../rust-fui/fui_controls", version = "0.10" }
+fui_core = { path = "../fui_core", version = "0.11" }
+fui_controls = { path = "../../rust-fui/fui_controls", version = "0.11" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
-fui_app = { path = "../../rust-fui/fui_app", version = "0.10" }
-fui_system = { path = "../../rust-fui/fui_system", version = "0.10" }
+fui_app = { path = "../../rust-fui/fui_app", version = "0.11" }
+fui_system = { path = "../../rust-fui/fui_system", version = "0.11" }
 anyhow = "1.0"
 time = "0.3"
 typed-builder = "0.10"
 typemap = "0.3"
 tokio = { version = "1", features = ["full"] }
 
-fui_controls_media = { path = "../../rust-fui/fui_controls_media", version = "0.10", optional = true }
+fui_controls_media = { path = "../../rust-fui/fui_controls_media", version = "0.11", optional = true }
 
 [features]
 video = ["fui_controls_media"]

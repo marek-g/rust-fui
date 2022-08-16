@@ -1,6 +1,6 @@
 [package]
 name = "fui_system_core"
-version = "0.1.0"
+version = "0.11.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Core system elements for FUI libraries"
 keywords = ["windowing", "gui", "framework", "dialog", "tray"]
