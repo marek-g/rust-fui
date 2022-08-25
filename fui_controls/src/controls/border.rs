@@ -52,15 +52,11 @@ pub struct DefaultBorderStyleParams {
 
 pub struct DefaultBorderStyle {
     params: DefaultBorderStyleParams,
-    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultBorderStyle {
     pub fn new(params: DefaultBorderStyleParams) -> Self {
-        DefaultBorderStyle {
-            params,
-            event_subscriptions: Vec::new(),
-        }
+        DefaultBorderStyle { params }
     }
 
     fn get_border_size(data: &mut Border) -> f32 {
@@ -73,11 +69,7 @@ impl DefaultBorderStyle {
 
 impl Style<Border> for DefaultBorderStyle {
     fn setup(&mut self, _data: &mut Border, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
-            self.params
-                .background_color
-                .dirty_watching(&control_context.get_self_rc()),
-        );
+        control_context.dirty_watch_property(&self.params.background_color);
     }
 
     fn handle_event(

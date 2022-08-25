@@ -48,22 +48,17 @@ pub struct DefaultTextStyleParams {
 
 pub struct DefaultTextStyle {
     params: DefaultTextStyleParams,
-    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultTextStyle {
     pub fn new(params: DefaultTextStyleParams) -> Self {
-        DefaultTextStyle {
-            params,
-            event_subscriptions: Vec::new(),
-        }
+        DefaultTextStyle { params }
     }
 }
 
 impl Style<Text> for DefaultTextStyle {
     fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
+        control_context.dirty_watch_property(&data.text);
     }
 
     fn handle_event(
@@ -174,7 +169,6 @@ pub struct DynamicTextStyleParams {
 
 pub struct DynamicTextStyle {
     params: DynamicTextStyleParams,
-    event_subscriptions: Vec<Subscription>,
     is_hover: bool,
 }
 
@@ -182,7 +176,6 @@ impl DynamicTextStyle {
     pub fn new(params: DynamicTextStyleParams) -> Self {
         DynamicTextStyle {
             params,
-            event_subscriptions: Vec::new(),
             is_hover: false,
         }
     }
@@ -190,13 +183,8 @@ impl DynamicTextStyle {
 
 impl Style<Text> for DynamicTextStyle {
     fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
-            self.params
-                .color
-                .dirty_watching(&control_context.get_self_rc()),
-        );
+        control_context.dirty_watch_property(&data.text);
+        control_context.dirty_watch_property(&self.params.color);
     }
 
     fn handle_event(

@@ -10,7 +10,9 @@ pub struct ControlContext {
     self_weak: Option<Weak<RefCell<dyn ControlObject>>>,
     parent: Option<Weak<RefCell<dyn ControlObject>>>,
     children: Children,
+
     children_collection_changed_event_subscription: Option<Subscription>,
+    dirty_event_subscriptions: Vec<Subscription>,
 
     attached_values: TypeMap,
 
@@ -28,6 +30,7 @@ impl ControlContext {
             parent: None,
             children: view_context.children,
             children_collection_changed_event_subscription: None,
+            dirty_event_subscriptions: Vec::new(),
             attached_values: view_context.attached_values,
             services: None,
             rect: Rect::empty(),
@@ -129,6 +132,31 @@ impl ControlContext {
                     }
                 }
             }
+        }
+    }
+
+    pub fn dirty_watch_property<T>(&mut self, property: &Property<T>)
+    where
+        T: 'static + Clone + PartialEq,
+    {
+        let self_weak = self.self_weak.clone().unwrap();
+        self.dirty_event_subscriptions
+            .push(property.on_changed(move |_| {
+                self_weak.upgrade().map(|control| {
+                    control.borrow_mut().get_context_mut().set_is_dirty(true);
+                });
+            }));
+    }
+
+    pub fn dirty_watch_attached_properties(&mut self) {
+        if let Some(visible) = self.attached_values.get::<Visible>() {
+            let self_weak = self.self_weak.clone().unwrap();
+            self.dirty_event_subscriptions
+                .push(visible.on_changed(move |_| {
+                    self_weak.upgrade().map(|control| {
+                        control.borrow_mut().get_context_mut().set_is_dirty(true);
+                    });
+                }));
         }
     }
 }

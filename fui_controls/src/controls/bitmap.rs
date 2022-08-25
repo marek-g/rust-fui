@@ -36,24 +36,17 @@ impl Bitmap {
 #[derive(TypedBuilder)]
 pub struct DefaultBitmapStyleParams {}
 
-pub struct DefaultBitmapStyle {
-    event_subscriptions: Vec<Subscription>,
-}
+pub struct DefaultBitmapStyle;
 
 impl DefaultBitmapStyle {
     pub fn new(_params: DefaultBitmapStyleParams) -> Self {
-        DefaultBitmapStyle {
-            event_subscriptions: Vec::new(),
-        }
+        DefaultBitmapStyle {}
     }
 }
 
 impl Style<Bitmap> for DefaultBitmapStyle {
     fn setup(&mut self, data: &mut Bitmap, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
-            data.texture_id
-                .dirty_watching(&control_context.get_self_rc()),
-        );
+        control_context.dirty_watch_property(&data.texture_id);
     }
 
     fn handle_event(

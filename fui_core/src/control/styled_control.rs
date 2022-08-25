@@ -158,6 +158,7 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 
 impl<D: 'static> ControlBehavior for StyledControl<D> {
     fn setup(&mut self) {
+        self.control_context.dirty_watch_attached_properties();
         self.style.setup(&mut self.data, &mut self.control_context);
     }
 

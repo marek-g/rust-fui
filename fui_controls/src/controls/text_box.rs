@@ -54,7 +54,6 @@ pub struct DefaultTextBoxStyle {
 
     is_hover: bool,
     is_focused: bool,
-    event_subscriptions: Vec<Subscription>,
 
     cursor_pos_char: usize,
     cursor_pos_px: f32,
@@ -68,7 +67,6 @@ impl DefaultTextBoxStyle {
 
             is_hover: false,
             is_focused: false,
-            event_subscriptions: Vec::new(),
 
             cursor_pos_char: 0,
             cursor_pos_px: 0.0f32,
@@ -199,8 +197,7 @@ impl DefaultTextBoxStyle {
 
 impl Style<TextBox> for DefaultTextBoxStyle {
     fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
-        self.event_subscriptions
-            .push(data.text.dirty_watching(&control_context.get_self_rc()));
+        control_context.dirty_watch_property(&data.text);
     }
 
     fn handle_event(

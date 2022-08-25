@@ -70,8 +70,6 @@ pub struct DefaultScrollBarStyle {
     is_thumb_hover: Property<bool>,
     is_thumb_pressed: Property<bool>,
     pressed_offset: f32,
-
-    event_subscriptions: Vec<Subscription>,
 }
 
 impl DefaultScrollBarStyle {
@@ -82,7 +80,6 @@ impl DefaultScrollBarStyle {
             is_thumb_hover: Property::new(false),
             is_thumb_pressed: Property::new(false),
             pressed_offset: 0.0f32,
-            event_subscriptions: Vec::new(),
         }
     }
 
@@ -108,29 +105,12 @@ impl DefaultScrollBarStyle {
 
 impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn setup(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext) {
-        self.event_subscriptions.push(
-            self.is_thumb_hover
-                .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
-            self.is_thumb_pressed
-                .dirty_watching(&control_context.get_self_rc()),
-        );
-
-        self.event_subscriptions.push(
-            data.min_value
-                .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions.push(
-            data.max_value
-                .dirty_watching(&control_context.get_self_rc()),
-        );
-        self.event_subscriptions
-            .push(data.value.dirty_watching(&control_context.get_self_rc()));
-        self.event_subscriptions.push(
-            data.viewport_size
-                .dirty_watching(&control_context.get_self_rc()),
-        );
+        control_context.dirty_watch_property(&self.is_thumb_hover);
+        control_context.dirty_watch_property(&self.is_thumb_pressed);
+        control_context.dirty_watch_property(&data.min_value);
+        control_context.dirty_watch_property(&data.max_value);
+        control_context.dirty_watch_property(&data.value);
+        control_context.dirty_watch_property(&data.viewport_size);
     }
 
     fn handle_event(

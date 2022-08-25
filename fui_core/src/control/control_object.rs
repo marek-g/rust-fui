@@ -1,11 +1,8 @@
 use crate::control::control_behavior::ControlBehavior;
-use crate::{control::control_context::ControlContext, Point, Property, Subscription};
+use crate::{control::control_context::ControlContext, Point};
 use std::any::Any;
 use std::rc::Weak;
-use std::{
-    cell::{RefCell, RefMut},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 pub trait ControlObject: ControlBehavior {
     fn as_any(&self) -> &dyn Any;
@@ -60,25 +57,5 @@ pub trait ControlObject: ControlBehavior {
 impl PartialEq for dyn ControlObject {
     fn eq(&self, other: &Self) -> bool {
         std::ptr::eq(&self, &other)
-    }
-}
-
-pub trait PropertyDirtyExtension {
-    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> Subscription;
-}
-
-impl<T> PropertyDirtyExtension for Property<T>
-where
-    T: 'static + Clone + PartialEq,
-{
-    fn dirty_watching(&self, control: &Rc<RefCell<dyn ControlObject>>) -> Subscription {
-        let weak_control = Rc::downgrade(control);
-        self.on_changed(move |_| {
-            weak_control.upgrade().map(|control| {
-                (control.borrow_mut() as RefMut<dyn ControlObject>)
-                    .get_context_mut()
-                    .set_is_dirty(true)
-            });
-        })
     }
 }
