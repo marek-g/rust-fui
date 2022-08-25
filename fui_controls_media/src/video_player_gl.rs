@@ -23,7 +23,7 @@ use winit::platform::unix::WindowExtUnix;
 pub struct PlayerGl {
     pub texture: PlayerTexture,
     drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
-    window_manager: Rc<RefCell<WindowManager>>,
+    //window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<gstreamer::Pipeline>,
     //dispatcher: Arc<Mutex<dyn Dispatcher>>,
     receiver: Option<Receiver<GLuint>>,
@@ -34,7 +34,7 @@ impl PlayerGl {
     #[cfg(target_os = "linux")]
     pub fn new(
         drawing_context: &Rc<RefCell<fui_app::DrawingContext>>,
-        window_manager: &Rc<RefCell<WindowManager>>,
+        //window_manager: &Rc<RefCell<WindowManager>>,
         event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
         gstreamer::init()?;
@@ -42,7 +42,7 @@ impl PlayerGl {
         Ok(PlayerGl {
             texture: PlayerTexture::new(drawing_context.clone()),
             drawing_context: drawing_context.clone(),
-            window_manager: window_manager.clone(),
+            //window_manager: window_manager.clone(),
             pipeline: None,
             //dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
             receiver: None,
