@@ -42,6 +42,11 @@ impl<T: 'static + Clone> ObservableVec<T> {
         self.changed_event.borrow().emit(event_args);
     }
 
+    pub fn clear(&mut self) {
+        self.items.clear();
+        self.changed_event.borrow().emit(VecDiff::Clear {});
+    }
+
     pub fn remove_filter<F>(&mut self, mut filter: F)
     where
         F: FnMut(&mut T) -> bool,

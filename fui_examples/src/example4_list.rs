@@ -69,7 +69,7 @@ impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
 
     fn remove_all(&self) {
         println!("Remove all!");
-        self.borrow_mut().items.remove_filter(|_i| true);
+        self.borrow_mut().items.clear();
     }
 
     fn delete(&self, item_id: i32) {
@@ -148,9 +148,12 @@ async fn main() -> Result<()> {
         .run_until(async {
             let app = Application::new("Example: list").await?;
 
-            let mut window = Window::create(WindowOptions::new()
-                .with_title("Example: list")
-                .with_size(800, 600)).await?;
+            let mut window = Window::create(
+                WindowOptions::new()
+                    .with_title("Example: list")
+                    .with_size(800, 600),
+            )
+            .await?;
 
             window.set_vm(MainViewModel::new());
 
