@@ -68,6 +68,15 @@ impl QWindow {
         }
     }
 
+    pub fn set_translucent_background(&mut self, translucent_background: bool) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setTranslucentBackground(
+                self.this,
+                if translucent_background { 1 } else { 0 },
+            );
+        }
+    }
+
     pub fn set_visible(&mut self, is_visible: bool) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_setVisible(

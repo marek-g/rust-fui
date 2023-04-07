@@ -76,6 +76,18 @@ impl Window {
     }
 
     ///
+    /// Sets if window should have an alpha channel for translucent regions.
+    ///
+    pub fn set_translucent_background(
+        &mut self,
+        translucent_background: bool,
+    ) -> Result<(), FUISystemError> {
+        self.qwindow
+            .set_translucent_background(translucent_background);
+        Ok(())
+    }
+
+    ///
     /// Sets the visibility of the window.
     ///
     pub fn set_visible(&mut self, visible: bool) -> Result<(), FUISystemError> {

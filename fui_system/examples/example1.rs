@@ -115,6 +115,7 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         let mut window = window_rc.borrow_mut();
         window.set_title("Hello Qt!").unwrap();
         window.set_icon(&icon).unwrap();
+        window.set_translucent_background(true).unwrap();
         //window.set_frame_type(WindowFrameType::Frameless).unwrap();
         //window.set_stay_on_top(true).unwrap();
         //window.set_transparent_for_input(true).unwrap();

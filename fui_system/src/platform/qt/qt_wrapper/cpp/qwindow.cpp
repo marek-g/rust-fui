@@ -46,6 +46,16 @@ void QWindow_setFrameType(void *self, const int frameType)
     window->setFlag(Qt::FramelessWindowHint, frameType == 0);
 }
 
+void QWindow_setTranslucentBackground(void *self, const int translucentBackground)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    QSurfaceFormat format = QSurfaceFormat::defaultFormat();
+    if (translucentBackground != 0) {
+        format.setAlphaBufferSize(8);
+    }
+    window->setFormat(format);
+}
+
 void QWindow_setVisible(void *self, int visible)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

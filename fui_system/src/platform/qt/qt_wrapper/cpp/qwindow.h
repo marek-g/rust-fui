@@ -15,6 +15,7 @@ void QWindow_setIcon(void *self, const void *icon);
 void QWindow_setStayOnTop(void *self, const int stayOnTop);
 void QWindow_setTransparentForInput(void *self, const int transparentForInput);
 void QWindow_setFrameType(void *self, const int frameType);
+void QWindow_setTranslucentBackground(void *self, const int translucentBackground);
 void QWindow_setVisible(void *self, int visible);
 
 int QWindow_getWidth(void *self);
