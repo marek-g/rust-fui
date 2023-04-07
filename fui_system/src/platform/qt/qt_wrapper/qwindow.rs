@@ -44,6 +44,30 @@ impl QWindow {
         }
     }
 
+    pub fn set_stay_on_top(&mut self, stay_on_top: bool) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setStayOnTop(
+                self.this,
+                if stay_on_top { 1 } else { 0 },
+            );
+        }
+    }
+
+    pub fn set_transparent_for_input(&mut self, transparent_for_input: bool) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setTransparentForInput(
+                self.this,
+                if transparent_for_input { 1 } else { 0 },
+            );
+        }
+    }
+
+    pub fn set_frame_type(&mut self, frame_type: i32) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setFrameType(self.this, frame_type);
+        }
+    }
+
     pub fn set_visible(&mut self, is_visible: bool) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_setVisible(

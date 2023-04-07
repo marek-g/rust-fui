@@ -115,6 +115,9 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         let mut window = window_rc.borrow_mut();
         window.set_title("Hello Qt!").unwrap();
         window.set_icon(&icon).unwrap();
+        //window.set_frame_type(WindowFrameType::Frameless).unwrap();
+        //window.set_stay_on_top(true).unwrap();
+        //window.set_transparent_for_input(true).unwrap();
         window.resize(500, 500);
 
         let mut initialized = false;
@@ -122,7 +125,12 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         window.on_paint_gl(move || unsafe {
             if !initialized {
                 if let Some(window_rc) = window_weak.upgrade() {
-                    gl::load_with(|s| window_rc.borrow().get_opengl_proc_address(s).unwrap_or_else(|_| null()));
+                    gl::load_with(|s| {
+                        window_rc
+                            .borrow()
+                            .get_opengl_proc_address(s)
+                            .unwrap_or_else(|_| null())
+                    });
                 }
                 initialized = true;
             }

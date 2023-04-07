@@ -8,6 +8,8 @@ use fui_system_core::{
 };
 use std::ffi::{c_void, CStr};
 
+use super::WindowFrameType;
+
 ///
 /// Represents a window in the underlying windowing system.
 ///
@@ -38,6 +40,38 @@ impl Window {
     ///
     pub fn set_icon(&mut self, icon: &Icon) -> Result<(), FUISystemError> {
         self.qwindow.set_icon(&icon.qicon);
+        Ok(())
+    }
+
+    ///
+    /// Sets if window should stay on top.
+    ///
+    pub fn set_stay_on_top(&mut self, stay_on_top: bool) -> Result<(), FUISystemError> {
+        self.qwindow.set_stay_on_top(stay_on_top);
+        Ok(())
+    }
+
+    ///
+    /// Sets if window should be transparent for input.
+    ///
+    pub fn set_transparent_for_input(
+        &mut self,
+        transparent_for_input: bool,
+    ) -> Result<(), FUISystemError> {
+        self.qwindow
+            .set_transparent_for_input(transparent_for_input);
+        Ok(())
+    }
+
+    ///
+    /// Sets window frame type.
+    ///
+    pub fn set_frame_type(&mut self, frame_type: WindowFrameType) -> Result<(), FUISystemError> {
+        let frame_type = match frame_type {
+            WindowFrameType::Frameless => 0,
+            WindowFrameType::Normal => 1,
+        };
+        self.qwindow.set_frame_type(frame_type);
         Ok(())
     }
 

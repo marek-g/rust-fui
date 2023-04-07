@@ -5,6 +5,7 @@ mod file_dialog;
 mod icon;
 mod tray_icon;
 mod window;
+mod window_frame_type;
 
 mod qt_wrapper;
 
@@ -15,3 +16,4 @@ pub use file_dialog::*;
 pub use icon::Icon;
 pub use tray_icon::{TrayIcon, TrayIconType};
 pub use window::Window;
+pub use window_frame_type::WindowFrameType;

@@ -28,6 +28,24 @@ void QWindow_setIcon(void *self, const void *icon)
     window->setIcon(*qicon);
 }
 
+void QWindow_setStayOnTop(void *self, const int stayOnTop)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setFlag(Qt::WindowStaysOnTopHint, stayOnTop != 0);
+}
+
+void QWindow_setTransparentForInput(void *self, const int transparentForInput)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setFlag(Qt::WindowTransparentForInput, transparentForInput != 0);
+}
+
+void QWindow_setFrameType(void *self, const int frameType)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setFlag(Qt::FramelessWindowHint, frameType == 0);
+}
+
 void QWindow_setVisible(void *self, int visible)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

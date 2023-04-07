@@ -10,6 +10,7 @@ pub use platform::Icon;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;
 pub use platform::Window;
+pub use platform::WindowFrameType;
 
 mod common;
 mod platform;
