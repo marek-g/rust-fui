@@ -60,6 +60,18 @@ impl Window {
             // GUI Thread
             let mut native_window = fui_system::Window::new(None).unwrap();
             native_window.set_title(&window_options.title).unwrap();
+            native_window
+                .set_stay_on_top(window_options.stay_on_top)
+                .unwrap();
+            native_window
+                .set_transparent_for_input(window_options.transparent_for_input)
+                .unwrap();
+            native_window
+                .set_translucent_background(window_options.translucent_background)
+                .unwrap();
+            native_window
+                .set_frame_type(window_options.frame_type)
+                .unwrap();
             native_window.resize(window_options.width, window_options.height);
             native_window.set_visible(window_options.visible).unwrap();
             if window_options.icon.len() > 0 {
@@ -327,17 +339,16 @@ impl Window {
 
                 Box::new(move || {
                     // VM Thread
-                    let window_data =
-                        APPLICATION_VM_CONTEXT.with(move |context| {
-                            context
-                                .borrow()
-                                .as_ref()
-                                .unwrap()
-                                .windows
-                                .get(&window_id)
-                                .unwrap()
-                                .upgrade()
-                        });
+                    let window_data = APPLICATION_VM_CONTEXT.with(move |context| {
+                        context
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .windows
+                            .get(&window_id)
+                            .unwrap()
+                            .upgrade()
+                    });
 
                     if let Some(window_data) = window_data {
                         let size = Size::new(0.0f32, 0.0f32);
@@ -395,17 +406,16 @@ impl Window {
 
                 Box::new(move || {
                     // VM Thread
-                    let window_data =
-                        APPLICATION_VM_CONTEXT.with(move |context| {
-                            context
-                                .borrow()
-                                .as_ref()
-                                .unwrap()
-                                .windows
-                                .get(&window_id)
-                                .unwrap()
-                                .upgrade()
-                        });
+                    let window_data = APPLICATION_VM_CONTEXT.with(move |context| {
+                        context
+                            .borrow()
+                            .as_ref()
+                            .unwrap()
+                            .windows
+                            .get(&window_id)
+                            .unwrap()
+                            .upgrade()
+                    });
 
                     if let Some(window_data) = window_data {
                         let size = Size::new(width as f32, height as f32);
