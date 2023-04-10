@@ -540,7 +540,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "anyhow",
  "cpu-time",
@@ -637,7 +637,7 @@ dependencies = [
 
 [[package]]
 name = "fui_system"
-version = "0.11.2"
+version = "0.11.3"
 dependencies = [
  "bindgen",
  "cbindgen",
