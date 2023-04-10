@@ -3,6 +3,10 @@
 #include "qwindow_ext.h"
 #include "qwindow.h"
 
+#ifdef __unix__
+#include <KWindowEffects>
+#endif
+
 void *QWindow_new(void *parent)
 {
     QWindow *parent_window = static_cast<QWindow *>(parent);
@@ -46,14 +50,19 @@ void QWindow_setFrameType(void *self, const int frameType)
     window->setFlag(Qt::FramelessWindowHint, frameType == 0);
 }
 
-void QWindow_setTranslucentBackground(void *self, const int translucentBackground)
+void QWindow_setTranslucentBackground(void *self, const int translucentEffect)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);
     QSurfaceFormat format = QSurfaceFormat::defaultFormat();
-    if (translucentBackground != 0) {
+    if (translucentEffect != 0) {
         format.setAlphaBufferSize(8);
     }
     window->setFormat(format);
+
+    // blur effect
+    #ifdef __unix__
+    KWindowEffects::enableBlurBehind(window, translucentEffect == 2);
+    #endif
 }
 
 void QWindow_setVisible(void *self, int visible)

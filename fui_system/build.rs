@@ -8,6 +8,7 @@ fn main() {
     let current_dir = env::current_dir().unwrap();
     let out_dir = env::var("OUT_DIR").unwrap();
     let env = std::env::var("CARGO_CFG_TARGET_ENV").unwrap();
+    let target_family = std::env::var("CARGO_CFG_TARGET_FAMILY").unwrap();
 
     println!("target: {}", target);
     println!("current_dir: {}", current_dir.to_string_lossy());
@@ -23,7 +24,7 @@ fn main() {
     run_make(&env, &out_dir);
 
     cargo_link_static(&out_dir, "qt_wrapper");
-    cargo_link_qt(&env);
+    cargo_link_qt(&env, &target_family);
 
     generate_bindings("src/platform/qt/qt_wrapper/cpp/qt_wrapper.h", &out_dir);
 }
@@ -90,13 +91,17 @@ fn qmake_query(var: &str) -> String {
     .expect("UTF-8 conversion failed")
 }
 
-fn cargo_link_qt(env: &str) {
+fn cargo_link_qt(env: &str, target_family: &str) {
     let qt_library_path = qmake_query("QT_INSTALL_LIBS");
 
     println!("cargo:rustc-link-search={}", qt_library_path);
     println!("cargo:rustc-link-lib={}", "Qt5Widgets");
     println!("cargo:rustc-link-lib={}", "Qt5Gui");
     println!("cargo:rustc-link-lib={}", "Qt5Core");
+
+    if target_family == "unix" {
+        println!("cargo:rustc-link-lib={}", "KF5WindowSystem");
+    }
 
     if env != "msvc" {
         println!("cargo:rustc-link-lib=stdc++");

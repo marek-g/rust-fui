@@ -68,11 +68,11 @@ impl QWindow {
         }
     }
 
-    pub fn set_translucent_background(&mut self, translucent_background: bool) {
+    pub fn set_translucent_background(&mut self, translucent_effect: i32) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_setTranslucentBackground(
                 self.this,
-                if translucent_background { 1 } else { 0 },
+                translucent_effect,
             );
         }
     }

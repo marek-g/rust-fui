@@ -8,7 +8,7 @@ use fui_system_core::{
 };
 use std::ffi::{c_void, CStr};
 
-use super::WindowFrameType;
+use super::{TranslucentEffect, WindowFrameType};
 
 ///
 /// Represents a window in the underlying windowing system.
@@ -80,10 +80,14 @@ impl Window {
     ///
     pub fn set_translucent_background(
         &mut self,
-        translucent_background: bool,
+        translucent_effect: TranslucentEffect,
     ) -> Result<(), FUISystemError> {
-        self.qwindow
-            .set_translucent_background(translucent_background);
+        let translucent_effect = match translucent_effect {
+            TranslucentEffect::None => 0,
+            TranslucentEffect::Transparent => 1,
+            TranslucentEffect::Blur => 2,
+        };
+        self.qwindow.set_translucent_background(translucent_effect);
         Ok(())
     }
 

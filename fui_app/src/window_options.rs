@@ -1,4 +1,4 @@
-use fui_system::WindowFrameType;
+use fui_system::{TranslucentEffect, WindowFrameType};
 
 #[derive(Clone)]
 pub struct WindowOptions {
@@ -8,7 +8,7 @@ pub struct WindowOptions {
     pub height: i32,
     pub stay_on_top: bool,
     pub transparent_for_input: bool,
-    pub translucent_background: bool,
+    pub translucent_effect: TranslucentEffect,
     pub frame_type: WindowFrameType,
     pub visible: bool,
 }
@@ -22,7 +22,7 @@ impl WindowOptions {
             height: 600,
             stay_on_top: false,
             transparent_for_input: false,
-            translucent_background: false,
+            translucent_effect: TranslucentEffect::None,
             frame_type: WindowFrameType::Normal,
             visible: true,
         }
@@ -54,8 +54,8 @@ impl WindowOptions {
         self
     }
 
-    pub fn with_translucent_background(mut self, translucent_background: bool) -> Self {
-        self.translucent_background = translucent_background;
+    pub fn with_translucent_background(mut self, translucent_effect: TranslucentEffect) -> Self {
+        self.translucent_effect = translucent_effect;
         self
     }
 

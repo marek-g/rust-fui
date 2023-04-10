@@ -67,7 +67,7 @@ impl Window {
                 .set_transparent_for_input(window_options.transparent_for_input)
                 .unwrap();
             native_window
-                .set_translucent_background(window_options.translucent_background)
+                .set_translucent_background(window_options.translucent_effect)
                 .unwrap();
             native_window
                 .set_frame_type(window_options.frame_type)

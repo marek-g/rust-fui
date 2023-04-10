@@ -7,6 +7,7 @@ pub use platform::ApplicationOptions;
 pub use platform::Dispatcher;
 pub use platform::FileDialog;
 pub use platform::Icon;
+pub use platform::TranslucentEffect;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;
 pub use platform::Window;

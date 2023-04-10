@@ -115,7 +115,9 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         let mut window = window_rc.borrow_mut();
         window.set_title("Hello Qt!").unwrap();
         window.set_icon(&icon).unwrap();
-        window.set_translucent_background(true).unwrap();
+        window
+            .set_translucent_background(TranslucentEffect::Blur)
+            .unwrap();
         //window.set_frame_type(WindowFrameType::Frameless).unwrap();
         //window.set_stay_on_top(true).unwrap();
         //window.set_transparent_for_input(true).unwrap();
@@ -136,7 +138,7 @@ fn create_new_window() -> Rc<RefCell<Window>> {
                 initialized = true;
             }
 
-            gl::ClearColor(1.0f32, 0.0f32, 0.0f32, 0.5f32);
+            gl::ClearColor(0.5f32, 0.0f32, 0.0f32, 0.2f32);
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
         });
 
