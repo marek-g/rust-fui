@@ -7,6 +7,11 @@
 #include <KWindowEffects>
 #endif
 
+#ifdef _WIN32
+#include <windows.h>
+#include "windows_transparency_win32.h"
+#endif
+
 void *QWindow_new(void *parent)
 {
     QWindow *parent_window = static_cast<QWindow *>(parent);
@@ -62,6 +67,9 @@ void QWindow_setTranslucentBackground(void *self, const int translucentEffect)
     // blur effect
     #ifdef __unix__
     KWindowEffects::enableBlurBehind(window, translucentEffect == 2);
+    #endif
+    #ifdef _WIN32
+    EnableBlurWin32((HWND)window->winId());
     #endif
 }
 
