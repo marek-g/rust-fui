@@ -22,4 +22,8 @@ HEADERS += qaction.h qapplication.h \
     qsystemtrayicon.h \
     qwindow.h qwindow_ext.h
 
-QT += widgets KWindowSystem
+QT += widgets
+
+unix {
+    QT += KWindowSystem
+}

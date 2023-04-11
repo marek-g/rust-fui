@@ -14,6 +14,7 @@ fn main() {
     println!("current_dir: {}", current_dir.to_string_lossy());
     println!("out_dir: {}", out_dir);
     println!("env: {}", out_dir);
+    println!("target_family: {}", target_family);
 
     run_cbindgen();
 
