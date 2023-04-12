@@ -106,6 +106,19 @@ impl QWindow {
         }
     }
 
+    pub fn start_system_move(&mut self) -> bool {
+        unsafe {
+            return crate::platform::qt::qt_wrapper::QWindow_startSystemMove(self.this) != 0;
+        }
+    }
+
+    pub fn start_system_resize(&mut self, edges: i32) -> bool {
+        unsafe {
+            return crate::platform::qt::qt_wrapper::QWindow_startSystemResize(self.this, edges)
+                != 0;
+        }
+    }
+
     pub fn update(&mut self) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_update(self.this);

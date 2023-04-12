@@ -8,7 +8,7 @@ use fui_system_core::{
 };
 use std::ffi::{c_void, CStr};
 
-use super::{TranslucentEffect, WindowFrameType};
+use super::{Edge, TranslucentEffect, WindowFrameType};
 
 ///
 /// Represents a window in the underlying windowing system.
@@ -125,6 +125,22 @@ impl Window {
     ///
     pub fn set_minimum_size(&mut self, width: i32, height: i32) {
         self.qwindow.set_minimum_size(width, height);
+    }
+
+    ///
+    /// Start a system-specific move operation.
+    /// Returns true if the operation was supported by the system.
+    ///
+    pub fn start_system_move(&mut self) -> bool {
+        self.qwindow.start_system_move()
+    }
+
+    ///
+    /// Start a system-specific resize operation.
+    /// Returns true if the operation was supported by the system.
+    ///
+    pub fn start_system_resize(&mut self, edges: Edge) -> bool {
+        self.qwindow.start_system_resize(edges.bits())
     }
 
     ///

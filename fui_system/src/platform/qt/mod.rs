@@ -1,6 +1,7 @@
 mod application;
 mod application_options;
 mod dispatcher;
+mod edge;
 mod file_dialog;
 mod icon;
 mod translucent_effect;
@@ -13,6 +14,7 @@ mod qt_wrapper;
 pub use application::Application;
 pub use application_options::ApplicationOptions;
 pub use dispatcher::Dispatcher;
+pub use edge::Edge;
 pub use file_dialog::*;
 pub use icon::Icon;
 pub use translucent_effect::TranslucentEffect;

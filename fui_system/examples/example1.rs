@@ -1,6 +1,7 @@
 #![windows_subsystem = "windows"]
 
 use fui_system::*;
+use fui_system_core::{ElementState, Event, MouseButton, Position};
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
 use std::error::Error;
@@ -124,28 +125,84 @@ fn create_new_window() -> Rc<RefCell<Window>> {
         window.resize(500, 500);
 
         let mut initialized = false;
-        let window_weak = Rc::downgrade(&window_rc);
-        window.on_paint_gl(move || unsafe {
-            if !initialized {
-                if let Some(window_rc) = window_weak.upgrade() {
-                    gl::load_with(|s| {
-                        window_rc
-                            .borrow()
-                            .get_opengl_proc_address(s)
-                            .unwrap_or_else(|_| null())
-                    });
+        window.on_paint_gl({
+            let window_weak = Rc::downgrade(&window_rc);
+            move || unsafe {
+                if !initialized {
+                    if let Some(window_rc) = window_weak.upgrade() {
+                        gl::load_with(|s| {
+                            window_rc
+                                .borrow()
+                                .get_opengl_proc_address(s)
+                                .unwrap_or_else(|_| null())
+                        });
+                    }
+                    initialized = true;
                 }
-                initialized = true;
-            }
 
-            gl::ClearColor(0.5f32, 0.0f32, 0.0f32, 0.2f32);
-            gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+                gl::ClearColor(0.5f32, 0.0f32, 0.0f32, 0.2f32);
+                gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT | gl::STENCIL_BUFFER_BIT);
+            }
         });
 
-        window.on_event(move |event| {
-            println!("Event: {:?}", event);
-            false
+        window.on_event({
+            let window_weak = Rc::downgrade(&window_rc);
+            let mut mouse_position = Box::new(Position {
+                x: 0.0f32,
+                y: 0.0f32,
+            });
+            move |event| {
+                println!("Event: {:?}", event);
+
+                match event {
+                    Event::MouseButton {
+                        state: ElementState::Pressed,
+                        button: MouseButton::Left,
+                    } => {
+                        if let Some(window_rc) = window_weak.upgrade() {
+                            let width = window_rc.borrow_mut().get_width() as f32;
+                            let height = window_rc.borrow_mut().get_height() as f32;
+
+                            let mut edge = 0i32;
+
+                            if mouse_position.x >= 0.0f32 && mouse_position.x <= 10.0f32 {
+                                edge += Edge::Left.bits();
+                            } else if mouse_position.x >= width - 11.0f32
+                                && mouse_position.x < width
+                            {
+                                edge += Edge::Right.bits();
+                            }
+
+                            if mouse_position.y >= 0.0f32 && mouse_position.y <= 10.0f32 {
+                                edge += Edge::Top.bits();
+                            } else if mouse_position.y >= height - 11.0f32
+                                && mouse_position.y < height
+                            {
+                                edge += Edge::Bottom.bits();
+                            }
+
+                            if edge != 0 {
+                                window_rc
+                                    .borrow_mut()
+                                    .start_system_resize(Edge::from_bits(edge).unwrap());
+                            } else {
+                                window_rc.borrow_mut().start_system_move();
+                            }
+                        }
+                    }
+
+                    Event::MouseMove { position } => {
+                        mouse_position.x = position.x;
+                        mouse_position.y = position.y;
+                    }
+
+                    _ => (),
+                }
+
+                false
+            }
         });
     }
+
     window_rc
 }

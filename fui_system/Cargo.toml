@@ -14,6 +14,7 @@ edition = "2021"
 [dependencies]
 fui_system_core = { path = "../fui_system_core", version = "0.11" }
 thiserror = "1.0"
+bitflags = "2.1"
 
 [build-dependencies]
 cbindgen = "0.20"

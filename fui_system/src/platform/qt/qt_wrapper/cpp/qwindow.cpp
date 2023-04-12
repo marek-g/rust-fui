@@ -104,6 +104,18 @@ void QWindow_setMinimumSize(void *self, int width, int height)
     window->setMinimumSize(size);
 }
 
+int QWindow_startSystemMove(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->startSystemMove();
+}
+
+int QWindow_startSystemResize(void *self, int edges)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->startSystemResize((Qt::Edge)edges);
+}
+
 void QWindow_update(void *self)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);
