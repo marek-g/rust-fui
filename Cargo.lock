@@ -637,7 +637,7 @@ dependencies = [
 
 [[package]]
 name = "fui_system"
-version = "0.11.4"
+version = "0.11.5"
 dependencies = [
  "bindgen",
  "cbindgen",
