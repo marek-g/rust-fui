@@ -27,9 +27,9 @@ struct WINDOWCOMPOSITIONATTRIBDATA {	// Options for [Get/Set]WindowCompositionAt
 
 typedef BOOL (WINAPI* PFN_SET_WINDOW_COMPOSITION_ATTRIBUTE)(HWND, const WINDOWCOMPOSITIONATTRIBDATA *);
 
-void EnableBlurWin32(HWND hwnd) {
+void EnableBlurWin32(HWND hwnd, bool enabled) {
     ACCENT_POLICY policy = {
-            ACCENT_ENABLE_BLURBEHIND,
+            enabled ? ACCENT_ENABLE_BLURBEHIND : ACCENT_DISABLED,
             0,
             0,
             0

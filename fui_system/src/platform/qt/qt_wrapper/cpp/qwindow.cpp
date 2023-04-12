@@ -69,7 +69,7 @@ void QWindow_setTranslucentBackground(void *self, const int translucentEffect)
     KWindowEffects::enableBlurBehind(window, translucentEffect == 2);
     #endif
     #ifdef _WIN32
-    EnableBlurWin32((HWND)window->winId());
+    EnableBlurWin32((HWND)window->winId(), translucentEffect == 2);
     #endif
 }
 
