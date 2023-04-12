@@ -106,6 +106,12 @@ impl QWindow {
         }
     }
 
+    pub fn set_cursor_shape(&mut self, cursor_shape: i32) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setCursorShape(self.this, cursor_shape);
+        }
+    }
+
     pub fn start_system_move(&mut self) -> bool {
         unsafe {
             return crate::platform::qt::qt_wrapper::QWindow_startSystemMove(self.this) != 0;

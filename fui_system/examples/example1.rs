@@ -163,28 +163,10 @@ fn create_new_window() -> Rc<RefCell<Window>> {
                             let width = window_rc.borrow_mut().get_width() as f32;
                             let height = window_rc.borrow_mut().get_height() as f32;
 
-                            let mut edge = 0i32;
-
-                            if mouse_position.x >= 0.0f32 && mouse_position.x <= 10.0f32 {
-                                edge += Edge::Left.bits();
-                            } else if mouse_position.x >= width - 11.0f32
-                                && mouse_position.x < width
-                            {
-                                edge += Edge::Right.bits();
-                            }
-
-                            if mouse_position.y >= 0.0f32 && mouse_position.y <= 10.0f32 {
-                                edge += Edge::Top.bits();
-                            } else if mouse_position.y >= height - 11.0f32
-                                && mouse_position.y < height
-                            {
-                                edge += Edge::Bottom.bits();
-                            }
-
-                            if edge != 0 {
-                                window_rc
-                                    .borrow_mut()
-                                    .start_system_resize(Edge::from_bits(edge).unwrap());
+                            let edge =
+                                position_to_edge(mouse_position.x, mouse_position.y, width, height);
+                            if !edge.is_empty() {
+                                window_rc.borrow_mut().start_system_resize(edge);
                             } else {
                                 window_rc.borrow_mut().start_system_move();
                             }
@@ -194,6 +176,24 @@ fn create_new_window() -> Rc<RefCell<Window>> {
                     Event::MouseMove { position } => {
                         mouse_position.x = position.x;
                         mouse_position.y = position.y;
+
+                        if let Some(window_rc) = window_weak.upgrade() {
+                            let width = window_rc.borrow_mut().get_width() as f32;
+                            let height = window_rc.borrow_mut().get_height() as f32;
+
+                            let edge =
+                                position_to_edge(mouse_position.x, mouse_position.y, width, height);
+
+                            let cursor = match edge {
+                                Edge::Left | Edge::Right => CursorShape::SizeHorCursor,
+                                Edge::Top | Edge::Bottom => CursorShape::SizeVerCursor,
+                                Edge::TopLeft | Edge::BottomRight => CursorShape::SizeFDiagCursor,
+                                Edge::TopRight | Edge::BottomLeft => CursorShape::SizeBDiagCursor,
+                                _ => CursorShape::CrossCursor,
+                            };
+
+                            window_rc.borrow_mut().set_cursor(cursor);
+                        }
                     }
 
                     _ => (),
@@ -205,4 +205,22 @@ fn create_new_window() -> Rc<RefCell<Window>> {
     }
 
     window_rc
+}
+
+fn position_to_edge(x: f32, y: f32, width: f32, height: f32) -> Edge {
+    let mut edge = 0i32;
+
+    if x >= 0.0f32 && x <= 10.0f32 {
+        edge += Edge::Left.bits();
+    } else if x >= width - 11.0f32 && x < width {
+        edge += Edge::Right.bits();
+    }
+
+    if y >= 0.0f32 && y <= 10.0f32 {
+        edge += Edge::Top.bits();
+    } else if y >= height - 11.0f32 && y < height {
+        edge += Edge::Bottom.bits();
+    }
+
+    Edge::from_bits(edge).unwrap()
 }

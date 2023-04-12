@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 
 bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
     pub struct Edge: i32 {
     const Top = 0x01;
     const Left = 0x02;

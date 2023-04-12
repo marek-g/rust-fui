@@ -22,6 +22,7 @@ int QWindow_getWidth(void *self);
 int QWindow_getHeight(void *self);
 void QWindow_resize(void *self, int width, int height);
 void QWindow_setMinimumSize(void *self, int width, int height);
+void QWindow_setCursorShape(void *self, int cursorShape);
 int QWindow_startSystemMove(void *self);
 int QWindow_startSystemResize(void *self, int edges);
 

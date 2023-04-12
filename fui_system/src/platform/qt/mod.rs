@@ -1,5 +1,6 @@
 mod application;
 mod application_options;
+mod cursor_shape;
 mod dispatcher;
 mod edge;
 mod file_dialog;
@@ -13,6 +14,7 @@ mod qt_wrapper;
 
 pub use application::Application;
 pub use application_options::ApplicationOptions;
+pub use cursor_shape::CursorShape;
 pub use dispatcher::Dispatcher;
 pub use edge::Edge;
 pub use file_dialog::*;

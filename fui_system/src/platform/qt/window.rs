@@ -8,7 +8,7 @@ use fui_system_core::{
 };
 use std::ffi::{c_void, CStr};
 
-use super::{Edge, TranslucentEffect, WindowFrameType};
+use super::{CursorShape, Edge, TranslucentEffect, WindowFrameType};
 
 ///
 /// Represents a window in the underlying windowing system.
@@ -125,6 +125,37 @@ impl Window {
     ///
     pub fn set_minimum_size(&mut self, width: i32, height: i32) {
         self.qwindow.set_minimum_size(width, height);
+    }
+
+    ///
+    /// Sets the cursor shape for this window.
+    ///
+    pub fn set_cursor(&mut self, cursor_shape: CursorShape) {
+        let cursor_shape = match cursor_shape {
+            CursorShape::ArrowCursor => 0,
+            CursorShape::UpArrowCursor => 1,
+            CursorShape::CrossCursor => 2,
+            CursorShape::WaitCursor => 3,
+            CursorShape::IBeamCursor => 4,
+            CursorShape::SizeVerCursor => 5,
+            CursorShape::SizeHorCursor => 6,
+            CursorShape::SizeBDiagCursor => 7,
+            CursorShape::SizeFDiagCursor => 8,
+            CursorShape::SizeAllCursor => 9,
+            CursorShape::BlankCursor => 10,
+            CursorShape::SplitVCursor => 11,
+            CursorShape::SplitHCursor => 12,
+            CursorShape::PointingHandCursor => 13,
+            CursorShape::ForbiddenCursor => 14,
+            CursorShape::OpenHandCursor => 17,
+            CursorShape::ClosedHandCursor => 18,
+            CursorShape::WhatsThisCursor => 15,
+            CursorShape::BusyCursor => 16,
+            CursorShape::DragMoveCursor => 20,
+            CursorShape::DragCopyCursor => 19,
+            CursorShape::DragLinkCursor => 21,
+        };
+        self.qwindow.set_cursor_shape(cursor_shape);
     }
 
     ///

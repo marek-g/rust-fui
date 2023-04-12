@@ -104,6 +104,12 @@ void QWindow_setMinimumSize(void *self, int width, int height)
     window->setMinimumSize(size);
 }
 
+void QWindow_setCursorShape(void *self, int cursorShape)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setCursor(QCursor((Qt::CursorShape)cursorShape));
+}
+
 int QWindow_startSystemMove(void *self)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);

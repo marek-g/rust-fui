@@ -4,6 +4,7 @@ pub use common::MenuItem;
 
 pub use platform::Application;
 pub use platform::ApplicationOptions;
+pub use platform::CursorShape;
 pub use platform::Dispatcher;
 pub use platform::Edge;
 pub use platform::FileDialog;
