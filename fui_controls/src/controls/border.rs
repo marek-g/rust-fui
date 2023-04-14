@@ -12,6 +12,7 @@ pub enum BorderType {
     None,
     Sunken,
     Raisen,
+    Frame3D,
 }
 
 #[derive(TypedBuilder)]
@@ -63,6 +64,7 @@ impl DefaultBorderStyle {
         match data.border_type {
             BorderType::None => 0f32,
             BorderType::Sunken | BorderType::Raisen => BORDER_SIZE,
+            BorderType::Frame3D => BORDER_SIZE * 3.0f32,
         }
     }
 }
@@ -189,6 +191,8 @@ impl Style<Border> for DefaultBorderStyle {
         }
 
         match data.border_type {
+            BorderType::None => (),
+
             BorderType::Sunken => {
                 default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false)
             }
@@ -197,7 +201,16 @@ impl Style<Border> for DefaultBorderStyle {
                 default_theme::border_3d_single(&mut vec, x, y, width, height, false, false, false)
             }
 
-            BorderType::None => (),
+            BorderType::Frame3D => default_theme::border_3d_with_color(
+                &mut vec,
+                x,
+                y,
+                width,
+                height,
+                true,
+                true,
+                default_theme::WINDOW_FRAME_COLOR,
+            ),
         }
 
         let children = control_context.get_children();

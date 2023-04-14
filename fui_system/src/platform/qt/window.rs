@@ -4,11 +4,10 @@ use crate::platform::qt::qt_wrapper::{
 };
 use crate::{FUISystemError, Icon};
 use fui_system_core::{
-    ElementState, Event, KeyModifiers, Keycode, MouseButton, Position, ScrollDelta,
+    CursorShape, Edge, ElementState, Event, KeyModifiers, Keycode, MouseButton, Position,
+    ScrollDelta, TranslucentEffect, WindowFrameType,
 };
 use std::ffi::{c_void, CStr};
-
-use super::{CursorShape, Edge, TranslucentEffect, WindowFrameType};
 
 ///
 /// Represents a window in the underlying windowing system.

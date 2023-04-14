@@ -8,6 +8,7 @@ use fui_core::{Children, Grid, Rect, Size, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
+use fui_system_core::{CursorShape, Edge};
 use std::cell::RefCell;
 use std::ptr::null;
 use std::rc::{Rc, Weak};
@@ -530,6 +531,53 @@ impl fui_core::WindowService for WindowVMThreadData {
                 let app_context = context.as_mut().unwrap();
                 if let Some(window) = app_context.windows.get_mut(&window_id) {
                     window.system_window.as_mut().unwrap().update();
+                }
+            });
+        });
+    }
+
+    fn set_cursor(&mut self, cursor_shape: CursorShape) {
+        let window_id = self.id;
+        fui_system::Application::post_func(move || {
+            APPLICATION_GUI_CONTEXT.with(move |context| {
+                let mut context = context.borrow_mut();
+                let app_context = context.as_mut().unwrap();
+                if let Some(window) = app_context.windows.get_mut(&window_id) {
+                    window
+                        .system_window
+                        .as_mut()
+                        .unwrap()
+                        .set_cursor(cursor_shape);
+                }
+            });
+        });
+    }
+
+    fn start_system_move(&mut self) {
+        let window_id = self.id;
+        fui_system::Application::post_func(move || {
+            APPLICATION_GUI_CONTEXT.with(move |context| {
+                let mut context = context.borrow_mut();
+                let app_context = context.as_mut().unwrap();
+                if let Some(window) = app_context.windows.get_mut(&window_id) {
+                    window.system_window.as_mut().unwrap().start_system_move();
+                }
+            });
+        });
+    }
+
+    fn start_system_resize(&mut self, edges: Edge) {
+        let window_id = self.id;
+        fui_system::Application::post_func(move || {
+            APPLICATION_GUI_CONTEXT.with(move |context| {
+                let mut context = context.borrow_mut();
+                let app_context = context.as_mut().unwrap();
+                if let Some(window) = app_context.windows.get_mut(&window_id) {
+                    window
+                        .system_window
+                        .as_mut()
+                        .unwrap()
+                        .start_system_resize(edges);
                 }
             });
         });

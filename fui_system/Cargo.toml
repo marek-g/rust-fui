@@ -1,6 +1,6 @@
 [package]
 name = "fui_system"
-version = "0.11.6"
+version = "0.12.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "System controls (dialogs, tray etc.) for FUI UI Framework"
 keywords = ["windowing", "gui", "framework", "dialog", "tray"]
@@ -12,9 +12,8 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_system_core = { path = "../fui_system_core", version = "0.11" }
+fui_system_core = { path = "../fui_system_core", version = "0.12" }
 thiserror = "1.0"
-bitflags = "2.1"
 
 [build-dependencies]
 cbindgen = "0.20"

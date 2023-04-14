@@ -15,6 +15,8 @@ const HOVER_HIGHLIGHT: [f32; 3] = [1.25f32, 1.25f32, 1.25f32];
 const PRESSED_HIGHLIGHT: [f32; 3] = [0.75f32, 0.75f32, 0.75f32];
 const FOCUSED_HIGHLIGHT: [f32; 3] = [2.0f32, 2.0f32, 1.0f32];
 
+pub const WINDOW_FRAME_COLOR: Color = [0.0f32, 0.4f32, 1.0f32, 1.0f32];
+
 fn multiply_color(color: Color, factor: [f32; 3]) -> Color {
     [
         (color[0] * factor[0]).min(1.0f32),
@@ -316,6 +318,27 @@ pub fn border_3d_edit(
     is_hover: bool,
     is_focused: bool,
 ) {
+    let color = if is_focused {
+        multiply_color([0.4f32, 0.4f32, 0.4f32, 1.0f32], FOCUSED_HIGHLIGHT)
+    } else if is_hover {
+        multiply_color([0.35f32, 0.35f32, 0.35f32, 1.0f32], FOCUSED_HIGHLIGHT)
+    } else {
+        [0.4f32, 0.4f32, 0.4f32, 1.0f32]
+    };
+
+    border_3d_with_color(vec, x, y, width, height, is_hover, is_focused, color);
+}
+
+pub fn border_3d_with_color(
+    vec: &mut Vec<Primitive>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    is_hover: bool,
+    is_focused: bool,
+    fill_color: Color,
+) {
     border_3d_single(vec, x, y, width, height, false, is_hover, is_focused);
 
     border_3d_single(
@@ -329,13 +352,6 @@ pub fn border_3d_edit(
         is_focused,
     );
 
-    let color = if is_focused {
-        multiply_color([0.4f32, 0.4f32, 0.4f32, 1.0f32], FOCUSED_HIGHLIGHT)
-    } else if is_hover {
-        multiply_color([0.35f32, 0.35f32, 0.35f32, 1.0f32], FOCUSED_HIGHLIGHT)
-    } else {
-        [0.4f32, 0.4f32, 0.4f32, 1.0f32]
-    };
     vec.push(Primitive::Stroke {
         path: pixel_rect_path(
             PixelRect::new(
@@ -345,7 +361,7 @@ pub fn border_3d_edit(
             PixelThickness::new(1.0f32),
         ),
         thickness: PixelThickness::new(1.0f32),
-        brush: drawing::primitive::Brush::Color { color },
+        brush: drawing::primitive::Brush::Color { color: fill_color },
     });
 }
 

@@ -14,6 +14,7 @@ struct QueuedEvent {
 
 pub struct EventProcessor {
     hovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
+    hit_tested_control: Option<Weak<RefCell<dyn ControlObject>>>,
     captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
     focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
 
@@ -28,6 +29,7 @@ impl EventProcessor {
     pub fn new() -> Self {
         EventProcessor {
             hovered_controls: Vec::new(),
+            hit_tested_control: None,
             captured_control: None,
             focused_control: None,
 
@@ -178,6 +180,7 @@ impl EventProcessor {
     fn recalculate_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
         if let Some(position) = self.cursor_pos {
             let mut controls_to_hover = root_view.borrow().get_hit_path(position);
+            let hit_tested_control = controls_to_hover.iter().next().map(|c| c.clone());
 
             // if there is captured control, only captured control can be hovered
             if let Some(captured_control) = &self.captured_control {
@@ -188,6 +191,22 @@ impl EventProcessor {
                     } else {
                         i += 1;
                     }
+                }
+            }
+
+            // leave hit test
+            if let Some(currently_hit_tested_control) = self.hit_tested_control.clone() {
+                let leave = if let Some(hit_tested_control) = &hit_tested_control {
+                    !Weak::ptr_eq(&currently_hit_tested_control, hit_tested_control)
+                } else {
+                    true
+                };
+                if leave {
+                    self.hit_tested_control = None;
+                    self.queue_event(
+                        currently_hit_tested_control.upgrade(),
+                        ControlEvent::HitTestChange(false),
+                    );
                 }
             }
 
@@ -214,11 +233,29 @@ impl EventProcessor {
                 }
             }
 
+            // enter hit test
+            if self.hit_tested_control.is_none() && hit_tested_control.is_some() {
+                self.hit_tested_control = hit_tested_control;
+                self.queue_event(
+                    self.hit_tested_control.as_ref().unwrap().upgrade(),
+                    ControlEvent::HitTestChange(true),
+                );
+            }
+
             self.hovered_controls = controls_to_hover;
         }
     }
 
     fn clear_hover(&mut self) {
+        // leave hit test
+        if let Some(hit_tested_control) = self.hit_tested_control.take() {
+            self.queue_event(
+                hit_tested_control.upgrade(),
+                ControlEvent::HitTestChange(false),
+            );
+        }
+
+        // leave hover
         let mut to_leave_hover = Vec::new();
         to_leave_hover.append(&mut self.hovered_controls);
         for c in to_leave_hover {

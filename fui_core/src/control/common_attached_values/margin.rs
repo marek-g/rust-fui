@@ -30,13 +30,15 @@ impl Margin {
         rect
     }
 
-    pub fn add_to_size(mut size: Size, map: &TypeMap) -> Size {
-        let thickness = if let Some(t) = map.get::<Margin>() {
-            *t
+    pub fn add_to_size(size: Size, map: &TypeMap) -> Size {
+        if let Some(t) = map.get::<Margin>() {
+            Self::add_thickness_to_size(size, *t)
         } else {
-            return size;
-        };
+            size
+        }
+    }
 
+    pub fn add_thickness_to_size(mut size: Size, thickness: Thickness) -> Size {
         if size.width.is_finite() {
             size.width = 0.0f32.max(size.width + thickness.left + thickness.right);
         }
@@ -47,13 +49,15 @@ impl Margin {
         size
     }
 
-    pub fn remove_from_size(mut size: Size, map: &TypeMap) -> Size {
-        let thickness = if let Some(t) = map.get::<Margin>() {
-            *t
+    pub fn remove_from_size(size: Size, map: &TypeMap) -> Size {
+        if let Some(t) = map.get::<Margin>() {
+            Self::remove_thickness_from_size(size, *t)
         } else {
-            return size;
-        };
+            size
+        }
+    }
 
+    pub fn remove_thickness_from_size(mut size: Size, thickness: Thickness) -> Size {
         if size.width.is_finite() {
             size.width = 0.0f32.max(size.width - thickness.left - thickness.right);
         }

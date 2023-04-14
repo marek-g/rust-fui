@@ -546,7 +546,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.12.2"
+version = "0.13.0"
 dependencies = [
  "anyhow",
  "cpu-time",
@@ -567,12 +567,13 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "drawing",
  "euclid",
  "fui_core",
  "fui_macros",
+ "fui_system_core",
  "futures-channel",
  "typed-builder",
  "typemap",
@@ -580,7 +581,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -602,11 +603,12 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "anyhow",
  "drawing",
  "fui_macros",
+ "fui_system_core",
  "futures-signals",
  "tokio",
  "typed-builder",
@@ -624,6 +626,7 @@ dependencies = [
  "fui_core",
  "fui_macros",
  "fui_system",
+ "fui_system_core",
  "time",
  "tokio",
  "typed-builder",
@@ -643,10 +646,9 @@ dependencies = [
 
 [[package]]
 name = "fui_system"
-version = "0.11.6"
+version = "0.12.0"
 dependencies = [
  "bindgen",
- "bitflags 2.1.0",
  "cbindgen",
  "fui_system_core",
  "gl",
@@ -656,7 +658,10 @@ dependencies = [
 
 [[package]]
 name = "fui_system_core"
-version = "0.11.0"
+version = "0.12.0"
+dependencies = [
+ "bitflags 2.1.0",
+]
 
 [[package]]
 name = "futures-channel"

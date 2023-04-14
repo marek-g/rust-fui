@@ -4,16 +4,12 @@ pub use common::MenuItem;
 
 pub use platform::Application;
 pub use platform::ApplicationOptions;
-pub use platform::CursorShape;
 pub use platform::Dispatcher;
-pub use platform::Edge;
 pub use platform::FileDialog;
 pub use platform::Icon;
-pub use platform::TranslucentEffect;
 pub use platform::TrayIcon;
 pub use platform::TrayIconType;
 pub use platform::Window;
-pub use platform::WindowFrameType;
 
 mod common;
 mod platform;

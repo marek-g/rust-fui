@@ -1,1 +1,1 @@
-pub type Color = [f32; 4]; // A, R, G, B
+pub type Color = [f32; 4]; // R, G, B, A
