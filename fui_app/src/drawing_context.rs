@@ -211,7 +211,7 @@ impl DrawingContext {
                             data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 0] = color_value + 25;
                             data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 1] = color_value + 25;
                             data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 2] = color_value + 25;
-                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 255;
+                            data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 180;
                         }
                     }
                 }

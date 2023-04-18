@@ -46,6 +46,8 @@ impl ViewModel for MainViewModel {
         Border { border_type: BorderType::Frame3D },
 
                 MoveResizeArea {
+            border_size: Thickness::all(3.0f32),
+
             Horizontal {
                         Text {
                 Margin: Thickness::all(5.0f32),
@@ -80,6 +82,7 @@ async fn main() -> Result<()> {
             let mut window = Window::create(
                 WindowOptions::new()
                     .with_title("Example: button")
+                    .with_translucent_background(fui_system_core::TranslucentEffect::Transparent)
                     .with_frame_type(WindowFrameType::Frameless)
                     .with_size(800, 600),
             )
