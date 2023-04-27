@@ -55,6 +55,12 @@ void QWindow_setFrameType(void *self, const int frameType)
     window->setFlag(Qt::FramelessWindowHint, frameType == 0);
 }
 
+void QWindow_setPopupWindow(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    window->setFlag(Qt::Popup, true);
+}
+
 void QWindow_setTranslucentBackground(void *self, const int translucentEffect)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);
@@ -77,6 +83,42 @@ void QWindow_setVisible(void *self, int visible)
 {
     QWindowExt *window = static_cast<QWindowExt *>(self);
     window->setVisible(visible != 0);
+}
+
+int QWindow_getPositionX(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->position().x();
+}
+
+int QWindow_getPositionY(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->position().y();
+}
+
+void QWindow_setPosition(void *self, int x, int y)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->setPosition(QPoint(x, y));
+}
+
+int QWindow_getFramePositionX(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->framePosition().x();
+}
+
+int QWindow_getFramePositionY(void *self)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->framePosition().y();
+}
+
+void QWindow_setFramePosition(void *self, int x, int y)
+{
+    QWindowExt *window = static_cast<QWindowExt *>(self);
+    return window->setFramePosition(QPoint(x, y));
 }
 
 int QWindow_getWidth(void *self)

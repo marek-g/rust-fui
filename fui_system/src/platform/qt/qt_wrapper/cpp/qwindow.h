@@ -15,9 +15,16 @@ void QWindow_setIcon(void *self, const void *icon);
 void QWindow_setStayOnTop(void *self, const int stayOnTop);
 void QWindow_setTransparentForInput(void *self, const int transparentForInput);
 void QWindow_setFrameType(void *self, const int frameType);
+void QWindow_setPopupWindow(void *self);
 void QWindow_setTranslucentBackground(void *self, const int translucentEffect);
 void QWindow_setVisible(void *self, int visible);
 
+int QWindow_getPositionX(void *self);
+int QWindow_getPositionY(void *self);
+void QWindow_setPosition(void *self, int x, int y);
+int QWindow_getFramePositionX(void *self);
+int QWindow_getFramePositionY(void *self);
+void QWindow_setFramePosition(void *self, int x, int y);
 int QWindow_getWidth(void *self);
 int QWindow_getHeight(void *self);
 void QWindow_resize(void *self, int width, int height);

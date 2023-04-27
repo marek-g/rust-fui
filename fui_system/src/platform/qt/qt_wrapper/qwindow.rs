@@ -68,6 +68,12 @@ impl QWindow {
         }
     }
 
+    pub fn set_popup_window(&mut self) {
+        unsafe {
+            crate::platform::qt::qt_wrapper::QWindow_setPopupWindow(self.this);
+        }
+    }
+
     pub fn set_translucent_background(&mut self, translucent_effect: i32) {
         unsafe {
             crate::platform::qt::qt_wrapper::QWindow_setTranslucentBackground(
@@ -84,6 +90,41 @@ impl QWindow {
                 if is_visible { 1 } else { 0 },
             );
         }
+    }
+
+    pub fn get_position(&mut self) -> (i32, i32) {
+        unsafe {
+            (
+                crate::platform::qt::qt_wrapper::QWindow_getPositionX(self.this),
+                crate::platform::qt::qt_wrapper::QWindow_getPositionY(self.this),
+            )
+        }
+    }
+
+    ///
+    /// Sets window position (excluding it's window frame).
+    ///
+    pub fn set_position(&mut self, x: i32, y: i32) {
+        unsafe { crate::platform::qt::qt_wrapper::QWindow_setPosition(self.this, x, y) }
+    }
+
+    ///
+    /// Gets window position (including it's window frame).
+    ///
+    pub fn get_frame_position(&mut self) -> (i32, i32) {
+        unsafe {
+            (
+                crate::platform::qt::qt_wrapper::QWindow_getFramePositionX(self.this),
+                crate::platform::qt::qt_wrapper::QWindow_getFramePositionY(self.this),
+            )
+        }
+    }
+
+    ///
+    /// Sets window position (including it's window frame).
+    ///
+    pub fn set_frame_position(&mut self, x: i32, y: i32) {
+        unsafe { crate::platform::qt::qt_wrapper::QWindow_setFramePosition(self.this, x, y) }
     }
 
     pub fn get_width(&mut self) -> i32 {

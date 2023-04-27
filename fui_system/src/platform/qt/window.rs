@@ -75,6 +75,13 @@ impl Window {
     }
 
     ///
+    /// Makes the window popup window.
+    ///
+    pub fn set_popup_window(&mut self) {
+        self.qwindow.set_popup_window();
+    }
+
+    ///
     /// Sets if window should have an alpha channel for translucent regions.
     ///
     pub fn set_translucent_background(
@@ -96,6 +103,34 @@ impl Window {
     pub fn set_visible(&mut self, visible: bool) -> Result<(), FUISystemError> {
         self.qwindow.set_visible(visible);
         Ok(())
+    }
+
+    ///
+    /// Gets window position (excluding it's window frame).
+    ///
+    pub fn get_position(&mut self) -> (i32, i32) {
+        self.qwindow.get_position()
+    }
+
+    ///
+    /// Sets window position (excluding it's window frame).
+    ///
+    pub fn set_position(&mut self, x: i32, y: i32) {
+        self.qwindow.set_position(x, y)
+    }
+
+    ///
+    /// Gets window position (including it's window frame).
+    ///
+    pub fn get_frame_position(&mut self) -> (i32, i32) {
+        self.qwindow.get_frame_position()
+    }
+
+    ///
+    /// Sets window position (including it's window frame).
+    ///
+    pub fn set_frame_position(&mut self, x: i32, y: i32) {
+        self.qwindow.set_frame_position(x, y)
     }
 
     ///
