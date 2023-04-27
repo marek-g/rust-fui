@@ -47,13 +47,28 @@ Note! The visual aspect of the library is a subject to change. Margins are missi
 
 ## Features
 
-- cross-platform (currently: Windows, Linux)
-- renderer agnostic (sample integration with OpenGL)
-- MVVM model with properties, bindings, observable collections
-- async support
-- you do not care about redraw calls
-- `ui!` macro for easier view creation
-- extensive styling (style can change behavior)
+- cross-platform:
+  - [x] Linux (x11 & wayland using Qt)
+  - [x] Windows (using Qt)
+  - [ ] Android
+  - [ ] Wasm
+- renderer agnostic:
+  - [x] `OpenGL` backend
+- native elements:
+  - [x] multiple windows
+  - [x] tray icons
+  - [ ] native popup windows
+  - [x] fallback to simulated popup windows (rendered in parent window)
+- accessibility:
+  - [ ] keyboard support
+  - [ ] AccessKit
+- MVVM model with:
+  - [x] properties,
+  - [x] bindings,
+  - [x] observable collections
+- [x] async support
+- [x] `ui!` macro for easier view creation
+- [x] extensive styling (style can change behavior)
 
 ## Example
 
