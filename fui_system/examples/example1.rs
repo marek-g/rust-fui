@@ -1,7 +1,9 @@
 #![windows_subsystem = "windows"]
 
 use fui_system::*;
-use fui_system_core::{ElementState, Event, MouseButton, Position};
+use fui_system_core::{
+    CursorShape, Edge, ElementState, Event, MouseButton, Position, TranslucentEffect,
+};
 use rust_embed::RustEmbed;
 use std::cell::RefCell;
 use std::error::Error;
