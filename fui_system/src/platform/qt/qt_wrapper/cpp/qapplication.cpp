@@ -6,6 +6,10 @@
 #include "qapplication.h"
 #include <stdlib.h>
 
+#ifdef Q_OS_UNIX
+#include <locale.h>
+#endif
+
 int argc_copy;
 char **argv_copy;
 
@@ -21,7 +25,20 @@ void *QApplication_new(int argc, const char** const argv)
         strcpy(argv_copy[i], argv[i]);
     }
 
-    return static_cast<void *>(new (std::nothrow) QApplication(argc_copy, argv_copy));
+    void *app = static_cast<void *>(new (std::nothrow) QApplication(argc_copy, argv_copy));
+
+#if defined(Q_OS_UNIX)
+    // On Unix/Linux Qt is configured to use the system locale settings by
+    // default. This can cause a conflict when using POSIX functions, for
+    // instance, when converting between data types such as floats and
+    // strings, since the notation may differ between locales. To get
+    // around this problem, call the POSIX function \c{setlocale(LC_NUMERIC,"C")}
+    // right after initializing QApplication, QGuiApplication or QCoreApplication
+    // to reset the locale that is used for number formatting to "C"-locale.
+    setlocale(LC_ALL, "C");
+#endif
+
+    return app;
 }
 
 void QApplication_delete(void *self)
