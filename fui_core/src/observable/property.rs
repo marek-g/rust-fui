@@ -18,7 +18,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
-        let mut new_property = Property {
+        let new_property = Property {
             data: Mutable::new(src_property.get()),
             bind_handle: Arc::new(RwLock::new(None)),
         };
@@ -30,33 +30,33 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         src_property: &Property<TSrc>,
         f: F,
     ) -> Self {
-        let mut new_property = Property::new(f(src_property.get()));
+        let new_property = Property::new(f(src_property.get()));
         new_property.bind_c(src_property, f);
         new_property
     }
 
-    pub fn binded_to(dst_property: &mut Property<T>, init_value: T) -> Self {
+    pub fn binded_to(dst_property: &Property<T>, init_value: T) -> Self {
         let property = Property::new(init_value);
         dst_property.bind(&property);
         property
     }
 
     pub fn binded_c_to<TDst: 'static + Clone + PartialEq, F: 'static + Fn(T) -> TDst>(
-        dst_property: &mut Property<TDst>,
+        dst_property: &Property<TDst>,
         f: F,
         init_value: T,
     ) -> Self {
-        let mut property = Property::new(init_value);
-        dst_property.bind_c(&mut property, f);
+        let property = Property::new(init_value);
+        dst_property.bind_c(&property, f);
         property
     }
 
-    pub fn binded_two_way(other_property: &mut Property<T>) -> Self {
+    pub fn binded_two_way(other_property: &Property<T>) -> Self {
         other_property.clone()
     }
 
     pub fn binded_c_two_way<TOther, F1, F2>(
-        other_property: &mut Property<TOther>,
+        other_property: &Property<TOther>,
         f1: F1,
         f2: F2,
     ) -> Self
@@ -65,16 +65,16 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         F1: 'static + Fn(TOther) -> T,
         F2: 'static + Fn(T) -> TOther,
     {
-        let mut property = Property::binded_c_from(other_property, f1);
-        other_property.bind_c(&mut property, f2);
+        let property = Property::binded_c_from(other_property, f1);
+        other_property.bind_c(&property, f2);
         property
     }
 
-    pub fn set(&mut self, val: T) {
+    pub fn set(&self, val: T) {
         self.data.set_neq(val);
     }
 
-    pub fn change<F: 'static + Fn(T) -> T>(&mut self, f: F) {
+    pub fn change<F: 'static + Fn(T) -> T>(&self, f: F) {
         let val = self.data.get_cloned();
         self.data.set_neq(f(val));
     }
@@ -83,7 +83,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
         self.data.get_cloned()
     }
 
-    pub fn bind(&mut self, src_property: &Property<T>) {
+    pub fn bind(&self, src_property: &Property<T>) {
         let handle = spawn_local(src_property.data.signal_cloned().for_each({
             let data = self.data.clone();
             move |v| {
@@ -98,7 +98,7 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
-        &mut self,
+        &self,
         src_property: &Property<TSrc>,
         f: F,
     ) {

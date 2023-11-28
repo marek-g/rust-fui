@@ -18,28 +18,26 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(MainViewModel {
+    pub fn new() -> Rc<Self> {
+        Rc::new(MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
-        }))
+        })
     }
 
-    pub fn increase(&mut self) {
+    pub fn increase(&self) {
         self.counter.change(|c| c + 1);
     }
 
-    pub fn decrease(&mut self) {
+    pub fn decrease(&self) {
         self.counter.change(|c| c - 1);
     }
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-
-        vm.counter2.bind(&mut vm.counter);
-        vm.counter.bind(&mut vm.counter2);
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        vm.counter2.bind(&vm.counter);
+        vm.counter.bind(&vm.counter2);
 
         ui!(
             Grid {
@@ -54,11 +52,11 @@ impl ViewModel for MainViewModel {
                 text: (&vm.counter, |counter| format!("Counter {}", counter))
                         },
                         Button {
-                clicked: Callback::new_vm(view_model, |vm, _| vm.decrease()),
+                clicked: Callback::new_vm(&vm, |vm, _| vm.decrease()),
                 Text { text: "Decrease" }
                         },
                         Button {
-                clicked: Callback::new_vm(view_model, |vm, _| vm.increase()),
+                clicked: Callback::new_vm(&vm, |vm, _| vm.increase()),
                 Text { text: "Increase" }
                         },
                         Text {

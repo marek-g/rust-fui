@@ -171,7 +171,7 @@ impl Window {
         self.data.borrow().id
     }
 
-    pub fn set_vm<V: ViewModel>(&mut self, view_model: Rc<RefCell<V>>) {
+    pub fn set_vm<V: ViewModel>(&mut self, view_model: Rc<V>) {
         let new_view = ViewModel::create_view(&view_model);
 
         let mut window_data = self.data.borrow_mut();

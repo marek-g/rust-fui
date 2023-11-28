@@ -60,10 +60,10 @@ impl Player {
                         Ok(sample) => sample,
                     };
 
-                    let caps = sample.caps().unwrap();
-                    let s = caps.structure(0).unwrap();
-                    let width: i32 = s.get("width").unwrap();
-                    let height: i32 = s.get("height").unwrap();
+                    //let caps = sample.caps().unwrap();
+                    //let s = caps.structure(0).unwrap();
+                    //let width: i32 = s.get("width").unwrap();
+                    //let height: i32 = s.get("height").unwrap();
                     let buffer = sample.buffer().unwrap();
                     let map = buffer.map_readable().unwrap();
                     let data = map.as_slice();

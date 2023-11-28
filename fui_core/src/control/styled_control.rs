@@ -88,56 +88,6 @@ impl<D: 'static> StyledControl<D> {
     }
 }
 
-pub trait ControlExtensions<D> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut StyledControl<D>)>(
-        self,
-        vm: &Rc<RefCell<V>>,
-        f: F,
-    ) -> Self;
-
-    fn with_binding<
-        V: 'static,
-        F: 'static + Fn(&mut V, &mut StyledControl<D>) -> EventSubscription,
-    >(
-        self,
-        bindings: &mut Vec<EventSubscription>,
-        vm: &Rc<RefCell<V>>,
-        f: F,
-    ) -> Rc<RefCell<StyledControl<D>>>;
-}
-
-impl<D: 'static> ControlExtensions<D> for Rc<RefCell<StyledControl<D>>> {
-    fn with_vm<V: 'static, F: 'static + Fn(&Rc<RefCell<V>>, &mut StyledControl<D>)>(
-        self,
-        vm: &Rc<RefCell<V>>,
-        f: F,
-    ) -> Rc<RefCell<StyledControl<D>>> {
-        {
-            let mut control = self.borrow_mut();
-            f(&vm, &mut control);
-        }
-        self
-    }
-
-    fn with_binding<
-        V: 'static,
-        F: 'static + Fn(&mut V, &mut StyledControl<D>) -> EventSubscription,
-    >(
-        self,
-        bindings: &mut Vec<EventSubscription>,
-        vm: &Rc<RefCell<V>>,
-        f: F,
-    ) -> Rc<RefCell<StyledControl<D>>> {
-        {
-            let mut vm = vm.borrow_mut();
-            let mut control = self.borrow_mut();
-            let binding = f(&mut vm, &mut control);
-            bindings.push(binding);
-        }
-        self
-    }
-}
-
 impl<D: 'static> ControlObject for StyledControl<D> {
     fn as_any(&self) -> &dyn Any {
         self

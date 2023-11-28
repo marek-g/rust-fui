@@ -16,15 +16,15 @@ pub struct StringViewModel {
 }
 
 impl StringViewModel {
-    pub fn new<T: Into<String>>(text: T) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(StringViewModel { text: text.into() }))
+    pub fn new<T: Into<String>>(text: T) -> Rc<Self> {
+        Rc::new(StringViewModel { text: text.into() })
     }
 }
 
 impl ViewModel for StringViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(view_model: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
-            Text { text: &*view_model.borrow().text }
+            Text { text: &*view_model.text }
         }
     }
 }

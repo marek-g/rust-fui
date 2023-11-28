@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
@@ -20,9 +20,9 @@ where
     V: ViewModel + PartialEq + 'static,
 {
     #[builder(default = Property::new(None))]
-    pub selected_item: Property<Option<Rc<RefCell<V>>>>,
-    #[builder(default = Box::new(Vec::<Rc<RefCell<V>>>::new()))]
-    pub items: Box<dyn ObservableCollection<Rc<RefCell<V>>>>,
+    pub selected_item: Property<Option<Rc<V>>>,
+    #[builder(default = Box::new(Vec::<Rc<V>>::new()))]
+    pub items: Box<dyn ObservableCollection<Rc<V>>>,
 }
 
 impl<V> DropDown<V>
@@ -36,13 +36,13 @@ where
     ) -> Rc<RefCell<dyn ControlObject>> {
         let is_popup_open_property = Property::new(false);
 
-        let mut is_popup_open_property_clone = is_popup_open_property.clone();
+        let is_popup_open_property_clone = is_popup_open_property.clone();
         let mut show_callback = Callback::empty();
         show_callback.set_sync(move |_| {
             is_popup_open_property_clone.set(true);
         });
 
-        let mut is_popup_open_property_clone = is_popup_open_property.clone();
+        let is_popup_open_property_clone = is_popup_open_property.clone();
         let mut hide_callback = Callback::empty();
         hide_callback.set_sync(move |_| {
             is_popup_open_property_clone.set(false);
@@ -58,7 +58,7 @@ where
             )
         });
         let menu_item_controls = (&menu_item_vms
-            as &dyn ObservableCollection<Rc<RefCell<MenuItemViewModel<V>>>>)
+            as &dyn ObservableCollection<Rc<MenuItemViewModel<V>>>)
             .map(|vm| vm.create_view());
 
         let content = ui! {
@@ -116,9 +116,9 @@ where
 {
     pub is_checked: Property<bool>,
     pub clicked_callback: Callback<()>,
-    pub source_vm: Rc<RefCell<V>>,
-    pub selected_item: Property<Option<Rc<RefCell<V>>>>,
-    pub event_subscription: Option<Subscription>,
+    pub source_vm: Rc<V>,
+    pub selected_item: Property<Option<Rc<V>>>,
+    pub event_subscription: Cell<Option<Subscription>>,
 }
 
 impl<V> MenuItemViewModel<V>
@@ -126,38 +126,38 @@ where
     V: ViewModel + PartialEq + 'static,
 {
     pub fn new(
-        source_vm: Rc<RefCell<V>>,
-        selected_item: Property<Option<Rc<RefCell<V>>>>,
+        source_vm: Rc<V>,
+        selected_item: Property<Option<Rc<V>>>,
         clicked_callback: Callback<()>,
-    ) -> Rc<RefCell<Self>> {
+    ) -> Rc<Self> {
         let is_checked = match &selected_item.get() {
             None => false,
             Some(vm) => vm == &source_vm,
         };
-        let vm_rc = Rc::new(RefCell::new(MenuItemViewModel {
+        let vm = Rc::new(MenuItemViewModel {
             is_checked: Property::new(is_checked),
             clicked_callback,
             source_vm,
             selected_item,
-            event_subscription: None,
-        }));
+            event_subscription: Cell::new(None),
+        });
 
         {
-            let weak_vm = Rc::downgrade(&vm_rc);
-            let mut vm = vm_rc.borrow_mut();
+            let weak_vm = Rc::downgrade(&vm);
             let clicked_callback = vm.clicked_callback.clone();
-            vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
-                if is_checked {
-                    weak_vm.upgrade().map(|vm| {
-                        let source_vm_clone = vm.borrow().source_vm.clone();
-                        vm.borrow_mut().selected_item.set(Some(source_vm_clone));
-                    });
-                    clicked_callback.emit(());
-                }
-            }));
+            vm.event_subscription
+                .set(Some(vm.is_checked.on_changed(move |is_checked| {
+                    if is_checked {
+                        weak_vm.upgrade().map(|vm| {
+                            let source_vm_clone = vm.source_vm.clone();
+                            vm.selected_item.set(Some(source_vm_clone));
+                        });
+                        clicked_callback.emit(());
+                    }
+                })));
         }
 
-        vm_rc
+        vm
     }
 }
 
@@ -165,8 +165,7 @@ impl<V> ViewModel for MenuItemViewModel<V>
 where
     V: ViewModel + PartialEq + 'static,
 {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let mut vm = view_model.borrow_mut();
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         let clicked_callback = vm.clicked_callback.clone();
         let content = vm.source_vm.create_view();
         ui! {
@@ -174,7 +173,7 @@ where
                 Style: DropDown {
                     clicked: clicked_callback,
                 },
-                is_checked: &mut vm.is_checked,
+                is_checked: vm.is_checked.clone(),
                 content,
             }
         }

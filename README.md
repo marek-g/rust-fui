@@ -92,26 +92,24 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new() -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(MainViewModel {
+    pub fn new() -> Rc<Self> {
+        Rc::new(MainViewModel {
             counter: Property::new(0),
-        }))
+        })
     }
 
-    pub fn increase(&mut self) {
+    pub fn increase(&self) {
         self.counter.change(|c| c + 1);
     }
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
                 Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
                 Button {
-                    clicked: Callback::new(view_model, |vm, _| vm.increase()),
+                    clicked: Callback::new(vm, |vm, _| vm.increase()),
                     Text { text: "Increase" }
                 },
             }

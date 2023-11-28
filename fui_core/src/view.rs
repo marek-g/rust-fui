@@ -47,7 +47,7 @@ impl ViewContext {
 /// trait which is an object safe trait.
 ///
 pub trait ViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>>;
+    fn create_view(view_model: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>>;
 }
 
 ///
@@ -60,7 +60,7 @@ pub trait ViewModelObject {
     fn downgrade(&self) -> Box<dyn WeakViewModelObject>;
 }
 
-impl<T: ViewModel + 'static> ViewModelObject for Rc<RefCell<T>> {
+impl<T: ViewModel + 'static> ViewModelObject for Rc<T> {
     fn create_view(&self) -> Rc<RefCell<dyn ControlObject>> {
         ViewModel::create_view(self)
     }
@@ -87,7 +87,7 @@ pub trait WeakViewModelObject {
     fn upgrade(&self) -> Option<Box<dyn ViewModelObject>>;
 }
 
-impl<T: ViewModel + 'static> WeakViewModelObject for Weak<RefCell<T>> {
+impl<T: ViewModel + 'static> WeakViewModelObject for Weak<T> {
     fn box_clone(&self) -> Box<dyn WeakViewModelObject> {
         Box::new(std::clone::Clone::clone(self))
     }

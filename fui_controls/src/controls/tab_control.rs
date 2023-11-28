@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
@@ -43,7 +43,7 @@ impl TabControl {
         let tab_button_vms =
             tabs_source.map(move |c| TabButtonViewModel::new(&c, &selected_tab_clone));
         let tab_button_vms_controls = (&tab_button_vms
-            as &dyn ObservableCollection<Rc<RefCell<TabButtonViewModel>>>)
+            as &dyn ObservableCollection<Rc<TabButtonViewModel>>)
             .map(|vm| vm.create_view());
 
         let content = ui! {
@@ -87,14 +87,14 @@ struct TabButtonViewModel {
     pub is_checked: Property<bool>,
     pub content: Rc<RefCell<dyn ControlObject>>,
     pub selected_tab: Property<Rc<RefCell<dyn ControlObject>>>,
-    pub event_subscription: Option<Subscription>,
+    pub event_subscription: Cell<Option<Subscription>>,
 }
 
 impl TabButtonViewModel {
     pub fn new(
         content: &Rc<RefCell<dyn ControlObject>>,
         selected_tab: &Property<Rc<RefCell<dyn ControlObject>>>,
-    ) -> Rc<RefCell<Self>> {
+    ) -> Rc<Self> {
         let title = content
             .borrow()
             .get_context()
@@ -103,39 +103,38 @@ impl TabButtonViewModel {
             .map(|t| t.clone())
             .unwrap_or_else(|| Property::new("Tab"));
 
-        let vm_rc = Rc::new(RefCell::new(TabButtonViewModel {
+        let vm = Rc::new(TabButtonViewModel {
             title,
             is_checked: Property::new(false),
             content: content.clone(),
             selected_tab: selected_tab.clone(),
-            event_subscription: None,
-        }));
+            event_subscription: Cell::new(None),
+        });
 
         {
-            let weak_vm = Rc::downgrade(&vm_rc);
-            let mut vm = vm_rc.borrow_mut();
-            vm.event_subscription = Some(vm.is_checked.on_changed(move |is_checked| {
-                if is_checked {
-                    weak_vm.upgrade().map(|vm| {
-                        let content_clone = vm.borrow().content.clone();
-                        vm.borrow_mut().selected_tab.set(content_clone);
-                    });
-                }
-            }));
+            let weak_vm = Rc::downgrade(&vm);
+            vm.event_subscription
+                .set(Some(vm.is_checked.on_changed(move |is_checked| {
+                    if is_checked {
+                        weak_vm.upgrade().map(|vm| {
+                            let content_clone = vm.content.clone();
+                            vm.selected_tab.set(content_clone);
+                        });
+                    }
+                })));
         }
 
-        vm_rc
+        vm
     }
 }
 
 impl ViewModel for TabButtonViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let mut vm = view_model.borrow_mut();
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             ToggleButton {
                 Style: Tab {},
 
-                is_checked: &mut vm.is_checked,
+                is_checked: vm.is_checked.clone(),
 
                 Text {
                     Style: Dynamic {

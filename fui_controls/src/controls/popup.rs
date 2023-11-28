@@ -105,7 +105,7 @@ impl Style<Popup> for DefaultPopupStyle {
         let uncovered_controls = data.uncovered_controls.to_vec();
 
         let mut auto_hide_request_callback = Callback::empty();
-        let mut is_open_property_clone = data.is_open.clone();
+        let is_open_property_clone = data.is_open.clone();
         auto_hide_request_callback.set_sync(move |_| {
             is_open_property_clone.set(false);
             auto_hide_occured.emit(());

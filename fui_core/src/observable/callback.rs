@@ -42,16 +42,13 @@ impl<A: 'static + Clone> Callback<A> {
         callback
     }
 
-    pub fn new_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(vm: &Rc<RefCell<T>>, f: F) -> Self {
+    pub fn new_vm<T: 'static, F: 'static + FnMut(&T, A)>(vm: &Rc<T>, f: F) -> Self {
         let mut callback = Callback::empty();
         callback.set_vm(vm, f);
         callback
     }
 
-    pub fn new_vm_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
-        vm: &Rc<RefCell<T>>,
-        f: F,
-    ) -> Self {
+    pub fn new_vm_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(vm: &Rc<T>, f: F) -> Self {
         let mut callback = Callback::empty();
         callback.set_vm_rc(vm, f);
         callback
@@ -73,25 +70,16 @@ impl<A: 'static + Clone> Callback<A> {
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_vm<T: 'static, F: 'static + FnMut(&mut T, A)>(
-        &mut self,
-        vm: &Rc<RefCell<T>>,
-        mut f: F,
-    ) {
+    pub fn set_vm<T: 'static, F: 'static + FnMut(&T, A)>(&mut self, vm: &Rc<T>, mut f: F) {
         let vm_clone = vm.clone();
         let f2 = move |args: A| {
-            let mut vm = vm_clone.borrow_mut();
-            f(&mut vm, args);
+            f(&vm_clone, args);
         };
 
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_vm_rc<T: 'static, F: 'static + FnMut(Rc<RefCell<T>>, A)>(
-        &mut self,
-        vm: &Rc<RefCell<T>>,
-        mut f: F,
-    ) {
+    pub fn set_vm_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, vm: &Rc<T>, mut f: F) {
         let vm_clone = vm.clone();
         let f2 = move |args: A| {
             let vm = vm_clone.clone();

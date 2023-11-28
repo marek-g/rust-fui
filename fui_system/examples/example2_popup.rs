@@ -106,7 +106,7 @@ fn create_new_window(windows: Rc<RefCell<Vec<Rc<RefCell<Window>>>>>) -> Rc<RefCe
 }
 
 fn create_new_popup_window(parent_window_rc: Rc<RefCell<Window>>) -> Rc<RefCell<Window>> {
-    let parent_window_ref = &mut parent_window_rc.borrow_mut();
+    //let parent_window_ref = &mut parent_window_rc.borrow_mut();
     //let window_rc = Rc::new(RefCell::new(Window::new(Some(parent_window_ref)).unwrap()));
     let window_rc = Rc::new(RefCell::new(Window::new(None).unwrap()));
     {

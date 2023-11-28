@@ -23,9 +23,7 @@ impl DialogButtonViewModel {
 }
 
 impl ViewModel for DialogButtonViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm: &mut DialogButtonViewModel = &mut view_model.borrow_mut();
-
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {
                 clicked: vm.callback.clone(),
@@ -61,7 +59,7 @@ impl MessageBox {
         self,
         window: &Rc<RefCell<dyn WindowService>>,
     ) -> impl Future<Output = Result<i32, Canceled>> {
-        let mut buttons = ObservableVec::<Rc<RefCell<DialogButtonViewModel>>>::new();
+        let mut buttons = ObservableVec::<Rc<DialogButtonViewModel>>::new();
 
         let (sender, receiver) = oneshot::channel::<i32>();
         let sender = Rc::new(RefCell::new(Some(sender)));
@@ -116,10 +114,7 @@ impl MessageBox {
                 }
             });
 
-            buttons.push(Rc::new(RefCell::new(DialogButtonViewModel::new(
-                text,
-                new_callback,
-            ))));
+            buttons.push(Rc::new(DialogButtonViewModel::new(text, new_callback)));
         }
 
         window.borrow_mut().add_layer(content);

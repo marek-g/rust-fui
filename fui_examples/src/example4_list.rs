@@ -6,7 +6,7 @@ use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -25,16 +25,16 @@ impl ItemViewModel {
 }
 
 struct MainViewModel {
-    pub items: ObservableVec<ItemViewModel>,
-    counter: i32,
+    pub items: RefCell<ObservableVec<ItemViewModel>>,
+    counter: Cell<i32>,
 }
 
 impl MainViewModel {
-    pub fn new() -> Rc<RefCell<Self>> {
-        let main_vm = Rc::new(RefCell::new(MainViewModel {
-            items: ObservableVec::new(),
-            counter: 0,
-        }));
+    pub fn new() -> Rc<Self> {
+        let main_vm = Rc::new(MainViewModel {
+            items: RefCell::new(ObservableVec::new()),
+            counter: Cell::new(0),
+        });
 
         main_vm.add_n(4);
 
@@ -49,16 +49,16 @@ trait MainViewModelMethods {
     fn delete(&self, item_id: i32);
 }
 
-impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
+impl MainViewModelMethods for Rc<MainViewModel> {
     fn add(&self) {
         let new_item = ItemViewModel::new(
-            self.borrow().counter,
-            format!("Element {}", self.borrow().counter),
+            self.counter.get(),
+            format!("Element {}", self.counter.get()),
         );
-        self.borrow_mut().counter += 1;
+        self.counter.set(self.counter.get() + 1);
 
         println!("Add {}!", new_item.name);
-        self.borrow_mut().items.push(new_item);
+        self.items.borrow_mut().push(new_item);
     }
 
     fn add_n(&self, n: i32) {
@@ -69,19 +69,17 @@ impl MainViewModelMethods for Rc<RefCell<MainViewModel>> {
 
     fn remove_all(&self) {
         println!("Remove all!");
-        self.borrow_mut().items.clear();
+        self.items.borrow_mut().clear();
     }
 
     fn delete(&self, item_id: i32) {
         println!("Delete {}!", item_id);
-        self.borrow_mut().items.remove_filter(|i| i.id == item_id);
+        self.items.borrow_mut().remove_filter(|i| i.id == item_id);
     }
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm = &mut view_model.borrow_mut();
-
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Grid {
                 columns: 1,
@@ -90,15 +88,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0f32),
                     Button {
-                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.add()),
+                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.add()),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.add_n(100)),
+                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(view_model, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
                 },
@@ -111,24 +109,25 @@ impl ViewModel for MainViewModel {
                         Grid {
                             columns: 3,
 
-                            vm.items.flat_map({
-                                let view_model = view_model.clone();
+                            vm.items.borrow().flat_map({
+                                let view_model = vm.clone();
                                 move |item| {
                                 vec![
                                     ui!(Text { text: "Flat map!" }),
                                     ui!(Text { text: &item.name }),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                        clicked: Callback::new_vm_rc(&view_model, {
+                                        clicked: Callback::new_sync({
+                        let vm = view_model.clone();
                                             let item_id = item.id;
-                                            move |vm, _| { vm.delete(item_id); }
+                                            move |_| { vm.delete(item_id); }
                                         }),
                                         Text { text: "Delete" },
                                     }),
                                 ]
                             }}),
 
-                            vm.items.map(|item| {
+                            vm.items.borrow().map(|item| {
                                 ui!(Text { text: format!("Simple map! ({})", item.id) })
                             })
                         },

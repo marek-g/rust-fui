@@ -20,12 +20,12 @@ struct MainViewModel {
     pub is_busy: Property<bool>,
     pub counter: Property<i32>,
     pub counter2: Property<i32>,
-    pub drop_down_selected_item: Property<Option<Rc<RefCell<StringViewModel>>>>,
+    pub drop_down_selected_item: Property<Option<Rc<StringViewModel>>>,
 }
 
 impl MainViewModel {
-    pub fn new(window: Rc<RefCell<dyn WindowService>>) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(MainViewModel {
+    pub fn new(window: Rc<RefCell<dyn WindowService>>) -> Rc<Self> {
+        Rc::new(MainViewModel {
             window,
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
@@ -34,14 +34,14 @@ impl MainViewModel {
             counter: Property::new(10),
             counter2: Property::new(0),
             drop_down_selected_item: Property::new(None),
-        }))
+        })
     }
 
-    pub fn increase(&mut self) {
+    pub fn increase(&self) {
         self.counter.change(|c| c + 1);
     }
 
-    pub fn decrease(&mut self) {
+    pub fn decrease(&self) {
         self.counter.change(|c| c - 1);
     }
 }
@@ -49,11 +49,9 @@ impl MainViewModel {
 type DropDown1 = DropDown<StringViewModel>;
 
 impl ViewModel for MainViewModel {
-    fn create_view(view_model: &Rc<RefCell<Self>>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm: &mut MainViewModel = &mut view_model.borrow_mut();
-
-        vm.counter2.bind(&mut vm.counter);
-        vm.counter.bind(&mut vm.counter2);
+    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        vm.counter2.bind(&vm.counter);
+        vm.counter.bind(&vm.counter2);
 
         let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
             as Rc<RefCell<dyn ControlObject>>;
@@ -81,7 +79,7 @@ impl ViewModel for MainViewModel {
                     default_height: Length::Auto,
 
                     TextBox {
-                        text: &mut vm.text,
+                        text: vm.text.clone(),
                     },
                     Text {
                         Margin: Thickness::left(5.0f32),
@@ -93,7 +91,7 @@ impl ViewModel for MainViewModel {
                             password: true,
                         },
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        text: &mut vm.text2,
+                        text: vm.text2.clone(),
                     },
                     Text {
                         Style: Default {
@@ -106,7 +104,7 @@ impl ViewModel for MainViewModel {
                     ScrollBar {
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                         orientation: Orientation::Horizontal,
-                        value: &mut vm.progress,
+                        value: vm.progress.clone(),
                     },
                     ProgressBar {
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
@@ -118,7 +116,7 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
-                        selected_item: &mut vm.drop_down_selected_item,
+                        selected_item: vm.drop_down_selected_item.clone(),
                         items: vec![
                             StringViewModel::new("Element A"),
                             StringViewModel::new("Element B"),
@@ -129,9 +127,9 @@ impl ViewModel for MainViewModel {
                     },
                     Text {
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<RefCell<StringViewModel>>>| match &vm {
+                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<StringViewModel>>| match &vm {
                             None => "-".to_string(),
-                            Some(vm) => vm.borrow().text.clone(),
+                            Some(vm) => vm.text.clone(),
                         }),
                     },
                 },
@@ -155,12 +153,12 @@ impl ViewModel for MainViewModel {
 
                         ToggleButton {
                             Style: Tab {},
-                            is_checked: &mut vm.is_busy,
+                            is_checked: vm.is_busy.clone(),
                             Text { text: "Busy Start"}
                         },
                         ToggleButton {
                             Style: Tab {},
-                            is_checked: (&mut vm.is_busy, |v: bool| { !v }, |v: bool| { !v }),
+                            is_checked: Property::binded_c_two_way(&vm.is_busy, |v: bool| { !v }, |v: bool| { !v }),
                             Text { text: "Busy Stop"}
                         },
                     },
@@ -194,12 +192,12 @@ impl ViewModel for MainViewModel {
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(view_model, |vm, _| vm.decrease()),
+                    clicked: Callback::new_vm(&vm, |vm, _| vm.decrease()),
                     Text { text: "Decrease" },
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(view_model, |vm, _| vm.increase()),
+                    clicked: Callback::new_vm(&vm, |vm, _| vm.increase()),
                     Text { text: "Increase" },
                 },
                 Text {
