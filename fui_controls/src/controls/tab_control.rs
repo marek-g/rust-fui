@@ -129,21 +129,21 @@ impl TabButtonViewModel {
 }
 
 impl ViewModel for TabButtonViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             ToggleButton {
                 Style: Tab {},
 
-                is_checked: vm.is_checked.clone(),
+                is_checked: self.is_checked.clone(),
 
                 Text {
                     Style: Dynamic {
-                        color: (&vm.is_checked, |is_checked|
+                        color: (&self.is_checked, |is_checked|
                             if is_checked { [1.0f32, 0.8f32, 0.0f32, 1.0f32] }
                             else { [1.0f32, 1.0f32, 1.0f32, 1.0f32] }),
                     },
 
-                    text: &vm.title
+                    text: &self.title
                 },
             }
         }

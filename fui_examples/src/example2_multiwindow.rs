@@ -37,28 +37,28 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
-        vm.counter2.bind(&vm.counter);
-        vm.counter.bind(&vm.counter2);
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        self.counter2.bind(&self.counter);
+        self.counter.bind(&self.counter2);
 
         ui!(
             Horizontal {
                 Margin: Thickness::sides(0.0f32, 5.0f32),
                 Text {
                     Margin: Thickness::all(5.0f32),
-                    text: (&vm.counter, |counter| format!("Counter {}", counter))
+                    text: (&self.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
-                    clicked: Callback::new_vm(&vm, |vm, _| vm.decrease()),
+                    clicked: Callback::new_vm(&self, |vm, _| vm.decrease()),
                     Text { text: "Decrease" }
                 },
                 Button {
-                    clicked: Callback::new_vm(&vm, |vm, _| vm.increase()),
+                    clicked: Callback::new_vm(&self, |vm, _| vm.increase()),
                     Text { text: "Increase" }
                 },
                 Text {
                     Margin: Thickness::all(5.0f32),
-                    text: (&vm.counter2, |counter| format!("Counter2 {}", counter))
+                    text: (&self.counter2, |counter| format!("Counter2 {}", counter))
                 },
             }
         )

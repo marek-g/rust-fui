@@ -36,7 +36,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Grid {
                 columns: 1,
@@ -45,19 +45,19 @@ impl ViewModel for MainViewModel {
                 Horizontal {
                     Button {
                         Text { text: " - Content 1 - " },
-                        clicked: Callback::new_vm(&vm, |vm, _| {
+                        clicked: Callback::new_vm(&self, |vm, _| {
                             vm.content.set(ViewModel::create_view(&vm.item1));
                         }),
                     },
                     Button {
                         Text { text: " - Content 2 - " },
-                        clicked: Callback::new_vm(&vm, |vm, _| {
+                        clicked: Callback::new_vm(&self, |vm, _| {
                             vm.content.set(ViewModel::create_view(&vm.item2));
                         }),
                     },
                 },
 
-                &vm.content,
+                &self.content,
             }
         )
     }
@@ -71,7 +71,7 @@ impl Item1ViewModel {
 }
 
 impl ViewModel for Item1ViewModel {
-    fn create_view(_view_model: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
                 Text { text: "Item 1" },
@@ -89,7 +89,7 @@ impl Item2ViewModel {
 }
 
 impl ViewModel for Item2ViewModel {
-    fn create_view(_view_model: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
                 Text { text: "Item 2" },

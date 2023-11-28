@@ -22,9 +22,9 @@ impl StringViewModel {
 }
 
 impl ViewModel for StringViewModel {
-    fn create_view(view_model: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
-            Text { text: &*view_model.text }
+            Text { text: &*self.text }
         }
     }
 }

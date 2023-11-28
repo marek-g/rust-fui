@@ -104,12 +104,12 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
-                Text { text: (&vm.counter, |counter| format!("Counter {}", counter)) },
+                Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
                 Button {
-                    clicked: Callback::new(vm, |vm, _| vm.increase()),
+                    clicked: Callback::new_vm(self, |vm, _| vm.increase()),
                     Text { text: "Increase" }
                 },
             }

@@ -79,7 +79,7 @@ impl MainViewModelMethods for Rc<MainViewModel> {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Grid {
                 columns: 1,
@@ -88,15 +88,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0f32),
                     Button {
-                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.add()),
+                        clicked: Callback::new_vm_rc(self, |vm, _| vm.add()),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.add_n(100)),
+                        clicked: Callback::new_vm_rc(self, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(vm, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_vm_rc(self, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
                 },
@@ -109,8 +109,8 @@ impl ViewModel for MainViewModel {
                         Grid {
                             columns: 3,
 
-                            vm.items.borrow().flat_map({
-                                let view_model = vm.clone();
+                            self.items.borrow().flat_map({
+                                let view_model = self.clone();
                                 move |item| {
                                 vec![
                                     ui!(Text { text: "Flat map!" }),
@@ -127,7 +127,7 @@ impl ViewModel for MainViewModel {
                                 ]
                             }}),
 
-                            vm.items.borrow().map(|item| {
+                            self.items.borrow().map(|item| {
                                 ui!(Text { text: format!("Simple map! ({})", item.id) })
                             })
                         },

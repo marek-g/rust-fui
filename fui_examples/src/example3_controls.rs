@@ -49,9 +49,9 @@ impl MainViewModel {
 type DropDown1 = DropDown<StringViewModel>;
 
 impl ViewModel for MainViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
-        vm.counter2.bind(&vm.counter);
-        vm.counter.bind(&vm.counter2);
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        self.counter2.bind(&self.counter);
+        self.counter.bind(&self.counter2);
 
         let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
             as Rc<RefCell<dyn ControlObject>>;
@@ -79,11 +79,11 @@ impl ViewModel for MainViewModel {
                     default_height: Length::Auto,
 
                     TextBox {
-                        text: vm.text.clone(),
+                        text: self.text.clone(),
                     },
                     Text {
                         Margin: Thickness::left(5.0f32),
-                        text: &vm.text,
+                        text: &self.text,
                     },
 
                     TextBox {
@@ -91,24 +91,24 @@ impl ViewModel for MainViewModel {
                             password: true,
                         },
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        text: vm.text2.clone(),
+                        text: self.text2.clone(),
                     },
                     Text {
                         Style: Default {
                             color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
                         },
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        text: &vm.text2,
+                        text: &self.text2,
                     },
 
                     ScrollBar {
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                         orientation: Orientation::Horizontal,
-                        value: vm.progress.clone(),
+                        value: self.progress.clone(),
                     },
                     ProgressBar {
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        value: &vm.progress,
+                        value: &self.progress,
                     },
 
                     DropDown1 {
@@ -116,7 +116,7 @@ impl ViewModel for MainViewModel {
                         Column: 0,
                         Row: 3,
 
-                        selected_item: vm.drop_down_selected_item.clone(),
+                        selected_item: self.drop_down_selected_item.clone(),
                         items: vec![
                             StringViewModel::new("Element A"),
                             StringViewModel::new("Element B"),
@@ -127,7 +127,7 @@ impl ViewModel for MainViewModel {
                     },
                     Text {
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        text: (&vm.drop_down_selected_item, |vm: Option<Rc<StringViewModel>>| match &vm {
+                        text: (&self.drop_down_selected_item, |vm: Option<Rc<StringViewModel>>| match &vm {
                             None => "-".to_string(),
                             Some(vm) => vm.text.clone(),
                         }),
@@ -136,7 +136,7 @@ impl ViewModel for MainViewModel {
 
                 BusyIndicator {
                     Column: 0, Row: 0,
-                    is_busy: &vm.is_busy,
+                    is_busy: &self.is_busy,
 
                     Text { text: "Please Wait..." }
                 },
@@ -153,12 +153,12 @@ impl ViewModel for MainViewModel {
 
                         ToggleButton {
                             Style: Tab {},
-                            is_checked: vm.is_busy.clone(),
+                            is_checked: self.is_busy.clone(),
                             Text { text: "Busy Start"}
                         },
                         ToggleButton {
                             Style: Tab {},
-                            is_checked: Property::binded_c_two_way(&vm.is_busy, |v: bool| { !v }, |v: bool| { !v }),
+                            is_checked: Property::binded_c_two_way(&self.is_busy, |v: bool| { !v }, |v: bool| { !v }),
                             Text { text: "Busy Stop"}
                         },
                     },
@@ -188,26 +188,26 @@ impl ViewModel for MainViewModel {
                 columns: 2,
 
                 Text {
-                    text: (&vm.counter, |counter| format!("Counter {}", counter))
+                    text: (&self.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(&vm, |vm, _| vm.decrease()),
+                    clicked: Callback::new_vm(&self, |vm, _| vm.decrease()),
                     Text { text: "Decrease" },
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(&vm, |vm, _| vm.increase()),
+                    clicked: Callback::new_vm(&self, |vm, _| vm.increase()),
                     Text { text: "Increase" },
                 },
                 Text {
-                    text: (&vm.counter2, |counter| format!("Counter2 {}", counter))
+                    text: (&self.counter2, |counter| format!("Counter2 {}", counter))
                 },
             }
         );
 
         let exit_callback = Callback::new_async({
-            let window = vm.window.clone();
+            let window = self.window.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -225,7 +225,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_text_callback = Callback::new_async({
-            let window = vm.window.clone();
+            let window = self.window.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -235,7 +235,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_password_callback = Callback::new_async({
-            let window = vm.window.clone();
+            let window = self.window.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -247,7 +247,7 @@ impl ViewModel for MainViewModel {
         });
 
         let file_open_callback = Callback::new_async({
-            let window = vm.window.clone();
+            let window = self.window.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -267,7 +267,7 @@ impl ViewModel for MainViewModel {
         });
 
         let file_save_callback = Callback::new_async({
-            let window = vm.window.clone();
+            let window = self.window.clone();
             move |_| {
                 let window = window.clone();
                 async move {

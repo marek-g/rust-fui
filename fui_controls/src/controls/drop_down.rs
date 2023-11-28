@@ -165,15 +165,15 @@ impl<V> ViewModel for MenuItemViewModel<V>
 where
     V: ViewModel + PartialEq + 'static,
 {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
-        let clicked_callback = vm.clicked_callback.clone();
-        let content = vm.source_vm.create_view();
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        let clicked_callback = self.clicked_callback.clone();
+        let content = self.source_vm.create_view();
         ui! {
             ToggleButton {
                 Style: DropDown {
                     clicked: clicked_callback,
                 },
-                is_checked: vm.is_checked.clone(),
+                is_checked: self.is_checked.clone(),
                 content,
             }
         }

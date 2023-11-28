@@ -23,11 +23,11 @@ impl DialogButtonViewModel {
 }
 
 impl ViewModel for DialogButtonViewModel {
-    fn create_view(vm: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Button {
-                clicked: vm.callback.clone(),
-                Text { text: &vm.text }
+                clicked: self.callback.clone(),
+                Text { text: &self.text }
             }
         }
     }
