@@ -45,13 +45,13 @@ impl ViewModel for MainViewModel {
                 Horizontal {
                     Button {
                         Text { text: " - Content 1 - " },
-                        clicked: Callback::new_vm(&self, |vm, _| {
+                        clicked: Callback::new_rc(self, |vm, _| {
                             vm.content.set(ViewModel::create_view(&vm.item1));
                         }),
                     },
                     Button {
                         Text { text: " - Content 2 - " },
-                        clicked: Callback::new_vm(&self, |vm, _| {
+                        clicked: Callback::new_rc(self, |vm, _| {
                             vm.content.set(ViewModel::create_view(&vm.item2));
                         }),
                     },

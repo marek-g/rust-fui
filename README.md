@@ -98,7 +98,7 @@ impl MainViewModel {
         })
     }
 
-    pub fn increase(&self) {
+    pub fn increase(self: &Rc<Self>) {
         self.counter.change(|c| c + 1);
     }
 }
@@ -109,7 +109,7 @@ impl ViewModel for MainViewModel {
             Horizontal {
                 Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
                 Button {
-                    clicked: Callback::new_vm(self, |vm, _| vm.increase()),
+                    clicked: Callback::new_rc(self, |vm, _| vm.increase()),
                     Text { text: "Increase" }
                 },
             }

@@ -37,11 +37,11 @@ impl MainViewModel {
         })
     }
 
-    pub fn increase(&self) {
+    pub fn increase(self: &Rc<Self>) {
         self.counter.change(|c| c + 1);
     }
 
-    pub fn decrease(&self) {
+    pub fn decrease(self: &Rc<Self>) {
         self.counter.change(|c| c - 1);
     }
 }
@@ -192,12 +192,12 @@ impl ViewModel for MainViewModel {
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(&self, |vm, _| vm.decrease()),
+                    clicked: Callback::new_rc(self, |vm, _| vm.decrease()),
                     Text { text: "Decrease" },
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_vm(&self, |vm, _| vm.increase()),
+                    clicked: Callback::new_rc(self, |vm, _| vm.increase()),
                     Text { text: "Increase" },
                 },
                 Text {

@@ -42,15 +42,9 @@ impl<A: 'static + Clone> Callback<A> {
         callback
     }
 
-    pub fn new_vm<T: 'static, F: 'static + FnMut(&T, A)>(vm: &Rc<T>, f: F) -> Self {
+    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(arg: &Rc<T>, f: F) -> Self {
         let mut callback = Callback::empty();
-        callback.set_vm(vm, f);
-        callback
-    }
-
-    pub fn new_vm_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(vm: &Rc<T>, f: F) -> Self {
-        let mut callback = Callback::empty();
-        callback.set_vm_rc(vm, f);
+        callback.set_rc(arg, f);
         callback
     }
 
@@ -70,20 +64,11 @@ impl<A: 'static + Clone> Callback<A> {
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_vm<T: 'static, F: 'static + FnMut(&T, A)>(&mut self, vm: &Rc<T>, mut f: F) {
-        let vm_clone = vm.clone();
+    pub fn set_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, arg: &Rc<T>, mut f: F) {
+        let arg_clone = arg.clone();
         let f2 = move |args: A| {
-            f(&vm_clone, args);
-        };
-
-        *self.callback.borrow_mut() = Some(Box::new(f2));
-    }
-
-    pub fn set_vm_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, vm: &Rc<T>, mut f: F) {
-        let vm_clone = vm.clone();
-        let f2 = move |args: A| {
-            let vm = vm_clone.clone();
-            f(vm, args);
+            let arg = arg_clone.clone();
+            f(arg, args);
         };
 
         *self.callback.borrow_mut() = Some(Box::new(f2));

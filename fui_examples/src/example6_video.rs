@@ -51,12 +51,12 @@ impl MainViewModel {
         })))
     }*/
 
-    pub fn play(&self) {
+    pub fn play(self: &Rc<Self>) {
         self.player.borrow_mut().open();
         self.player.borrow_mut().play();
     }
 
-    pub fn stop(&self) {
+    pub fn stop(self: &Rc<Self>) {
         self.player.borrow_mut().stop();
     }
 }
@@ -70,11 +70,11 @@ impl ViewModel for MainViewModel {
                 },
                 Horizontal {
                     Button {
-                        clicked: Callback::new_vm(self, |vm, _| vm.play()),
+                        clicked: Callback::new_rc(self, |vm, _| vm.play()),
                         Text { text: "Play" }
                     },
                     Button {
-                        clicked: Callback::new_vm(self, |vm, _| vm.stop()),
+                        clicked: Callback::new_rc(self, |vm, _| vm.stop()),
                         Text { text: "Stop" }
                     },
                 },
@@ -86,7 +86,7 @@ impl ViewModel for MainViewModel {
             .borrow_mut()
             .texture
             .updated
-            .set_vm(&self, move |vm, texture_id| {
+            .set_rc(self, move |vm, texture_id| {
                 vm.texture_id.set(texture_id);
                 // TODO: do it on bitmap control instead
                 root_control_copy

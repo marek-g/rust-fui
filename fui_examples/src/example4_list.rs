@@ -40,17 +40,8 @@ impl MainViewModel {
 
         main_vm
     }
-}
 
-trait MainViewModelMethods {
-    fn add(&self);
-    fn add_n(&self, n: i32);
-    fn remove_all(&self);
-    fn delete(&self, item_id: i32);
-}
-
-impl MainViewModelMethods for Rc<MainViewModel> {
-    fn add(&self) {
+    pub fn add(self: &Rc<Self>) {
         let new_item = ItemViewModel::new(
             self.counter.get(),
             format!("Element {}", self.counter.get()),
@@ -61,18 +52,18 @@ impl MainViewModelMethods for Rc<MainViewModel> {
         self.items.borrow_mut().push(new_item);
     }
 
-    fn add_n(&self, n: i32) {
+    pub fn add_n(self: &Rc<Self>, n: i32) {
         for _ in 0..n {
             self.add();
         }
     }
 
-    fn remove_all(&self) {
+    pub fn remove_all(self: &Rc<Self>) {
         println!("Remove all!");
         self.items.borrow_mut().clear();
     }
 
-    fn delete(&self, item_id: i32) {
+    pub fn delete(self: &Rc<Self>, item_id: i32) {
         println!("Delete {}!", item_id);
         self.items.borrow_mut().remove_filter(|i| i.id == item_id);
     }
@@ -88,15 +79,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0f32),
                     Button {
-                        clicked: Callback::new_vm_rc(self, |vm, _| vm.add()),
+                        clicked: Callback::new_rc(self, |vm, _| vm.add()),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(self, |vm, _| vm.add_n(100)),
+                        clicked: Callback::new_rc(self, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new_vm_rc(self, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_rc(self, |vm, _| vm.remove_all()),
                         Text { text: "Remove all" },
                     },
                 },
