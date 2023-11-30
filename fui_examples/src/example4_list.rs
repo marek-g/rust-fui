@@ -19,13 +19,13 @@ struct ItemViewModel {
 }
 
 impl ItemViewModel {
-    pub fn new(id: i32, name: String) -> Self {
-        ItemViewModel { id, name }
+    pub fn new(id: i32, name: String) -> Rc<Self> {
+        Rc::new(ItemViewModel { id, name })
     }
 }
 
 struct MainViewModel {
-    pub items: RefCell<ObservableVec<ItemViewModel>>,
+    pub items: RefCell<ObservableVec<Rc<ItemViewModel>>>,
     counter: Cell<i32>,
 }
 
@@ -63,9 +63,11 @@ impl MainViewModel {
         self.items.borrow_mut().clear();
     }
 
-    pub fn delete(self: &Rc<Self>, item_id: i32) {
-        println!("Delete {}!", item_id);
-        self.items.borrow_mut().remove_filter(|i| i.id == item_id);
+    pub fn delete(self: &Rc<Self>, item: &Rc<ItemViewModel>) {
+        println!("Delete {}!", item.id);
+        self.items
+            .borrow_mut()
+            .remove_filter(|i| Rc::ptr_eq(i, item));
     }
 }
 
@@ -110,9 +112,9 @@ impl ViewModel for MainViewModel {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
                                         clicked: Callback::new_sync({
                         let vm = view_model.clone();
-                                            let item_id = item.id;
-                                            move |_| { vm.delete(item_id); }
-                                        }),
+                        let item = item.clone();
+                        move |_| vm.delete(&item)
+                    }),
                                         Text { text: "Delete" },
                                     }),
                                 ]
