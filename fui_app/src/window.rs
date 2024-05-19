@@ -519,8 +519,7 @@ impl fui_core::WindowService for WindowVMThreadData {
     }
 
     fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
-        self.control_layers
-            .remove_filter(|el| Rc::ptr_eq(el, control));
+        self.control_layers.retain(|el| !Rc::ptr_eq(el, control));
     }
 
     fn repaint(&mut self) {

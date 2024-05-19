@@ -59,7 +59,7 @@ impl MessageBox {
         self,
         window: &Rc<RefCell<dyn WindowService>>,
     ) -> impl Future<Output = Result<i32, Canceled>> {
-        let mut buttons = ObservableVec::<Rc<DialogButtonViewModel>>::new();
+        let buttons = ObservableVec::<Rc<DialogButtonViewModel>>::new();
 
         let (sender, receiver) = oneshot::channel::<i32>();
         let sender = Rc::new(RefCell::new(Some(sender)));

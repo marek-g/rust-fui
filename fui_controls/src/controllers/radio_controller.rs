@@ -53,27 +53,10 @@ where
             Rc::new(RefCell::new(elements));
 
         for radio_element in elements.borrow_mut().deref() {
-            let elements_clone = elements.clone();
-            let radio_element_clone = radio_element.clone();
-            subscriptions.push(
-                radio_element
-                    .borrow()
-                    .as_any()
-                    .downcast_ref::<R>()
-                    .unwrap()
-                    .on_checked(Box::new(move || {
-                        for el in elements_clone.borrow_mut().deref() {
-                            if !Rc::ptr_eq(&el, &radio_element_clone) {
-                                el.borrow_mut()
-                                    .deref_mut()
-                                    .as_any_mut()
-                                    .downcast_mut::<R>()
-                                    .unwrap()
-                                    .set_is_checked(false);
-                            }
-                        }
-                    })),
-            );
+            subscriptions.push(Self::uncheck_other_when_checked(
+                radio_element,
+                elements.clone(),
+            ));
         }
 
         let is_checked = elements.borrow_mut().into_iter().fold(false, |acc, el| {
@@ -118,29 +101,43 @@ where
                             .set_is_checked(true);
                     }
 
-                    let elements_clone = elements_clone.clone();
-                    let radio_element_clone = radio_element.clone();
-                    let subscription = radio_element
-                        .borrow()
-                        .as_any()
-                        .downcast_ref::<R>()
-                        .unwrap()
-                        .on_checked(Box::new(move || {
-                            for el in elements_clone.borrow_mut().deref() {
-                                if !Rc::ptr_eq(&el, &radio_element_clone) {
-                                    el.borrow_mut()
-                                        .as_any_mut()
-                                        .downcast_mut::<R>()
-                                        .unwrap()
-                                        .set_is_checked(false);
-                                }
-                            }
-                        }));
+                    let subscription =
+                        Self::uncheck_other_when_checked(radio_element, elements_clone.clone());
                     subscriptions_clone.borrow_mut().insert(index, subscription);
                 }
 
                 VecDiff::RemoveAt { index } => {
                     subscriptions_clone.borrow_mut().remove(index);
+                }
+
+                VecDiff::Move {
+                    old_index,
+                    new_index,
+                } => {
+                    let mut subscriptions = subscriptions_clone.borrow_mut();
+                    let subscription = subscriptions.remove(old_index);
+                    subscriptions.insert(new_index, subscription);
+                }
+
+                VecDiff::Pop {} => {
+                    subscriptions_clone.borrow_mut().pop();
+                }
+
+                VecDiff::Push {
+                    value: radio_element,
+                } => {
+                    if elements_clone.borrow().len() == 0 {
+                        radio_element
+                            .borrow_mut()
+                            .as_any_mut()
+                            .downcast_mut::<R>()
+                            .unwrap()
+                            .set_is_checked(true);
+                    }
+
+                    let subscription =
+                        Self::uncheck_other_when_checked(radio_element, elements_clone.clone());
+                    subscriptions_clone.borrow_mut().push(subscription);
                 }
             }));
 
@@ -149,5 +146,29 @@ where
             _subscriptions: subscriptions,
             _phantom_data: PhantomData,
         }
+    }
+
+    fn uncheck_other_when_checked(
+        element: Rc<RefCell<dyn ControlObject>>,
+        elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
+    ) -> Subscription {
+        let element_clone = element.clone();
+        element
+            .borrow()
+            .as_any()
+            .downcast_ref::<R>()
+            .unwrap()
+            .on_checked(Box::new(move || {
+                for el in elements.borrow_mut().deref() {
+                    if !Rc::ptr_eq(&el, &element_clone) {
+                        el.borrow_mut()
+                            .deref_mut()
+                            .as_any_mut()
+                            .downcast_mut::<R>()
+                            .unwrap()
+                            .set_is_checked(false);
+                    }
+                }
+            }))
     }
 }

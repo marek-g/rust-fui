@@ -32,11 +32,19 @@ impl<D: 'static> StyledControl<D> {
         let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
         let handler = Box::new(
             move |changed_args: VecDiff<Rc<RefCell<dyn ControlObject>>>| {
-                if let VecDiff::InsertAt {
-                    index: _,
-                    value: child,
-                } = changed_args
-                {
+                let child = match changed_args {
+                    VecDiff::Clear {} => None,
+                    VecDiff::InsertAt { index: _, value } => Some(value),
+                    VecDiff::RemoveAt { index: _ } => None,
+                    VecDiff::Move {
+                        old_index: _,
+                        new_index: _,
+                    } => None,
+                    VecDiff::Pop {} => None,
+                    VecDiff::Push { value } => Some(value),
+                };
+
+                if let Some(child) = child {
                     child
                         .borrow_mut()
                         .get_context_mut()
@@ -46,6 +54,7 @@ impl<D: 'static> StyledControl<D> {
                     let services = control_clone.borrow_mut().get_context().get_services();
                     child.borrow_mut().get_context_mut().set_services(services);
                 }
+
                 control_clone
                     .borrow_mut()
                     .get_context_mut()

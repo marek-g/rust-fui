@@ -1,75 +1,82 @@
-use std::cell::RefCell;
-use std::iter::FromIterator;
+use std::{borrow::Borrow, iter::FromIterator};
 
-use crate::{
-    observable::event::Event, EventSubscription, ObservableCollection, Subscription, VecDiff,
-};
+use futures_signals::signal_vec::{MutableVec, SignalVecExt};
+
+use crate::{spawn_local, ObservableCollection, Subscription, VecDiff};
 
 pub struct ObservableVec<T: 'static + Clone> {
-    items: Vec<T>,
-    changed_event: RefCell<Event<VecDiff<T>>>,
+    items: MutableVec<T>,
 }
 
 impl<T: 'static + Clone> ObservableVec<T> {
     pub fn new() -> Self {
         ObservableVec {
-            items: Vec::new(),
-            changed_event: RefCell::new(Event::new()),
+            items: MutableVec::new(),
         }
     }
 
     pub fn len(&self) -> usize {
-        self.items.len()
+        self.items.lock_ref().len()
     }
 
     pub fn get(&self, index: usize) -> Option<T> {
-        self.items.get(index).map(|el| el.clone())
+        self.items.lock_ref().get(index).map(|el| el.clone())
     }
 
-    pub fn on_changed<F>(&self, f: F) -> EventSubscription
+    pub fn on_changed<F>(&self, mut f: F) -> Subscription
     where
         F: 'static + FnMut(VecDiff<T>),
     {
-        self.changed_event.borrow_mut().subscribe(f)
-    }
-
-    pub fn push(&mut self, value: T) {
-        let event_args = VecDiff::InsertAt {
-            index: self.items.len(),
-            value: value.clone(),
-        };
-        self.items.push(value);
-        self.changed_event.borrow().emit(event_args);
-    }
-
-    pub fn clear(&mut self) {
-        self.items.clear();
-        self.changed_event.borrow().emit(VecDiff::Clear {});
-    }
-
-    pub fn remove_filter<F>(&mut self, mut filter: F)
-    where
-        F: FnMut(&mut T) -> bool,
-    {
-        let mut i = 0;
-        while i != self.items.len() {
-            if filter(&mut self.items[i]) {
-                let event_args = VecDiff::RemoveAt { index: i };
-                self.items.remove(i);
-                self.changed_event.borrow().emit(event_args);
-            } else {
-                i += 1;
+        let future = self.items.borrow().signal_vec_cloned().for_each(move |v| {
+            match v {
+                futures_signals::signal_vec::VecDiff::Replace { values } => {
+                    f(VecDiff::Clear {});
+                    values
+                        .into_iter()
+                        .enumerate()
+                        .for_each(|(index, value)| f(VecDiff::InsertAt { index, value }));
+                }
+                futures_signals::signal_vec::VecDiff::InsertAt { index, value } => {
+                    f(VecDiff::InsertAt { index, value })
+                }
+                futures_signals::signal_vec::VecDiff::UpdateAt { index, value } => {
+                    f(VecDiff::RemoveAt { index });
+                    f(VecDiff::InsertAt { index, value });
+                }
+                futures_signals::signal_vec::VecDiff::RemoveAt { index } => {
+                    f(VecDiff::RemoveAt { index })
+                }
+                futures_signals::signal_vec::VecDiff::Move {
+                    old_index,
+                    new_index,
+                } => f(VecDiff::Move {
+                    old_index,
+                    new_index,
+                }),
+                futures_signals::signal_vec::VecDiff::Push { value } => f(VecDiff::Push { value }),
+                futures_signals::signal_vec::VecDiff::Pop {} => f(VecDiff::Pop {}),
+                futures_signals::signal_vec::VecDiff::Clear {} => {
+                    f(VecDiff::Clear {});
+                }
             }
-        }
+            async {}
+        });
+        Subscription::SpawnLocal(spawn_local(future))
     }
-}
 
-impl<'a, T: 'static + Clone> IntoIterator for &'a ObservableVec<T> {
-    type Item = &'a T;
-    type IntoIter = ::std::slice::Iter<'a, T>;
+    pub fn push(&self, value: T) {
+        self.items.lock_mut().push_cloned(value);
+    }
 
-    fn into_iter(self) -> ::std::slice::Iter<'a, T> {
-        (&self.items as &[T]).iter()
+    pub fn clear(&self) {
+        self.items.lock_mut().clear();
+    }
+
+    pub fn retain<F>(&self, filter: F)
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.items.lock_mut().retain(filter);
     }
 }
 
@@ -80,8 +87,7 @@ impl<T: 'static + Clone> FromIterator<T> for ObservableVec<T> {
             vec.push(i);
         }
         ObservableVec {
-            items: vec,
-            changed_event: RefCell::new(Event::new()),
+            items: MutableVec::new_with_values(vec),
         }
     }
 }
@@ -102,8 +108,6 @@ where
     }
 
     fn on_changed(&self, f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
-        Some(Subscription::EventSubscription(ObservableVec::on_changed(
-            self, f,
-        )))
+        Some(ObservableVec::on_changed(self, f))
     }
 }

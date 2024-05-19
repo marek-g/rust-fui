@@ -77,6 +77,35 @@ where
                     items_rc.borrow_mut().remove(index);
                     changed_event_rc.borrow().emit(VecDiff::RemoveAt { index });
                 }
+
+                VecDiff::Move {
+                    old_index,
+                    new_index,
+                } => {
+                    let mut vec = items_rc.borrow_mut();
+                    let value = vec.remove(old_index);
+                    vec.insert(new_index, value.clone());
+                    changed_event_rc
+                        .borrow()
+                        .emit(VecDiff::RemoveAt { index: old_index });
+                    changed_event_rc.borrow().emit(VecDiff::InsertAt {
+                        index: new_index,
+                        value,
+                    });
+                }
+
+                VecDiff::Pop {} => {
+                    items_rc.borrow_mut().pop().unwrap();
+                    changed_event_rc.borrow().emit(VecDiff::Pop {});
+                }
+
+                VecDiff::Push { value } => {
+                    let new_item = f(&value);
+                    items_rc.borrow_mut().push(new_item.clone());
+                    changed_event_rc
+                        .borrow()
+                        .emit(VecDiff::Push { value: new_item });
+                }
             }
         });
         let event_subscription = self.on_changed(handler);

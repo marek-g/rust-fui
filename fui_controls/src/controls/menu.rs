@@ -26,7 +26,7 @@ impl Menu {
         // menu is active when tapped
         let is_menu_active_prop = Property::new(false);
 
-        let mut content_prop = ObservableVec::new();
+        let content_prop = ObservableVec::new();
         let mut close_item_popup_callbacks = Vec::new();
         let mut close_siblings_callbacks = Vec::new();
 
@@ -251,7 +251,7 @@ impl Menu {
                 let popup = if sub_items.len() == 0 {
                     Children::None
                 } else {
-                    let mut sub_content_prop = ObservableVec::new();
+                    let sub_content_prop = ObservableVec::new();
 
                     let popup_placement = if is_top {
                         PopupPlacement::BelowOrAboveParent

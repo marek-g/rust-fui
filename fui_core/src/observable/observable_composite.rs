@@ -70,10 +70,40 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                         let mut lengths = lengths_clone.borrow_mut();
                         if lengths[source_index] > 0 {
                             lengths[source_index] -= 1;
+                            changed_event_clone.borrow().emit(VecDiff::RemoveAt {
+                                index: offset + index,
+                            });
                         }
+                    }
 
-                        changed_event_clone.borrow().emit(VecDiff::RemoveAt {
+                    VecDiff::Move {
+                        old_index,
+                        new_index,
+                    } => {
+                        changed_event_clone.borrow().emit(VecDiff::Move {
+                            old_index: offset + old_index,
+                            new_index: offset + new_index,
+                        });
+                    }
+
+                    VecDiff::Pop {} => {
+                        let mut lengths = lengths_clone.borrow_mut();
+                        if lengths[source_index] > 0 {
+                            let index = lengths[source_index] - 1;
+                            lengths[source_index] -= 1;
+                            changed_event_clone.borrow().emit(VecDiff::RemoveAt {
+                                index: offset + index,
+                            });
+                        }
+                    }
+
+                    VecDiff::Push { value } => {
+                        let mut lengths = lengths_clone.borrow_mut();
+                        let index = lengths[source_index];
+                        lengths[source_index] += 1;
+                        changed_event_clone.borrow().emit(VecDiff::InsertAt {
                             index: offset + index,
+                            value,
                         });
                     }
                 };

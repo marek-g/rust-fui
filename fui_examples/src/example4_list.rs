@@ -65,9 +65,7 @@ impl MainViewModel {
 
     pub fn delete(self: &Rc<Self>, item: &Rc<ItemViewModel>) {
         println!("Delete {}!", item.id);
-        self.items
-            .borrow_mut()
-            .remove_filter(|i| Rc::ptr_eq(i, item));
+        self.items.borrow_mut().retain(|i| !Rc::ptr_eq(i, item));
     }
 }
 

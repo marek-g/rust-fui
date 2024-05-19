@@ -7,6 +7,12 @@ pub enum VecDiff<A> {
     InsertAt { index: usize, value: A },
 
     RemoveAt { index: usize },
+
+    Move { old_index: usize, new_index: usize },
+
+    Pop {},
+
+    Push { value: A },
 }
 
 pub trait ObservableCollection<T: 'static + Clone> {
