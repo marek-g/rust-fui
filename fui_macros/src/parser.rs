@@ -46,7 +46,7 @@ impl Parse for Ctrl {
         let name: Ident = input.parse()?;
         let content;
         braced!(content in input);
-        let params = content.parse_terminated(CtrlParam::parse)?;
+        let params = content.parse_terminated(CtrlParam::parse, Token![,])?;
         Ok(Ctrl { name, params })
     }
 }

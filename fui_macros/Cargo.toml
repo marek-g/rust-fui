@@ -15,10 +15,10 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0", features=["full"] }
+syn = { version = "2.0", features=["full"] }
 quote = "1.0"
 proc-macro2 = "1.0"
 
 [dev-dependencies]
-typed-builder = "0.10"
+typed-builder = "0.18"
 typemap = "0.3"

@@ -16,11 +16,11 @@ fui_core = { path = "../fui_core", version = "0.13" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.13" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.3" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.13" }
-fui_system = { path = "../../rust-fui/fui_system", version = "0.12" }
-fui_system_core = { path = "../../rust-fui/fui_system_core", version = "0.12" }
+fui_system = { path = "../../rust-fui/fui_system", version = "0.13" }
+fui_system_core = { path = "../../rust-fui/fui_system_core", version = "0.13" }
 anyhow = "1.0"
 time = "0.3"
-typed-builder = "0.10"
+typed-builder = "0.18"
 typemap = "0.3"
 tokio = { version = "1", features = ["full"] }
 
