@@ -702,7 +702,7 @@ checksum = "f25c0e292a7ca6d6498557ff1df68f32c99850012b6ea401cf8daf771f22ff53"
 
 [[package]]
 name = "drawing"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "bitflags 2.5.0",
@@ -715,7 +715,7 @@ dependencies = [
 
 [[package]]
 name = "drawing_gl"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -832,7 +832,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.13.1"
+version = "0.14.0"
 dependencies = [
  "anyhow",
  "cpu-time",
@@ -853,7 +853,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "drawing",
  "euclid",
@@ -867,7 +867,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -889,7 +889,7 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -903,7 +903,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.12.0"
+version = "0.14.0"
 dependencies = [
  "anyhow",
  "fui_app",
@@ -921,7 +921,7 @@ dependencies = [
 
 [[package]]
 name = "fui_macros"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "proc-macro2",
  "quote",
