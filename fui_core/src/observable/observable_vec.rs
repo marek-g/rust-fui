@@ -1,6 +1,6 @@
 use std::{borrow::Borrow, iter::FromIterator};
 
-use futures_signals::signal_vec::{MutableVec, SignalVecExt};
+use futures_signals::signal_vec::{MutableVec, MutableVecLockMut, MutableVecLockRef, SignalVecExt};
 
 use crate::{spawn_local, ObservableCollection, Subscription, VecDiff};
 
@@ -13,6 +13,14 @@ impl<T: 'static + Clone> ObservableVec<T> {
         ObservableVec {
             items: MutableVec::new(),
         }
+    }
+
+    pub fn lock_ref(&self) -> MutableVecLockRef<'_, T> {
+        self.items.lock_ref()
+    }
+
+    pub fn lock_mut(&self) -> MutableVecLockMut<'_, T> {
+        self.items.lock_mut()
     }
 
     pub fn len(&self) -> usize {

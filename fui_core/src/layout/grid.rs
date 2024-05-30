@@ -945,7 +945,7 @@ impl DefaultGridStyle {
                     break;
                 };
 
-                let (mut resolved_def, resolved_size) = if choose_min {
+                let (resolved_def, resolved_size) = if choose_min {
                     let index = definition_indices_min[min_count - 1] as usize;
                     min_count -= 1;
                     let def = &mut definitions[index];
@@ -1209,7 +1209,7 @@ impl DefaultGridStyle {
                     break;
                 };
 
-                let (mut resolved_def, resolved_size) = if choose_min {
+                let (resolved_def, resolved_size) = if choose_min {
                     let index = definition_indices_min[min_count - 1] as usize;
                     min_count -= 1;
                     let def = &mut definitions[index];
