@@ -16,9 +16,10 @@ fui_system_core = { path = "../fui_system_core", version = "0.13" }
 thiserror = "1.0"
 
 [build-dependencies]
-cbindgen = "0.26"
-bindgen = "0.69"
+cmake = "0.1"
+cbindgen = "0.28"
+bindgen = "0.71"
 
 [dev-dependencies]
-rust-embed = "8.4"
+rust-embed = "8"
 gl = "0.14"

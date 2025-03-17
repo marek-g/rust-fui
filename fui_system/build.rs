@@ -1,6 +1,5 @@
 use std::env;
 use std::path::Path;
-use std::process::Command;
 
 fn main() {
     // https://doc.rust-lang.org/cargo/reference/environment-variables.html#environment-variables-cargo-sets-for-build-scripts
@@ -18,13 +17,15 @@ fn main() {
 
     run_cbindgen();
 
-    run_qmake(
+    run_cmake(
         &current_dir.join("src/platform/qt/qt_wrapper/cpp"),
         &out_dir,
     );
-    run_make(&env, &out_dir);
 
-    cargo_link_static(&out_dir, "qt_wrapper");
+    cargo_link_static(
+        &Path::new(&out_dir).join("lib").to_string_lossy(),
+        "qt_wrapper",
+    );
     cargo_link_qt(&env, &target_family);
 
     generate_bindings("src/platform/qt/qt_wrapper/cpp/qt_wrapper.h", &out_dir);
@@ -41,39 +42,12 @@ fn run_cbindgen() {
         .write_to_file(&Path::new(&out_dir).join("rust_ffi.h"));
 }
 
-fn run_qmake(src_dir: &Path, out_dir: &str) {
-    let output = Command::new("qmake")
-        .args(&[src_dir])
-        .current_dir(&Path::new(&out_dir))
-        .output()
-        .expect("failed to execute 'qmake' process");
+fn run_cmake(src_dir: &Path, out_dir: &str) {
+    let output = cmake::Config::new(src_dir)
+        .define("FFI_INCLUDE_DIR", &Path::new(&out_dir))
+        .build();
 
-    println!("qmake.status: {}", output.status);
-    println!("qmake.stdout: {}", String::from_utf8_lossy(&output.stdout));
-    println!("qmake.stderr: {}", String::from_utf8_lossy(&output.stderr));
-
-    assert!(output.status.success(), "failed to execute qmake process");
-}
-
-fn run_make(env: &str, dir: &str) {
-    let output = if env == "msvc" {
-        Command::new("nmake")
-            .current_dir(&Path::new(&dir))
-            .output()
-            .expect("failed to execute 'make' process")
-    } else {
-        Command::new("make")
-            .args(&["-j16"])
-            .current_dir(&Path::new(&dir))
-            .output()
-            .expect("failed to execute 'make' process")
-    };
-
-    println!("make.status: {}", output.status);
-    println!("make.stdout: {}", String::from_utf8_lossy(&output.stdout));
-    println!("make.stderr: {}", String::from_utf8_lossy(&output.stderr));
-
-    assert!(output.status.success(), "failed to execute make process");
+    println!("cmake.output: {}", output.to_string_lossy());
 }
 
 fn cargo_link_static(dir: &str, lib: &str) {
@@ -81,27 +55,14 @@ fn cargo_link_static(dir: &str, lib: &str) {
     println!("cargo:rustc-link-lib={}", lib);
 }
 
-fn qmake_query(var: &str) -> String {
-    String::from_utf8(
-        Command::new("qmake")
-            .args(&["-query", var])
-            .output()
-            .expect("Failed to execute qmake. Make sure 'qmake' is in your path")
-            .stdout,
-    )
-    .expect("UTF-8 conversion failed")
-}
-
 fn cargo_link_qt(env: &str, target_family: &str) {
-    let qt_library_path = qmake_query("QT_INSTALL_LIBS");
-
-    println!("cargo:rustc-link-search={}", qt_library_path);
-    println!("cargo:rustc-link-lib={}", "Qt5Widgets");
-    println!("cargo:rustc-link-lib={}", "Qt5Gui");
-    println!("cargo:rustc-link-lib={}", "Qt5Core");
+    println!("cargo:rustc-link-lib={}", "Qt6Widgets");
+    println!("cargo:rustc-link-lib={}", "Qt6Gui");
+    println!("cargo:rustc-link-lib={}", "Qt6Core");
+    println!("cargo:rustc-link-lib={}", "Qt6OpenGL");
 
     if target_family == "unix" {
-        println!("cargo:rustc-link-lib={}", "KF5WindowSystem");
+        println!("cargo:rustc-link-lib={}", "KF6WindowSystem");
     }
 
     if env != "msvc" {
@@ -112,7 +73,7 @@ fn cargo_link_qt(env: &str, target_family: &str) {
 fn generate_bindings(src: &str, out_dir: &str) {
     let bindings = bindgen::Builder::default()
         .header(src)
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks))
+        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings");
 

@@ -78,8 +78,8 @@ bool QWindowExt::convertEventToRust(QEvent *event, FFIEvent &ffiEvent)
 
         case QEvent::MouseMove: {
             ffiEvent.tag = FFIEvent::Tag::MouseMove;
-            ffiEvent.mouse_move.position.x = ((QMouseEvent*)event)->x();
-            ffiEvent.mouse_move.position.y = ((QMouseEvent*)event)->y();
+            ffiEvent.mouse_move.position.x = ((QMouseEvent*)event)->position().x();
+            ffiEvent.mouse_move.position.y = ((QMouseEvent*)event)->position().y();
             return true;
         }
 
