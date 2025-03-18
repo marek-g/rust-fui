@@ -1,6 +1,6 @@
 [package]
 name = "fui_app"
-version = "0.14.0"
+version = "0.15.0-pre"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Application backend of FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -15,7 +15,7 @@ edition = "2021"
 fui_core = { path = "../fui_core", version = "0.14" }
 fui_macros = { path = "../fui_macros", version = "0.4" }
 fui_controls = { path = "../fui_controls", version = "0.14" }
-fui_system = { path = "../fui_system", version = "0.13" }
+fui_system = { path = "../fui_system", version = "0.14.0-pre" }
 fui_system_core = { path = "../fui_system_core", version = "0.13" }
 rust-embed = "8.4"
 drawing = { path = "../../rust-drawing/drawing", version = "0.4" }

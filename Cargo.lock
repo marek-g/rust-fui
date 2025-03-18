@@ -886,7 +886,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.14.0"
+version = "0.15.0-pre"
 dependencies = [
  "anyhow",
  "cpu-time",
@@ -921,7 +921,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.14.0"
+version = "0.15.0-pre"
 dependencies = [
  "anyhow",
  "drawing",
@@ -957,7 +957,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.14.0"
+version = "0.15.0-pre"
 dependencies = [
  "anyhow",
  "fui_app",
@@ -986,7 +986,7 @@ dependencies = [
 
 [[package]]
 name = "fui_system"
-version = "0.13.0"
+version = "0.14.0-pre"
 dependencies = [
  "bindgen",
  "cbindgen",
