@@ -13,7 +13,7 @@ edition = "2021"
 
 [dependencies]
 fui_system_core = { path = "../fui_system_core", version = "0.13" }
-thiserror = "1.0"
+thiserror = "2"
 
 [build-dependencies]
 cmake = "0.1"
