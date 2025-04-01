@@ -8,7 +8,7 @@ categories = ["gui"]
 license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_core"
-	      readme = "../README.md"
+readme = "../README.md"
 edition = "2021"
 
 [dependencies]

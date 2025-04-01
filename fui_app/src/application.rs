@@ -58,7 +58,7 @@ impl Application {
                     fui_system::ApplicationOptions::new()
                         .with_title(title)
                         .with_opengl_share_contexts(true)
-                        .with_opengl_stencil_bits(8),
+                        .with_opengl_stencil_bits(16),
                 )
                 .unwrap();
 
@@ -104,8 +104,8 @@ impl Application {
         // GUI and VM threads without deadlocks
         let message_loop_handle = tokio::task::spawn_local(async move {
             let mut exit = false;
-                while !exit {
-                    select! {
+            while !exit {
+                select! {
                     // process all closures sent with from other threads
                     f = func_gui2vm_thread_rx.recv() => if let Some(f) = f { f() },
 
