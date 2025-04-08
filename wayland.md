@@ -7,11 +7,14 @@ that would be not present on wayland/OpenGL (tested with GLFW).
 Forcing OpenGL with QSurfaceFormat.setRenderableType(QSurfaceFormat::OpenGL)
 opens empty window.
 
-Workaround:
-
-Run the app as either:
+The workaround is to run the app in XWayland. Qt apps can be run as:
 
 ``` sh
 QT_QPA_PLATFORM=xbc app
 app --platform=xbc
 ```
+
+However, as this is inconvenient, the `fui_system` for now is modified
+to run with `xbc` platform on all unix systems.
+
+So, for now fui apps run in XWayland.

@@ -24,9 +24,17 @@ impl QApplication {
     pub fn new() -> Result<Self, FUISystemError> {
         unsafe {
             // convert args() to argc, argv
-            let args = std::env::args()
+            let mut args = std::env::args()
                 .map(|arg| CString::new(arg).unwrap())
                 .collect::<Vec<CString>>();
+
+            // run fui apps in XWayland because of transparency glitches
+            // see: wayland.md
+            if cfg!(target_family = "unix") {
+                args.push(CString::new("--platform").unwrap());
+                args.push(CString::new("xcb").unwrap());
+            }
+
             let c_args = args
                 .iter()
                 .map(|arg| arg.as_ptr())
