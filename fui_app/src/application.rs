@@ -58,7 +58,7 @@ impl Application {
                     fui_system::ApplicationOptions::new()
                         .with_title(title)
                         .with_opengl_share_contexts(true)
-                        .with_opengl_stencil_bits(16),
+                        .with_opengl_stencil_bits(8),
                 )
                 .unwrap();
 
