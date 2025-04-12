@@ -15,6 +15,10 @@ app --platform=xbc
 ```
 
 However, as this is inconvenient, the `fui_system` for now is modified
-to run with `xbc` platform on all unix systems.
+to run with `xbc` platform on all unix systems if no `--platform` parameter was provided.
 
-So, for now fui apps run in XWayland.
+So, for now fui apps run in XWayland, unless you run them as:
+
+``` sh
+app --platform=wayland
+```

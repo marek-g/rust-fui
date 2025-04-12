@@ -30,7 +30,9 @@ impl QApplication {
 
             // run fui apps in XWayland because of transparency glitches
             // see: wayland.md
-            if cfg!(target_family = "unix") {
+            if cfg!(target_family = "unix")
+                && std::env::args().find(|el| el == "--platform").is_none()
+            {
                 args.push(CString::new("--platform").unwrap());
                 args.push(CString::new("xcb").unwrap());
             }
