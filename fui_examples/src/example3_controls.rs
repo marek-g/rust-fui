@@ -13,7 +13,7 @@ use tokio::task::LocalSet;
 use typemap::TypeMap;
 
 struct MainViewModel {
-    pub window: Rc<RefCell<dyn WindowService>>,
+    pub services: Rc<RefCell<Services>>,
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
@@ -24,9 +24,9 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(window: Rc<RefCell<dyn WindowService>>) -> Rc<Self> {
+    pub fn new(services: Rc<RefCell<Services>>) -> Rc<Self> {
         Rc::new(MainViewModel {
-            window,
+            services,
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
             progress: Property::new(0.5f32),
@@ -213,7 +213,7 @@ impl ViewModel for MainViewModel {
         );
 
         let exit_callback = Callback::new_async({
-            let window = self.window.clone();
+            let window = self.services.borrow().get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -231,7 +231,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_text_callback = Callback::new_async({
-            let window = self.window.clone();
+            let window = self.services.borrow().get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -241,7 +241,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_password_callback = Callback::new_async({
-            let window = self.window.clone();
+            let window = self.services.borrow().get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -253,16 +253,22 @@ impl ViewModel for MainViewModel {
         });
 
         let file_open_callback = Callback::new_async({
-            let window = self.window.clone();
+            let services = self.services.clone();
+            let window = self.services.borrow().get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
+                let services = services.clone();
                 async move {
-                    let file = FileDialog::new()
-                        .with_title("Please select a file!")
-                        .with_initial_path("/tmp")
-                        .with_filter("All files (*.*)", &["*.*"])
-                        .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"])
-                        .pick_file()
+                    let file = services
+                        .borrow()
+                        .get_file_dialog_service()
+                        .pick_file(
+                            FileDialogData::new()
+                                .with_title("Please select a file!")
+                                .with_initial_path("/tmp")
+                                .with_filter("All files (*.*)", &["*.*"])
+                                .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"]),
+                        )
                         .await;
                     MessageBox::new(format!("{:?}", file))
                         .with_button("Ok")
@@ -273,16 +279,23 @@ impl ViewModel for MainViewModel {
         });
 
         let file_save_callback = Callback::new_async({
-            let window = self.window.clone();
+            let services = self.services.clone();
+            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let file_dialog = self.services.borrow().get_file_dialog_service();
             move |_| {
                 let window = window.clone();
+                let services = services.clone();
                 async move {
-                    let file = FileDialog::new()
-                        .with_title("Please select a file to save to!")
-                        .with_initial_path("test.dat")
-                        .with_filter("All files (*.*)", &["*.*"])
-                        .with_filter("Markdown (*.md)", &["*.md"])
-                        .pick_save_file()
+                    let file = services
+                        .borrow()
+                        .get_file_dialog_service()
+                        .pick_save_file(
+                            FileDialogData::new()
+                                .with_title("Please select a file to save to!")
+                                .with_initial_path("test.dat")
+                                .with_filter("All files (*.*)", &["*.*"])
+                                .with_filter("Markdown (*.md)", &["*.md"]),
+                        )
                         .await;
                     MessageBox::new(format!("{:?}", file))
                         .with_button("Ok")
@@ -368,7 +381,7 @@ async fn main() -> Result<()> {
             )
             .await?;
 
-            window.set_vm(MainViewModel::new(window.get_window_service()));
+            window.set_vm(MainViewModel::new(window.get_services()));
 
             app.run().await?;
 

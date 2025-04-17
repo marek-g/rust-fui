@@ -163,6 +163,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "175571dd1d178ced59193a6fc02dde1b972eb0bc56c892cde9beeceac5bf0f6b"
 
 [[package]]
+name = "async-trait"
+version = "0.1.88"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e539d3fca749fcee5236ab05e93a52867dd549cc157c8cb7f99595f3cedffdb5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.100",
+]
+
+[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -889,6 +900,7 @@ name = "fui_app"
 version = "0.15.0-pre"
 dependencies = [
  "anyhow",
+ "async-trait",
  "cpu-time",
  "drawing",
  "drawing_gl",
@@ -946,6 +958,7 @@ name = "fui_core"
 version = "0.14.1"
 dependencies = [
  "anyhow",
+ "async-trait",
  "drawing",
  "fui_macros",
  "fui_system_core",

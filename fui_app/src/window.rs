@@ -1,10 +1,10 @@
-use crate::APPLICATION_GUI_CONTEXT;
+use crate::{AppFileDialog, APPLICATION_GUI_CONTEXT};
 use crate::{DrawingContext, FuiDrawingContext, WindowOptions, APPLICATION_VM_CONTEXT};
 use anyhow::Result;
 use drawing::primitive::Primitive;
 use drawing_gl::GlContextData;
 use drawing_gl::GlRenderTarget;
-use fui_core::{Children, Grid, Rect, Size, ViewContext};
+use fui_core::{Children, Grid, Rect, Services, Size, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
@@ -133,7 +133,10 @@ impl Window {
         }));
 
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_data_rc.clone();
-        let services = Rc::new(RefCell::new(fui_core::Services::new(&window_service_rc)));
+        let services = Rc::new(RefCell::new(fui_core::Services::new(
+            &window_service_rc,
+            Box::new(AppFileDialog {}),
+        )));
         window_data_rc
             .borrow_mut()
             .root_control
@@ -185,6 +188,10 @@ impl Window {
     pub fn get_window_service(&self) -> Rc<RefCell<dyn fui_core::WindowService + 'static>> {
         let service: Rc<RefCell<dyn fui_core::WindowService + 'static>> = self.data.clone();
         service
+    }
+
+    pub fn get_services(&self) -> Rc<RefCell<Services>> {
+        self.data.borrow().services.clone().unwrap()
     }
 
     fn setup_window_events(window_id: WindowId, drawing_context: &Arc<Mutex<DrawingContext>>) {

@@ -29,10 +29,33 @@ impl PathEdit {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        let choose_callback = Callback::new_sync({
+        let mut choose_callback = Callback::empty();
+
+        let control = ui! {
+            Grid {
+        Margin: Thickness::all(8.0f32),
+
+        rows: 1,
+        default_width: Length::Auto,
+        widths: vec![(1, Length::Fill(1.0f32))],
+
+                Text { text: self.label },
+                TextBox { text: self.path },
+                Button { Text { text: "..." }, clicked: choose_callback.clone() },
+            }
+        };
+
+        let control_weak = Rc::downgrade(&control);
+
+        choose_callback.set_sync({
             //let window = context..window.clone();
             move |_| {
                 println!("Callback");
+
+                if let Some(control) = control_weak.upgrade() {
+                    let context = control.borrow().get_context();
+                    println!("context!");
+                }
 
                 //let window = window.clone();
                 /*async move {
@@ -51,18 +74,6 @@ impl PathEdit {
             }
         });
 
-        ui! {
-            Grid {
-        Margin: Thickness::all(8.0f32),
-
-        rows: 1,
-        default_width: Length::Auto,
-        widths: vec![(1, Length::Fill(1.0f32))],
-
-                Text { text: self.label },
-                TextBox { text: self.path },
-                Button { Text { text: "..." }, clicked: choose_callback },
-            }
-        }
+        control
     }
 }
