@@ -259,9 +259,8 @@ impl ViewModel for MainViewModel {
                 let window = window.clone();
                 let services = services.clone();
                 async move {
-                    let file = services
-                        .borrow()
-                        .get_file_dialog_service()
+                    let file_dialog_service = services.borrow().get_file_dialog_service();
+                    let file = file_dialog_service
                         .pick_file(
                             FileDialogData::new()
                                 .with_title("Please select a file!")
@@ -281,14 +280,12 @@ impl ViewModel for MainViewModel {
         let file_save_callback = Callback::new_async({
             let services = self.services.clone();
             let window = self.services.borrow().get_window_service().clone().unwrap();
-            let file_dialog = self.services.borrow().get_file_dialog_service();
             move |_| {
                 let window = window.clone();
                 let services = services.clone();
                 async move {
-                    let file = services
-                        .borrow()
-                        .get_file_dialog_service()
+                    let file_dialog_service = services.borrow().get_file_dialog_service();
+                    let file = file_dialog_service
                         .pick_save_file(
                             FileDialogData::new()
                                 .with_title("Please select a file to save to!")

@@ -135,7 +135,7 @@ impl Window {
         let window_service_rc: Rc<RefCell<dyn WindowService>> = window_data_rc.clone();
         let services = Rc::new(RefCell::new(fui_core::Services::new(
             &window_service_rc,
-            Box::new(AppFileDialog {}),
+            Rc::new(AppFileDialog {}),
         )));
         window_data_rc
             .borrow_mut()

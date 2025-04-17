@@ -5,13 +5,13 @@ use super::FileDialogService;
 
 pub struct Services {
     window_service: Weak<RefCell<dyn WindowService>>,
-    file_dialog_service: Box<dyn FileDialogService>,
+    file_dialog_service: Rc<dyn FileDialogService>,
 }
 
 impl Services {
     pub fn new(
         window_service: &Rc<RefCell<dyn WindowService>>,
-        file_dialog_service: Box<dyn FileDialogService>,
+        file_dialog_service: Rc<dyn FileDialogService>,
     ) -> Self {
         Self {
             window_service: Rc::downgrade(window_service),
@@ -23,7 +23,7 @@ impl Services {
         self.window_service.upgrade()
     }
 
-    pub fn get_file_dialog_service(&self) -> &Box<dyn FileDialogService> {
-        &self.file_dialog_service
+    pub fn get_file_dialog_service(&self) -> Rc<dyn FileDialogService> {
+        self.file_dialog_service.clone()
     }
 }
