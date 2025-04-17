@@ -141,8 +141,14 @@ impl ViewModel for MainViewModel {
                     Text { text: "Please Wait..." }
                 },
 
+                PathEdit {
+            Column: 0, Row: 1,
+        label: "Hello: "
+        },
+
+
                 Grid {
-                    Column: 0, Row: 1,
+                    Column: 0, Row: 2,
                     Margin: Thickness::all(8.0f32),
 
                     columns: 3,
