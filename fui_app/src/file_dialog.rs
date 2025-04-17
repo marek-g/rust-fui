@@ -1,8 +1,7 @@
 use async_trait::async_trait;
-use fui_core::{FileDialogData, FileDialogService};
+use fui_core::{FileDialogData, FileDialogService, FileFilter};
 use std::path::PathBuf;
 use tokio::sync::oneshot;
-use tokio::sync::oneshot::error::RecvError;
 
 pub struct AppFileDialog;
 
@@ -76,7 +75,7 @@ impl FileDialogService for AppFileDialog {
     }
 }
 
-fn filters_to_string(filters: Vec<fui_core::Filter>) -> Option<String> {
+fn filters_to_string(filters: Vec<FileFilter>) -> Option<String> {
     if filters.is_empty() {
         None
     } else {

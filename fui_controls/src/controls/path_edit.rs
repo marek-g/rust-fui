@@ -6,6 +6,7 @@ use std::rc::Rc;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
+#[derive(Copy, Clone)]
 pub enum PathKind {
     OpenFile,
     SaveFile,
@@ -27,7 +28,7 @@ impl PathEdit {
     pub fn to_view(
         self,
         _style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
+        _context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let mut choose_callback = Callback::empty();
 
@@ -39,38 +40,44 @@ impl PathEdit {
         default_width: Length::Auto,
         widths: vec![(1, Length::Fill(1.0f32))],
 
-                Text { text: self.label },
-                TextBox { text: self.path },
+                Text { text: self.label.clone() },
+                TextBox { text: self.path.clone() },
                 Button { Text { text: "..." }, clicked: choose_callback.clone() },
             }
         };
 
         let control_weak = Rc::downgrade(&control);
 
-        choose_callback.set_sync({
-            //let window = context..window.clone();
+        choose_callback.set_async({
             move |_| {
-                println!("Callback");
+                let control_weak = control_weak.clone();
+                let path_prop = self.path.clone();
+                let label_prop = self.label.clone();
+                async move {
+                    let mut file_dialog_service = None;
+                    if let Some(control) = control_weak.upgrade() {
+                        if let Some(services) = control.borrow().get_context().get_services() {
+                            if let Some(services) = services.upgrade() {
+                                file_dialog_service =
+                                    Some(services.borrow().get_file_dialog_service());
+                            }
+                        }
+                    }
+                    if let Some(file_dialog_service) = file_dialog_service {
+                        let dialog_data = FileDialogData::new().with_title(&label_prop.get());
+                        let path = match self.kind {
+                            PathKind::OpenFile => file_dialog_service.pick_file(dialog_data).await,
 
-                if let Some(control) = control_weak.upgrade() {
-                    let context = control.borrow().get_context();
-                    println!("context!");
+                            PathKind::SaveFile => {
+                                file_dialog_service.pick_save_file(dialog_data).await
+                            }
+                        };
+
+                        if let Some(path) = path {
+                            path_prop.set(path.to_str().map(|s| s.to_string()).unwrap_or_default());
+                        }
+                    }
                 }
-
-                //let window = window.clone();
-                /*async move {
-                    let file = FileDialog::new()
-                        .with_title("Please select a file to save to!")
-                        .with_initial_path("test.dat")
-                        .with_filter("All files (*.*)", &["*.*"])
-                        .with_filter("Markdown (*.md)", &["*.md"])
-                        .pick_save_file()
-                        .await;
-                    MessageBox::new(format!("{:?}", file))
-                    .with_button("Ok")
-                    .show(&window)
-                    .await;
-                }*/
             }
         });
 
