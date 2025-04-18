@@ -40,17 +40,17 @@ impl Drop for WindowGUIThreadData {
 pub struct WindowVMThreadData {
     id: WindowId,
 
-    event_processor: EventProcessor,
+    event_processor: RefCell<EventProcessor>,
     root_control: Rc<RefCell<dyn ControlObject>>,
-    view: Option<Rc<RefCell<dyn ControlObject>>>,
-    services: Option<Rc<RefCell<fui_core::Services>>>,
+    view: RefCell<Option<Rc<RefCell<dyn ControlObject>>>>,
+    services: RefCell<Option<Rc<RefCell<fui_core::Services>>>>,
 
     control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
 }
 
 #[derive(Clone)]
 pub struct Window {
-    data: Rc<RefCell<WindowVMThreadData>>,
+    data: Rc<WindowVMThreadData>,
 }
 
 impl Window {
@@ -123,27 +123,29 @@ impl Window {
             }
         );
 
-        let window_data_rc = Rc::new(RefCell::new(WindowVMThreadData {
+        let window_data_rc = Rc::new(WindowVMThreadData {
             id: window_id,
-            event_processor: EventProcessor::new(),
+            event_processor: RefCell::new(EventProcessor::new()),
             root_control: content,
-            view: None,
-            services: None,
+            view: RefCell::new(None),
+            services: RefCell::new(None),
             control_layers,
-        }));
+        });
 
-        let window_service_rc: Rc<RefCell<dyn WindowService>> = window_data_rc.clone();
+        let window_service_rc: Rc<dyn WindowService> = window_data_rc.clone();
         let services = Rc::new(RefCell::new(fui_core::Services::new(
             &window_service_rc,
             Rc::new(AppFileDialog {}),
         )));
         window_data_rc
-            .borrow_mut()
             .root_control
             .borrow_mut()
             .get_context_mut()
             .set_services(Some(Rc::downgrade(&services)));
-        window_data_rc.borrow_mut().services = Some(services);
+        {
+            let mut window_data_rc_services = window_data_rc.services.borrow_mut();
+            *window_data_rc_services = Some(services);
+        }
 
         let window = Window {
             data: window_data_rc,
@@ -171,27 +173,27 @@ impl Window {
     }
 
     pub fn get_id(&self) -> WindowId {
-        self.data.borrow().id
+        self.data.id
     }
 
     pub fn set_vm<V: ViewModel>(&mut self, view_model: Rc<V>) {
         let new_view = ViewModel::create_view(&view_model);
 
-        let mut window_data = self.data.borrow_mut();
+        let mut window_data = self.data.clone();
         if let Some(view) = window_data.view.take() {
             window_data.remove_layer(&view);
         }
         window_data.add_layer(new_view.clone());
-        window_data.view.replace(new_view);
+        window_data.view.borrow_mut().replace(new_view);
     }
 
-    pub fn get_window_service(&self) -> Rc<RefCell<dyn fui_core::WindowService + 'static>> {
-        let service: Rc<RefCell<dyn fui_core::WindowService + 'static>> = self.data.clone();
+    pub fn get_window_service(&self) -> Rc<dyn fui_core::WindowService + 'static> {
+        let service: Rc<dyn fui_core::WindowService + 'static> = self.data.clone();
         service
     }
 
     pub fn get_services(&self) -> Rc<RefCell<Services>> {
-        self.data.borrow().services.clone().unwrap()
+        self.data.services.borrow().clone().unwrap()
     }
 
     fn setup_window_events(window_id: WindowId, drawing_context: &Arc<Mutex<DrawingContext>>) {
@@ -304,10 +306,10 @@ impl Window {
 
                                                     // events go to the window's root control
                                                     let root_control =
-                                                        window_data.borrow().root_control.clone();
+                                                        window_data.root_control.clone();
                                                     window_data
-                                                        .borrow_mut()
                                                         .event_processor
+                                                        .borrow_mut()
                                                         .handle_event(
                                                             &root_control,
                                                             &mut fui_drawing_context,
@@ -371,11 +373,10 @@ impl Window {
 
                         let min_size = {
                             window_data
-                                .borrow()
                                 .root_control
                                 .borrow_mut()
                                 .measure(&mut fui_drawing_context, size);
-                            window_data.borrow().root_control.borrow_mut().get_rect()
+                            window_data.root_control.borrow_mut().get_rect()
                         };
 
                         tx.send(Some(min_size)).unwrap();
@@ -454,17 +455,15 @@ impl Window {
                         });
 
                         window_data
-                            .borrow()
                             .root_control
                             .borrow_mut()
                             .measure(&mut fui_drawing_context, size);
-                        window_data.borrow().root_control.borrow_mut().set_rect(
+                        window_data.root_control.borrow_mut().set_rect(
                             &mut fui_drawing_context,
                             Rect::new(0f32, 0f32, size.width, size.height),
                         );
 
                         let (mut primitives1, mut overlay) = window_data
-                            .borrow()
                             .root_control
                             .borrow()
                             .to_primitives(&mut fui_drawing_context);
@@ -472,7 +471,6 @@ impl Window {
                         primitives.append(&mut overlay);
 
                         window_data
-                            .borrow()
                             .root_control
                             .borrow_mut()
                             .get_context_mut()
@@ -521,15 +519,15 @@ impl Drop for WindowVMThreadData {
 }
 
 impl fui_core::WindowService for WindowVMThreadData {
-    fn add_layer(&mut self, control: Rc<RefCell<dyn ControlObject>>) {
+    fn add_layer(&self, control: Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.push(control);
     }
 
-    fn remove_layer(&mut self, control: &Rc<RefCell<dyn ControlObject>>) {
+    fn remove_layer(&self, control: &Rc<RefCell<dyn ControlObject>>) {
         self.control_layers.retain(|el| !Rc::ptr_eq(el, control));
     }
 
-    fn repaint(&mut self) {
+    fn repaint(&self) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
@@ -542,7 +540,7 @@ impl fui_core::WindowService for WindowVMThreadData {
         });
     }
 
-    fn set_cursor(&mut self, cursor_shape: CursorShape) {
+    fn set_cursor(&self, cursor_shape: CursorShape) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
@@ -559,7 +557,7 @@ impl fui_core::WindowService for WindowVMThreadData {
         });
     }
 
-    fn start_system_move(&mut self) {
+    fn start_system_move(&self) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
@@ -572,7 +570,7 @@ impl fui_core::WindowService for WindowVMThreadData {
         });
     }
 
-    fn start_system_resize(&mut self, edges: Edge) {
+    fn start_system_resize(&self, edges: Edge) {
         let window_id = self.id;
         fui_system::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
@@ -591,7 +589,7 @@ impl fui_core::WindowService for WindowVMThreadData {
 }
 
 pub struct WindowWeakAsync {
-    data: Weak<RefCell<WindowVMThreadData>>,
+    data: Weak<WindowVMThreadData>,
 }
 
 impl WindowWeakAsync {

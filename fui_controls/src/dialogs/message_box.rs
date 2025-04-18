@@ -51,13 +51,13 @@ impl MessageBox {
         self
     }
 
-    pub async fn show(self, window: &Rc<RefCell<dyn WindowService>>) -> i32 {
+    pub async fn show(self, window: &Rc<dyn WindowService>) -> i32 {
         self.show_internal(window).await.unwrap()
     }
 
     fn show_internal(
         self,
-        window: &Rc<RefCell<dyn WindowService>>,
+        window: &Rc<dyn WindowService>,
     ) -> impl Future<Output = Result<i32, Canceled>> {
         let buttons = ObservableVec::<Rc<DialogButtonViewModel>>::new();
 
@@ -104,7 +104,7 @@ impl MessageBox {
             let new_callback = Callback::new_sync({
                 let sender = sender.clone();
                 move |_| {
-                    window_clone.borrow_mut().remove_layer(&content_clone);
+                    window_clone.remove_layer(&content_clone);
                     sender
                         .borrow_mut()
                         .take()
@@ -117,7 +117,7 @@ impl MessageBox {
             buttons.push(Rc::new(DialogButtonViewModel::new(text, new_callback)));
         }
 
-        window.borrow_mut().add_layer(content);
+        window.add_layer(content);
 
         receiver
     }

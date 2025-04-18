@@ -1,16 +1,16 @@
 use crate::WindowService;
-use std::{cell::RefCell, rc::Rc, rc::Weak};
+use std::{rc::Rc, rc::Weak};
 
 use super::FileDialogService;
 
 pub struct Services {
-    window_service: Weak<RefCell<dyn WindowService>>,
+    window_service: Weak<dyn WindowService>,
     file_dialog_service: Rc<dyn FileDialogService>,
 }
 
 impl Services {
     pub fn new(
-        window_service: &Rc<RefCell<dyn WindowService>>,
+        window_service: &Rc<dyn WindowService>,
         file_dialog_service: Rc<dyn FileDialogService>,
     ) -> Self {
         Self {
@@ -19,7 +19,7 @@ impl Services {
         }
     }
 
-    pub fn get_window_service(&self) -> Option<Rc<RefCell<dyn WindowService>>> {
+    pub fn get_window_service(&self) -> Option<Rc<dyn WindowService>> {
         self.window_service.upgrade()
     }
 

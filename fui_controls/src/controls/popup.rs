@@ -161,10 +161,10 @@ impl Style<Popup> for DefaultPopupStyle {
                         };
 
                         popup_content_rc.set(Some(content.clone()));
-                        window_service.borrow_mut().add_layer(content);
+                        window_service.add_layer(content);
                     } else {
                         if let Some(content) = popup_content_rc.replace(None) {
-                            window_service.borrow_mut().remove_layer(&content);
+                            window_service.remove_layer(&content);
                         }
                     }
                 }

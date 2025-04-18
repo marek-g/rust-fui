@@ -126,7 +126,7 @@ impl ControlContext {
                                 services
                                     .borrow_mut()
                                     .get_window_service()
-                                    .map(|s| s.borrow_mut().repaint());
+                                    .map(|s| s.repaint());
                             }
                         });
                     }

@@ -21,7 +21,7 @@ impl InputDialog {
 
     pub async fn get_text<S: Into<String>>(
         self,
-        window: &Rc<RefCell<dyn WindowService>>,
+        window: &Rc<dyn WindowService>,
         initial_text: S,
     ) -> Option<String> {
         self.get_text_internal(window, initial_text.into(), false)
@@ -29,7 +29,7 @@ impl InputDialog {
             .unwrap()
     }
 
-    pub async fn get_password(self, window: &Rc<RefCell<dyn WindowService>>) -> Option<String> {
+    pub async fn get_password(self, window: &Rc<dyn WindowService>) -> Option<String> {
         self.get_text_internal(window, String::new(), true)
             .await
             .unwrap()
@@ -37,7 +37,7 @@ impl InputDialog {
 
     fn get_text_internal(
         self,
-        window: &Rc<RefCell<dyn WindowService>>,
+        window: &Rc<dyn WindowService>,
         initial_text: String,
         is_password: bool,
     ) -> impl Future<Output = Result<Option<String>, Canceled>> {
@@ -100,7 +100,7 @@ impl InputDialog {
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
             move |_| {
-                window_clone.borrow_mut().remove_layer(&content_clone);
+                window_clone.remove_layer(&content_clone);
                 sender.borrow_mut().take().unwrap().send(None).unwrap();
             }
         });
@@ -110,7 +110,7 @@ impl InputDialog {
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
             move |_| {
-                window_clone.borrow_mut().remove_layer(&content_clone);
+                window_clone.remove_layer(&content_clone);
                 sender
                     .borrow_mut()
                     .take()
@@ -120,7 +120,7 @@ impl InputDialog {
             }
         });
 
-        window.borrow_mut().add_layer(content);
+        window.add_layer(content);
 
         receiver
     }

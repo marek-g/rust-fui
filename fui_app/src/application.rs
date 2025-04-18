@@ -28,7 +28,7 @@ pub struct ApplicationGuiContext {
 ///
 pub struct ApplicationVmContext {
     // translates WindowId to window data - needed for events
-    pub windows: HashMap<WindowId, Weak<RefCell<WindowVMThreadData>>>,
+    pub windows: HashMap<WindowId, Weak<WindowVMThreadData>>,
 }
 
 ///

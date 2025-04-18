@@ -137,9 +137,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                             let window_service = services.borrow_mut().get_window_service();
                             if let Some(window_service) = window_service {
                                 if edge.is_empty() {
-                                    window_service.borrow_mut().start_system_move();
+                                    window_service.start_system_move();
                                 } else {
-                                    window_service.borrow_mut().start_system_resize(edge);
+                                    window_service.start_system_resize(edge);
                                 }
                             }
                         }
@@ -171,7 +171,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                         if let Some(services) = services.upgrade() {
                             let window_service = services.borrow_mut().get_window_service();
                             if let Some(window_service) = window_service {
-                                window_service.borrow_mut().set_cursor(cursor);
+                                window_service.set_cursor(cursor);
                             }
                         }
                     });
@@ -187,9 +187,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                             if let Some(services) = services.upgrade() {
                                 let window_service = services.borrow_mut().get_window_service();
                                 if let Some(window_service) = window_service {
-                                    window_service
-                                        .borrow_mut()
-                                        .set_cursor(CursorShape::ArrowCursor);
+                                    window_service.set_cursor(CursorShape::ArrowCursor);
                                 }
                             }
                         });
