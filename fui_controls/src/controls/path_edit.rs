@@ -33,15 +33,11 @@ impl PathEdit {
         let mut choose_callback = Callback::empty();
 
         let control = ui! {
-            Grid {
+            Horizontal {
         Margin: Thickness::all(8.0f32),
 
-        rows: 1,
-        default_width: Length::Auto,
-        widths: vec![(1, Length::Fill(1.0f32))],
-
                 Text { text: self.label.clone() },
-                TextBox { text: self.path.clone() },
+                TextBox { Grow: Length::Fill(1.0f32), text: self.path.clone() },
                 Button { Text { text: "..." }, clicked: choose_callback.clone() },
             }
         };
