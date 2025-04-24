@@ -82,8 +82,11 @@ impl ControlContext {
     /// Available only when control is added to the window.
     /// Not yet set during control setup().
     ///
-    pub fn get_services(&self) -> Option<Weak<RefCell<Services>>> {
-        self.services.clone()
+    pub fn get_services(&self) -> Option<Rc<RefCell<Services>>> {
+        self.services
+            .clone()
+            .map(|weak_service| weak_service.upgrade())
+            .flatten()
     }
 
     pub fn set_services(&mut self, services: Option<Weak<RefCell<Services>>>) {

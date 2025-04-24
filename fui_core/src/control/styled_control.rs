@@ -52,7 +52,10 @@ impl<D: 'static> StyledControl<D> {
 
                     // dynamically created controls require to set services
                     let services = control_clone.borrow().get_context().get_services();
-                    child.borrow_mut().get_context_mut().set_services(services);
+                    child
+                        .borrow_mut()
+                        .get_context_mut()
+                        .set_services(services.map(|s| Rc::downgrade(&s)));
                 }
 
                 control_clone

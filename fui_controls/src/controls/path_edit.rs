@@ -67,10 +67,7 @@ impl PathEdit {
                     let mut file_dialog_service = None;
                     if let Some(control) = control_weak.upgrade() {
                         if let Some(services) = control.borrow().get_context().get_services() {
-                            if let Some(services) = services.upgrade() {
-                                file_dialog_service =
-                                    Some(services.borrow().get_file_dialog_service());
-                            }
+                            file_dialog_service = Some(services.borrow().get_file_dialog_service());
                         }
                     }
                     if let Some(file_dialog_service) = file_dialog_service {

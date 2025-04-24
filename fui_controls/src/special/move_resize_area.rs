@@ -133,14 +133,12 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                 // (cannot call it directly because services can be already borrowed)
                 if let Some(services) = control_context.get_services() {
                     spawn_local_and_forget(async move {
-                        if let Some(services) = services.upgrade() {
-                            let window_service = services.borrow_mut().get_window_service();
-                            if let Some(window_service) = window_service {
-                                if edge.is_empty() {
-                                    window_service.start_system_move();
-                                } else {
-                                    window_service.start_system_resize(edge);
-                                }
+                        let window_service = services.borrow_mut().get_window_service();
+                        if let Some(window_service) = window_service {
+                            if edge.is_empty() {
+                                window_service.start_system_move();
+                            } else {
+                                window_service.start_system_resize(edge);
                             }
                         }
                     });
@@ -168,11 +166,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                 // (cannot call it directly because services can be already borrowed)
                 if let Some(services) = control_context.get_services() {
                     spawn_local_and_forget(async move {
-                        if let Some(services) = services.upgrade() {
-                            let window_service = services.borrow_mut().get_window_service();
-                            if let Some(window_service) = window_service {
-                                window_service.set_cursor(cursor);
-                            }
+                        let window_service = services.borrow_mut().get_window_service();
+                        if let Some(window_service) = window_service {
+                            window_service.set_cursor(cursor);
                         }
                     });
                 }
@@ -184,11 +180,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                     // (cannot call it directly because services can be already borrowed)
                     if let Some(services) = control_context.get_services() {
                         spawn_local_and_forget(async move {
-                            if let Some(services) = services.upgrade() {
-                                let window_service = services.borrow_mut().get_window_service();
-                                if let Some(window_service) = window_service {
-                                    window_service.set_cursor(CursorShape::ArrowCursor);
-                                }
+                            let window_service = services.borrow_mut().get_window_service();
+                            if let Some(window_service) = window_service {
+                                window_service.set_cursor(CursorShape::ArrowCursor);
                             }
                         });
                     }

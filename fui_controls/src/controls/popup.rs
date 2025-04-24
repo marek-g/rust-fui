@@ -116,8 +116,6 @@ impl Style<Popup> for DefaultPopupStyle {
                 .borrow()
                 .get_context()
                 .get_services()
-                .map(|services| services.upgrade())
-                .unwrap_or(None)
                 .map(|services| services.borrow_mut().get_window_service())
                 .unwrap_or(None);
 
