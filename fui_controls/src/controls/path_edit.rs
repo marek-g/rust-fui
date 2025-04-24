@@ -10,6 +10,7 @@ use typemap::TypeMap;
 pub enum PathKind {
     OpenFile,
     SaveFile,
+    Folder,
 }
 
 #[derive(TypedBuilder)]
@@ -22,25 +23,37 @@ pub struct PathEdit {
 
     #[builder(default = PathKind::OpenFile)]
     pub kind: PathKind,
+
+    #[builder(default = Vec::new())]
+    pub filters: Vec<FileFilter>,
 }
 
 impl PathEdit {
     pub fn to_view(
         self,
         _style: Option<Box<dyn Style<Self>>>,
-        _context: ViewContext,
+        mut context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
         let mut choose_callback = Callback::empty();
 
         let control = ui! {
             Horizontal {
-        Margin: Thickness::all(8.0f32),
-
                 Text { text: self.label.clone() },
                 TextBox { Grow: Length::Fill(1.0f32), text: self.path.clone() },
                 Button { Text { text: "..." }, clicked: choose_callback.clone() },
             }
         };
+
+        if !context.attached_values.contains::<Margin>() {
+            context
+                .attached_values
+                .insert::<Margin>(Thickness::all(8.0f32));
+        }
+
+        control
+            .borrow_mut()
+            .get_context_mut()
+            .set_attached_values(context.attached_values);
 
         let control_weak = Rc::downgrade(&control);
 
@@ -49,6 +62,7 @@ impl PathEdit {
                 let control_weak = control_weak.clone();
                 let path_prop = self.path.clone();
                 let label_prop = self.label.clone();
+                let filters = self.filters.clone();
                 async move {
                     let mut file_dialog_service = None;
                     if let Some(control) = control_weak.upgrade() {
@@ -60,13 +74,18 @@ impl PathEdit {
                         }
                     }
                     if let Some(file_dialog_service) = file_dialog_service {
-                        let dialog_data = FileDialogData::new().with_title(&label_prop.get());
+                        let dialog_data = FileDialogData::new()
+                            .with_title(&label_prop.get())
+                            .with_initial_path(path_prop.get())
+                            .with_filters(filters);
                         let path = match self.kind {
                             PathKind::OpenFile => file_dialog_service.pick_file(dialog_data).await,
 
                             PathKind::SaveFile => {
                                 file_dialog_service.pick_save_file(dialog_data).await
                             }
+
+                            PathKind::Folder => file_dialog_service.pick_folder(dialog_data).await,
                         };
 
                         if let Some(path) = path {

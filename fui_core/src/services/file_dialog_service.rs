@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use async_trait::async_trait;
 
+#[derive(Clone)]
 pub struct FileFilter {
     pub name: String,
     pub filters: Vec<String>,
@@ -35,6 +36,11 @@ impl FileDialogData {
             name: name.to_string(),
             filters: filters.iter().map(|e| e.to_string()).collect(),
         });
+        self
+    }
+
+    pub fn with_filters(mut self, filters: Vec<FileFilter>) -> Self {
+        self.filters = filters;
         self
     }
 }

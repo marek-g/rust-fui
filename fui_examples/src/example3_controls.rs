@@ -141,14 +141,8 @@ impl ViewModel for MainViewModel {
                     Text { text: "Please Wait..." }
                 },
 
-                PathEdit {
-            Column: 0, Row: 1,
-        label: "Hello: "
-        },
-
-
                 Grid {
-                    Column: 0, Row: 2,
+                    Column: 0, Row: 1,
                     Margin: Thickness::all(8.0f32),
 
                     columns: 3,
@@ -160,12 +154,12 @@ impl ViewModel for MainViewModel {
                         ToggleButton {
                             Style: Tab {},
                             is_checked: self.is_busy.clone(),
-                            Text { text: "Busy Start"}
+                            Text { text: "Busy Start" }
                         },
                         ToggleButton {
                             Style: Tab {},
                             is_checked: Property::binded_c_two_way(&self.is_busy, |v: bool| { !v }, |v: bool| { !v }),
-                            Text { text: "Busy Stop"}
+                            Text { text: "Busy Stop" }
                         },
                     },
 
@@ -184,6 +178,14 @@ impl ViewModel for MainViewModel {
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 3"} },
                     },
                 },
+
+        PathEdit {
+            Column: 0, Row: 2,
+            label: "Save file: ",
+            kind: PathKind::OpenFile,
+            filters: vec![FileFilter { name: "All files (*.*)".to_string(), filters: vec!["*".to_string()] }, FileFilter { name: "Movies (*.mpg, *.avi)".to_string(), filters: vec!["mpg".to_string(), "avi".to_string()] },
+        FileFilter { name: "Markdown (*.md)".to_string(), filters: vec!["md".to_string()]}],
+        },
             }
         );
 
