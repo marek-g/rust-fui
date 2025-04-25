@@ -64,13 +64,12 @@ impl PathEdit {
                 let label_prop = self.label.clone();
                 let filters = self.filters.clone();
                 async move {
-                    let mut file_dialog_service = None;
-                    if let Some(control) = control_weak.upgrade() {
-                        if let Some(services) = control.borrow().get_context().get_services() {
-                            file_dialog_service = Some(services.borrow().get_file_dialog_service());
-                        }
-                    }
-                    if let Some(file_dialog_service) = file_dialog_service {
+                    if let Some(file_dialog_service) = control_weak
+                        .upgrade()
+                        .map(|c| c.borrow().get_context().get_services())
+                        .flatten()
+                        .map(|s| s.borrow().get_file_dialog_service())
+                    {
                         let dialog_data = FileDialogData::new()
                             .with_title(&label_prop.get())
                             .with_initial_path(path_prop.get())
