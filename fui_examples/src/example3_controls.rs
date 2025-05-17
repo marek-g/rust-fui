@@ -13,7 +13,7 @@ use tokio::task::LocalSet;
 use typemap::TypeMap;
 
 struct MainViewModel {
-    pub services: Rc<RefCell<Services>>,
+    pub services: Services,
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
@@ -24,7 +24,7 @@ struct MainViewModel {
 }
 
 impl MainViewModel {
-    pub fn new(services: Rc<RefCell<Services>>) -> Rc<Self> {
+    pub fn new(services: Services) -> Rc<Self> {
         Rc::new(MainViewModel {
             services,
             text: Property::new("My text"),
@@ -215,7 +215,7 @@ impl ViewModel for MainViewModel {
         );
 
         let exit_callback = Callback::new_async({
-            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let window = self.services.get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -233,7 +233,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_text_callback = Callback::new_async({
-            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let window = self.services.get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -243,7 +243,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_password_callback = Callback::new_async({
-            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let window = self.services.get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -256,12 +256,12 @@ impl ViewModel for MainViewModel {
 
         let file_open_callback = Callback::new_async({
             let services = self.services.clone();
-            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let window = self.services.get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 let services = services.clone();
                 async move {
-                    let file_dialog_service = services.borrow().get_file_dialog_service();
+                    let file_dialog_service = services.get_file_dialog_service();
                     let file = file_dialog_service
                         .pick_file(
                             FileDialogData::new()
@@ -281,12 +281,12 @@ impl ViewModel for MainViewModel {
 
         let file_save_callback = Callback::new_async({
             let services = self.services.clone();
-            let window = self.services.borrow().get_window_service().clone().unwrap();
+            let window = self.services.get_window_service().clone().unwrap();
             move |_| {
                 let window = window.clone();
                 let services = services.clone();
                 async move {
-                    let file_dialog_service = services.borrow().get_file_dialog_service();
+                    let file_dialog_service = services.get_file_dialog_service();
                     let file = file_dialog_service
                         .pick_save_file(
                             FileDialogData::new()

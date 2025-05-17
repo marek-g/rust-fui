@@ -43,7 +43,7 @@ pub struct WindowVMThreadData {
     event_processor: RefCell<EventProcessor>,
     root_control: Rc<RefCell<dyn ControlObject>>,
     view: RefCell<Option<Rc<RefCell<dyn ControlObject>>>>,
-    services: RefCell<Option<Rc<RefCell<fui_core::Services>>>>,
+    services: RefCell<Option<fui_core::Services>>,
 
     control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
 }
@@ -133,15 +133,12 @@ impl Window {
         });
 
         let window_service_rc: Rc<dyn WindowService> = window_data_rc.clone();
-        let services = Rc::new(RefCell::new(fui_core::Services::new(
-            &window_service_rc,
-            Rc::new(AppFileDialog {}),
-        )));
+        let services = fui_core::Services::new(&window_service_rc, Rc::new(AppFileDialog {}));
         window_data_rc
             .root_control
             .borrow_mut()
             .get_context_mut()
-            .set_services(Some(Rc::downgrade(&services)));
+            .set_services(Some(services.clone()));
         {
             let mut window_data_rc_services = window_data_rc.services.borrow_mut();
             *window_data_rc_services = Some(services);
@@ -192,7 +189,7 @@ impl Window {
         service
     }
 
-    pub fn get_services(&self) -> Rc<RefCell<Services>> {
+    pub fn get_services(&self) -> Services {
         self.data.services.borrow().clone().unwrap()
     }
 

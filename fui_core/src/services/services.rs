@@ -3,6 +3,7 @@ use std::{rc::Rc, rc::Weak};
 
 use super::FileDialogService;
 
+#[derive(Clone)]
 pub struct Services {
     window_service: Weak<dyn WindowService>,
     file_dialog_service: Rc<dyn FileDialogService>,

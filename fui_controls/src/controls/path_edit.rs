@@ -66,9 +66,9 @@ impl PathEdit {
                 async move {
                     if let Some(file_dialog_service) = control_weak
                         .upgrade()
-                        .map(|c| c.borrow().get_context().get_services())
+                        .map(|c| c.borrow().get_context().get_services().clone())
                         .flatten()
-                        .map(|s| s.borrow().get_file_dialog_service())
+                        .map(|s| s.get_file_dialog_service())
                     {
                         let dialog_data = FileDialogData::new()
                             .with_title(&label_prop.get())

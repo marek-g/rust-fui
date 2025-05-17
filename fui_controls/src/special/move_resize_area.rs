@@ -131,9 +131,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
 
                 // post start_system_move()
                 // (cannot call it directly because services can be already borrowed)
-                if let Some(services) = control_context.get_services() {
+                if let Some(services) = control_context.get_services().clone() {
                     spawn_local_and_forget(async move {
-                        let window_service = services.borrow_mut().get_window_service();
+                        let window_service = services.get_window_service();
                         if let Some(window_service) = window_service {
                             if edge.is_empty() {
                                 window_service.start_system_move();
@@ -164,9 +164,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
 
                 // post set_cursor()
                 // (cannot call it directly because services can be already borrowed)
-                if let Some(services) = control_context.get_services() {
+                if let Some(services) = control_context.get_services().clone() {
                     spawn_local_and_forget(async move {
-                        let window_service = services.borrow_mut().get_window_service();
+                        let window_service = services.get_window_service();
                         if let Some(window_service) = window_service {
                             window_service.set_cursor(cursor);
                         }
@@ -178,9 +178,9 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
                 if !is_hit_test {
                     // post set_cursor()
                     // (cannot call it directly because services can be already borrowed)
-                    if let Some(services) = control_context.get_services() {
+                    if let Some(services) = control_context.get_services().clone() {
                         spawn_local_and_forget(async move {
-                            let window_service = services.borrow_mut().get_window_service();
+                            let window_service = services.get_window_service();
                             if let Some(window_service) = window_service {
                                 window_service.set_cursor(CursorShape::ArrowCursor);
                             }

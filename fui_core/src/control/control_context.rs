@@ -16,7 +16,7 @@ pub struct ControlContext {
 
     attached_values: TypeMap,
 
-    services: Option<Weak<RefCell<Services>>>,
+    services: Option<Services>,
 
     rect: Rect,
 
@@ -78,18 +78,11 @@ impl ControlContext {
         self.attached_values = attached_values;
     }
 
-    ///
-    /// Available only when control is added to the window.
-    /// Not yet set during control setup().
-    ///
-    pub fn get_services(&self) -> Option<Rc<RefCell<Services>>> {
-        self.services
-            .clone()
-            .map(|weak_service| weak_service.upgrade())
-            .flatten()
+    pub fn get_services(&self) -> &Option<Services> {
+        &self.services
     }
 
-    pub fn set_services(&mut self, services: Option<Weak<RefCell<Services>>>) {
+    pub fn set_services(&mut self, services: Option<Services>) {
         for child in self.children.into_iter() {
             child
                 .borrow_mut()
@@ -125,12 +118,7 @@ impl ControlContext {
                     // (cannot call it directly because services can be already borrowed)
                     if let Some(services) = self.services.clone() {
                         spawn_local_and_forget(async move {
-                            if let Some(services) = services.upgrade() {
-                                services
-                                    .borrow_mut()
-                                    .get_window_service()
-                                    .map(|s| s.repaint());
-                            }
+                            services.get_window_service().map(|s| s.repaint());
                         });
                     }
                 }

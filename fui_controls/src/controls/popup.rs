@@ -116,7 +116,8 @@ impl Style<Popup> for DefaultPopupStyle {
                 .borrow()
                 .get_context()
                 .get_services()
-                .map(|services| services.borrow_mut().get_window_service())
+                .as_ref()
+                .map(|services| services.get_window_service())
                 .unwrap_or(None);
 
             if let Some(window_service) = window_service {
