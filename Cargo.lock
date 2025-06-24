@@ -970,7 +970,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.15.0-pre"
+version = "0.15.0"
 dependencies = [
  "anyhow",
  "fui_app",
