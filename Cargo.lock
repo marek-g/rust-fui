@@ -780,7 +780,7 @@ dependencies = [
 
 [[package]]
 name = "drawing_gl"
-version = "0.5.0-pre"
+version = "0.5.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -897,7 +897,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.15.0-pre"
+version = "0.15.0"
 dependencies = [
  "anyhow",
  "async-trait",
