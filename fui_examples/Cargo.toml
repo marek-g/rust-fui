@@ -13,9 +13,9 @@ edition = "2021"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.15" }
-fui_controls = { path = "../../rust-fui/fui_controls", version = "0.14" }
+fui_controls = { path = "../../rust-fui/fui_controls", version = "0.15" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.4" }
-fui_app = { path = "../../rust-fui/fui_app", version = "0.15.0-pre" }
+fui_app = { path = "../../rust-fui/fui_app", version = "0.16.0" }
 fui_system = { path = "../../rust-fui/fui_system", version = "0.14.0-pre" }
 fui_system_core = { path = "../../rust-fui/fui_system_core", version = "0.13" }
 anyhow = "1.0"
