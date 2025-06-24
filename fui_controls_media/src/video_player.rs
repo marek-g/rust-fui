@@ -43,7 +43,7 @@ impl Player {
         self.texture.set_size(1280, 544);
 
         //let dispatcher_clone = self.dispatcher.clone();
-        video_app_sink.set_callbacks(
+        /*video_app_sink.set_callbacks(
             gstreamer_app::AppSinkCallbacks::builder()
                 .new_sample(move |app_sink| {
                     let timespec = time::OffsetDateTime::now_utc();
@@ -79,9 +79,9 @@ impl Player {
                     Ok(gstreamer::FlowSuccess::Ok)
                 })
                 .build(),
-        );
+        );*/
 
-        self.pipeline = Some(pipeline);
+        self.pipeline = None; //Some(pipeline);
     }
 
     pub fn play(&mut self) {

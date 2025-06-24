@@ -17,8 +17,8 @@ use std::sync::{Arc, Mutex};
 //#[cfg(target_os = "linux")]
 //use self::winit::platform::unix::EventsLoopExt;
 
-#[cfg(target_os = "linux")]
-use winit::platform::unix::WindowExtUnix;
+//#[cfg(target_os = "linux")]
+//use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
     pub texture: PlayerTexture,
