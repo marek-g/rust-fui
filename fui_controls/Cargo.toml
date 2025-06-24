@@ -12,7 +12,7 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.14" }
+fui_core = { path = "../fui_core", version = "0.15" }
 fui_system_core = { path = "../fui_system_core", version = "0.13" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.4" }
 drawing = { path = "../../rust-drawing/drawing", version = "0.4" }

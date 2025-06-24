@@ -12,7 +12,7 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.14" }
+fui_core = { path = "../fui_core", version = "0.15" }
 fui_macros = { path = "../fui_macros", version = "0.4" }
 fui_controls = { path = "../fui_controls", version = "0.14" }
 fui_system = { path = "../fui_system", version = "0.14.0" }
