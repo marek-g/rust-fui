@@ -1016,7 +1016,7 @@ dependencies = [
 
 [[package]]
 name = "fui_system_core"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "bitflags 2.9.1",
 ]
