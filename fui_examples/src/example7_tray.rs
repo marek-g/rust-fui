@@ -5,7 +5,7 @@ use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
-use fui_system::*;
+use windowing_qt::*;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -100,29 +100,29 @@ async fn main() -> Result<()> {
             let app = fui_app::Application::new("Example: tray").await?;
 
             let menu_items = vec![
-                fui_system::MenuItem::folder(
+                windowing_qt::MenuItem::folder(
                     "File",
                     vec![
-                        fui_system::MenuItem::simple("Open...", || {}),
-                        fui_system::MenuItem::simple("Save...", || {}),
-                        fui_system::MenuItem::folder(
+                        windowing_qt::MenuItem::simple("Open...", || {}),
+                        windowing_qt::MenuItem::simple("Save...", || {}),
+                        windowing_qt::MenuItem::folder(
                             "Export",
                             vec![
-                                fui_system::MenuItem::simple("PDF...", || {}),
-                                fui_system::MenuItem::simple("PNG...", || {}),
-                                fui_system::MenuItem::simple("HTML...", || {}),
+                                windowing_qt::MenuItem::simple("PDF...", || {}),
+                                windowing_qt::MenuItem::simple("PNG...", || {}),
+                                windowing_qt::MenuItem::simple("HTML...", || {}),
                             ],
                         ),
-                        fui_system::MenuItem::Separator,
-                        fui_system::MenuItem::simple("Exit", || fui_app::Application::exit()),
+                        windowing_qt::MenuItem::Separator,
+                        windowing_qt::MenuItem::simple("Exit", || fui_app::Application::exit()),
                     ],
                 ),
-                fui_system::MenuItem::folder(
+                windowing_qt::MenuItem::folder(
                     "Help",
                     vec![
-                        fui_system::MenuItem::simple("Help", || {}),
-                        fui_system::MenuItem::Separator,
-                        fui_system::MenuItem::simple("About", || {}),
+                        windowing_qt::MenuItem::simple("Help", || {}),
+                        windowing_qt::MenuItem::Separator,
+                        windowing_qt::MenuItem::simple("About", || {}),
                     ],
                 ),
             ];

@@ -54,8 +54,8 @@ impl Application {
         let gui_thread_join_handle = std::thread::Builder::new()
             .name("GUI".to_string())
             .spawn(move || {
-                let app = fui_system::Application::new(
-                    fui_system::ApplicationOptions::new()
+                let app = windowing_qt::Application::new(
+                    windowing_qt::ApplicationOptions::new()
                         .with_title(title)
                         .with_opengl_share_contexts(true)
                         .with_opengl_stencil_bits(8),
@@ -122,7 +122,7 @@ impl Application {
     }
 
     pub fn exit() {
-        fui_system::Application::exit(0);
+        windowing_qt::Application::exit(0);
     }
 
     pub async fn run(mut self) -> Result<()> {

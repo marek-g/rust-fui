@@ -5,8 +5,8 @@ use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
-use fui_system_core::WindowFrameType;
 use typemap::TypeMap;
+use windowing_api::WindowFrameType;
 
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -80,7 +80,7 @@ async fn main() -> Result<()> {
             let mut window = Window::create(
                 WindowOptions::new()
                     .with_title("Example: button")
-                    .with_translucent_background(fui_system_core::TranslucentEffect::Transparent)
+                    .with_translucent_background(windowing_api::TranslucentEffect::Transparent)
                     .with_frame_type(WindowFrameType::Frameless)
                     .with_size(800, 600),
             )

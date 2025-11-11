@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use drawing::primitive::Primitive;
 use fui_core::*;
-use fui_system_core::{CursorShape, Edge};
 use typed_builder::TypedBuilder;
+use windowing_api::{CursorShape, Edge};
 
 #[derive(TypedBuilder)]
 pub struct MoveResizeArea {

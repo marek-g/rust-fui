@@ -10,9 +10,9 @@ impl FileDialogService for AppFileDialog {
     async fn pick_file(&self, data: FileDialogData) -> Option<PathBuf> {
         let (sender, receiver) = oneshot::channel::<Option<PathBuf>>();
 
-        fui_system::Application::post_func({
+        windowing_qt::Application::post_func({
             move || {
-                let result = fui_system::FileDialog::get_open_file_name(
+                let result = windowing_qt::FileDialog::get_open_file_name(
                     data.title.as_deref(),
                     data.initial_path.as_deref(),
                     filters_to_string(data.filters).as_deref(),
@@ -27,9 +27,9 @@ impl FileDialogService for AppFileDialog {
     async fn pick_files(&self, data: FileDialogData) -> Vec<PathBuf> {
         let (sender, receiver) = oneshot::channel::<Vec<PathBuf>>();
 
-        fui_system::Application::post_func({
+        windowing_qt::Application::post_func({
             move || {
-                let result = fui_system::FileDialog::get_open_file_names(
+                let result = windowing_qt::FileDialog::get_open_file_names(
                     data.title.as_deref(),
                     data.initial_path.as_deref(),
                     filters_to_string(data.filters).as_deref(),
@@ -44,9 +44,9 @@ impl FileDialogService for AppFileDialog {
     async fn pick_folder(&self, data: FileDialogData) -> Option<PathBuf> {
         let (sender, receiver) = oneshot::channel::<Option<PathBuf>>();
 
-        fui_system::Application::post_func({
+        windowing_qt::Application::post_func({
             move || {
-                let result = fui_system::FileDialog::get_existing_directory(
+                let result = windowing_qt::FileDialog::get_existing_directory(
                     data.title.as_deref(),
                     data.initial_path.as_deref(),
                 );
@@ -60,9 +60,9 @@ impl FileDialogService for AppFileDialog {
     async fn pick_save_file(&self, data: FileDialogData) -> Option<PathBuf> {
         let (sender, receiver) = oneshot::channel::<Option<PathBuf>>();
 
-        fui_system::Application::post_func({
+        windowing_qt::Application::post_func({
             move || {
-                let result = fui_system::FileDialog::get_save_file_name(
+                let result = windowing_qt::FileDialog::get_save_file_name(
                     data.title.as_deref(),
                     data.initial_path.as_deref(),
                     filters_to_string(data.filters).as_deref(),

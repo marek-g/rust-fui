@@ -106,7 +106,7 @@ async fn main() -> Result<()> {
         .run_until(async {
             let app = Application::new("Example: video").await?;
 
-            let mut window = fui_system::Window::new(None).unwrap();
+            let mut window = windowing_qt::Window::new(None).unwrap();
             window.set_title("GStreamer test");
             window.resize(800, 600);
 

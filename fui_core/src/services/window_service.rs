@@ -1,4 +1,4 @@
-use fui_system_core::{CursorShape, Edge};
+use windowing_api::{CursorShape, Edge};
 
 use crate::ControlObject;
 use std::{cell::RefCell, rc::Rc};

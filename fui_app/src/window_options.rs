@@ -1,4 +1,4 @@
-use fui_system_core::{TranslucentEffect, WindowFrameType};
+use windowing_api::{TranslucentEffect, WindowFrameType};
 
 #[derive(Clone)]
 pub struct WindowOptions {

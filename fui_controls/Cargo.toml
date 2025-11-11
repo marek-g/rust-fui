@@ -1,6 +1,6 @@
 [package]
 name = "fui_controls"
-version = "0.15.0"
+version = "0.16.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Standard controls for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -12,9 +12,9 @@ readme = "README.md"
 edition = "2021"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.15" }
-fui_system_core = { path = "../fui_system_core", version = "0.13" }
+fui_core = { path = "../../rust-fui/fui_core", version = "0.16" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.4" }
+windowing_api = "0.13"
 #drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
 drawing = "0.4"
 euclid = "0.22"

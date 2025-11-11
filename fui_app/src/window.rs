@@ -8,13 +8,13 @@ use fui_core::{Children, Grid, Rect, Services, Size, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
-use fui_system_core::{CursorShape, Edge};
 use std::cell::RefCell;
 use std::ptr::null;
 use std::rc::{Rc, Weak};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
 use typemap::TypeMap;
+use windowing_api::{CursorShape, Edge};
 
 pub type WindowId = i64;
 
@@ -22,7 +22,7 @@ pub type WindowId = i64;
 /// Window data available only from the GUI thread.
 ///
 pub struct WindowGUIThreadData {
-    system_window: Option<fui_system::Window>,
+    system_window: Option<windowing_qt::Window>,
     gl_context_data: Option<GlContextData>,
 }
 
@@ -57,9 +57,9 @@ impl Window {
     pub async fn create(window_options: WindowOptions) -> Result<Self> {
         // VM Thread
         let (tx, rx) = oneshot::channel::<WindowId>();
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             // GUI Thread
-            let mut native_window = fui_system::Window::new(None).unwrap();
+            let mut native_window = windowing_qt::Window::new(None).unwrap();
             native_window.set_title(&window_options.title).unwrap();
             native_window
                 .set_stay_on_top(window_options.stay_on_top)
@@ -76,7 +76,7 @@ impl Window {
             native_window.resize(window_options.width, window_options.height);
             native_window.set_visible(window_options.visible).unwrap();
             if window_options.icon.len() > 0 {
-                let icon = fui_system::Icon::from_data(&window_options.icon).unwrap();
+                let icon = windowing_qt::Icon::from_data(&window_options.icon).unwrap();
                 native_window.set_icon(&icon).unwrap();
             }
 
@@ -505,7 +505,7 @@ impl Window {
 impl Drop for WindowVMThreadData {
     fn drop(&mut self) {
         let window_id = self.id;
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let app_context = context.as_mut().unwrap();
@@ -526,7 +526,7 @@ impl fui_core::WindowService for WindowVMThreadData {
 
     fn repaint(&self) {
         let window_id = self.id;
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let app_context = context.as_mut().unwrap();
@@ -539,7 +539,7 @@ impl fui_core::WindowService for WindowVMThreadData {
 
     fn set_cursor(&self, cursor_shape: CursorShape) {
         let window_id = self.id;
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let app_context = context.as_mut().unwrap();
@@ -556,7 +556,7 @@ impl fui_core::WindowService for WindowVMThreadData {
 
     fn start_system_move(&self) {
         let window_id = self.id;
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let app_context = context.as_mut().unwrap();
@@ -569,7 +569,7 @@ impl fui_core::WindowService for WindowVMThreadData {
 
     fn start_system_resize(&self, edges: Edge) {
         let window_id = self.id;
-        fui_system::Application::post_func(move || {
+        windowing_qt::Application::post_func(move || {
             APPLICATION_GUI_CONTEXT.with(move |context| {
                 let mut context = context.borrow_mut();
                 let app_context = context.as_mut().unwrap();

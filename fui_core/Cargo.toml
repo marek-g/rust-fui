@@ -1,6 +1,6 @@
 [package]
 name = "fui_core"
-version = "0.15.0"
+version = "0.16.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Core library of FUI MVVM UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -13,7 +13,7 @@ edition = "2021"
 
 [dependencies]
 fui_macros = { path = "../fui_macros", version = "0.4" }
-fui_system_core = { path = "../fui_system_core", version = "0.13" }
+windowing_api = "0.13"
 #drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
 drawing = "0.4"
 anyhow = "1.0"
