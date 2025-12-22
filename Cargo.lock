@@ -878,7 +878,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.17.0"
+version = "0.18.0-pre"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -900,7 +900,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.16.0"
+version = "0.18.0-pre"
 dependencies = [
  "drawing",
  "euclid",
@@ -914,7 +914,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.16.0"
+version = "0.18.0-pre"
 dependencies = [
  "anyhow",
  "drawing",
@@ -936,7 +936,7 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.16.0"
+version = "0.18.0-pre"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -951,7 +951,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.16.0"
+version = "0.18.0-pre"
 dependencies = [
  "anyhow",
  "fui_app",

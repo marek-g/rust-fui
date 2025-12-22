@@ -1,6 +1,6 @@
 [package]
 name = "fui_controls_media"
-version = "0.16.0"
+version = "0.18.0-pre"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Media controls for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -12,8 +12,8 @@ readme = "README.md"
 edition = "2024"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.16" }
-fui_app = { path = "../../rust-fui/fui_app", version = "0.17.0" }
+fui_core = { path = "../fui_core", version = "0.18.0-pre" }
+fui_app = { path = "../../rust-fui/fui_app", version = "0.18.0-pre" }
 #drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
 drawing = "0.4"
 #drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.5.0" }
