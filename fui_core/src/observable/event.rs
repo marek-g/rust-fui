@@ -63,11 +63,11 @@ impl<A: 'static + Clone> Event<A> {
         let mut cleanup = false;
 
         for weak_callback in self.callbacks.borrow().iter() {
-            if let Some(callback) = weak_callback.upgrade() {
+            match weak_callback.upgrade() { Some(callback) => {
                 callback.emit(args.clone());
-            } else {
+            } _ => {
                 cleanup = true;
-            }
+            }}
         }
 
         if cleanup {

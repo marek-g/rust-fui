@@ -109,9 +109,9 @@ impl ControlContext {
         self.is_dirty = is_dirty;
 
         if is_dirty {
-            if let Some(ref parent) = self.get_parent() {
+            match self.get_parent() { Some(ref parent) => {
                 parent.borrow_mut().get_context_mut().set_is_dirty(is_dirty)
-            } else {
+            } _ => {
                 // this is a root control
                 if is_change {
                     // post window repaint
@@ -122,7 +122,7 @@ impl ControlContext {
                         });
                     }
                 }
-            }
+            }}
         }
     }
 

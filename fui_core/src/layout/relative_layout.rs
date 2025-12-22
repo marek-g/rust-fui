@@ -171,7 +171,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             RelativePlacement::FullSize => Size::new(rect.width, rect.height),
 
             RelativePlacement::BelowOrAboveControl(relative_control) => {
-                if let Some(relative_control) = relative_control.upgrade() {
+                match relative_control.upgrade() { Some(relative_control) => {
                     self.relative_control_rect = relative_control.borrow().get_rect();
 
                     let height_above = self.relative_control_rect.y;
@@ -184,13 +184,13 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     } else {
                         Size::new(self.relative_control_rect.width, height_below)
                     }
-                } else {
+                } _ => {
                     Size::new(rect.width, rect.height)
-                }
+                }}
             }
 
             RelativePlacement::LeftOrRightControl(relative_control) => {
-                if let Some(relative_control) = relative_control.upgrade() {
+                match relative_control.upgrade() { Some(relative_control) => {
                     self.relative_control_rect = relative_control.borrow().get_rect();
 
                     let width_left = self.relative_control_rect.x;
@@ -203,21 +203,21 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     } else {
                         Size::new(width_right, rect.height)
                     }
-                } else {
+                } _ => {
                     Size::new(rect.width, rect.height)
-                }
+                }}
             }
         };
 
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content
                 .borrow_mut()
                 .measure(drawing_context, available_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         self.rect = match &data.placement {
             RelativePlacement::FullSize => {
@@ -320,10 +320,10 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow().to_primitives(drawing_context)
-        } else {
+        } _ => {
             (Vec::new(), Vec::new())
-        }
+        }}
     }
 }
