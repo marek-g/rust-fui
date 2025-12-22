@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_media"
 readme = "README.md"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.16" }
