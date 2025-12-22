@@ -17,16 +17,16 @@ fui_macros = { path = "../fui_macros", version = "0.18.0-pre" }
 fui_controls = { path = "../fui_controls", version = "0.18.0-pre" }
 windowing_qt = "0.14"
 windowing_api = "0.13"
-rust-embed = "8.4"
+rust-embed = "8"
 #drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
 drawing = "0.4"
 #drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.5.0" }
-drawing_gl = "0.5.0"
-anyhow = "1.0"
+drawing_gl = "0.5"
+anyhow = "1"
 shared_library = "0.1"
-typed-builder = "0.18"
+typed-builder = "0.23"
 typemap = "0.3"
-cpu-time = "1.0"
-rand = "0.8"
+cpu-time = "1"
+rand = "0.9"
 tokio = { version = "1", features = ["full"] }
 async-trait = "0.1"
