@@ -58,7 +58,7 @@ impl MessageBox {
     fn show_internal(
         self,
         window: &Rc<dyn WindowService>,
-    ) -> impl Future<Output = Result<i32, Canceled>> {
+    ) -> impl Future<Output = Result<i32, Canceled>> + use<> {
         let buttons = ObservableVec::<Rc<DialogButtonViewModel>>::new();
 
         let (sender, receiver) = oneshot::channel::<i32>();

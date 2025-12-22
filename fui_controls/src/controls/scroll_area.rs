@@ -133,13 +133,13 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        self.content_size = if let Some(ref content) = children.into_iter().next() {
+        self.content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(
             self.content_size.width.min(size.width),

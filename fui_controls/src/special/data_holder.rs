@@ -64,13 +64,13 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::empty()
-        };
+        }};
 
         content_size
     }
@@ -95,11 +95,11 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow_mut().hit_test(point)
-        } else {
+        } _ => {
             None
-        }
+        }}
     }
 
     fn to_primitives(
@@ -109,10 +109,10 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow().to_primitives(drawing_context)
-        } else {
+        } _ => {
             (Vec::new(), Vec::new())
-        }
+        }}
     }
 }

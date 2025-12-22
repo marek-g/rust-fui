@@ -86,15 +86,15 @@ impl Style<Button> for DefaultButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(hit_control) => {
                     if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
                         self.is_pressed.set(true);
                     } else {
                         self.is_pressed.set(false);
                     }
-                } else {
+                } _ => {
                     self.is_pressed.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -124,13 +124,13 @@ impl Style<Button> for DefaultButtonStyle {
         }
 
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }

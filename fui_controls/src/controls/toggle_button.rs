@@ -92,15 +92,15 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(hit_control) => {
                     if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
                         self.is_tapped.set(true);
                     } else {
                         self.is_tapped.set(false);
                     }
-                } else {
+                } _ => {
                     self.is_tapped.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -123,13 +123,13 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
@@ -272,15 +272,15 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(hit_control) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(hit_control) => {
                     if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
                         self.is_tapped.set(true);
                     } else {
                         self.is_tapped.set(false);
                     }
-                } else {
+                } _ => {
                     self.is_tapped.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -303,7 +303,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             let child_size = Size::new(
                 if size.width.is_finite() {
                     0f32.max(size.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32)
@@ -319,9 +319,9 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(
             content_size.width + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN * 2.0f32,
@@ -489,15 +489,15 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(_) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(_) => {
+                    match self.hit_test(&data, &control_context, *position) { Some(_) => {
                         self.is_tapped.set(true);
-                    } else {
+                    } _ => {
                         self.is_tapped.set(false);
-                    }
-                } else {
+                    }}
+                } _ => {
                     self.is_tapped.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -520,13 +520,13 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
@@ -671,15 +671,15 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(_) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(_) => {
+                    match self.hit_test(&data, &control_context, *position) { Some(_) => {
                         self.is_tapped.set(true);
-                    } else {
+                    } _ => {
                         self.is_tapped.set(false);
-                    }
-                } else {
+                    }}
+                } _ => {
                     self.is_tapped.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -702,7 +702,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             let child_size = Size::new(
                 if size.width.is_finite() {
                     0f32.max(size.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32)
@@ -718,9 +718,9 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(
             content_size.width + RADIO_BUTTON_SIZE + RADIO_MARGIN * 2.0f32,
@@ -882,15 +882,15 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                if let Some(_) = self.hit_test(&data, &control_context, *position) {
-                    if let Some(_) = self.hit_test(&data, &control_context, *position) {
+                match self.hit_test(&data, &control_context, *position) { Some(_) => {
+                    match self.hit_test(&data, &control_context, *position) { Some(_) => {
                         self.is_tapped.set(true);
-                    } else {
+                    } _ => {
                         self.is_tapped.set(false);
-                    }
-                } else {
+                    }}
+                } _ => {
                     self.is_tapped.set(false);
-                }
+                }}
             }
 
             ControlEvent::HoverChange(value) => {
@@ -913,13 +913,13 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }

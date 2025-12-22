@@ -70,13 +70,13 @@ impl Style<Shadow> for DefaultShadowStyle {
     ) -> Size {
         let children = control_context.get_children();
 
-        if let Some(ref content) = children.into_iter().next() {
+        match children.into_iter().next() { Some(ref content) => {
             content.borrow_mut().measure(drawing_context, size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        }
+        }}
     }
 
     fn set_rect(

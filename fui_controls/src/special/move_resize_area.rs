@@ -273,10 +273,10 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow().to_primitives(drawing_context)
-        } else {
+        } _ => {
             (Vec::new(), Vec::new())
-        }
+        }}
     }
 }

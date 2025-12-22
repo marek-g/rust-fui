@@ -86,13 +86,13 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow_mut().measure(drawing_context, size);
             let child_rect = child.borrow().get_rect();
             Size::new(child_rect.width, child_rect.height)
-        } else {
+        } _ => {
             Size::new(0.0f32, 0.0f32)
-        }
+        }}
     }
 
     fn set_rect(
@@ -115,11 +115,11 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
-        let rect = if let Some(child) = children.into_iter().next() {
+        let rect = match children.into_iter().next() { Some(child) => {
             child.borrow().get_rect()
-        } else {
+        } _ => {
             Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
-        };
+        }};
 
         if point.is_inside(&rect) {
             Some(control_context.get_self_rc())
@@ -135,10 +135,10 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         drawing_context: &mut dyn DrawingContext,
     ) -> (Vec<Primitive>, Vec<Primitive>) {
         let children = control_context.get_children();
-        if let Some(child) = children.into_iter().next() {
+        match children.into_iter().next() { Some(child) => {
             child.borrow().to_primitives(drawing_context)
-        } else {
+        } _ => {
             (Vec::new(), Vec::new())
-        }
+        }}
     }
 }

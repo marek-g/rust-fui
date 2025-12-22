@@ -66,14 +66,14 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         drawing_context: &mut dyn DrawingContext,
         _size: Size,
     ) -> Size {
-        if let Ok(texture_size) = drawing_context
+        match drawing_context
             .get_resources()
             .get_texture_size(data.texture_id.get())
-        {
+        { Ok(texture_size) => {
             Size::new(texture_size.0 as f32, texture_size.1 as f32)
-        } else {
+        } _ => {
             Size::new(0.0f32, 0.0f32)
-        }
+        }}
     }
 
     fn set_rect(

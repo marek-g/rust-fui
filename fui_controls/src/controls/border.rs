@@ -95,7 +95,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let border_size = Self::get_border_size(data);
 
-        let content_size = if let Some(ref content) = children.into_iter().next() {
+        let content_size = match children.into_iter().next() { Some(ref content) => {
             let child_size = Size::new(
                 if size.width.is_finite() {
                     0f32.max(size.width - border_size * 2.0f32)
@@ -111,9 +111,9 @@ impl Style<Border> for DefaultBorderStyle {
             content.borrow_mut().measure(drawing_context, child_size);
             let rect = content.borrow().get_rect();
             Size::new(rect.width, rect.height)
-        } else {
+        } _ => {
             Size::new(0f32, 0f32)
-        };
+        }};
 
         Size::new(
             content_size.width + border_size * 2.0f32,

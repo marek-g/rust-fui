@@ -40,7 +40,7 @@ impl InputDialog {
         window: &Rc<dyn WindowService>,
         initial_text: String,
         is_password: bool,
-    ) -> impl Future<Output = Result<Option<String>, Canceled>> {
+    ) -> impl Future<Output = Result<Option<String>, Canceled>> + use<> {
         let (sender, receiver) = oneshot::channel::<Option<String>>();
         let sender = Rc::new(RefCell::new(Some(sender)));
 
