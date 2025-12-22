@@ -9,7 +9,7 @@ use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_macros::ui;
 use std::cell::RefCell;
-use std::ptr::null;
+use std::ptr::{null, null_mut};
 use std::rc::{Rc, Weak};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
@@ -221,7 +221,7 @@ impl Window {
                                                     .as_ref()
                                                     .unwrap()
                                                     .get_opengl_proc_address(symbol)
-                                                    .unwrap_or_else(|_| null())
+                                                    .unwrap_or_else(|_| null_mut())
                                             }));
                                     }
 
