@@ -892,7 +892,7 @@ dependencies = [
  "rust-embed",
  "shared_library",
  "tokio",
- "typed-builder",
+ "typed-builder 0.18.2",
  "typemap",
  "windowing_api",
  "windowing_qt",
@@ -907,7 +907,7 @@ dependencies = [
  "fui_core",
  "fui_macros",
  "futures-channel",
- "typed-builder",
+ "typed-builder 0.18.2",
  "typemap",
  "windowing_api",
 ]
@@ -944,7 +944,7 @@ dependencies = [
  "fui_macros",
  "futures-signals",
  "tokio",
- "typed-builder",
+ "typed-builder 0.18.2",
  "typemap",
  "windowing_api",
 ]
@@ -961,7 +961,7 @@ dependencies = [
  "fui_macros",
  "time",
  "tokio",
- "typed-builder",
+ "typed-builder 0.18.2",
  "typemap",
  "windowing_api",
  "windowing_qt",
@@ -969,12 +969,12 @@ dependencies = [
 
 [[package]]
 name = "fui_macros"
-version = "0.4.0"
+version = "0.18.0-pre"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.111",
- "typed-builder",
+ "typed-builder 0.23.2",
  "typemap",
 ]
 
@@ -3366,7 +3366,16 @@ version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77739c880e00693faef3d65ea3aad725f196da38b22fdc7ea6ded6e1ce4d3add"
 dependencies = [
- "typed-builder-macro",
+ "typed-builder-macro 0.18.2",
+]
+
+[[package]]
+name = "typed-builder"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31aa81521b70f94402501d848ccc0ecaa8f93c8eb6999eb9747e72287757ffda"
+dependencies = [
+ "typed-builder-macro 0.23.2",
 ]
 
 [[package]]
@@ -3374,6 +3383,17 @@ name = "typed-builder-macro"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f718dfaf347dcb5b983bfc87608144b0bad87970aebcbea5ce44d2a30c08e63"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.111",
+]
+
+[[package]]
+name = "typed-builder-macro"
+version = "0.23.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "076a02dc54dd46795c2e9c8282ed40bcfb1e22747e955de9389a1de28190fb26"
 dependencies = [
  "proc-macro2",
  "quote",

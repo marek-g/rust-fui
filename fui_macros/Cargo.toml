@@ -1,6 +1,6 @@
 [package]
 name = "fui_macros"
-version = "0.4.0"
+version = "0.18.0-pre"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Macros for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -9,7 +9,7 @@ license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
 repository = "https://github.com/marek-g/rust-fui"
 documentation = "https://docs.rs/fui_macros"
 readme = "README.md"
-edition = "2021"
+edition = "2024"
 
 [lib]
 proc-macro = true
@@ -20,5 +20,5 @@ quote = "1.0"
 proc-macro2 = "1.0"
 
 [dev-dependencies]
-typed-builder = "0.18"
+typed-builder = "0.23"
 typemap = "0.3"
