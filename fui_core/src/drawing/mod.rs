@@ -1,5 +1,5 @@
-mod resources;
-pub use self::resources::*;
+mod fui_drawing_context;
+pub use fui_drawing_context::*;
 
-mod drawing_context;
-pub use self::drawing_context::*;
+mod resources;
+pub use resources::*;

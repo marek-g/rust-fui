@@ -1,11 +1,10 @@
 use crate::control::ControlContext;
-
-use drawing::primitive::Primitive;
+use crate::FuiDrawingContext;
 
 use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
-use crate::{DrawingContext, EventContext};
+use crate::EventContext;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -16,7 +15,7 @@ pub trait Style<D> {
         &mut self,
         data: &mut D,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
     );
@@ -25,7 +24,7 @@ pub trait Style<D> {
         &mut self,
         data: &mut D,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size;
 
@@ -33,7 +32,7 @@ pub trait Style<D> {
         &mut self,
         data: &mut D,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     );
 
@@ -44,10 +43,10 @@ pub trait Style<D> {
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>>;
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         data: &D,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>);
+        drawing_context: &mut FuiDrawingContext,
+    );
 }

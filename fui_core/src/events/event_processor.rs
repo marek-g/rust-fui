@@ -4,8 +4,8 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::control::*;
-use crate::{events::*, DrawingContext, Point};
+use crate::{control::*, FuiDrawingContext};
+use crate::{events::*, Point};
 
 struct QueuedEvent {
     pub control: Rc<RefCell<dyn ControlObject>>,
@@ -44,7 +44,7 @@ impl EventProcessor {
     pub fn handle_event(
         &mut self,
         root_view: &Rc<RefCell<dyn ControlObject>>,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         event: &InputEvent,
     ) {
         self.handle_keyboard_event(root_view, event);
@@ -272,7 +272,7 @@ impl EventProcessor {
     fn send_event_to_control(
         &mut self,
         control: Option<Rc<RefCell<dyn ControlObject>>>,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         event: ControlEvent,
     ) {
         if let Some(ref control) = control {

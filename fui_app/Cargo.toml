@@ -13,15 +13,12 @@ edition = "2024"
 
 [dependencies]
 fui_core = { path = "../fui_core", version = "0.18.0-pre" }
+fui_drawing = { path = "../../rust-fui/fui_drawing", version = "0.18.0-pre" }
 fui_macros = { path = "../fui_macros", version = "0.18.0-pre" }
 fui_controls = { path = "../fui_controls", version = "0.18.0-pre" }
-windowing_qt = "0.14"
+windowing_qt = "0.17"
 windowing_api = "0.13"
 rust-embed = "8"
-#drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
-drawing = "0.4"
-#drawing_gl = { path = "../../rust-drawing/drawing_gl", version = "0.5.0" }
-drawing_gl = "0.5"
 anyhow = "1"
 shared_library = "0.1"
 typed-builder = "0.23"

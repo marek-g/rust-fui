@@ -16,8 +16,9 @@ fui_core = { path = "../fui_core", version = "0.18.0-pre" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.18.0-pre" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.18.0-pre" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.18.0-pre" }
-windowing_qt = "0.14.0"
+windowing_qt = "0.17"
 windowing_api = "0.13"
+impellers = { git = "https://github.com/coderedart/impellers", rev = "2d10dfac53711ed5e1cd8c9c8ec82106714c4b60", version = "0.4", features = ["static_link"] }
 anyhow = "1.0"
 time = "0.3"
 typed-builder = "0.23"

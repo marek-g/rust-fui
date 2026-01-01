@@ -1,4 +1,5 @@
 use fui_core::{ControlObject, Property, Style, ViewContext};
+use fui_drawing::Color;
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
@@ -36,7 +37,7 @@ impl Menu {
 
                 Border {
                     border_type: BorderType::None,
-                    Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+                    Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8), },
 
                     StackPanel {
                         orientation: self.orientation,
@@ -114,8 +115,8 @@ impl Menu {
                 let has_sub_items = sub_items.len() > 0;
 
                 let is_open_prop = Property::new(false);
-                let background_property = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
-                let foreground_property = Property::new([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
+                let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
+                let foreground_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 1.0));
 
                 let mut on_hover_callback = Callback::empty();
                 let mut on_tap_up_callback = Callback::empty();
@@ -145,16 +146,16 @@ impl Menu {
                     on_hover_callback.set_sync(move |value| {
                         background_property_clone.set(
                             if value || is_menu_active_prop_clone.get() {
-                                [0.0f32, 0.0f32, 0.0f32, 0.8f32]
+                                Color::rgba(0.0, 0.0, 0.0, 0.8)
                             } else {
-                                [0.0f32, 0.0f32, 0.0f32, 0.0f32]
+                                Color::rgba(0.0, 0.0, 0.0, 0.0)
                             },
                         );
                         foreground_property_clone.set(
                             if value || is_menu_active_prop_clone.get() {
-                                [1.0f32, 1.0f32, 0.0f32, 1.0f32]
+                                Color::rgba(1.0, 1.0, 0.0, 1.0)
                             } else {
-                                [0.0f32, 0.0f32, 0.0f32, 1.0f32]
+                                Color::rgba(0.0, 0.0, 0.0, 1.0)
                             },
                         );
 
@@ -175,14 +176,14 @@ impl Menu {
                     let close_siblings_callback_clone = close_siblings_callback_rc.clone();
                     on_hover_callback.set_sync(move |value| {
                         background_property_clone.set(if value || has_sub_items {
-                            [0.0f32, 0.0f32, 0.0f32, 0.8f32]
+                            Color::rgba(0.0, 0.0, 0.0, 0.8)
                         } else {
-                            [0.0f32, 0.0f32, 0.0f32, 0.0f32]
+                            Color::rgba(0.0, 0.0, 0.0, 0.0)
                         });
                         foreground_property_clone.set(if value || has_sub_items {
-                            [1.0f32, 1.0f32, 0.0f32, 1.0f32]
+                            Color::rgba(1.0, 1.0, 0.0, 1.0)
                         } else {
-                            [0.0f32, 0.0f32, 0.0f32, 1.0f32]
+                            Color::rgba(0.0, 0.0, 0.0, 1.0)
                         });
 
                         if value {
@@ -263,8 +264,8 @@ impl Menu {
                     let foreground_property_clone = foreground_property.clone();
                     let popup_close_subscription = is_open_prop.on_changed(move |value| {
                         if value == false {
-                            background_property_clone.set([0.0f32, 0.0f32, 0.0f32, 0.0f32]);
-                            foreground_property_clone.set([0.0f32, 0.0f32, 0.0f32, 1.0f32]);
+                            background_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
+                            foreground_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 1.0));
                         }
 
                         if is_top {
@@ -278,7 +279,7 @@ impl Menu {
 
                             Border {
                                 border_type: BorderType::Raisen,
-                                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.8f32], },
+                                Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8), },
 
                                 Grid {
                                     columns: 1,

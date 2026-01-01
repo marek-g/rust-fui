@@ -1,33 +1,26 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
-
 use crate::common::*;
 use crate::control::ControlObject;
 use crate::events::*;
-use crate::DrawingContext;
+use crate::FuiDrawingContext;
 
 pub trait ControlBehavior {
     fn setup(&mut self);
 
     fn handle_event(
         &mut self,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
     );
-    fn measure(&mut self, drawing_context: &mut dyn DrawingContext, size: Size);
-    fn set_rect(&mut self, drawing_context: &mut dyn DrawingContext, rect: Rect);
+    fn measure(&mut self, drawing_context: &mut FuiDrawingContext, size: Size);
+    fn set_rect(&mut self, drawing_context: &mut FuiDrawingContext, rect: Rect);
     fn get_rect(&self) -> Rect;
 
     fn hit_test(&self, point: Point) -> Option<Rc<RefCell<dyn ControlObject>>>;
 
-    /// Returns primitives.
-    /// First vector contains primitives for normal layer (most controls).
-    /// Second vector contains primitives for overlay layer (used by popup / menu etc.).
-    fn to_primitives(
-        &self,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>);
+    /// Draws control content.
+    fn draw(&mut self, drawing_context: &mut FuiDrawingContext);
 }

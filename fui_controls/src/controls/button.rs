@@ -1,10 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
-use drawing::transformation::*;
-use drawing::units::PixelPoint;
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -67,7 +65,7 @@ impl Style<Button> for DefaultButtonStyle {
         &mut self,
         data: &mut Button,
         control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -86,15 +84,18 @@ impl Style<Button> for DefaultButtonStyle {
             }
 
             ControlEvent::TapMove { ref position } => {
-                match self.hit_test(&data, &control_context, *position) { Some(hit_control) => {
-                    if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
-                        self.is_pressed.set(true);
-                    } else {
+                match self.hit_test(&data, &control_context, *position) {
+                    Some(hit_control) => {
+                        if Rc::ptr_eq(&hit_control, &control_context.get_self_rc()) {
+                            self.is_pressed.set(true);
+                        } else {
+                            self.is_pressed.set(false);
+                        }
+                    }
+                    _ => {
                         self.is_pressed.set(false);
                     }
-                } _ => {
-                    self.is_pressed.set(false);
-                }}
+                }
             }
 
             ControlEvent::HoverChange(value) => {
@@ -113,7 +114,7 @@ impl Style<Button> for DefaultButtonStyle {
         &mut self,
         _data: &mut Button,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         mut size: Size,
     ) -> Size {
         if size.width.is_finite() {
@@ -124,13 +125,14 @@ impl Style<Button> for DefaultButtonStyle {
         }
 
         let children = control_context.get_children();
-        let content_size = match children.into_iter().next() { Some(ref content) => {
-            content.borrow_mut().measure(drawing_context, size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } _ => {
-            Size::new(0f32, 0f32)
-        }};
+        let content_size = match children.into_iter().next() {
+            Some(ref content) => {
+                content.borrow_mut().measure(drawing_context, size);
+                let rect = content.borrow().get_rect();
+                Size::new(rect.width, rect.height)
+            }
+            _ => Size::new(0f32, 0f32),
+        };
 
         Size::new(content_size.width + 20.0f32, content_size.height + 20.0f32)
     }
@@ -139,7 +141,7 @@ impl Style<Button> for DefaultButtonStyle {
         &mut self,
         _data: &mut Button,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let content_rect = Rect::new(
@@ -168,14 +170,12 @@ impl Style<Button> for DefaultButtonStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &Button,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let rect = control_context.get_rect();
 
         let x = rect.x;
@@ -184,7 +184,7 @@ impl Style<Button> for DefaultButtonStyle {
         let height = rect.height;
 
         default_theme::button(
-            &mut vec,
+            &mut drawing_context.display,
             x,
             y,
             width,
@@ -196,14 +196,14 @@ impl Style<Button> for DefaultButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
             if self.is_pressed.get() {
-                vec2.translate(PixelPoint::new(1.0f32, 1.0f32));
+                drawing_context.display.save();
+                drawing_context.display.translate(1.0, 1.0);
             }
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+            content.borrow_mut().draw(drawing_context);
+            if self.is_pressed.get() {
+                drawing_context.display.restore();
+            }
         }
-
-        (vec, overlay)
     }
 }

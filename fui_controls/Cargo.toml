@@ -13,11 +13,9 @@ edition = "2024"
 
 [dependencies]
 fui_core = { path = "../../rust-fui/fui_core", version = "0.18.0-pre" }
+fui_drawing = { path = "../../rust-fui/fui_drawing", version = "0.18.0-pre" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.18.0-pre" }
 windowing_api = "0.13"
-#drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
-drawing = "0.4"
-euclid = "0.22"
 typed-builder = "0.23"
 typemap = "0.3"
 futures-channel = "0.3"

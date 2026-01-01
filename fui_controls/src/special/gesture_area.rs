@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
 
@@ -57,7 +56,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         &mut self,
         data: &mut GestureArea,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -82,24 +81,25 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         &mut self,
         _data: &mut GestureArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow_mut().measure(drawing_context, size);
-            let child_rect = child.borrow().get_rect();
-            Size::new(child_rect.width, child_rect.height)
-        } _ => {
-            Size::new(0.0f32, 0.0f32)
-        }}
+        match children.into_iter().next() {
+            Some(child) => {
+                child.borrow_mut().measure(drawing_context, size);
+                let child_rect = child.borrow().get_rect();
+                Size::new(child_rect.width, child_rect.height)
+            }
+            _ => Size::new(0.0f32, 0.0f32),
+        }
     }
 
     fn set_rect(
         &mut self,
         _data: &mut GestureArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
@@ -115,11 +115,10 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
-        let rect = match children.into_iter().next() { Some(child) => {
-            child.borrow().get_rect()
-        } _ => {
-            Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32)
-        }};
+        let rect = match children.into_iter().next() {
+            Some(child) => child.borrow().get_rect(),
+            _ => Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32),
+        };
 
         if point.is_inside(&rect) {
             Some(control_context.get_self_rc())
@@ -128,17 +127,16 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &GestureArea,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow().to_primitives(drawing_context)
-        } _ => {
-            (Vec::new(), Vec::new())
-        }}
+        match children.into_iter().next() {
+            Some(child) => child.borrow_mut().draw(drawing_context),
+            _ => (),
+        }
     }
 }

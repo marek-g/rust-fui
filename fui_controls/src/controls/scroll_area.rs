@@ -1,10 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::clipping::Clipping;
-use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
 #[derive(PartialEq, Clone, Default)]
@@ -92,7 +90,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         &mut self,
         data: &mut ScrollArea,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -129,17 +127,18 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         &mut self,
         _data: &mut ScrollArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        self.content_size = match children.into_iter().next() { Some(ref content) => {
-            content.borrow_mut().measure(drawing_context, size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } _ => {
-            Size::new(0f32, 0f32)
-        }};
+        self.content_size = match children.into_iter().next() {
+            Some(ref content) => {
+                content.borrow_mut().measure(drawing_context, size);
+                let rect = content.borrow().get_rect();
+                Size::new(rect.width, rect.height)
+            }
+            _ => Size::new(0f32, 0f32),
+        };
 
         Size::new(
             self.content_size.width.min(size.width),
@@ -151,7 +150,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         &mut self,
         data: &mut ScrollArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         self.update_properties(data, rect);
@@ -191,34 +190,28 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &ScrollArea,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
-        let rect = control_context.get_rect();
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+        drawing_context: &mut FuiDrawingContext,
+    ) {
+        let r = control_context.get_rect();
+        let x = r.x;
+        let y = r.y;
+        let width = r.width;
+        let height = r.height;
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
+            drawing_context.display.save();
+            drawing_context
+                .display
+                .clip_rect(rect(x, y, width, height), ClipOperation::Intersect);
 
-            let mut vec2 = vec2.clip(PixelRect::new(
-                PixelPoint::new(x, y),
-                PixelSize::new(width, height),
-            ));
+            content.borrow_mut().draw(drawing_context);
 
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+            drawing_context.display.restore();
         }
-
-        (vec, overlay)
     }
 }

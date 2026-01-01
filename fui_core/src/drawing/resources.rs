@@ -1,6 +1,5 @@
-pub use drawing::color::ColorFormat;
-
 use anyhow::Result;
+use fui_drawing::ColorFormat;
 
 pub trait Resources {
     fn get_font_dimensions(&mut self, font_name: &str, size: u8, text: &str) -> Result<(u16, u16)>;

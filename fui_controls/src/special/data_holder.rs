@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
 
@@ -50,7 +49,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         &mut self,
         _data: &mut DataHolder<T>,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -60,17 +59,18 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         &mut self,
         _data: &mut DataHolder<T>,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
-        let content_size = match children.into_iter().next() { Some(ref content) => {
-            content.borrow_mut().measure(drawing_context, size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } _ => {
-            Size::empty()
-        }};
+        let content_size = match children.into_iter().next() {
+            Some(ref content) => {
+                content.borrow_mut().measure(drawing_context, size);
+                let rect = content.borrow().get_rect();
+                Size::new(rect.width, rect.height)
+            }
+            _ => Size::empty(),
+        };
 
         content_size
     }
@@ -79,7 +79,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         &mut self,
         _data: &mut DataHolder<T>,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
@@ -95,24 +95,22 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         point: Point,
     ) -> Option<Rc<RefCell<dyn ControlObject>>> {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow_mut().hit_test(point)
-        } _ => {
-            None
-        }}
+        match children.into_iter().next() {
+            Some(child) => child.borrow_mut().hit_test(point),
+            _ => None,
+        }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &DataHolder<T>,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow().to_primitives(drawing_context)
-        } _ => {
-            (Vec::new(), Vec::new())
-        }}
+        match children.into_iter().next() {
+            Some(child) => child.borrow_mut().draw(drawing_context),
+            _ => (),
+        }
     }
 }

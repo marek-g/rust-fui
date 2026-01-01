@@ -1,7 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 
-use drawing::primitive::Primitive;
 use fui_core::RelativeLayout;
 use fui_core::*;
 use fui_macros::ui;
@@ -178,7 +177,7 @@ impl Style<Popup> for DefaultPopupStyle {
         &mut self,
         _data: &mut Popup,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -188,7 +187,7 @@ impl Style<Popup> for DefaultPopupStyle {
         &mut self,
         _data: &mut Popup,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
         Size::new(0.0f32, 0.0f32)
@@ -198,7 +197,7 @@ impl Style<Popup> for DefaultPopupStyle {
         &mut self,
         _data: &mut Popup,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
     }
@@ -212,12 +211,11 @@ impl Style<Popup> for DefaultPopupStyle {
         None
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &Popup,
         _control_context: &ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        (Vec::new(), Vec::new())
+        _drawing_context: &mut FuiDrawingContext,
+    ) {
     }
 }

@@ -1,9 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -72,7 +71,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         &mut self,
         _data: &mut ProgressBar,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -82,7 +81,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         &mut self,
         data: &mut ProgressBar,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
         match data.orientation {
@@ -95,7 +94,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         &mut self,
         _data: &mut ProgressBar,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
     }
@@ -113,17 +112,17 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         data: &ProgressBar,
         control_context: &ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let rect = control_context.get_rect();
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+        drawing_context: &mut FuiDrawingContext,
+    ) {
+        let r = control_context.get_rect();
+        let x = r.x;
+        let y = r.y;
+        let width = r.width;
+        let height = r.height;
 
         let progress_bar_size_px = match data.orientation {
             Orientation::Horizontal => width - START_MARGIN - END_MARGIN,
@@ -138,35 +137,43 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         let foreground = [1.0, 0.8, 0.0, 0.75];
         let background = [0.0, 0.0, 0.0, 0.25];
 
-        let mut vec = Vec::new();
-
-        default_theme::border_3d_single(&mut vec, x, y, width, height, true, false, false);
+        default_theme::border_3d_single(
+            &mut drawing_context.display,
+            x,
+            y,
+            width,
+            height,
+            true,
+            false,
+            false,
+        );
 
         match data.orientation {
             Orientation::Horizontal => {
                 let background_size = width - START_MARGIN - END_MARGIN - progress_bar_pos_px;
 
                 if progress_bar_pos_px > 0.0f32 {
-                    vec.push(Primitive::Rectangle {
-                        color: foreground,
-                        rect: PixelRect::new(
-                            PixelPoint::new(x + START_MARGIN, y + SIDE_MARGIN),
-                            PixelSize::new(progress_bar_pos_px, height - SIDE_MARGIN - SIDE_MARGIN),
+                    drawing_context.display.draw_rect(
+                        rect(
+                            x + START_MARGIN,
+                            y + SIDE_MARGIN,
+                            progress_bar_pos_px,
+                            height - SIDE_MARGIN - SIDE_MARGIN,
                         ),
-                    });
+                        foreground,
+                    );
                 }
 
                 if background_size > 0.0f32 {
-                    vec.push(Primitive::Rectangle {
-                        color: background,
-                        rect: PixelRect::new(
-                            PixelPoint::new(
-                                x + START_MARGIN + progress_bar_pos_px,
-                                y + SIDE_MARGIN,
-                            ),
-                            PixelSize::new(background_size, height - SIDE_MARGIN - SIDE_MARGIN),
+                    drawing_context.display.draw_rect(
+                        rect(
+                            x + START_MARGIN + progress_bar_pos_px,
+                            y + SIDE_MARGIN,
+                            background_size,
+                            height - SIDE_MARGIN - SIDE_MARGIN,
                         ),
-                    });
+                        background,
+                    );
                 }
             }
 
@@ -174,27 +181,29 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
                 let background_size = height - START_MARGIN - END_MARGIN - progress_bar_pos_px;
 
                 if progress_bar_pos_px > 0.0f32 {
-                    vec.push(Primitive::Rectangle {
-                        color: foreground,
-                        rect: PixelRect::new(
-                            PixelPoint::new(x + SIDE_MARGIN, y + START_MARGIN + background_size),
-                            PixelSize::new(width - SIDE_MARGIN - SIDE_MARGIN, progress_bar_pos_px),
+                    drawing_context.display.draw_rect(
+                        rect(
+                            x + SIDE_MARGIN,
+                            y + START_MARGIN + background_size,
+                            width - SIDE_MARGIN - SIDE_MARGIN,
+                            progress_bar_pos_px,
                         ),
-                    });
+                        foreground,
+                    );
                 }
 
                 if background_size > 0.0f32 {
-                    vec.push(Primitive::Rectangle {
-                        color: background,
-                        rect: PixelRect::new(
-                            PixelPoint::new(x + SIDE_MARGIN, y + START_MARGIN),
-                            PixelSize::new(width - SIDE_MARGIN - SIDE_MARGIN, background_size),
+                    drawing_context.display.draw_rect(
+                        rect(
+                            x + SIDE_MARGIN,
+                            y + START_MARGIN,
+                            width - SIDE_MARGIN - SIDE_MARGIN,
+                            background_size,
                         ),
-                    });
+                        background,
+                    );
                 }
             }
         }
-
-        (vec, Vec::new())
     }
 }

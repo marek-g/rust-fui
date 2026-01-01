@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
+use fui_drawing::Color;
 use typed_builder::TypedBuilder;
 use typemap::TypeMap;
 
@@ -58,7 +59,7 @@ impl TabControl {
                 Shadow {
                     Border {
                         border_type: BorderType::Raisen,
-                        Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.05f32], },
+                        Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.05), },
 
                         &selected_tab,
                     }
@@ -139,8 +140,8 @@ impl ViewModel for TabButtonViewModel {
                 Text {
                     Style: Dynamic {
                         color: (&self.is_checked, |is_checked|
-                            if is_checked { [1.0f32, 0.8f32, 0.0f32, 1.0f32] }
-                            else { [1.0f32, 1.0f32, 1.0f32, 1.0f32] }),
+                            if is_checked { Color::rgba(1.0, 0.8, 0.0, 1.0) }
+                            else { Color::rgba(1.0, 1.0, 1.0, 1.0) }),
                     },
 
                     text: &self.title

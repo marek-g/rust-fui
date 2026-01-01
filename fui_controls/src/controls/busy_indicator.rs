@@ -1,6 +1,7 @@
 use crate::controls::*;
 use crate::DataHolder;
 use fui_core::*;
+use fui_drawing::Color;
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -25,7 +26,7 @@ impl BusyIndicator {
 
                 Border {
                     border_type: BorderType::None,
-                    Style: Default { background_color: [0.0f32, 0.0f32, 0.0f32, 0.7f32], },
+                    Style: Default { background_color: Color::rgba(0.0, 0.0, 0.0, 0.7), },
 
                     context.children,
                 }

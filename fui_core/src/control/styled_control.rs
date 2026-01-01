@@ -1,4 +1,5 @@
 use crate::events::ControlEvent;
+use crate::FuiDrawingContext;
 use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -7,9 +8,7 @@ use crate::common::*;
 use crate::control::*;
 use crate::observable::*;
 use crate::style::*;
-use crate::{view::ViewContext, DrawingContext, EventContext};
-
-use drawing::primitive::Primitive;
+use crate::{view::ViewContext, EventContext};
 
 pub struct StyledControl<D> {
     pub data: D,
@@ -123,7 +122,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
 
     fn handle_event(
         &mut self,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -136,7 +135,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         )
     }
 
-    fn measure(&mut self, drawing_context: &mut dyn DrawingContext, mut size: Size) {
+    fn measure(&mut self, drawing_context: &mut FuiDrawingContext, mut size: Size) {
         let map = self.control_context.get_attached_values();
         if let Some(visible) = map.get::<Visible>() {
             if !visible.get() {
@@ -165,7 +164,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         ));
     }
 
-    fn set_rect(&mut self, drawing_context: &mut dyn DrawingContext, rect: Rect) {
+    fn set_rect(&mut self, drawing_context: &mut FuiDrawingContext, rect: Rect) {
         let map = self.control_context.get_attached_values();
         if let Some(visible) = map.get::<Visible>() {
             if !visible.get() {
@@ -209,16 +208,13 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
             .hit_test(&self.data, &self.control_context, point)
     }
 
-    fn to_primitives(
-        &self,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
+    fn draw(&mut self, drawing_context: &mut FuiDrawingContext) {
         let rect = self.control_context.get_rect();
         if rect.width == 0.0f32 || rect.height == 0.0f32 {
-            return (Vec::new(), Vec::new());
+            return;
         }
 
         self.style
-            .to_primitives(&self.data, &self.control_context, drawing_context)
+            .draw(&self.data, &self.control_context, drawing_context)
     }
 }

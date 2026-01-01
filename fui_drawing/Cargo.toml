@@ -1,0 +1,16 @@
+[package]
+name = "fui_drawing"
+version = "0.18.0-pre"
+authors = ["Marek Gibek <marek-dev@yandex.com>"]
+description = "Drawing objects for FUI UI Framework"
+keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
+categories = ["gui"]
+license = "GPL-3.0-or-later WITH Classpath-exception-2.0"
+repository = "https://github.com/marek-g/rust-fui"
+documentation = "https://docs.rs/fui_drawing"
+readme = "README.md"
+edition = "2024"
+
+[dependencies]
+drawing_api = { path = "../../rust-drawing/drawing_api", version = "1009" }
+drawing_impeller = { path = "../../rust-drawing/drawing_impeller", version = "1000" }

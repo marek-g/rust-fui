@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
 use windowing_api::{CursorShape, Edge};
@@ -111,7 +110,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         &mut self,
         data: &mut MoveResizeArea,
         control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -197,7 +196,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         &mut self,
         data: &mut MoveResizeArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let size = Margin::remove_thickness_from_size(size, data.border_size);
@@ -227,7 +226,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         &mut self,
         data: &mut MoveResizeArea,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let new_rect = Rect::new(
@@ -266,17 +265,16 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &MoveResizeArea,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow().to_primitives(drawing_context)
-        } _ => {
-            (Vec::new(), Vec::new())
-        }}
+        match children.into_iter().next() {
+            Some(child) => child.borrow_mut().draw(drawing_context),
+            _ => (),
+        }
     }
 }

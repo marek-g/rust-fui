@@ -31,10 +31,9 @@ use std::f32;
 use std::rc::Rc;
 
 use crate::{
-    round_layout_value, Children, ControlContext, ControlEvent, ControlObject, DrawingContext,
-    EventContext, Point, Rect, Size, Style, StyledControl, ViewContext,
+    round_layout_value, Children, ControlContext, ControlEvent, ControlObject, EventContext,
+    FuiDrawingContext, Point, Rect, Size, Style, StyledControl, ViewContext,
 };
-use drawing::primitive::Primitive;
 use typed_builder::TypedBuilder;
 
 //
@@ -532,7 +531,7 @@ impl DefaultGridStyle {
     }
 
     fn measure_cells_group(
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         cells: &Vec<CellCache>,
@@ -611,7 +610,7 @@ impl DefaultGridStyle {
     }
 
     fn measure_cell(
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         cell: &CellCache,
         child: &Rc<RefCell<dyn ControlObject>>,
         definitions_u: &mut Vec<DefinitionBase>,
@@ -1465,7 +1464,7 @@ impl Style<Grid> for DefaultGridStyle {
         &mut self,
         _data: &mut Grid,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -1475,7 +1474,7 @@ impl Style<Grid> for DefaultGridStyle {
         &mut self,
         data: &mut Grid,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let mut grid_desired_size = Size::new(0.0f32, 0.0f32);
@@ -1647,7 +1646,7 @@ impl Style<Grid> for DefaultGridStyle {
         &mut self,
         _data: &mut Grid,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
@@ -1720,22 +1719,15 @@ impl Style<Grid> for DefaultGridStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &Grid,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+            child.borrow_mut().draw(drawing_context);
         }
-
-        (vec, overlay)
     }
 }

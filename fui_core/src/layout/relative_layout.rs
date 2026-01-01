@@ -2,10 +2,9 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::{
-    Callback, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext, Point,
+    Callback, ControlContext, ControlEvent, ControlObject, EventContext, FuiDrawingContext, Point,
     Rect, Size, Style, StyledControl, ViewContext,
 };
-use drawing::primitive::Primitive;
 use typed_builder::TypedBuilder;
 
 pub enum RelativePlacement {
@@ -111,7 +110,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         &mut self,
         data: &mut RelativeLayout,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -142,7 +141,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         &mut self,
         _data: &mut RelativeLayout,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         // RelativeLayout is a special container.
@@ -159,7 +158,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         &mut self,
         data: &mut RelativeLayout,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
@@ -171,53 +170,56 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             RelativePlacement::FullSize => Size::new(rect.width, rect.height),
 
             RelativePlacement::BelowOrAboveControl(relative_control) => {
-                match relative_control.upgrade() { Some(relative_control) => {
-                    self.relative_control_rect = relative_control.borrow().get_rect();
+                match relative_control.upgrade() {
+                    Some(relative_control) => {
+                        self.relative_control_rect = relative_control.borrow().get_rect();
 
-                    let height_above = self.relative_control_rect.y;
-                    let height_below = rect.height
-                        - (self.relative_control_rect.y + self.relative_control_rect.height);
+                        let height_above = self.relative_control_rect.y;
+                        let height_below = rect.height
+                            - (self.relative_control_rect.y + self.relative_control_rect.height);
 
-                    if height_above > height_below {
-                        is_above = true;
-                        Size::new(self.relative_control_rect.width, height_above)
-                    } else {
-                        Size::new(self.relative_control_rect.width, height_below)
+                        if height_above > height_below {
+                            is_above = true;
+                            Size::new(self.relative_control_rect.width, height_above)
+                        } else {
+                            Size::new(self.relative_control_rect.width, height_below)
+                        }
                     }
-                } _ => {
-                    Size::new(rect.width, rect.height)
-                }}
+                    _ => Size::new(rect.width, rect.height),
+                }
             }
 
             RelativePlacement::LeftOrRightControl(relative_control) => {
-                match relative_control.upgrade() { Some(relative_control) => {
-                    self.relative_control_rect = relative_control.borrow().get_rect();
+                match relative_control.upgrade() {
+                    Some(relative_control) => {
+                        self.relative_control_rect = relative_control.borrow().get_rect();
 
-                    let width_left = self.relative_control_rect.x;
-                    let width_right = rect.width
-                        - (self.relative_control_rect.x + self.relative_control_rect.width);
+                        let width_left = self.relative_control_rect.x;
+                        let width_right = rect.width
+                            - (self.relative_control_rect.x + self.relative_control_rect.width);
 
-                    if width_left > width_right {
-                        is_left = true;
-                        Size::new(width_left, rect.height)
-                    } else {
-                        Size::new(width_right, rect.height)
+                        if width_left > width_right {
+                            is_left = true;
+                            Size::new(width_left, rect.height)
+                        } else {
+                            Size::new(width_right, rect.height)
+                        }
                     }
-                } _ => {
-                    Size::new(rect.width, rect.height)
-                }}
+                    _ => Size::new(rect.width, rect.height),
+                }
             }
         };
 
-        let content_size = match children.into_iter().next() { Some(ref content) => {
-            content
-                .borrow_mut()
-                .measure(drawing_context, available_size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } _ => {
-            Size::new(0f32, 0f32)
-        }};
+        let content_size = match children.into_iter().next() {
+            Some(ref content) => {
+                content
+                    .borrow_mut()
+                    .measure(drawing_context, available_size);
+                let rect = content.borrow().get_rect();
+                Size::new(rect.width, rect.height)
+            }
+            _ => Size::new(0f32, 0f32),
+        };
 
         self.rect = match &data.placement {
             RelativePlacement::FullSize => {
@@ -313,17 +315,16 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         Some(control_context.get_self_rc())
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &RelativeLayout,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
-        match children.into_iter().next() { Some(child) => {
-            child.borrow().to_primitives(drawing_context)
-        } _ => {
-            (Vec::new(), Vec::new())
-        }}
+        match children.into_iter().next() {
+            Some(child) => child.borrow_mut().draw(drawing_context),
+            _ => (),
+        }
     }
 }

@@ -1,5 +1,6 @@
 use crate::*;
 use fui_core::*;
+use fui_drawing::Color;
 use fui_macros::ui;
 use futures_channel::oneshot;
 use futures_channel::oneshot::Canceled;
@@ -51,7 +52,7 @@ impl InputDialog {
         let content = ui! {
             Border {
                 border_type: BorderType::None,
-                Style: Default { background_color: [1.0f32, 1.0f32, 1.0f32, 0.5f32], },
+                Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.5), },
                 HorizontalAlignment: Alignment::Stretch,
                 VerticalAlignment: Alignment::Stretch,
 
@@ -63,7 +64,7 @@ impl InputDialog {
 
                     Border {
                         border_type: BorderType::None,
-                        Style: Default { background_color: [0.0f32, 0.0f32, 0.0f32, 0.8f32], },
+                        Style: Default { background_color: Color::rgba(0.0, 0.0, 0.0, 0.8), },
 
                         Vertical {
                             Margin: Thickness::all(10.0f32),

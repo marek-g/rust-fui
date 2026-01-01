@@ -2,12 +2,8 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::style::default_theme::gradient_rect;
-use drawing::clipping::Clipping;
-use drawing::primitive::Primitive;
-use drawing::transformation::Transformation;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use euclid::Length;
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
 use crate::style::*;
@@ -45,8 +41,8 @@ pub struct DefaultTextBoxStyleParams {
     pub password: bool,
     #[builder(default = "sans-serif")]
     font_name: &'static str,
-    #[builder(default = 20u8)]
-    font_size: u8,
+    #[builder(default = 20f32)]
+    font_size: f32,
 }
 
 pub struct DefaultTextBoxStyle {
@@ -58,6 +54,8 @@ pub struct DefaultTextBoxStyle {
     cursor_pos_char: usize,
     cursor_pos_px: f32,
     offset_x: f32,
+
+    paragraph: Option<DrawingParagraph>,
 }
 
 impl DefaultTextBoxStyle {
@@ -71,45 +69,67 @@ impl DefaultTextBoxStyle {
             cursor_pos_char: 0,
             cursor_pos_px: 0.0f32,
             offset_x: 0.0f32,
+
+            paragraph: None,
         }
+    }
+
+    fn update_paragraph(&mut self, text: &str, fonts: &DrawingFonts, recreate: bool) {
+        if !recreate && self.paragraph.is_some() {
+            return;
+        }
+
+        let display_text = self.get_display_text(text);
+
+        let mut builder = DrawingParagraphBuilder::new(fonts).unwrap();
+        builder.push_style(ParagraphStyle::simple(
+            self.params.font_name,
+            self.params.font_size,
+            Color::rgb(0.0, 0.0, 0.0),
+        ));
+        builder.add_text(&display_text);
+        let paragraph = builder.build().unwrap();
+
+        self.paragraph = Some(paragraph);
     }
 
     fn calc_cursor_pos(
-        &self,
+        &mut self,
         text: &str,
         pos: &Point,
         rect: Rect,
-        resources: &mut dyn Resources,
+        fonts: &DrawingFonts,
     ) -> (usize, f32) {
-        let (char_widths, _) = resources
-            .get_font_dimensions_each_char(self.params.font_name, self.params.font_size, &text)
-            .unwrap_or((Vec::new(), 0));
+        self.update_paragraph(&text, &fonts, false);
 
-        let pos = ((pos.x - rect.x - 4.0f32) + self.offset_x) as i32;
+        let paragraph = self.paragraph.as_ref().unwrap();
 
-        let mut cursor_char = 0;
-        let mut cursor_px = 0;
-        while cursor_char < char_widths.len()
-            && pos >= cursor_px + char_widths[cursor_char] as i32 / 2
-        {
-            cursor_px += char_widths[cursor_char] as i32;
-            cursor_char += 1;
+        let pos = (pos.x - rect.x - 4.0f32) + self.offset_x;
+        let glyph_info = paragraph.create_glyph_info_at_paragraph_coordinates(pos as f64, 0.0);
+        if let Some(glyph_info) = glyph_info {
+            let rect = glyph_info.get_grapheme_cluster_bounds();
+            let begin = glyph_info.get_grapheme_cluster_code_unit_range_begin_utf16();
+            (begin, rect.origin.x)
+        } else {
+            (0, 0.0)
         }
-
-        (cursor_char, cursor_px as f32)
     }
 
     fn calc_cursor_pos_px(
-        &self,
+        &mut self,
         text: &str,
         cursor_pos_char: usize,
-        resources: &mut dyn Resources,
+        fonts: &DrawingFonts,
     ) -> f32 {
-        let subtext: String = text.chars().take(cursor_pos_char).collect();
-        let (text_width, _) = resources
-            .get_font_dimensions(self.params.font_name, self.params.font_size, &subtext)
-            .unwrap_or((0, 0));
-        text_width as f32
+        self.update_paragraph(&text, &fonts, false);
+
+        let paragraph = self.paragraph.as_ref().unwrap();
+        let glyph_info = paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char);
+        if let Some(glyph_info) = glyph_info {
+            glyph_info.get_grapheme_cluster_bounds().origin.x
+        } else {
+            0.0
+        }
     }
 
     fn move_cursor(
@@ -117,22 +137,18 @@ impl DefaultTextBoxStyle {
         text: &str,
         cursor_pos_char: usize,
         rect: Rect,
-        resources: &mut dyn Resources,
+        fonts: &DrawingFonts,
     ) {
-        let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, resources);
+        self.update_paragraph(&text, &fonts, false);
+
+        let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, fonts);
         self.cursor_pos_char = cursor_pos_char;
         self.cursor_pos_px = cursor_pos_px;
 
         self.update_offset_x(rect);
     }
 
-    fn insert_str(
-        &mut self,
-        data: &mut TextBox,
-        text: &str,
-        rect: Rect,
-        resources: &mut dyn Resources,
-    ) {
+    fn insert_str(&mut self, data: &mut TextBox, text: &str, rect: Rect, fonts: &DrawingFonts) {
         let t = data.text.get();
         let t: String = t
             .chars()
@@ -141,34 +157,22 @@ impl DefaultTextBoxStyle {
             .chain(t.chars().skip(self.cursor_pos_char))
             .collect();
 
+        self.update_paragraph(&t, &fonts, true);
+
         let new_cursor_pos_char = self.cursor_pos_char + text.chars().count();
 
-        self.move_cursor(
-            &self.get_display_text(t.clone()),
-            new_cursor_pos_char,
-            rect,
-            resources,
-        );
+        self.move_cursor(&t, new_cursor_pos_char, rect, fonts);
         data.text.set(t);
     }
 
-    fn remove_char(
-        &mut self,
-        data: &mut TextBox,
-        pos: usize,
-        rect: Rect,
-        resources: &mut dyn Resources,
-    ) {
+    fn remove_char(&mut self, data: &mut TextBox, pos: usize, rect: Rect, fonts: &DrawingFonts) {
         let t = data.text.get();
         let t: String = t.chars().take(pos).chain(t.chars().skip(pos + 1)).collect();
 
+        self.update_paragraph(&t, &fonts, true);
+
         if pos < self.cursor_pos_char {
-            self.move_cursor(
-                &self.get_display_text(t.clone()),
-                self.cursor_pos_char - 1,
-                rect,
-                resources,
-            );
+            self.move_cursor(&t, self.cursor_pos_char - 1, rect, fonts);
         }
 
         data.text.set(t);
@@ -186,11 +190,11 @@ impl DefaultTextBoxStyle {
         }
     }
 
-    fn get_display_text(&self, text: String) -> String {
+    fn get_display_text(&self, text: &str) -> String {
         if self.params.password {
             text.chars().map(|_| '*').collect()
         } else {
-            text
+            text.to_string()
         }
     }
 }
@@ -204,7 +208,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         &mut self,
         data: &mut TextBox,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
@@ -221,10 +225,10 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
             ControlEvent::TapDown { ref position } => {
                 let cursor_pos = self.calc_cursor_pos(
-                    &self.get_display_text(data.text.get()),
+                    &data.text.get(),
                     position,
                     control_context.get_rect(),
-                    drawing_context.get_resources(),
+                    drawing_context.fonts,
                 );
                 self.cursor_pos_char = cursor_pos.0;
                 self.cursor_pos_px = cursor_pos.1;
@@ -242,7 +246,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         data,
                                         self.cursor_pos_char - 1,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
@@ -254,56 +258,54 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                         data,
                                         self.cursor_pos_char,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
                             }
                             Keycode::Home => {
-                                let text = self.get_display_text(data.text.get());
                                 if self.cursor_pos_char > 0 {
                                     self.move_cursor(
-                                        &text,
+                                        &data.text.get(),
                                         0,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
                             }
                             Keycode::End => {
-                                let text = self.get_display_text(data.text.get());
+                                let text = self.get_display_text(&data.text.get());
                                 let len = text.chars().count();
                                 if self.cursor_pos_char + 1 <= len {
                                     self.move_cursor(
-                                        &text,
+                                        &data.text.get(),
                                         len,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
                             }
                             Keycode::Left => {
-                                let text = self.get_display_text(data.text.get());
                                 if self.cursor_pos_char > 0 {
                                     self.move_cursor(
-                                        &text,
+                                        &data.text.get(),
                                         self.cursor_pos_char - 1,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
                             }
                             Keycode::Right => {
-                                let text = self.get_display_text(data.text.get());
+                                let text = self.get_display_text(&data.text.get());
                                 if self.cursor_pos_char + 1 <= text.chars().count() {
                                     self.move_cursor(
-                                        &text,
+                                        &data.text.get(),
                                         self.cursor_pos_char + 1,
                                         control_context.get_rect(),
-                                        drawing_context.get_resources(),
+                                        drawing_context.fonts,
                                     );
                                 }
                                 handled = true;
@@ -321,7 +323,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                                 data,
                                 &text,
                                 control_context.get_rect(),
-                                drawing_context.get_resources(),
+                                drawing_context.fonts,
                             );
                         }
                     }
@@ -338,17 +340,13 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         &mut self,
         data: &mut TextBox,
         _control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
-        let (_text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(
-                self.params.font_name,
-                self.params.font_size,
-                &self.get_display_text(data.text.get()),
-            )
-            .unwrap_or((0, 0));
+        self.update_paragraph(&data.text.get(), &drawing_context.fonts, false);
+
+        let paragraph = self.paragraph.as_ref().unwrap();
+        let paragraph_height = paragraph.get_height();
 
         let width = if size.width.is_infinite() {
             8.0f32 + 8.0f32
@@ -356,14 +354,14 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             size.width.max(8.0f32 + 8.0f32)
         };
 
-        Size::new(width, text_height as f32 + 8.0f32)
+        Size::new(width, paragraph_height + 8.0f32)
     }
 
     fn set_rect(
         &mut self,
         _data: &mut TextBox,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         self.update_offset_x(rect);
@@ -382,98 +380,88 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
-        data: &TextBox,
+    fn draw(
+        &mut self,
+        _data: &TextBox,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
+        drawing_context: &mut FuiDrawingContext,
+    ) {
+        if let Some(paragraph) = &self.paragraph {
+            let r = control_context.get_rect();
+            let x = r.x;
+            let y = r.y;
+            let width = r.width;
+            let height = r.height;
 
-        let rect = control_context.get_rect();
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+            let text_width = paragraph.get_max_width();
+            let text_height = paragraph.get_height();
 
-        let display_text = self.get_display_text(data.text.get());
+            default_theme::border_3d_edit(
+                &mut drawing_context.display,
+                x,
+                y,
+                width,
+                height,
+                self.is_hover,
+                self.is_focused,
+            );
 
-        let (text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(self.params.font_name, self.params.font_size, &display_text)
-            .unwrap_or((0, 0));
+            gradient_rect(
+                &mut drawing_context.display,
+                x + 3.0f32,
+                y + 3.0f32,
+                width - 6.0f32,
+                height - 6.0f32,
+                if self.is_focused {
+                    Color::rgba(1.0, 1.0, 1.0, 0.75)
+                } else if self.is_hover {
+                    Color::rgba(1.0, 1.0, 1.0, 0.675)
+                } else {
+                    Color::rgba(1.0, 1.0, 1.0, 0.6)
+                },
+                if self.is_focused {
+                    Color::rgba(0.9, 0.9, 0.9, 0.75)
+                } else if self.is_hover {
+                    Color::rgba(0.9, 0.9, 0.9, 0.675)
+                } else {
+                    Color::rgba(0.9, 0.9, 0.9, 0.6)
+                },
+            );
 
-        default_theme::border_3d_edit(
-            &mut vec,
-            x,
-            y,
-            width,
-            height,
-            self.is_hover,
-            self.is_focused,
-        );
+            let clip = text_width > width - 8.0 || text_height > height - 8.0;
 
-        gradient_rect(
-            &mut vec,
-            x + 3.0f32,
-            y + 3.0f32,
-            width - 6.0f32,
-            height - 6.0f32,
+            if clip {
+                drawing_context.display.save();
+                drawing_context.display.clip_rect(
+                    rect(x + 4.0f32, y + 4.0f32, width - 8.0f32, height - 8.0f32),
+                    ClipOperation::Intersect,
+                );
+                if self.offset_x != 0.0f32 {
+                    drawing_context.display.translate(-self.offset_x, 0.0f32);
+                }
+            }
+
+            drawing_context.display.draw_paragraph(
+                (x + 4.0f32, y + (height - text_height as f32) / 2.0),
+                &paragraph,
+            );
+
+            if clip {
+                drawing_context.display.restore();
+            }
+
+            // draw cursor
             if self.is_focused {
-                [1.0, 1.0, 1.0, 0.75]
-            } else if self.is_hover {
-                [1.0, 1.0, 1.0, 0.675]
-            } else {
-                [1.0, 1.0, 1.0, 0.6]
-            },
-            if self.is_focused {
-                [0.9, 0.9, 0.9, 0.75]
-            } else if self.is_hover {
-                [0.9, 0.9, 0.9, 0.675]
-            } else {
-                [0.9, 0.9, 0.9, 0.6]
-            },
-        );
-
-        let mut vec2 = Vec::new();
-
-        vec2.push(Primitive::Text {
-            resource_key: self.params.font_name.to_string(),
-            color: [0.0, 0.0, 0.0, 1.0],
-            position: PixelPoint::new(x + 4.0f32, y + (height - text_height as f32) / 2.0),
-            clipping_rect: PixelRect::new(
-                PixelPoint::new(x + 4.0f32, y + 4.0f32),
-                PixelSize::new(text_width as f32, height),
-            ),
-            size: Length::new(self.params.font_size as f32),
-            text: display_text,
-        });
-
-        // draw cursor
-        if self.is_focused {
-            vec2.push(Primitive::Rectangle {
-                color: [1.0, 1.0, 0.0, 1.0],
-                rect: PixelRect::new(
-                    PixelPoint::new(
+                drawing_context.display.draw_rect(
+                    rect(
                         x + 4.0f32 + self.cursor_pos_px,
                         y + (height - text_height as f32) / 2.0,
+                        2.0f32,
+                        text_height as f32,
                     ),
-                    PixelSize::new(2.0f32, text_height as f32),
-                ),
-            });
+                    Color::rgb(1.0, 1.0, 0.0),
+                );
+            }
         }
-
-        if self.offset_x != 0.0f32 {
-            vec2.translate(PixelPoint::new(-self.offset_x, 0.0f32));
-        }
-
-        vec2 = vec2.clip(PixelRect::new(
-            PixelPoint::new(x + 4.0f32, y + 4.0f32),
-            PixelSize::new(width - 8.0f32, height - 8.0f32),
-        ));
-
-        vec.append(&mut vec2);
-
-        (vec, Vec::new())
     }
 }

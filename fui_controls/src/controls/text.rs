@@ -1,10 +1,8 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
-use euclid::Length;
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
 #[derive(TypedBuilder)]
@@ -36,23 +34,28 @@ impl Text {
 
 #[derive(TypedBuilder)]
 pub struct DefaultTextStyleParams {
-    #[builder(default = [1.0f32, 1.0f32, 1.0f32, 1.0f32])]
+    #[builder(default = Color::rgba(1.0, 1.0, 1.0, 1.0))]
     pub color: Color,
 
     #[builder(default = "sans-serif")]
     font_name: &'static str,
 
-    #[builder(default = 20u8)]
-    font_size: u8,
+    #[builder(default = 20.0)]
+    font_size: f32,
 }
 
 pub struct DefaultTextStyle {
     params: DefaultTextStyleParams,
+
+    paragraph: Option<DrawingParagraph>,
 }
 
 impl DefaultTextStyle {
     pub fn new(params: DefaultTextStyleParams) -> Self {
-        DefaultTextStyle { params }
+        DefaultTextStyle {
+            params,
+            paragraph: None,
+        }
     }
 }
 
@@ -65,7 +68,7 @@ impl Style<Text> for DefaultTextStyle {
         &mut self,
         _data: &mut Text,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -75,26 +78,31 @@ impl Style<Text> for DefaultTextStyle {
         &mut self,
         data: &mut Text,
         _control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
-        let (text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(
-                self.params.font_name,
-                self.params.font_size,
-                &data.text.get(),
-            )
-            .unwrap_or((0, 0));
+        let mut builder = DrawingParagraphBuilder::new(drawing_context.fonts).unwrap();
+        builder.push_style(ParagraphStyle::simple(
+            self.params.font_name,
+            self.params.font_size,
+            &self.params.color,
+        ));
+        builder.add_text(&data.text.get());
 
-        Size::new(text_width as f32, text_height as f32)
+        let paragraph = builder.build().unwrap();
+        let paragraph_width = paragraph.get_max_width();
+        let paragraph_height = paragraph.get_height();
+
+        self.paragraph = Some(paragraph);
+
+        Size::new(paragraph_width, paragraph_height)
     }
 
     fn set_rect(
         &mut self,
         _data: &mut Text,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
     }
@@ -112,42 +120,43 @@ impl Style<Text> for DefaultTextStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
-        data: &Text,
+    fn draw(
+        &mut self,
+        _data: &Text,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
+        drawing_context: &mut FuiDrawingContext,
+    ) {
+        if let Some(paragraph) = &self.paragraph {
+            let r = control_context.get_rect();
+            let x = r.x;
+            let y = r.y;
+            let width = r.width;
+            let height = r.height;
 
-        let rect = control_context.get_rect();
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+            let text_width = paragraph.get_max_width();
+            let text_height = paragraph.get_height();
 
-        let (text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(
-                self.params.font_name,
-                self.params.font_size,
-                &data.text.get(),
-            )
-            .unwrap_or((0, 0));
+            let clip = text_width > width || text_height > height;
 
-        vec.push(Primitive::Text {
-            resource_key: self.params.font_name.to_string(),
-            color: self.params.color,
-            position: PixelPoint::new(
-                x + (width - text_width as f32) / 2.0,
-                y + (height - text_height as f32) / 2.0,
-            ),
-            clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-            size: Length::new(self.params.font_size as f32),
-            text: data.text.get(),
-        });
+            if clip {
+                drawing_context.display.save();
+                drawing_context
+                    .display
+                    .clip_rect(rect(x, y, width, height), ClipOperation::Intersect);
+            }
 
-        (vec, Vec::new())
+            drawing_context.display.draw_paragraph(
+                (
+                    x + (width - text_width as f32) / 2.0,
+                    y + (height - text_height as f32) / 2.0,
+                ),
+                paragraph,
+            );
+
+            if clip {
+                drawing_context.display.restore();
+            }
+        }
     }
 }
 
@@ -163,20 +172,21 @@ pub struct DynamicTextStyleParams {
     #[builder(default = Property::new("sans-serif"))]
     pub font_name: Property<String>,
 
-    #[builder(default = Property::new(20u8))]
-    pub font_size: Property<u8>,
+    #[builder(default = Property::new(20.0))]
+    pub font_size: Property<f32>,
 }
 
 pub struct DynamicTextStyle {
     params: DynamicTextStyleParams,
-    is_hover: bool,
+
+    paragraph: Option<DrawingParagraph>,
 }
 
 impl DynamicTextStyle {
     pub fn new(params: DynamicTextStyleParams) -> Self {
         DynamicTextStyle {
             params,
-            is_hover: false,
+            paragraph: None,
         }
     }
 }
@@ -190,45 +200,42 @@ impl Style<Text> for DynamicTextStyle {
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _control_context: &mut ControlContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
-        event: ControlEvent,
+        _event: ControlEvent,
     ) {
-        match event {
-            ControlEvent::HoverChange(value) => {
-                self.is_hover = value;
-                control_context.set_is_dirty(true);
-            }
-
-            _ => (),
-        }
     }
 
     fn measure(
         &mut self,
         data: &mut Text,
         _control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
-        let (text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(
-                &self.params.font_name.get(),
-                self.params.font_size.get(),
-                &data.text.get(),
-            )
-            .unwrap_or((0, 0));
+        let mut builder = DrawingParagraphBuilder::new(drawing_context.fonts).unwrap();
+        builder.push_style(ParagraphStyle::simple(
+            self.params.font_name.get(),
+            self.params.font_size.get(),
+            self.params.color.get(),
+        ));
+        builder.add_text(&data.text.get());
 
-        Size::new(text_width as f32, text_height as f32)
+        let paragraph = builder.build().unwrap();
+        let paragraph_width = paragraph.get_max_width();
+        let paragraph_height = paragraph.get_height();
+
+        self.paragraph = Some(paragraph);
+
+        Size::new(paragraph_width, paragraph_height)
     }
 
     fn set_rect(
         &mut self,
         _data: &mut Text,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
     }
@@ -246,41 +253,42 @@ impl Style<Text> for DynamicTextStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
-        data: &Text,
+    fn draw(
+        &mut self,
+        _data: &Text,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
+        drawing_context: &mut FuiDrawingContext,
+    ) {
+        if let Some(paragraph) = &self.paragraph {
+            let r = control_context.get_rect();
+            let x = r.x;
+            let y = r.y;
+            let width = r.width;
+            let height = r.height;
 
-        let rect = control_context.get_rect();
-        let x = rect.x;
-        let y = rect.y;
-        let width = rect.width;
-        let height = rect.height;
+            let text_width = paragraph.get_max_width();
+            let text_height = paragraph.get_height();
 
-        let (text_width, text_height) = drawing_context
-            .get_resources()
-            .get_font_dimensions(
-                &self.params.font_name.get(),
-                self.params.font_size.get(),
-                &data.text.get(),
-            )
-            .unwrap_or((0, 0));
+            let clip = text_width > width || text_height > height;
 
-        vec.push(Primitive::Text {
-            resource_key: self.params.font_name.get(),
-            color: self.params.color.get(),
-            position: PixelPoint::new(
-                x + (width - text_width as f32) / 2.0,
-                y + (height - text_height as f32) / 2.0,
-            ),
-            clipping_rect: PixelRect::new(PixelPoint::new(x, y), PixelSize::new(width, height)),
-            size: Length::new(self.params.font_size.get() as f32),
-            text: data.text.get(),
-        });
+            if clip {
+                drawing_context.display.save();
+                drawing_context
+                    .display
+                    .clip_rect(rect(x, y, width, height), ClipOperation::Intersect);
+            }
 
-        (vec, Vec::new())
+            drawing_context.display.draw_paragraph(
+                (
+                    x + (width - text_width as f32) / 2.0,
+                    y + (height - text_height as f32) / 2.0,
+                ),
+                paragraph,
+            );
+
+            if clip {
+                drawing_context.display.restore();
+            }
+        }
     }
 }

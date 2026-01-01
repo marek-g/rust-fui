@@ -3,11 +3,10 @@ use std::f32;
 use std::rc::Rc;
 
 use crate::{
-    Alignment, ControlContext, ControlEvent, ControlObject, DrawingContext, EventContext,
+    Alignment, ControlContext, ControlEvent, ControlObject, EventContext, FuiDrawingContext,
     HorizontalAlignment, Orientation, Point, Rect, Size, Style, StyledControl, VerticalAlignment,
     ViewContext,
 };
-use drawing::primitive::Primitive;
 use typed_builder::TypedBuilder;
 
 use super::Length;
@@ -81,7 +80,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         &mut self,
         _data: &mut StackPanel,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -91,7 +90,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         &mut self,
         data: &mut StackPanel,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let mut result = Size::new(0f32, 0f32);
@@ -173,7 +172,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         &mut self,
         data: &mut StackPanel,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let mut child_rect = rect;
@@ -340,22 +339,15 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &StackPanel,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
-
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            let (mut vec2, mut overlay2) = child.borrow().to_primitives(drawing_context);
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+            child.borrow_mut().draw(drawing_context);
         }
-
-        (vec, overlay)
     }
 }

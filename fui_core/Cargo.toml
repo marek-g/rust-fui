@@ -13,9 +13,8 @@ edition = "2024"
 
 [dependencies]
 fui_macros = { path = "../fui_macros", version = "0.18.0-pre" }
+fui_drawing = { path = "../fui_drawing", version = "0.18.0-pre" }
 windowing_api = "0.13"
-#drawing = { path = "../../rust-drawing/drawing", version = "0.4" }
-drawing = "0.4"
 anyhow = "1.0"
 typed-builder = "0.23"
 typemap = "0.3"

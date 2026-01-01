@@ -1,9 +1,3 @@
-mod color;
-pub use color::*;
-
-mod matrix;
-pub use matrix::*;
-
 mod orientation;
 pub use orientation::*;
 
@@ -21,6 +15,3 @@ pub use size::*;
 
 mod thickness;
 pub use thickness::*;
-
-mod unit;
-pub use unit::*;

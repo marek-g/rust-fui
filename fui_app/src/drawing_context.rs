@@ -1,25 +1,12 @@
-pub use drawing::color::ColorFormat;
+/*use anyhow::{format_err, Result};
 
-use anyhow::{format_err, Result};
-
-use drawing::backend::Device;
-use drawing::backend::Texture;
-use drawing::font::*;
-use drawing::primitive::Primitive;
-use drawing::renderer::Renderer;
-use drawing::resources::Resources;
-use drawing::TextureFont;
-use drawing_gl::*;
+use fui_drawing::prelude::*;
 
 use crate::Assets;
 use rand::{thread_rng, Rng};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-
-pub type DrawingDevice = GlDevice;
-pub type DrawingTexture = GlTexture;
-pub type DrawingFont = TextureFont<DrawingDevice>;
 
 pub struct DrawingContext {
     pub(crate) resources: Resources<DrawingDevice, DrawingFont>,
@@ -271,35 +258,4 @@ impl fui_core::Resources for DrawingContext {
         }
     }
 }
-
-pub struct FuiDrawingContext<'a> {
-    drawing_area_size: (u16, u16),
-    resources: &'a mut crate::DrawingContext,
-    background_texture: i32,
-}
-
-impl<'a> FuiDrawingContext<'a> {
-    pub fn new(
-        drawing_area_size: (u16, u16),
-        resources: &'a mut crate::DrawingContext,
-        background_texture: i32,
-    ) -> Self {
-        FuiDrawingContext {
-            drawing_area_size,
-            resources,
-            background_texture,
-        }
-    }
-}
-
-impl<'a> fui_core::DrawingContext for FuiDrawingContext<'a> {
-    fn get_drawing_area_size(&self) -> (u16, u16) {
-        self.drawing_area_size
-    }
-    fn get_resources(&mut self) -> &mut dyn fui_core::Resources {
-        self.resources
-    }
-    fn get_background_texture(&self) -> i32 {
-        self.background_texture
-    }
-}
+*/

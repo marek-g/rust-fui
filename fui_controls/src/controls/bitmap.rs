@@ -1,14 +1,25 @@
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
 
-use drawing::primitive::Primitive;
-use drawing::units::{PixelPoint, PixelRect, PixelSize};
 use fui_core::*;
+use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
+
+#[derive(Clone)]
+pub struct BitmapTexture {
+    pub texture: Arc<DrawingTexture>,
+}
+
+impl PartialEq for BitmapTexture {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.texture, &other.texture)
+    }
+}
 
 #[derive(TypedBuilder)]
 pub struct Bitmap {
-    pub texture_id: Property<i32>,
+    pub texture: Property<Option<BitmapTexture>>,
 }
 
 impl Bitmap {
@@ -46,14 +57,14 @@ impl DefaultBitmapStyle {
 
 impl Style<Bitmap> for DefaultBitmapStyle {
     fn setup(&mut self, data: &mut Bitmap, control_context: &mut ControlContext) {
-        control_context.dirty_watch_property(&data.texture_id);
+        control_context.dirty_watch_property(&data.texture);
     }
 
     fn handle_event(
         &mut self,
         _data: &mut Bitmap,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -63,24 +74,23 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         &mut self,
         data: &mut Bitmap,
         _control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
-        match drawing_context
-            .get_resources()
-            .get_texture_size(data.texture_id.get())
-        { Ok(texture_size) => {
-            Size::new(texture_size.0 as f32, texture_size.1 as f32)
-        } _ => {
-            Size::new(0.0f32, 0.0f32)
-        }}
+        match data.texture.get() {
+            Some(texture) => {
+                let descriptor = texture.texture.get_descriptor();
+                Size::new(descriptor.width as f32, descriptor.height as f32)
+            }
+            None => Size::new(0.0f32, 0.0f32),
+        }
     }
 
     fn set_rect(
         &mut self,
         _data: &mut Bitmap,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
     }
@@ -98,26 +108,25 @@ impl Style<Bitmap> for DefaultBitmapStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         data: &Bitmap,
         control_context: &ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let rect = control_context.get_rect();
         if rect.width > 0.0f32 && rect.height > 0.0f32 {
-            vec.push(Primitive::Image {
-                resource_key: data.texture_id.get(),
-                rect: PixelRect::new(
-                    PixelPoint::new(rect.x, rect.y),
-                    PixelSize::new(rect.width, rect.height),
-                ),
-                uv: [0.0f32, 0.0f32, 1.0f32, 1.0f32],
-            });
+            match data.texture.get() {
+                Some(texture) => {
+                    drawing_context.display.draw_texture(
+                        texture.texture.as_ref(),
+                        (rect.x, rect.y),
+                        TextureSampling::Linear,
+                        None,
+                    );
+                }
+                None => (),
+            }
         }
-
-        (vec, Vec::new())
     }
 }

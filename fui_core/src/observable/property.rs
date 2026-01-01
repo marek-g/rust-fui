@@ -2,7 +2,8 @@ use futures_signals::signal::{Mutable, SignalExt};
 use std::sync::{Arc, RwLock};
 
 use crate::ObservableCollection;
-use crate::{spawn_local, Color, Subscription, VecDiff};
+use crate::{spawn_local, Subscription, VecDiff};
+use fui_drawing::Color;
 
 pub struct Property<T> {
     data: Mutable<T>,

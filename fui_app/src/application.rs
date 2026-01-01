@@ -1,5 +1,6 @@
-use crate::{DrawingContext, WindowGUIThreadData, WindowId, WindowVMThreadData};
+use crate::{WindowGUIThreadData, WindowId, WindowVMThreadData};
 use anyhow::Result;
+use fui_drawing::DrawingContextGl;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Weak;
@@ -17,7 +18,7 @@ thread_local! {
 /// Application data available only from the GUI thread.
 ///
 pub struct ApplicationGuiContext {
-    pub drawing_context: Arc<Mutex<DrawingContext>>,
+    pub drawing_context_gl: Option<Arc<Mutex<DrawingContextGl>>>,
     pub next_window_id: WindowId,
     pub windows: HashMap<WindowId, WindowGUIThreadData>,
     pub func_gui2vm_thread_tx: mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
@@ -58,15 +59,14 @@ impl Application {
                     windowing_qt::ApplicationOptions::new()
                         .with_title(title)
                         .with_opengl_share_contexts(true)
-                        .with_opengl_stencil_bits(8),
+                        .with_opengl_stencil_bits(8) // needed for paths
+                        .with_opengl_depth_bits(16), // needed for clipping
                 )
                 .unwrap();
 
-                let drawing_context = Arc::new(Mutex::new(DrawingContext::new().unwrap()));
-
                 APPLICATION_GUI_CONTEXT.with(move |context| {
                     *context.borrow_mut() = Some(ApplicationGuiContext {
-                        drawing_context,
+                        drawing_context_gl: None,
                         next_window_id: 1,
                         windows: HashMap::new(),
                         func_gui2vm_thread_tx,

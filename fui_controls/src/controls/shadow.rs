@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use drawing::primitive::Primitive;
 use fui_core::*;
 use typed_builder::TypedBuilder;
 
@@ -55,7 +54,7 @@ impl Style<Shadow> for DefaultShadowStyle {
         &mut self,
         _data: &mut Shadow,
         _control_context: &mut ControlContext,
-        _drawing_context: &mut dyn DrawingContext,
+        _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
     ) {
@@ -65,25 +64,26 @@ impl Style<Shadow> for DefaultShadowStyle {
         &mut self,
         _data: &mut Shadow,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
 
-        match children.into_iter().next() { Some(ref content) => {
-            content.borrow_mut().measure(drawing_context, size);
-            let rect = content.borrow().get_rect();
-            Size::new(rect.width, rect.height)
-        } _ => {
-            Size::new(0f32, 0f32)
-        }}
+        match children.into_iter().next() {
+            Some(ref content) => {
+                content.borrow_mut().measure(drawing_context, size);
+                let rect = content.borrow().get_rect();
+                Size::new(rect.width, rect.height)
+            }
+            _ => Size::new(0f32, 0f32),
+        }
     }
 
     fn set_rect(
         &mut self,
         _data: &mut Shadow,
         control_context: &mut ControlContext,
-        drawing_context: &mut dyn DrawingContext,
+        drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
@@ -116,14 +116,12 @@ impl Style<Shadow> for DefaultShadowStyle {
         }
     }
 
-    fn to_primitives(
-        &self,
+    fn draw(
+        &mut self,
         _data: &Shadow,
         control_context: &ControlContext,
-        drawing_context: &mut dyn DrawingContext,
-    ) -> (Vec<Primitive>, Vec<Primitive>) {
-        let mut vec = Vec::new();
-        let mut overlay = Vec::new();
+        drawing_context: &mut FuiDrawingContext,
+    ) {
         let rect = control_context.get_rect();
 
         let x = rect.x;
@@ -131,15 +129,18 @@ impl Style<Shadow> for DefaultShadowStyle {
         let width = rect.width;
         let height = rect.height;
 
-        default_theme::shadow_under_rect(&mut vec, x, y, width, height, self.params.size);
+        default_theme::shadow_under_rect(
+            &mut drawing_context.display,
+            x,
+            y,
+            width,
+            height,
+            self.params.size,
+        );
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            let (mut vec2, mut overlay2) = content.borrow_mut().to_primitives(drawing_context);
-            vec.append(&mut vec2);
-            overlay.append(&mut overlay2);
+            content.borrow_mut().draw(drawing_context);
         }
-
-        (vec, overlay)
     }
 }
