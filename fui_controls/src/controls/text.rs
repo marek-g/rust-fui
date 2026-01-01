@@ -90,7 +90,7 @@ impl Style<Text> for DefaultTextStyle {
         builder.add_text(&data.text.get());
 
         let paragraph = builder.build().unwrap();
-        let paragraph_width = paragraph.get_max_width();
+        let paragraph_width = paragraph.get_longest_line_width();
         let paragraph_height = paragraph.get_height();
 
         self.paragraph = Some(paragraph);
@@ -133,7 +133,7 @@ impl Style<Text> for DefaultTextStyle {
             let width = r.width;
             let height = r.height;
 
-            let text_width = paragraph.get_max_width();
+            let text_width = paragraph.get_longest_line_width();
             let text_height = paragraph.get_height();
 
             let clip = text_width > width || text_height > height;
@@ -223,7 +223,7 @@ impl Style<Text> for DynamicTextStyle {
         builder.add_text(&data.text.get());
 
         let paragraph = builder.build().unwrap();
-        let paragraph_width = paragraph.get_max_width();
+        let paragraph_width = paragraph.get_longest_line_width();
         let paragraph_height = paragraph.get_height();
 
         self.paragraph = Some(paragraph);
@@ -266,7 +266,7 @@ impl Style<Text> for DynamicTextStyle {
             let width = r.width;
             let height = r.height;
 
-            let text_width = paragraph.get_max_width();
+            let text_width = paragraph.get_longest_line_width();
             let text_height = paragraph.get_height();
 
             let clip = text_width > width || text_height > height;

@@ -393,7 +393,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             let width = r.width;
             let height = r.height;
 
-            let text_width = paragraph.get_max_width();
+            let text_width = paragraph.get_longest_line_width();
             let text_height = paragraph.get_height();
 
             default_theme::border_3d_edit(
