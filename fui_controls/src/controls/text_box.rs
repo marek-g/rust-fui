@@ -109,7 +109,14 @@ impl DefaultTextBoxStyle {
         if let Some(glyph_info) = glyph_info {
             let rect = glyph_info.get_grapheme_cluster_bounds();
             let begin = glyph_info.get_grapheme_cluster_code_unit_range_begin_utf16();
-            (begin, rect.origin.x)
+            if pos >= rect.origin.x + rect.size.width {
+                (
+                    glyph_info.get_grapheme_cluster_code_unit_range_end_utf16(),
+                    rect.origin.x + rect.size.width,
+                )
+            } else {
+                (begin, rect.origin.x)
+            }
         } else {
             (0, 0.0)
         }
@@ -124,11 +131,23 @@ impl DefaultTextBoxStyle {
         self.update_paragraph(&text, &fonts, false);
 
         let paragraph = self.paragraph.as_ref().unwrap();
-        let glyph_info = paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char);
-        if let Some(glyph_info) = glyph_info {
-            glyph_info.get_grapheme_cluster_bounds().origin.x
+        let length_in_chars = text.chars().count();
+        if cursor_pos_char >= length_in_chars {
+            let glyph_info =
+                paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char - 1);
+            if let Some(glyph_info) = glyph_info {
+                let bounds = glyph_info.get_grapheme_cluster_bounds();
+                bounds.origin.x + bounds.size.width
+            } else {
+                0.0
+            }
         } else {
-            0.0
+            let glyph_info = paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char);
+            if let Some(glyph_info) = glyph_info {
+                glyph_info.get_grapheme_cluster_bounds().origin.x
+            } else {
+                0.0
+            }
         }
     }
 
