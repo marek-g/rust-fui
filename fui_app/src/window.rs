@@ -295,14 +295,11 @@ impl Window {
                                                     let mut fonts = DrawingFonts::default();
                                                     let mut display_list_builder =
                                                         DrawingDisplayListBuilder::new(None);
-                                                    let mut overlay_list_builder =
-                                                        DrawingDisplayListBuilder::new(None);
 
                                                     let mut fui_drawing_context =
                                                         FuiDrawingContext {
                                                             fonts: &mut fonts,
                                                             display: &mut display_list_builder,
-                                                            overlay: &mut overlay_list_builder,
                                                         };
 
                                                     // events go to the window's root control
@@ -363,12 +360,10 @@ impl Window {
 
                         let mut fonts = DrawingFonts::default();
                         let mut display_list_builder = DrawingDisplayListBuilder::new(None);
-                        let mut overlay_list_builder = DrawingDisplayListBuilder::new(None);
 
                         let mut fui_drawing_context = FuiDrawingContext {
                             fonts: &mut fonts,
                             display: &mut display_list_builder,
-                            overlay: &mut overlay_list_builder,
                         };
 
                         let min_size = {
@@ -435,17 +430,10 @@ impl Window {
                             size.height,
                         )));
                         display_list_builder.draw_paint([0.3f32, 0.4f32, 0.3f32, 1.0f32]);
-                        let mut overlay_list_builder = DrawingDisplayListBuilder::new(Some(rect(
-                            0.0,
-                            0.0,
-                            size.width,
-                            size.height,
-                        )));
 
                         let mut fui_drawing_context = FuiDrawingContext {
                             fonts: &mut fonts,
                             display: &mut display_list_builder,
-                            overlay: &mut overlay_list_builder,
                         };
 
                         /*let mut primitives = Vec::new();

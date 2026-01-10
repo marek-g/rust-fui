@@ -10,17 +10,4 @@ pub struct FuiDrawingContext<'a> {
 
     /// Here controls can draw it's content
     pub display: &'a mut DrawingDisplayListBuilder,
-
-    /// Here modal dialogs or overlay controls can draw it's content
-    pub overlay: &'a mut DrawingDisplayListBuilder,
 }
-
-/*impl FuiDrawingContext<C>
-where
-    C: drawing_api::Context,
-{
-    fn get_drawing_area_size(&self) -> (u16, u16);
-    fn get_resources(&mut self) -> &mut dyn Resources;
-    fn get_background_texture(&self) -> i32;
-}
- */
