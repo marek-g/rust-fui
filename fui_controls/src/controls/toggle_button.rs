@@ -795,9 +795,9 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         if is_pressed {
             drawing_context.display.draw_oval(
                 rect(
-                    x,
-                    y + height / 2.0f32 - RADIO_BUTTON_SIZE / 2.0f32,
-                    RADIO_BUTTON_SIZE,
+                    x + (RADIO_BUTTON_SIZE - RADIO_BULLET_SIZE) / 2.0,
+                    y + (height - RADIO_BULLET_SIZE) / 2.0,
+                    RADIO_BULLET_SIZE,
                     RADIO_BULLET_SIZE,
                 ),
                 Color::rgba(1.0, 1.0, 1.0, 0.8),
