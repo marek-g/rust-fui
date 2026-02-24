@@ -12,5 +12,5 @@ readme = "README.md"
 edition = "2024"
 
 [dependencies]
-drawing_api = { path = "../../rust-drawing/drawing_api", version = "1009" }
-drawing_impeller = { path = "../../rust-drawing/drawing_impeller", version = "1000" }
+drawing_api = "1009"
+drawing_impeller = "1001"
