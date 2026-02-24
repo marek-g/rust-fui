@@ -12,5 +12,5 @@ readme = "README.md"
 edition = "2024"
 
 [dependencies]
-drawing_api = "1009"
-drawing_impeller = "1001"
+drawing_api = "1010"
+drawing_impeller = "1002"

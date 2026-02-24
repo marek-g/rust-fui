@@ -89,7 +89,7 @@ impl Style<Text> for DefaultTextStyle {
         ));
         builder.add_text(&data.text.get());
 
-        let paragraph = builder.build().unwrap();
+        let paragraph = builder.build(f32::INFINITY).unwrap();
         let paragraph_width = paragraph.get_longest_line_width();
         let paragraph_height = paragraph.get_height();
 
@@ -222,7 +222,7 @@ impl Style<Text> for DynamicTextStyle {
         ));
         builder.add_text(&data.text.get());
 
-        let paragraph = builder.build().unwrap();
+        let paragraph = builder.build(f32::INFINITY).unwrap();
         let paragraph_width = paragraph.get_longest_line_width();
         let paragraph_height = paragraph.get_height();
 

@@ -88,7 +88,7 @@ impl DefaultTextBoxStyle {
             Color::rgb(0.0, 0.0, 0.0),
         ));
         builder.add_text(&display_text);
-        let paragraph = builder.build().unwrap();
+        let paragraph = builder.build(f32::INFINITY).unwrap();
 
         self.paragraph = Some(paragraph);
     }
@@ -128,6 +128,10 @@ impl DefaultTextBoxStyle {
         cursor_pos_char: usize,
         fonts: &DrawingFonts,
     ) -> f32 {
+        if cursor_pos_char <= 0 {
+            return 0.0;
+        }
+
         self.update_paragraph(&text, &fonts, false);
 
         let paragraph = self.paragraph.as_ref().unwrap();
@@ -362,7 +366,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
-        self.update_paragraph(&data.text.get(), &drawing_context.fonts, false);
+        self.update_paragraph(&data.text.get(), &drawing_context.fonts, true);
 
         let paragraph = self.paragraph.as_ref().unwrap();
         let paragraph_height = paragraph.get_height();
@@ -465,10 +469,6 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 &paragraph,
             );
 
-            if clip {
-                drawing_context.display.restore();
-            }
-
             // draw cursor
             if self.is_focused {
                 drawing_context.display.draw_rect(
@@ -480,6 +480,10 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                     ),
                     Color::rgb(1.0, 1.0, 0.0),
                 );
+            }
+
+            if clip {
+                drawing_context.display.restore();
             }
         }
     }
