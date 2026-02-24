@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::style::default_theme::gradient_rect;
+use crate::utils::text_buffer::TextBuffer;
 use fui_core::*;
 use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
@@ -48,12 +49,15 @@ pub struct DefaultTextBoxStyleParams {
 pub struct DefaultTextBoxStyle {
     params: DefaultTextBoxStyleParams,
 
+    buffer: TextBuffer,
+
     is_hover: bool,
     is_focused: bool,
 
-    cursor_pos_char: usize,
     cursor_pos_px: f32,
     offset_x: f32,
+
+    selection_start_px: f32,
 
     paragraph: Option<DrawingParagraph>,
 }
@@ -63,23 +67,37 @@ impl DefaultTextBoxStyle {
         DefaultTextBoxStyle {
             params,
 
+            buffer: TextBuffer::new(String::new()),
+
             is_hover: false,
             is_focused: false,
 
-            cursor_pos_char: 0,
             cursor_pos_px: 0.0f32,
             offset_x: 0.0f32,
+
+            selection_start_px: 0.0,
 
             paragraph: None,
         }
     }
 
-    fn update_paragraph(&mut self, text: &str, fonts: &DrawingFonts, recreate: bool) {
-        if !recreate && self.paragraph.is_some() {
-            return;
-        }
+    fn sync_with_buffer(&mut self, fonts: &DrawingFonts, rect: Rect) {
+        self.update_paragraph(fonts);
 
-        let display_text = self.get_display_text(text);
+        // calc cursor px and selection px
+        self.cursor_pos_px = self.calc_px_from_char(self.buffer.get_cursor());
+        let (s, _) = self
+            .buffer
+            .get_selection()
+            .unwrap_or((self.buffer.get_cursor(), 0));
+        self.selection_start_px = self.calc_px_from_char(s);
+
+        // scroll to cursor if needed
+        self.update_offset_x(rect);
+    }
+
+    fn update_paragraph(&mut self, fonts: &DrawingFonts) {
+        let display_text = self.get_display_text();
 
         let mut builder = DrawingParagraphBuilder::new(fonts).unwrap();
         builder.push_style(ParagraphStyle::simple(
@@ -88,117 +106,7 @@ impl DefaultTextBoxStyle {
             Color::rgb(0.0, 0.0, 0.0),
         ));
         builder.add_text(&display_text);
-        let paragraph = builder.build(f32::INFINITY).unwrap();
-
-        self.paragraph = Some(paragraph);
-    }
-
-    fn calc_cursor_pos(
-        &mut self,
-        text: &str,
-        pos: &Point,
-        rect: Rect,
-        fonts: &DrawingFonts,
-    ) -> (usize, f32) {
-        self.update_paragraph(&text, &fonts, false);
-
-        let paragraph = self.paragraph.as_ref().unwrap();
-
-        let pos = (pos.x - rect.x - 4.0f32) + self.offset_x;
-        let glyph_info = paragraph.create_glyph_info_at_paragraph_coordinates(pos as f64, 0.0);
-        if let Some(glyph_info) = glyph_info {
-            let rect = glyph_info.get_grapheme_cluster_bounds();
-            let begin = glyph_info.get_grapheme_cluster_code_unit_range_begin_utf16();
-            if pos >= rect.origin.x + rect.size.width {
-                (
-                    glyph_info.get_grapheme_cluster_code_unit_range_end_utf16(),
-                    rect.origin.x + rect.size.width,
-                )
-            } else {
-                (begin, rect.origin.x)
-            }
-        } else {
-            (0, 0.0)
-        }
-    }
-
-    fn calc_cursor_pos_px(
-        &mut self,
-        text: &str,
-        cursor_pos_char: usize,
-        fonts: &DrawingFonts,
-    ) -> f32 {
-        if cursor_pos_char <= 0 {
-            return 0.0;
-        }
-
-        self.update_paragraph(&text, &fonts, false);
-
-        let paragraph = self.paragraph.as_ref().unwrap();
-        let length_in_chars = text.chars().count();
-        if cursor_pos_char >= length_in_chars {
-            let glyph_info =
-                paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char - 1);
-            if let Some(glyph_info) = glyph_info {
-                let bounds = glyph_info.get_grapheme_cluster_bounds();
-                bounds.origin.x + bounds.size.width
-            } else {
-                0.0
-            }
-        } else {
-            let glyph_info = paragraph.create_glyph_info_at_code_unit_index_utf16(cursor_pos_char);
-            if let Some(glyph_info) = glyph_info {
-                glyph_info.get_grapheme_cluster_bounds().origin.x
-            } else {
-                0.0
-            }
-        }
-    }
-
-    fn move_cursor(
-        &mut self,
-        text: &str,
-        cursor_pos_char: usize,
-        rect: Rect,
-        fonts: &DrawingFonts,
-    ) {
-        self.update_paragraph(&text, &fonts, false);
-
-        let cursor_pos_px = self.calc_cursor_pos_px(&text, cursor_pos_char, fonts);
-        self.cursor_pos_char = cursor_pos_char;
-        self.cursor_pos_px = cursor_pos_px;
-
-        self.update_offset_x(rect);
-    }
-
-    fn insert_str(&mut self, data: &mut TextBox, text: &str, rect: Rect, fonts: &DrawingFonts) {
-        let t = data.text.get();
-        let t: String = t
-            .chars()
-            .take(self.cursor_pos_char)
-            .chain(text.chars())
-            .chain(t.chars().skip(self.cursor_pos_char))
-            .collect();
-
-        self.update_paragraph(&t, &fonts, true);
-
-        let new_cursor_pos_char = self.cursor_pos_char + text.chars().count();
-
-        self.move_cursor(&t, new_cursor_pos_char, rect, fonts);
-        data.text.set(t);
-    }
-
-    fn remove_char(&mut self, data: &mut TextBox, pos: usize, rect: Rect, fonts: &DrawingFonts) {
-        let t = data.text.get();
-        let t: String = t.chars().take(pos).chain(t.chars().skip(pos + 1)).collect();
-
-        self.update_paragraph(&t, &fonts, true);
-
-        if pos < self.cursor_pos_char {
-            self.move_cursor(&t, self.cursor_pos_char - 1, rect, fonts);
-        }
-
-        data.text.set(t);
+        self.paragraph = Some(builder.build(f32::INFINITY).unwrap());
     }
 
     fn update_offset_x(&mut self, rect: Rect) {
@@ -213,17 +121,59 @@ impl DefaultTextBoxStyle {
         }
     }
 
-    fn get_display_text(&self, text: &str) -> String {
-        if self.params.password {
-            text.chars().map(|_| '*').collect()
+    fn calc_px_from_char(&self, char_idx: usize) -> f32 {
+        if char_idx == 0 {
+            return 0.0;
+        }
+
+        let p = self.paragraph.as_ref().unwrap();
+        let info = p.create_glyph_info_at_code_unit_index_utf16(char_idx.saturating_sub(1));
+        if let Some(gi) = info {
+            let bounds = gi.get_grapheme_cluster_bounds();
+            if char_idx >= self.buffer.get_text().chars().count() {
+                bounds.origin.x as f32 + bounds.size.width as f32
+            } else {
+                let current = p.create_glyph_info_at_code_unit_index_utf16(char_idx);
+                current
+                    .map(|c| c.get_grapheme_cluster_bounds().origin.x as f32)
+                    .unwrap_or(0.0)
+            }
         } else {
-            text.to_string()
+            0.0
+        }
+    }
+
+    fn calc_cursor_pos(&mut self, pos: &Point, rect: Rect, fonts: &DrawingFonts) -> usize {
+        self.update_paragraph(&fonts);
+
+        let paragraph = self.paragraph.as_ref().unwrap();
+
+        let pos = (pos.x - rect.x - 4.0f32) + self.offset_x;
+        let glyph_info = paragraph.create_glyph_info_at_paragraph_coordinates(pos as f64, 0.0);
+        if let Some(glyph_info) = glyph_info {
+            let rect = glyph_info.get_grapheme_cluster_bounds();
+            if pos >= rect.origin.x + rect.size.width {
+                glyph_info.get_grapheme_cluster_code_unit_range_end_utf16()
+            } else {
+                glyph_info.get_grapheme_cluster_code_unit_range_begin_utf16()
+            }
+        } else {
+            0
+        }
+    }
+
+    fn get_display_text(&self) -> String {
+        if self.params.password {
+            self.buffer.get_text().chars().map(|_| '*').collect()
+        } else {
+            self.buffer.get_text().to_string()
         }
     }
 }
 
 impl Style<TextBox> for DefaultTextBoxStyle {
     fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
+        self.buffer.set_text(data.text.get());
         control_context.dirty_watch_property(&data.text);
     }
 
@@ -247,110 +197,73 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             }
 
             ControlEvent::TapDown { ref position } => {
-                let cursor_pos = self.calc_cursor_pos(
-                    &data.text.get(),
-                    position,
-                    control_context.get_rect(),
-                    drawing_context.fonts,
-                );
-                self.cursor_pos_char = cursor_pos.0;
-                self.cursor_pos_px = cursor_pos.1;
+                let rect = control_context.get_rect();
+                let cursor_pos = self.calc_cursor_pos(position, rect, drawing_context.fonts);
+
+                //let shift_pressed = drawing_context.modifiers.shift;
+                let shift_pressed = false;
+                self.buffer.set_cursor(cursor_pos, shift_pressed);
+                self.sync_with_buffer(drawing_context.fonts, rect);
                 control_context.set_is_dirty(true);
             }
 
-            ControlEvent::KeyboardInput(ref key_event) => {
+            ControlEvent::KeyboardInput(ref key_event) if key_event.state == KeyState::Pressed => {
+                let mut changed = false;
+                let ctrl = key_event.modifiers.ctrl;
+                let shift = key_event.modifiers.shift;
+
                 let mut handled = false;
-                if key_event.state == KeyState::Pressed {
-                    if let Some(ref key_code) = key_event.keycode {
-                        match key_code {
-                            Keycode::Backspace => {
-                                if self.cursor_pos_char > 0 {
-                                    self.remove_char(
-                                        data,
-                                        self.cursor_pos_char - 1,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::Delete => {
-                                let text = data.text.get();
-                                if self.cursor_pos_char < text.chars().count() {
-                                    self.remove_char(
-                                        data,
-                                        self.cursor_pos_char,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::Home => {
-                                if self.cursor_pos_char > 0 {
-                                    self.move_cursor(
-                                        &data.text.get(),
-                                        0,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::End => {
-                                let text = self.get_display_text(&data.text.get());
-                                let len = text.chars().count();
-                                if self.cursor_pos_char + 1 <= len {
-                                    self.move_cursor(
-                                        &data.text.get(),
-                                        len,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::Left => {
-                                if self.cursor_pos_char > 0 {
-                                    self.move_cursor(
-                                        &data.text.get(),
-                                        self.cursor_pos_char - 1,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::Right => {
-                                let text = self.get_display_text(&data.text.get());
-                                if self.cursor_pos_char + 1 <= text.chars().count() {
-                                    self.move_cursor(
-                                        &data.text.get(),
-                                        self.cursor_pos_char + 1,
-                                        control_context.get_rect(),
-                                        drawing_context.fonts,
-                                    );
-                                }
-                                handled = true;
-                            }
-                            Keycode::Esc | Keycode::Tab | Keycode::Enter => {
-                                handled = true;
-                            }
-                            _ => (),
+                if let Some(ref key_code) = key_event.keycode {
+                    match key_code {
+                        Keycode::Backspace => {
+                            self.buffer.backspace();
+                            changed = true;
+                            handled = true;
                         }
-                    }
-
-                    if !handled {
-                        if let Some(ref text) = key_event.text {
-                            self.insert_str(
-                                data,
-                                &text,
-                                control_context.get_rect(),
-                                drawing_context.fonts,
-                            );
+                        Keycode::Delete => {
+                            self.buffer.delete();
+                            changed = true;
+                            handled = true;
                         }
+                        Keycode::Home => {
+                            self.buffer.set_cursor(0, shift);
+                            changed = true;
+                            handled = true;
+                        }
+                        Keycode::End => {
+                            self.buffer
+                                .set_cursor(self.buffer.get_text().chars().count(), shift);
+                            changed = true;
+                            handled = true;
+                        }
+                        Keycode::Left => {
+                            self.buffer
+                                .set_cursor(self.buffer.get_cursor().saturating_sub(1), shift);
+                            changed = true;
+                            handled = true;
+                        }
+                        Keycode::Right => {
+                            self.buffer.set_cursor(self.buffer.get_cursor() + 1, shift);
+                            changed = true;
+                            handled = true;
+                        }
+                        Keycode::Esc | Keycode::Tab | Keycode::Enter => {
+                            handled = true;
+                        }
+                        _ => {}
                     }
+                }
 
+                if !handled {
+                    if let Some(ref t) = key_event.text {
+                        self.buffer.insert_str(t);
+                        changed = true;
+                    }
+                }
+
+                if changed {
+                    data.text.set(self.buffer.get_text().to_string());
+                    self.sync_with_buffer(drawing_context.fonts, control_context.get_rect());
                     control_context.set_is_dirty(true);
                 }
             }
@@ -361,12 +274,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
     fn measure(
         &mut self,
-        data: &mut TextBox,
+        _data: &mut TextBox,
         _control_context: &mut ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
-        self.update_paragraph(&data.text.get(), &drawing_context.fonts, true);
+        self.update_paragraph(&drawing_context.fonts);
 
         let paragraph = self.paragraph.as_ref().unwrap();
         let paragraph_height = paragraph.get_height();

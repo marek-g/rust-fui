@@ -9,5 +9,5 @@ mod controls;
 mod dialogs;
 mod special;
 mod style;
-
+mod utils;
 mod view_models;
