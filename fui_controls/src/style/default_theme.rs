@@ -33,7 +33,14 @@ pub fn border_3d_single(
     is_hover: bool,
     is_focused: bool,
 ) {
-    let line_thickness = 1.0f32;
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+    let half_pixel = physical_pixel / 2.0;
+    let line_thickness = 1.0f32 * physical_pixel;
+
+    // align x & y to physical grid
+    let x = (x * dpr).round() / dpr;
+    let y = (y * dpr).round() / dpr;
 
     let w2 = width * width;
     let h2 = height * height;
@@ -71,7 +78,7 @@ pub fn border_3d_single(
 
     // border light
     let paint = DrawingPaint::color_source(ColorSource::LinearGradient {
-        start: (x, y).into(),
+        start: (x + half_pixel, y + half_pixel).into(),
         end: (x + grad_width, y + grad_height).into(),
         colors: vec![border_color1.into(), border_color2.into()],
         stops: vec![0.0, 1.0],
@@ -82,9 +89,9 @@ pub fn border_3d_single(
     .with_stroke_width(line_thickness);
 
     let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + width, y + line_thickness * 0.5f32));
-    path_builder.line_to((x + line_thickness * 0.5f32, y + line_thickness * 0.5f32));
-    path_builder.line_to((x + line_thickness * 0.5f32, y + height));
+    path_builder.move_to((x + width - half_pixel, y + half_pixel));
+    path_builder.line_to((x + half_pixel, y + half_pixel));
+    path_builder.line_to((x + half_pixel, y + height - half_pixel));
     let path = path_builder.build();
 
     display.draw_path(&path, paint);
@@ -92,7 +99,7 @@ pub fn border_3d_single(
     // border medium
     let paint = DrawingPaint::color_source(ColorSource::LinearGradient {
         start: (x + width - grad_width, y + height - grad_height).into(),
-        end: (x + width, y + height).into(),
+        end: (x + width - half_pixel, y + height - half_pixel).into(),
         colors: vec![border_color3.into(), border_color4.into()],
         stops: vec![0.0, 1.0],
         tile_mode: TileMode::Clamp,
@@ -102,12 +109,9 @@ pub fn border_3d_single(
     .with_stroke_width(line_thickness);
 
     let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + line_thickness, y + height - line_thickness * 0.5f32));
-    path_builder.line_to((
-        x + width - line_thickness * 0.5f32,
-        y + height - line_thickness * 0.5f32,
-    ));
-    path_builder.line_to((x + width - line_thickness * 0.5f32, y + line_thickness));
+    path_builder.move_to((x + physical_pixel, y + height - half_pixel));
+    path_builder.line_to((x + width - half_pixel, y + height - half_pixel));
+    path_builder.line_to((x + width - half_pixel, y + physical_pixel));
     let path = path_builder.build();
 
     display.draw_path(&path, paint);
@@ -117,10 +121,10 @@ pub fn border_3d_single(
         rect(x, y, line_thickness, line_thickness)
     } else {
         rect(
-            x + width - line_thickness,
-            y + height - line_thickness,
-            line_thickness,
-            line_thickness,
+            x + width - physical_pixel,
+            y + height - physical_pixel,
+            physical_pixel,
+            physical_pixel,
         )
     };
     display.draw_rect(
@@ -145,7 +149,14 @@ pub fn border_3d_single_rounded(
     is_hover: bool,
     is_focused: bool,
 ) {
-    let line_thickness = 1.0f32;
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+    let half_pixel = physical_pixel / 2.0;
+    let line_thickness = 1.0f32 * physical_pixel;
+
+    // align x & y to physical grid
+    let x = (x * dpr).round() / dpr;
+    let y = (y * dpr).round() / dpr;
 
     let (mut border_color1, mut border_color2, mut border_color3, mut border_color4) = if is_pressed
     {
@@ -177,8 +188,8 @@ pub fn border_3d_single_rounded(
 
     // border light
     let paint = DrawingPaint::color_source(ColorSource::LinearGradient {
-        start: (x, y).into(),
-        end: (x + width, y + height).into(),
+        start: (x + half_pixel, y + half_pixel).into(),
+        end: (x + width - half_pixel, y + height - half_pixel).into(),
         colors: vec![
             border_color1.into(),
             border_color2.into(),
@@ -193,35 +204,31 @@ pub fn border_3d_single_rounded(
     .with_stroke_width(line_thickness);
 
     display.draw_rounded_rect(
-        rect(x, y, width, height),
+        rect(
+            x + half_pixel,
+            y + half_pixel,
+            width - physical_pixel,
+            height - physical_pixel,
+        ),
         RoundingRadii::single_radii(radius),
         paint,
     );
 
     // white shiny pixel
-    let rect = if !is_pressed {
-        rect(
-            x + radius / 2.0f32,
-            y + radius / 2.0f32,
-            line_thickness,
-            line_thickness,
-        )
+    let offset = radius * 0.3; // aproximate position on arc
+    let shiny_rect = if !is_pressed {
+        rect(x + offset, y + offset, physical_pixel, physical_pixel)
     } else {
         rect(
-            x + width - line_thickness * radius / 2.0f32,
-            y + height - line_thickness * radius / 2.0f32,
-            line_thickness,
-            line_thickness,
+            x + width - offset - physical_pixel,
+            y + height - offset - physical_pixel,
+            physical_pixel,
+            physical_pixel,
         )
     };
     display.draw_rect(
-        rect,
-        [
-            1.0f32,
-            1.0f32,
-            1.0f32,
-            if !is_pressed { 1.0f32 } else { 0.5f32 },
-        ],
+        shiny_rect,
+        [1.0, 1.0, 1.0, if !is_pressed { 1.0 } else { 0.5 }],
     );
 }
 
@@ -235,14 +242,17 @@ pub fn border_3d(
     is_hover: bool,
     is_focused: bool,
 ) {
-    let line_thickness = 1.0f32;
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+    let half_pixel = physical_pixel / 2.0;
+    let line_thickness = 1.0f32 * physical_pixel;
 
     border_3d_single(
         display,
-        x + line_thickness,
-        y + line_thickness,
-        width - line_thickness * 2.0f32,
-        height - line_thickness * 2.0f32,
+        x + physical_pixel,
+        y + physical_pixel,
+        width - physical_pixel * 2.0f32,
+        height - physical_pixel * 2.0f32,
         is_pressed,
         is_hover,
         is_focused,
@@ -250,7 +260,12 @@ pub fn border_3d(
 
     // border dark
     display.draw_rect(
-        rect(x, y, width, height),
+        rect(
+            x + half_pixel,
+            y + half_pixel,
+            width - physical_pixel,
+            height - physical_pixel,
+        ),
         DrawingPaint::stroke_color(BORDER_DARK, line_thickness),
     );
 }
@@ -266,14 +281,16 @@ pub fn border_3d_rounded(
     is_hover: bool,
     is_focused: bool,
 ) {
-    let line_thickness = 1.0f32;
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+    let half_pixel = physical_pixel / 2.0;
 
     border_3d_single_rounded(
         display,
-        x + line_thickness,
-        y + line_thickness,
-        width - line_thickness * 2.0f32,
-        height - line_thickness * 2.0f32,
+        x + physical_pixel,
+        y + physical_pixel,
+        width - physical_pixel * 2.0,
+        height - physical_pixel * 2.0,
         radius,
         is_pressed,
         is_hover,
@@ -282,9 +299,14 @@ pub fn border_3d_rounded(
 
     // border dark
     display.draw_rounded_rect(
-        rect(x, y, width, height),
-        RoundingRadii::single_radii(radius + line_thickness),
-        DrawingPaint::stroke_color(BORDER_DARK, line_thickness),
+        rect(
+            x + half_pixel,
+            y + half_pixel,
+            width - physical_pixel,
+            height - physical_pixel,
+        ),
+        RoundingRadii::single_radii(radius + physical_pixel),
+        DrawingPaint::stroke_color(BORDER_DARK, physical_pixel),
     );
 }
 
@@ -327,22 +349,32 @@ pub fn border_3d_with_color(
     is_focused: bool,
     fill_color: Color,
 ) {
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+    let half_pixel = physical_pixel / 2.0;
+
     border_3d_single(display, x, y, width, height, false, is_hover, is_focused);
 
     border_3d_single(
         display,
-        x + 2.0f32,
-        y + 2.0f32,
-        width - 4.0f32,
-        height - 4.0f32,
+        x + physical_pixel * 2.0,
+        y + physical_pixel * 2.0,
+        width - physical_pixel * 4.0,
+        height - physical_pixel * 4.0,
         true,
         is_hover,
         is_focused,
     );
 
+    // inside border (stroke)
     display.draw_rect(
-        rect(x + 1.0f32, y + 1.0f32, width - 2.0f32, height - 2.0f32),
-        DrawingPaint::stroke_color(fill_color, 1.0f32),
+        rect(
+            x + physical_pixel + half_pixel,
+            y + physical_pixel + half_pixel,
+            width - physical_pixel * 2.0 - physical_pixel,
+            height - physical_pixel * 2.0 - physical_pixel,
+        ),
+        DrawingPaint::stroke_color(fill_color, physical_pixel),
     );
 }
 
@@ -355,6 +387,12 @@ pub fn gradient_rect(
     color_top: Color,
     color_bottom: Color,
 ) {
+    let dpr = 1.0f32; // device pixel ratio
+
+    // align x & y to physical grid
+    let x = (x * dpr).round() / dpr;
+    let y = (y * dpr).round() / dpr;
+
     let paint = DrawingPaint::color_source(ColorSource::LinearGradient {
         start: (x, y).into(),
         end: (x + width, y + height).into(),
@@ -377,6 +415,12 @@ pub fn gradient_rect_rounded(
     color_top: Color,
     color_bottom: Color,
 ) {
+    let dpr = 1.0f32; // device pixel ratio
+
+    // align x & y to physical grid
+    let x = (x * dpr).round() / dpr;
+    let y = (y * dpr).round() / dpr;
+
     let paint = DrawingPaint::color_source(ColorSource::LinearGradient {
         start: (x, y).into(),
         end: (x + width, y + height).into(),
@@ -466,6 +510,9 @@ pub fn button(
     is_hover: bool,
     _is_focused: bool,
 ) {
+    let dpr = 1.0f32; // device pixel ratio
+    let physical_pixel = 1.0 / dpr;
+
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (
             multiply_color(GRADIENT_BOT_NORMAL, PRESSED_HIGHLIGHT),
@@ -483,11 +530,11 @@ pub fn button(
     };
 
     gradient_rect(
-        &mut display,
-        x + 2.0f32,
-        y + 2.0f32,
-        width - 4.0f32,
-        height - 4.0f32,
+        display,
+        x + physical_pixel * 2.0,
+        y + physical_pixel * 2.0,
+        width - physical_pixel * 4.0,
+        height - physical_pixel * 4.0,
         gradient_top_color.into(),
         gradient_bottom_color.into(),
     );
@@ -524,6 +571,14 @@ pub fn button_rounded(
     is_hover: bool,
     _is_focused: bool,
 ) {
+    let dpr = 1.0f32; // device pixel ratio
+    let pp = 1.0 / dpr; // physical pixel
+    let hp = pp / 2.0; // half pixel
+
+    // align x & y to physical grid
+    let x = (x * dpr).round() / dpr;
+    let y = (y * dpr).round() / dpr;
+
     let (gradient_top_color, gradient_bottom_color) = if is_pressed {
         (
             multiply_color(GRADIENT_BOT_NORMAL, PRESSED_HIGHLIGHT),
@@ -547,16 +602,18 @@ pub fn button_rounded(
         width,
         height,
         radius,
-        if is_pressed { 3.0f32 } else { 6.0f32 },
+        if is_pressed { 3.0f32 * pp } else { 6.0f32 * pp },
     );
 
+    // fill is 2 physical pixels smaller (because of border_32)
+    // radius is smaller by the size of the border, to keep proportions
     gradient_rect_rounded(
-        &mut display,
-        x + 2.0f32,
-        y + 2.0f32,
-        width - 4.0f32,
-        height - 4.0f32,
-        radius - 2.0f32,
+        display,
+        x + 2.0 * pp,
+        y + 2.0 * pp,
+        width - 4.0 * pp,
+        height - 4.0 * pp,
+        (radius - 2.0 * pp).max(0.0),
         gradient_top_color.into(),
         gradient_bottom_color.into(),
     );
