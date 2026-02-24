@@ -37,6 +37,10 @@ impl TextBuffer {
         }
     }
 
+    pub fn get_selection_start(&self) -> usize {
+        self.selection_start
+    }
+
     pub fn get_selection(&self) -> Option<(usize, usize)> {
         if self.selection_start == self.cursor_pos {
             None

@@ -86,11 +86,7 @@ impl DefaultTextBoxStyle {
 
         // calc cursor px and selection px
         self.cursor_pos_px = self.calc_px_from_char(self.buffer.get_cursor());
-        let (s, _) = self
-            .buffer
-            .get_selection()
-            .unwrap_or((self.buffer.get_cursor(), 0));
-        self.selection_start_px = self.calc_px_from_char(s);
+        self.selection_start_px = self.calc_px_from_char(self.buffer.get_selection_start());
 
         // scroll to cursor if needed
         self.update_offset_x(rect);
@@ -364,7 +360,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 },
             );
 
-            let clip = text_width > width - 8.0 || text_height > height - 8.0;
+            let clip =
+                text_width > width - 8.0 || text_height > height - 8.0 || self.offset_x != 0.0f32;
 
             if clip {
                 drawing_context.display.save();
@@ -377,6 +374,22 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 }
             }
 
+            // draw selection
+            if let Some((_start_idx, _end_idx)) = self.buffer.get_selection() {
+                // we already know these values in pixels
+                let s_px = self.selection_start_px;
+                let c_px = self.cursor_pos_px;
+
+                let rect_x = s_px.min(c_px);
+                let rect_width = (s_px - c_px).abs();
+
+                drawing_context.display.draw_rect(
+                    rect(x + 4.0f32 + rect_x, y + 4.0f32, rect_width, text_height),
+                    Color::rgba(0.0, 0.47, 0.83, 0.35),
+                );
+            }
+
+            // draw text
             drawing_context.display.draw_paragraph(
                 (x + 4.0f32, y + (height - text_height as f32) / 2.0),
                 &paragraph,
