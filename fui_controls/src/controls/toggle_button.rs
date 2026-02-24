@@ -406,7 +406,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                 y + height / 2.0f32 - 7.0f32,
             ));
 
-            let paint = DrawingPaint::stroke_color(Color::rgba(1.0, 1.0, 1.0, 0.0), 2.0);
+            let paint = DrawingPaint::stroke_color(Color::rgba(1.0, 1.0, 1.0, 1.0), 2.0);
 
             drawing_context
                 .display
