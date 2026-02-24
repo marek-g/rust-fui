@@ -572,8 +572,8 @@ pub fn button_rounded(
     _is_focused: bool,
 ) {
     let dpr = 1.0f32; // device pixel ratio
-    let pp = 1.0 / dpr; // physical pixel
-    let hp = pp / 2.0; // half pixel
+    let physical_pixel = 1.0 / dpr; // physical pixel
+    let half_pixel = physical_pixel / 2.0; // half pixel
 
     // align x & y to physical grid
     let x = (x * dpr).round() / dpr;
@@ -602,18 +602,18 @@ pub fn button_rounded(
         width,
         height,
         radius,
-        if is_pressed { 3.0f32 * pp } else { 6.0f32 * pp },
+        if is_pressed { 3.0f32 * physical_pixel } else { 6.0f32 * physical_pixel },
     );
 
     // fill is 2 physical pixels smaller (because of border_32)
     // radius is smaller by the size of the border, to keep proportions
     gradient_rect_rounded(
         display,
-        x + 2.0 * pp,
-        y + 2.0 * pp,
-        width - 4.0 * pp,
-        height - 4.0 * pp,
-        (radius - 2.0 * pp).max(0.0),
+        x + 2.0 * physical_pixel,
+        y + 2.0 * physical_pixel,
+        width - 4.0 * physical_pixel,
+        height - 4.0 * physical_pixel,
+        (radius - 2.0 * physical_pixel).max(0.0),
         gradient_top_color.into(),
         gradient_bottom_color.into(),
     );
