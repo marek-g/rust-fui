@@ -1,9 +1,45 @@
-use futures_signals::signal::{Mutable, SignalExt};
+use futures_signals::signal::{Mutable, MutableLockMut, MutableLockRef, SignalExt};
+use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, RwLock};
 
 use crate::ObservableCollection;
 use crate::{spawn_local, Subscription, VecDiff};
 use fui_drawing::Color;
+
+#[repr(transparent)]
+pub struct PropertyReadGuard<'a, T> {
+    pub(crate) inner: MutableLockRef<'a, T>,
+}
+
+impl<'a, T> Deref for PropertyReadGuard<'a, T> {
+    type Target = T;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+#[repr(transparent)]
+pub struct PropertyWriteGuard<'a, T> {
+    pub(crate) inner: MutableLockMut<'a, T>,
+}
+
+impl<'a, T> Deref for PropertyWriteGuard<'a, T> {
+    type Target = T;
+
+    #[inline(always)]
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'a, T> DerefMut for PropertyWriteGuard<'a, T> {
+    #[inline(always)]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
+}
 
 pub struct Property<T> {
     data: Mutable<T>,
@@ -82,6 +118,20 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
 
     pub fn get(&self) -> T {
         self.data.get_cloned()
+    }
+
+    // &T like access
+    pub fn read(&self) -> PropertyReadGuard<'_, T> {
+        PropertyReadGuard {
+            inner: self.data.lock_ref(),
+        }
+    }
+
+    // &mut T like access
+    pub fn write(&self) -> PropertyWriteGuard<'_, T> {
+        PropertyWriteGuard {
+            inner: self.data.lock_mut(),
+        }
     }
 
     pub fn bind(&self, src_property: &Property<T>) {
