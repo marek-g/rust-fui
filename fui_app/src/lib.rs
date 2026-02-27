@@ -4,9 +4,6 @@ pub use application::*;
 mod assets;
 pub use assets::*;
 
-mod drawing_context;
-pub use drawing_context::*;
-
 mod event_converter;
 
 mod file_dialog;

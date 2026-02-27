@@ -1,4 +1,4 @@
-use crate::{drawing_context, AppFileDialog, APPLICATION_GUI_CONTEXT};
+use crate::{AppFileDialog, APPLICATION_GUI_CONTEXT};
 use crate::{WindowOptions, APPLICATION_VM_CONTEXT};
 use anyhow::Result;
 use fui_core::{Children, FuiDrawingContext, Grid, Rect, Services, Size, ViewContext};
@@ -6,6 +6,8 @@ use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_drawing::prelude::*;
 use fui_macros::ui;
+use rand::{thread_rng, Rng};
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::ptr::null_mut;
 use std::rc::{Rc, Weak};
@@ -206,6 +208,12 @@ impl Window {
                                         })
                                         .unwrap()
                                     };
+
+                                    let background_texture =
+                                        create_background_texture(&drawing_context_gl);
+                                    app_context.background_texture =
+                                        Some(background_texture.clone());
+
                                     app_context.drawing_context_gl =
                                         Some(Arc::new(Mutex::new(drawing_context_gl)));
                                 }
@@ -214,28 +222,10 @@ impl Window {
                             let drawing_context =
                                 app_context.drawing_context_gl.as_ref().unwrap().clone();
 
+                            let background_texture =
+                                app_context.background_texture.as_ref().unwrap();
+
                             if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                let background_texture_id = -1;
-
-                                /*{
-                                    let mut drawing_context = drawing_context_clone.lock().unwrap();
-
-                                    if window_data.gl_context_data.is_none() {
-                                        window_data.gl_context_data =
-                                            Some(drawing_context.device.init_context(|symbol| {
-                                                window_data
-                                                    .system_window
-                                                    .as_ref()
-                                                    .unwrap()
-                                                    .get_opengl_proc_address(symbol)
-                                                    .unwrap_or_else(|_| null_mut())
-                                            }));
-                                    }
-
-                                    background_texture_id =
-                                        drawing_context.get_background_texture();
-                                }*/
-
                                 let width = window_data.system_window.as_mut().unwrap().get_width();
                                 let height =
                                     window_data.system_window.as_mut().unwrap().get_height();
@@ -244,7 +234,6 @@ impl Window {
                                         &app_context.func_gui2vm_thread_tx,
                                         window_id,
                                         window_data,
-                                        background_texture_id,
                                     );
 
                                     Self::render(
@@ -254,7 +243,7 @@ impl Window {
                                         window_data,
                                         width as u32,
                                         height as u32,
-                                        background_texture_id,
+                                        background_texture,
                                     );
                                 }
                             }
@@ -268,69 +257,53 @@ impl Window {
                             APPLICATION_GUI_CONTEXT.with(move |context| {
                                 let mut context = context.borrow_mut();
                                 let app_context = context.as_mut().unwrap();
-                                if let Some(window_data) = app_context.windows.get_mut(&window_id) {
-                                    let system_window = window_data.system_window.as_mut().unwrap();
+                                app_context
+                                    .func_gui2vm_thread_tx
+                                    .send({
+                                        Box::new(move || {
+                                            // VM Thread
+                                            let window_data =
+                                                APPLICATION_VM_CONTEXT.with(move |context| {
+                                                    context
+                                                        .borrow()
+                                                        .as_ref()
+                                                        .unwrap()
+                                                        .windows
+                                                        .get(&window_id)
+                                                        .unwrap()
+                                                        .upgrade()
+                                                });
 
-                                    let width = system_window.get_width();
-                                    let height = system_window.get_height();
+                                            let mut fonts =
+                                                APPLICATION_VM_CONTEXT.with(move |context| {
+                                                    context.borrow().as_ref().unwrap().fonts.clone()
+                                                });
 
-                                    app_context
-                                        .func_gui2vm_thread_tx
-                                        .send({
-                                            Box::new(move || {
-                                                // VM Thread
-                                                let window_data =
-                                                    APPLICATION_VM_CONTEXT.with(move |context| {
-                                                        context
-                                                            .borrow()
-                                                            .as_ref()
-                                                            .unwrap()
-                                                            .windows
-                                                            .get(&window_id)
-                                                            .unwrap()
-                                                            .upgrade()
-                                                    });
+                                            if let Some(window_data) = window_data {
+                                                let mut display_list_builder =
+                                                    DrawingDisplayListBuilder::new(None);
 
-                                                let mut fonts =
-                                                    APPLICATION_VM_CONTEXT.with(move |context| {
-                                                        context
-                                                            .borrow()
-                                                            .as_ref()
-                                                            .unwrap()
-                                                            .fonts
-                                                            .clone()
-                                                    });
+                                                let mut fui_drawing_context = FuiDrawingContext {
+                                                    fonts: &mut fonts,
+                                                    display: &mut display_list_builder,
+                                                };
 
-                                                if let Some(window_data) = window_data {
-                                                    let mut display_list_builder =
-                                                        DrawingDisplayListBuilder::new(None);
-
-                                                    let mut fui_drawing_context =
-                                                        FuiDrawingContext {
-                                                            fonts: &mut fonts,
-                                                            display: &mut display_list_builder,
-                                                        };
-
-                                                    // events go to the window's root control
-                                                    let root_control =
-                                                        window_data.root_control.clone();
-                                                    window_data
-                                                        .event_processor
-                                                        .borrow_mut()
-                                                        .handle_event(
-                                                            &root_control,
-                                                            &mut fui_drawing_context,
-                                                            &input_event,
-                                                        );
-                                                }
-                                            })
+                                                // events go to the window's root control
+                                                let root_control = window_data.root_control.clone();
+                                                window_data
+                                                    .event_processor
+                                                    .borrow_mut()
+                                                    .handle_event(
+                                                        &root_control,
+                                                        &mut fui_drawing_context,
+                                                        &input_event,
+                                                    );
+                                            }
                                         })
-                                        .unwrap_or_else(|e| panic!("Cannot send GUI event! {e}"));
+                                    })
+                                    .unwrap_or_else(|e| panic!("Cannot send GUI event! {e}"));
 
-                                    true
-                                } else {
-                                    false
-                                }
+                                true
                             })
                         } else {
                             false
@@ -345,7 +318,6 @@ impl Window {
         func_gui2vm_thread_tx: &mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
         window_id: WindowId,
         window_data: &mut WindowGUIThreadData,
-        background_texture: i32,
     ) {
         // GUI Thread
         let (tx, rx) = std::sync::mpsc::channel::<Option<Rect>>();
@@ -411,8 +383,10 @@ impl Window {
         window_data: &mut WindowGUIThreadData,
         width: u32,
         height: u32,
-        background_texture: i32,
+        background_texture: &DrawingTexture,
     ) {
+        let background_texture = background_texture.clone();
+
         // GUI Thread
         let (tx, rx) = std::sync::mpsc::channel::<Option<fui_drawing::DrawingDisplayListBuilder>>();
         func_gui2vm_thread_tx
@@ -442,29 +416,24 @@ impl Window {
                             size.width,
                             size.height,
                         )));
+
                         display_list_builder.draw_paint([0.3f32, 0.4f32, 0.3f32, 1.0f32]);
+
+                        display_list_builder.draw_rect(
+                            rect(0.0f32, 0.0f32, size.width, size.height),
+                            DrawingPaint::color_source(ColorSource::Image {
+                                image: background_texture,
+                                horizontal_tile_mode: TileMode::Repeat,
+                                vertical_tile_mode: TileMode::Repeat,
+                                sampling: TextureSampling::Linear,
+                                transformation: None,
+                            }),
+                        );
 
                         let mut fui_drawing_context = FuiDrawingContext {
                             fonts: &mut fonts,
                             display: &mut display_list_builder,
                         };
-
-                        /*let mut primitives = Vec::new();
-
-                        // background texture
-                        primitives.push(drawing::primitive::Primitive::Image {
-                            resource_key: background_texture,
-                            rect: drawing::units::PixelRect::new(
-                                drawing::units::PixelPoint::new(0.0f32, 0.0f32),
-                                drawing::units::PixelSize::new(size.width, size.height),
-                            ),
-                            uv: [
-                                0.0f32,
-                                0.0f32,
-                                1.0f32 * size.width / 256.0f32,
-                                1.0f32 * size.height / 256.0f32,
-                            ],
-                        });*/
 
                         window_data
                             .root_control
@@ -616,5 +585,44 @@ pub struct WindowWeakAsync {
 impl WindowWeakAsync {
     pub fn upgrade(&self) -> Option<Window> {
         self.data.upgrade().map(|d| Window { data: d })
+    }
+}
+
+fn create_background_texture(drawing_context: &DrawingContextGl) -> DrawingTexture {
+    let mut data = [0u8; 256 * 256 * 4];
+
+    let step = 4;
+    for y in (0..256).step_by(step) {
+        for x in (0..256).step_by(step) {
+            let color_value = thread_rng().gen_range(0..15);
+
+            for x_step in 0..step {
+                for y_step in 0..step {
+                    /*data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 0] = color_g - 15;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 1] = color_g + 10;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 2] = color_g - 15;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 255;*/
+
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 0] = color_value + 25;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 1] = color_value + 25;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 2] = color_value + 25;
+                    data[(y + y_step) * 256 * 4 + (x + x_step) * 4 + 3] = 180;
+                }
+            }
+        }
+    }
+
+    unsafe {
+        drawing_context
+            .create_texture(
+                Cow::Owned(data.to_vec()),
+                TextureDescriptor {
+                    width: 256,
+                    height: 256,
+                    color_format: ColorFormat::RGBA,
+                    mip_count: 0,
+                },
+            )
+            .unwrap()
     }
 }

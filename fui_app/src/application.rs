@@ -1,6 +1,6 @@
 use crate::{Assets, WindowGUIThreadData, WindowId, WindowVMThreadData};
 use anyhow::Result;
-use fui_drawing::{DrawingContextGl, DrawingFonts, Fonts};
+use fui_drawing::{DrawingContextGl, DrawingFonts, DrawingTexture, Fonts};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Weak;
@@ -19,6 +19,8 @@ thread_local! {
 ///
 pub struct ApplicationGuiContext {
     pub drawing_context_gl: Option<Arc<Mutex<DrawingContextGl>>>,
+    pub background_texture: Option<DrawingTexture>,
+
     pub next_window_id: WindowId,
     pub windows: HashMap<WindowId, WindowGUIThreadData>,
     pub func_gui2vm_thread_tx: mpsc::UnboundedSender<Box<dyn 'static + Send + FnOnce()>>,
@@ -31,7 +33,7 @@ pub struct ApplicationVmContext {
     // translates WindowId to window data - needed for events
     pub windows: HashMap<WindowId, Weak<WindowVMThreadData>>,
 
-    // store the pre-populated font collection here
+    // the pre-populated font collection
     pub fonts: DrawingFonts,
 }
 
@@ -70,6 +72,7 @@ impl Application {
                 APPLICATION_GUI_CONTEXT.with(move |context| {
                     *context.borrow_mut() = Some(ApplicationGuiContext {
                         drawing_context_gl: None,
+                        background_texture: None,
                         next_window_id: 1,
                         windows: HashMap::new(),
                         func_gui2vm_thread_tx,
