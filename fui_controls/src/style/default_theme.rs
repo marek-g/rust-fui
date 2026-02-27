@@ -340,7 +340,7 @@ pub fn border_3d_edit(
 }
 
 pub fn border_3d_with_color(
-    display: &mut DrawingDisplayListBuilder,
+    mut display: &mut DrawingDisplayListBuilder,
     x: f32,
     y: f32,
     width: f32,
@@ -376,6 +376,8 @@ pub fn border_3d_with_color(
         ),
         DrawingPaint::stroke_color(fill_color, physical_pixel),
     );
+
+    shadow_under_rect(&mut display, x, y, width, height, 6.0);
 }
 
 pub fn gradient_rect(
