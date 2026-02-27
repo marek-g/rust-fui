@@ -1,6 +1,6 @@
-use crate::{WindowGUIThreadData, WindowId, WindowVMThreadData};
+use crate::{Assets, WindowGUIThreadData, WindowId, WindowVMThreadData};
 use anyhow::Result;
-use fui_drawing::DrawingContextGl;
+use fui_drawing::{DrawingContextGl, DrawingFonts, Fonts};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Weak;
@@ -30,6 +30,9 @@ pub struct ApplicationGuiContext {
 pub struct ApplicationVmContext {
     // translates WindowId to window data - needed for events
     pub windows: HashMap<WindowId, Weak<WindowVMThreadData>>,
+
+    // store the pre-populated font collection here
+    pub fonts: DrawingFonts,
 }
 
 ///
@@ -91,8 +94,11 @@ impl Application {
         gui_thread_init_rx.await?;
 
         APPLICATION_VM_CONTEXT.with(move |context| {
+            let fonts = create_fonts();
+
             *context.borrow_mut() = Some(ApplicationVmContext {
                 windows: HashMap::new(),
+                fonts,
             })
         });
 
@@ -135,4 +141,23 @@ impl Application {
 
         Ok(())
     }
+}
+
+fn create_fonts() -> DrawingFonts {
+    let mut fonts = DrawingFonts::default();
+
+    let font_definitions = [
+        ("sans-serif", "Rajdhani-Medium.ttf"),
+        ("sans-serif bold", "Rajdhani-Bold.ttf"),
+        ("monospace", "RajdhaniMono-Medium.ttf"),
+        ("monospace bold", "RajdhaniMono-Bold.ttf"),
+    ];
+
+    for (name, asset_path) in font_definitions {
+        if let Some(asset) = Assets::get(asset_path) {
+            fonts.register_font(asset.data, Some(name)).unwrap();
+        }
+    }
+
+    fonts
 }

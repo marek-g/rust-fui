@@ -291,8 +291,17 @@ impl Window {
                                                             .upgrade()
                                                     });
 
+                                                let mut fonts =
+                                                    APPLICATION_VM_CONTEXT.with(move |context| {
+                                                        context
+                                                            .borrow()
+                                                            .as_ref()
+                                                            .unwrap()
+                                                            .fonts
+                                                            .clone()
+                                                    });
+
                                                 if let Some(window_data) = window_data {
-                                                    let mut fonts = DrawingFonts::default();
                                                     let mut display_list_builder =
                                                         DrawingDisplayListBuilder::new(None);
 
@@ -355,10 +364,12 @@ impl Window {
                             .upgrade()
                     });
 
+                    let mut fonts = APPLICATION_VM_CONTEXT
+                        .with(move |context| context.borrow().as_ref().unwrap().fonts.clone());
+
                     if let Some(window_data) = window_data {
                         let size = Size::new(0.0f32, 0.0f32);
 
-                        let mut fonts = DrawingFonts::default();
                         let mut display_list_builder = DrawingDisplayListBuilder::new(None);
 
                         let mut fui_drawing_context = FuiDrawingContext {
@@ -419,10 +430,12 @@ impl Window {
                             .upgrade()
                     });
 
+                    let mut fonts = APPLICATION_VM_CONTEXT
+                        .with(move |context| context.borrow().as_ref().unwrap().fonts.clone());
+
                     if let Some(window_data) = window_data {
                         let size = Size::new(width as f32, height as f32);
 
-                        let mut fonts = DrawingFonts::default();
                         let mut display_list_builder = DrawingDisplayListBuilder::new(Some(rect(
                             0.0,
                             0.0,
