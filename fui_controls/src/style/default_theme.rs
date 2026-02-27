@@ -445,13 +445,50 @@ pub fn shadow_under_rect(
     height: f32,
     shadow_size: f32,
 ) {
+    // smaller shadow - close to the border
     let mut path_builder = DrawingPathBuilder::default();
-    //path_builder.add_rect(rect(x + width, y, shadow_size, height));
-    //path_builder.add_rect(rect(x, y + height, width + shadow_size, shadow_size));
-    path_builder.add_rect(rect(x, y, width, height));
+    path_builder.move_to((x + width, y + shadow_size + shadow_size / 2.0));
+    path_builder.line_to((
+        x + width + shadow_size / 2.0,
+        y + shadow_size + shadow_size / 2.0,
+    ));
+    path_builder.line_to((
+        x + width + shadow_size / 2.0,
+        y + height + shadow_size / 2.0,
+    ));
+    path_builder.line_to((
+        x + shadow_size + shadow_size / 2.0,
+        y + height + shadow_size / 2.0,
+    ));
+    path_builder.line_to((x + shadow_size + shadow_size / 2.0, y + height));
+    path_builder.line_to((x + width, y + height));
     let path = path_builder.build();
 
-    display.draw_shadow(&path, [0.0, 0.0, 0.0, 0.35], shadow_size, true, 1.0);
+    display.draw_path(
+        &path,
+        DrawingPaint::color([0.0, 0.0, 0.0, 0.4]).with_mask_filter(MaskFilter::Blur {
+            style: BlurStyle::Normal,
+            sigma: shadow_size / 3.0,
+        }),
+    );
+
+    // larger shadow
+    let mut path_builder = DrawingPathBuilder::default();
+    path_builder.move_to((x + width, y + shadow_size));
+    path_builder.line_to((x + width + shadow_size, y + shadow_size));
+    path_builder.line_to((x + width + shadow_size, y + height + shadow_size));
+    path_builder.line_to((x + shadow_size, y + height + shadow_size));
+    path_builder.line_to((x + shadow_size, y + height));
+    path_builder.line_to((x + width, y + height));
+    let path = path_builder.build();
+
+    display.draw_path(
+        &path,
+        DrawingPaint::color([0.0, 0.0, 0.0, 0.2]).with_mask_filter(MaskFilter::Blur {
+            style: BlurStyle::Normal,
+            sigma: shadow_size,
+        }),
+    );
 }
 
 pub fn shadow_under_rect_rounded(
@@ -463,41 +500,54 @@ pub fn shadow_under_rect_rounded(
     radius: f32,
     shadow_size: f32,
 ) {
+    // smaller shadow - approximation
     let mut path_builder = DrawingPathBuilder::default();
-    path_builder.add_rounded_rect(
-        rect(x, y, width, height),
-        &RoundingRadii::single_radii(radius),
-    );
+    path_builder.move_to((x + width, y + shadow_size + shadow_size / 2.0));
+    path_builder.line_to((
+        x + width + shadow_size / 2.0,
+        y + shadow_size + shadow_size / 2.0 + radius / 2.0,
+    ));
+    path_builder.line_to((
+        x + width + shadow_size / 2.0,
+        y + height + shadow_size / 2.0 - radius / 2.0,
+    ));
+    path_builder.line_to((x + width - radius / 2.0, y + height + shadow_size / 2.0));
+    path_builder.line_to((
+        x + shadow_size + shadow_size / 2.0 + radius / 2.0,
+        y + height + shadow_size / 2.0,
+    ));
+    path_builder.line_to((x + shadow_size + shadow_size / 2.0, y + height));
+    path_builder.line_to((x + width - radius, y + height));
+    path_builder.line_to((x + width, y + height - radius));
     let path = path_builder.build();
 
-    display.draw_shadow(&path, [0.0, 0.0, 0.0, 0.35], shadow_size, true, 1.0);
+    display.draw_path(
+        &path,
+        DrawingPaint::color([0.0, 0.0, 0.0, 0.4]).with_mask_filter(MaskFilter::Blur {
+            style: BlurStyle::Normal,
+            sigma: shadow_size / 3.0,
+        }),
+    );
 
-    /*let mut shadow_fill_path = Vec::new();
-    shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + width, y),
-        PixelSize::new(shadow_size, height - radius),
-    )));
-    shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x, y + height),
-        PixelSize::new(width - radius, shadow_size),
-    )));
-    shadow_fill_path.append(&mut rect_path(PixelRect::new(
-        PixelPoint::new(x + width - radius, y + height - radius),
-        PixelSize::new(radius + shadow_size, radius + shadow_size),
-    )));
-    display.push(Primitive::Fill {
-        path: shadow_fill_path,
-        brush: Brush::ShadowGradient {
-            rect: PixelRect::new(
-                PixelPoint::new(x + shadow_size * 0.5f32, y + shadow_size * 0.5f32),
-                PixelSize::new(width, height),
-            ),
-            radius: shadow_size,
-            feather: shadow_size * 0.5f32,
-            inner_color: [0.0, 0.0, 0.0, 0.35],
-            outer_color: [0.0, 0.0, 0.0, 0.0],
-        },
-    });*/
+    // larger shadow - approximation
+    let mut path_builder = DrawingPathBuilder::default();
+    path_builder.move_to((x + width, y + shadow_size));
+    path_builder.line_to((x + width + shadow_size, y + shadow_size + radius));
+    path_builder.line_to((x + width + shadow_size, y + height - radius + shadow_size));
+    path_builder.line_to((x + width - radius + shadow_size, y + height + shadow_size));
+    path_builder.line_to((x + shadow_size + radius, y + height + shadow_size));
+    path_builder.line_to((x + shadow_size, y + height));
+    path_builder.line_to((x + width - radius, y + height));
+    path_builder.line_to((x + width, y + height - radius));
+    let path = path_builder.build();
+
+    display.draw_path(
+        &path,
+        DrawingPaint::color([0.0, 0.0, 0.0, 0.2]).with_mask_filter(MaskFilter::Blur {
+            style: BlurStyle::Normal,
+            sigma: shadow_size,
+        }),
+    );
 }
 
 pub fn button(
