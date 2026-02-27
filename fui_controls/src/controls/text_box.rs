@@ -49,7 +49,7 @@ pub struct DefaultTextBoxStyleParams {
 pub struct DefaultTextBoxStyle {
     params: DefaultTextBoxStyleParams,
 
-    buffer: TextBuffer,
+    buffer: Option<TextBuffer>,
 
     is_hover: bool,
     is_focused: bool,
@@ -66,8 +66,7 @@ impl DefaultTextBoxStyle {
     pub fn new(params: DefaultTextBoxStyleParams) -> Self {
         DefaultTextBoxStyle {
             params,
-
-            buffer: TextBuffer::new(String::new()),
+            buffer: None,
 
             is_hover: false,
             is_focused: false,
@@ -81,12 +80,24 @@ impl DefaultTextBoxStyle {
         }
     }
 
+    fn buf(&self) -> &TextBuffer {
+        self.buffer
+            .as_ref()
+            .expect("Buffer should be initialized in setup")
+    }
+
+    fn buf_mut(&mut self) -> &mut TextBuffer {
+        self.buffer
+            .as_mut()
+            .expect("Buffer should be initialized in setup")
+    }
+
     fn sync_with_buffer(&mut self, fonts: &DrawingFonts, rect: Rect) {
         self.update_paragraph(fonts);
 
         // calc cursor px and selection px
-        self.cursor_pos_px = self.calc_px_from_char(self.buffer.get_cursor());
-        self.selection_start_px = self.calc_px_from_char(self.buffer.get_selection_start());
+        self.cursor_pos_px = self.calc_px_from_char(self.buf().get_cursor());
+        self.selection_start_px = self.calc_px_from_char(self.buf().get_selection_start());
 
         // scroll to cursor if needed
         self.update_offset_x(rect);
@@ -126,7 +137,9 @@ impl DefaultTextBoxStyle {
         let info = p.create_glyph_info_at_code_unit_index_utf16(char_idx.saturating_sub(1));
         if let Some(gi) = info {
             let bounds = gi.get_grapheme_cluster_bounds();
-            if char_idx >= self.buffer.get_text().chars().count() {
+            let text_len = self.buf().get_text_property().read().chars().count();
+
+            if char_idx >= text_len {
                 bounds.origin.x as f32 + bounds.size.width as f32
             } else {
                 let current = p.create_glyph_info_at_code_unit_index_utf16(char_idx);
@@ -159,28 +172,35 @@ impl DefaultTextBoxStyle {
     }
 
     fn get_display_text(&self) -> String {
+        let text_prop = self.buf().get_text_property();
+        let text_lock = text_prop.read();
+
         if self.params.password {
-            self.buffer.get_text().chars().map(|_| '*').collect()
+            text_lock.chars().map(|_| '*').collect()
         } else {
-            self.buffer.get_text().to_string()
+            text_lock.clone()
         }
     }
 }
 
 impl Style<TextBox> for DefaultTextBoxStyle {
     fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
-        self.buffer.set_text(data.text.get());
+        self.buffer = Some(TextBuffer::new(data.text.clone()));
         control_context.dirty_watch_property(&data.text);
     }
 
     fn handle_event(
         &mut self,
-        data: &mut TextBox,
+        _data: &mut TextBox,
         control_context: &mut ControlContext,
         drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
     ) {
+        if self.buffer.is_none() {
+            return;
+        }
+
         match event {
             ControlEvent::FocusChange(value) => {
                 self.is_focused = value;
@@ -196,50 +216,49 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 let rect = control_context.get_rect();
                 let cursor_pos = self.calc_cursor_pos(position, rect, drawing_context.fonts);
 
-                //let shift_pressed = drawing_context.modifiers.shift;
                 let shift_pressed = false;
-                self.buffer.set_cursor(cursor_pos, shift_pressed);
+                self.buf_mut().set_cursor(cursor_pos, shift_pressed);
                 self.sync_with_buffer(drawing_context.fonts, rect);
                 control_context.set_is_dirty(true);
             }
 
             ControlEvent::KeyboardInput(ref key_event) if key_event.state == KeyState::Pressed => {
                 let mut changed = false;
-                let ctrl = key_event.modifiers.ctrl;
                 let shift = key_event.modifiers.shift;
-
                 let mut handled = false;
+
                 if let Some(ref key_code) = key_event.keycode {
                     match key_code {
                         Keycode::Backspace => {
-                            self.buffer.backspace();
+                            self.buf_mut().backspace();
                             changed = true;
                             handled = true;
                         }
                         Keycode::Delete => {
-                            self.buffer.delete();
+                            self.buf_mut().delete();
                             changed = true;
                             handled = true;
                         }
                         Keycode::Home => {
-                            self.buffer.set_cursor(0, shift);
+                            self.buf_mut().set_cursor(0, shift);
                             changed = true;
                             handled = true;
                         }
                         Keycode::End => {
-                            self.buffer
-                                .set_cursor(self.buffer.get_text().chars().count(), shift);
+                            let len = self.buf().get_text_property().read().chars().count();
+                            self.buf_mut().set_cursor(len, shift);
                             changed = true;
                             handled = true;
                         }
                         Keycode::Left => {
-                            self.buffer
-                                .set_cursor(self.buffer.get_cursor().saturating_sub(1), shift);
+                            let cur = self.buf().get_cursor();
+                            self.buf_mut().set_cursor(cur.saturating_sub(1), shift);
                             changed = true;
                             handled = true;
                         }
                         Keycode::Right => {
-                            self.buffer.set_cursor(self.buffer.get_cursor() + 1, shift);
+                            let cur = self.buf().get_cursor();
+                            self.buf_mut().set_cursor(cur + 1, shift);
                             changed = true;
                             handled = true;
                         }
@@ -252,18 +271,16 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
                 if !handled {
                     if let Some(ref t) = key_event.text {
-                        self.buffer.insert_str(t);
+                        self.buf_mut().insert_str(t);
                         changed = true;
                     }
                 }
 
                 if changed {
-                    data.text.set(self.buffer.get_text().to_string());
                     self.sync_with_buffer(drawing_context.fonts, control_context.get_rect());
                     control_context.set_is_dirty(true);
                 }
             }
-
             _ => (),
         }
     }
@@ -375,7 +392,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             }
 
             // draw selection
-            if let Some((_start_idx, _end_idx)) = self.buffer.get_selection() {
+            if let Some((_start_idx, _end_idx)) = self.buf().get_selection() {
                 // we already know these values in pixels
                 let s_px = self.selection_start_px;
                 let c_px = self.cursor_pos_px;

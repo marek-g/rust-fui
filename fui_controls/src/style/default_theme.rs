@@ -573,7 +573,7 @@ pub fn button_rounded(
 ) {
     let dpr = 1.0f32; // device pixel ratio
     let physical_pixel = 1.0 / dpr; // physical pixel
-    let half_pixel = physical_pixel / 2.0; // half pixel
+    let _half_pixel = physical_pixel / 2.0; // half pixel
 
     // align x & y to physical grid
     let x = (x * dpr).round() / dpr;
@@ -602,7 +602,11 @@ pub fn button_rounded(
         width,
         height,
         radius,
-        if is_pressed { 3.0f32 * physical_pixel } else { 6.0f32 * physical_pixel },
+        if is_pressed {
+            3.0f32 * physical_pixel
+        } else {
+            6.0f32 * physical_pixel
+        },
     );
 
     // fill is 2 physical pixels smaller (because of border_32)

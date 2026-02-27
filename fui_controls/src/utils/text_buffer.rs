@@ -1,28 +1,23 @@
+use fui_core::Property;
+
 pub struct TextBuffer {
-    content: String,
+    content: Property<String>,
     cursor_pos: usize,      // index measured in chars (chars().count())
     selection_start: usize, // start of the selection, no selection if equals cursor_pos
 }
 
 impl TextBuffer {
-    pub fn new(initial_text: String) -> Self {
-        let len = initial_text.chars().count();
+    pub fn new(content: Property<String>) -> Self {
+        let len = content.read().chars().count();
         Self {
-            content: initial_text,
+            content,
             cursor_pos: len,
             selection_start: len,
         }
     }
 
-    pub fn get_text(&self) -> &str {
+    pub fn get_text_property(&self) -> &Property<String> {
         &self.content
-    }
-
-    pub fn set_text(&mut self, text: String) {
-        self.content = text;
-        let len = self.content.chars().count();
-        self.cursor_pos = self.cursor_pos.min(len);
-        self.selection_start = self.selection_start.min(len);
     }
 
     pub fn get_cursor(&self) -> usize {
@@ -30,7 +25,7 @@ impl TextBuffer {
     }
 
     pub fn set_cursor(&mut self, pos: usize, extend_selection: bool) {
-        let len = self.content.chars().count();
+        let len = self.content.read().chars().count();
         self.cursor_pos = pos.min(len);
         if !extend_selection {
             self.selection_start = self.cursor_pos;
@@ -53,23 +48,31 @@ impl TextBuffer {
 
     pub fn select_all(&mut self) {
         self.selection_start = 0;
-        self.cursor_pos = self.content.chars().count();
+        self.cursor_pos = self.content.read().chars().count();
     }
 
     pub fn get_selected_string(&self) -> Option<String> {
-        self.get_selection()
-            .map(|(start, end)| self.content.chars().skip(start).take(end - start).collect())
+        self.get_selection().map(|(start, end)| {
+            self.content
+                .read()
+                .chars()
+                .skip(start)
+                .take(end - start)
+                .collect()
+        })
     }
 
     pub fn delete_selection(&mut self) -> bool {
         if let Some((start, end)) = self.get_selection() {
-            let new_content: String = self
-                .content
+            let mut writer = self.content.write();
+            let new_content: String = writer
                 .chars()
-                .take(start)
-                .chain(self.content.chars().skip(end))
+                .enumerate()
+                .filter(|&(i, _)| i < start || i >= end)
+                .map(|(_, c)| c)
                 .collect();
-            self.content = new_content;
+            *writer = new_content;
+
             self.cursor_pos = start;
             self.selection_start = start;
             return true;
@@ -80,14 +83,16 @@ impl TextBuffer {
     pub fn insert_str(&mut self, s: &str) {
         self.delete_selection();
         let start_pos = self.cursor_pos;
-        let new_content: String = self
-            .content
+        let mut writer = self.content.write();
+
+        let new_content: String = writer
             .chars()
             .take(start_pos)
             .chain(s.chars())
-            .chain(self.content.chars().skip(start_pos))
+            .chain(writer.chars().skip(start_pos))
             .collect();
-        self.content = new_content;
+
+        *writer = new_content;
         self.cursor_pos = start_pos + s.chars().count();
         self.selection_start = self.cursor_pos;
     }
@@ -95,13 +100,16 @@ impl TextBuffer {
     pub fn backspace(&mut self) {
         if !self.delete_selection() && self.cursor_pos > 0 {
             let pos = self.cursor_pos - 1;
-            let new_content: String = self
-                .content
+            let mut writer = self.content.write();
+
+            let new_content: String = writer
                 .chars()
-                .take(pos)
-                .chain(self.content.chars().skip(pos + 1))
+                .enumerate()
+                .filter(|&(i, _)| i != pos)
+                .map(|(_, c)| c)
                 .collect();
-            self.content = new_content;
+
+            *writer = new_content;
             self.cursor_pos = pos;
             self.selection_start = pos;
         }
@@ -109,16 +117,18 @@ impl TextBuffer {
 
     pub fn delete(&mut self) {
         if !self.delete_selection() {
-            let len = self.content.chars().count();
-            if self.cursor_pos < len {
-                let pos = self.cursor_pos;
-                let new_content: String = self
-                    .content
+            let pos = self.cursor_pos;
+            let mut writer = self.content.write();
+            let len = writer.chars().count();
+
+            if pos < len {
+                let new_content: String = writer
                     .chars()
-                    .take(pos)
-                    .chain(self.content.chars().skip(pos + 1))
+                    .enumerate()
+                    .filter(|&(i, _)| i != pos)
+                    .map(|(_, c)| c)
                     .collect();
-                self.content = new_content;
+                *writer = new_content;
             }
         }
     }
