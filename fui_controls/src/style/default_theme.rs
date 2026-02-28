@@ -447,50 +447,82 @@ pub fn shadow_under_rect(
     height: f32,
     shadow_size: f32,
 ) {
-    // smaller shadow - close to the border
-    let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + width, y + shadow_size + shadow_size / 2.0));
-    path_builder.line_to((
-        x + width + shadow_size / 2.0,
-        y + shadow_size + shadow_size / 2.0,
-    ));
-    path_builder.line_to((
-        x + width + shadow_size / 2.0,
-        y + height + shadow_size / 2.0,
-    ));
-    path_builder.line_to((
-        x + shadow_size + shadow_size / 2.0,
-        y + height + shadow_size / 2.0,
-    ));
-    path_builder.line_to((x + shadow_size + shadow_size / 2.0, y + height));
-    path_builder.line_to((x + width, y + height));
-    let path = path_builder.build();
+    let colors = vec![
+        [0.0, 0.0, 0.0, 0.6].into(),
+        [0.0, 0.0, 0.0, 0.2].into(),
+        [0.0, 0.0, 0.0, 0.0].into(),
+    ];
+    let stops = vec![0.0, 0.4, 1.0];
 
-    display.draw_path(
-        &path,
-        DrawingPaint::color([0.0, 0.0, 0.0, 0.4]).with_mask_filter(MaskFilter::Blur {
-            style: BlurStyle::Normal,
-            sigma: shadow_size / 3.0,
-        }),
+    // right part (linear gradient)
+    let bar = rect(
+        x + width,
+        y + shadow_size,
+        shadow_size,
+        height - shadow_size,
     );
+    let gradient = ColorSource::LinearGradient {
+        start: (x + width, y).into(),
+        end: (x + width + shadow_size, y).into(),
+        colors: colors.clone(),
+        stops: stops.clone(),
+        tile_mode: TileMode::Clamp,
+        transformation: None,
+    };
+    display.draw_rect(bar, gradient);
 
-    // larger shadow
-    let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + width, y + shadow_size));
-    path_builder.line_to((x + width + shadow_size, y + shadow_size));
-    path_builder.line_to((x + width + shadow_size, y + height + shadow_size));
-    path_builder.line_to((x + shadow_size, y + height + shadow_size));
-    path_builder.line_to((x + shadow_size, y + height));
-    path_builder.line_to((x + width, y + height));
-    let path = path_builder.build();
-
-    display.draw_path(
-        &path,
-        DrawingPaint::color([0.0, 0.0, 0.0, 0.2]).with_mask_filter(MaskFilter::Blur {
-            style: BlurStyle::Normal,
-            sigma: shadow_size,
-        }),
+    // bottom part (linear gradient)
+    let bar = rect(
+        x + shadow_size,
+        y + height,
+        width - shadow_size,
+        shadow_size,
     );
+    let gradient = ColorSource::LinearGradient {
+        start: (x, y + height).into(),
+        end: (x, y + height + shadow_size).into(),
+        colors: colors.clone(),
+        stops: stops.clone(),
+        tile_mode: TileMode::Clamp,
+        transformation: None,
+    };
+    display.draw_rect(bar, gradient);
+
+    // right-bottom corner (radial gradient)
+    let corner_rect = rect(x + width, y + height, shadow_size, shadow_size);
+    let gradient = ColorSource::RadialGradient {
+        center: (x + width, y + height).into(),
+        radius: shadow_size,
+        colors: colors.clone(),
+        stops: stops.clone(),
+        tile_mode: TileMode::Clamp,
+        transformation: None,
+    };
+    display.draw_rect(corner_rect, gradient);
+
+    // left-bottom corner (radial gradient)
+    let corner_rect = rect(x, y + height, shadow_size, shadow_size);
+    let gradient = ColorSource::RadialGradient {
+        center: (x + shadow_size, y + height).into(),
+        radius: shadow_size,
+        colors: colors.clone(),
+        stops: stops.clone(),
+        tile_mode: TileMode::Clamp,
+        transformation: None,
+    };
+    display.draw_rect(corner_rect, gradient);
+
+    // right-top corner (radial gradient)
+    let corner_rect = rect(x + width, y, shadow_size, shadow_size);
+    let gradient = ColorSource::RadialGradient {
+        center: (x + width, y + shadow_size).into(),
+        radius: shadow_size,
+        colors: colors.clone(),
+        stops: stops.clone(),
+        tile_mode: TileMode::Clamp,
+        transformation: None,
+    };
+    display.draw_rect(corner_rect, gradient);
 }
 
 pub fn shadow_under_rect_rounded(
@@ -502,53 +534,88 @@ pub fn shadow_under_rect_rounded(
     radius: f32,
     shadow_size: f32,
 ) {
-    // smaller shadow - approximation
-    let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + width, y + shadow_size + shadow_size / 2.0));
-    path_builder.line_to((
-        x + width + shadow_size / 2.0,
-        y + shadow_size + shadow_size / 2.0 + radius / 2.0,
-    ));
-    path_builder.line_to((
-        x + width + shadow_size / 2.0,
-        y + height + shadow_size / 2.0 - radius / 2.0,
-    ));
-    path_builder.line_to((x + width - radius / 2.0, y + height + shadow_size / 2.0));
-    path_builder.line_to((
-        x + shadow_size + shadow_size / 2.0 + radius / 2.0,
-        y + height + shadow_size / 2.0,
-    ));
-    path_builder.line_to((x + shadow_size + shadow_size / 2.0, y + height));
-    path_builder.line_to((x + width - radius, y + height));
-    path_builder.line_to((x + width, y + height - radius));
-    let path = path_builder.build();
+    let colors = vec![
+        [0.0, 0.0, 0.0, 0.6].into(),
+        [0.0, 0.0, 0.0, 0.2].into(),
+        [0.0, 0.0, 0.0, 0.0].into(),
+    ];
+    let stops = vec![0.0, 0.4, 1.0];
 
-    display.draw_path(
-        &path,
-        DrawingPaint::color([0.0, 0.0, 0.0, 0.4]).with_mask_filter(MaskFilter::Blur {
-            style: BlurStyle::Normal,
-            sigma: shadow_size / 3.0,
-        }),
+    let full_radius = radius + shadow_size;
+    let radial_stops = vec![
+        radius / full_radius,
+        (radius + 0.4 * shadow_size) / full_radius,
+        1.0,
+    ];
+
+    // right part (linear gradient)
+    display.draw_rect(
+        rect(x + width, y + radius, shadow_size, height - 2.0 * radius),
+        ColorSource::LinearGradient {
+            start: (x + width, y).into(),
+            end: (x + width + shadow_size, y).into(),
+            colors: colors.clone(),
+            stops: stops.clone(),
+            tile_mode: TileMode::Clamp,
+            transformation: None,
+        },
     );
 
-    // larger shadow - approximation
-    let mut path_builder = DrawingPathBuilder::default();
-    path_builder.move_to((x + width, y + shadow_size));
-    path_builder.line_to((x + width + shadow_size, y + shadow_size + radius));
-    path_builder.line_to((x + width + shadow_size, y + height - radius + shadow_size));
-    path_builder.line_to((x + width - radius + shadow_size, y + height + shadow_size));
-    path_builder.line_to((x + shadow_size + radius, y + height + shadow_size));
-    path_builder.line_to((x + shadow_size, y + height));
-    path_builder.line_to((x + width - radius, y + height));
-    path_builder.line_to((x + width, y + height - radius));
-    let path = path_builder.build();
+    // bottom part (linear gradient)
+    display.draw_rect(
+        rect(x + radius, y + height, width - 2.0 * radius, shadow_size),
+        ColorSource::LinearGradient {
+            start: (x, y + height).into(),
+            end: (x, y + height + shadow_size).into(),
+            colors: colors.clone(),
+            stops: stops.clone(),
+            tile_mode: TileMode::Clamp,
+            transformation: None,
+        },
+    );
 
-    display.draw_path(
-        &path,
-        DrawingPaint::color([0.0, 0.0, 0.0, 0.2]).with_mask_filter(MaskFilter::Blur {
-            style: BlurStyle::Normal,
-            sigma: shadow_size,
-        }),
+    // right-bottom corner (radial gradient)
+    display.draw_rect(
+        rect(
+            x + width - radius,
+            y + height - radius,
+            full_radius,
+            full_radius,
+        ),
+        ColorSource::RadialGradient {
+            center: (x + width - radius, y + height - radius).into(),
+            radius: full_radius,
+            colors: colors.clone(),
+            stops: radial_stops.clone(),
+            tile_mode: TileMode::Clamp,
+            transformation: None,
+        },
+    );
+
+    // left-bottom corner (radial gradient)
+    display.draw_rect(
+        rect(x, y + height - radius, radius, full_radius), // szerokość ograniczona do radius
+        ColorSource::RadialGradient {
+            center: (x + radius, y + height - radius).into(),
+            radius: full_radius,
+            colors: colors.clone(),
+            stops: radial_stops.clone(),
+            tile_mode: TileMode::Clamp,
+            transformation: None,
+        },
+    );
+
+    // right-top corner (radial gradient)
+    display.draw_rect(
+        rect(x + width - radius, y, full_radius, radius), // wysokość ograniczona do radius
+        ColorSource::RadialGradient {
+            center: (x + width - radius, y + radius).into(),
+            radius: full_radius,
+            colors: colors.clone(),
+            stops: radial_stops,
+            tile_mode: TileMode::Clamp,
+            transformation: None,
+        },
     );
 }
 
