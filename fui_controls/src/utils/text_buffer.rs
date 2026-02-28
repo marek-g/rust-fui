@@ -62,8 +62,9 @@ impl TextBuffer {
         })
     }
 
-    pub fn delete_selection(&mut self) -> bool {
+    pub fn delete_selected_text(&mut self) -> Option<String> {
         if let Some((start, end)) = self.get_selection() {
+            let selected = self.get_selected_string();
             let mut writer = self.content.write();
             let new_content: String = writer
                 .chars()
@@ -75,13 +76,13 @@ impl TextBuffer {
 
             self.cursor_pos = start;
             self.selection_start = start;
-            return true;
+            return selected;
         }
-        false
+        None
     }
 
     pub fn insert_str(&mut self, s: &str) {
-        self.delete_selection();
+        self.delete_selected_text();
         let start_pos = self.cursor_pos;
         let mut writer = self.content.write();
 
@@ -98,7 +99,7 @@ impl TextBuffer {
     }
 
     pub fn backspace(&mut self) {
-        if !self.delete_selection() && self.cursor_pos > 0 {
+        if self.delete_selected_text().is_none() && self.cursor_pos > 0 {
             let pos = self.cursor_pos - 1;
             let mut writer = self.content.write();
 
@@ -116,7 +117,7 @@ impl TextBuffer {
     }
 
     pub fn delete(&mut self) {
-        if !self.delete_selection() {
+        if self.delete_selected_text().is_none() {
             let pos = self.cursor_pos;
             let mut writer = self.content.write();
             let len = writer.chars().count();

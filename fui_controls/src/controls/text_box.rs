@@ -225,10 +225,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
             ControlEvent::KeyboardInput(ref key_event) if key_event.state == KeyState::Pressed => {
                 let mut changed = false;
                 let shift = key_event.modifiers.shift;
+                let ctrl = key_event.modifiers.ctrl;
                 let mut handled = false;
 
                 if let Some(ref key_code) = key_event.keycode {
                     match key_code {
+                        // Edition
                         Keycode::Backspace => {
                             self.buf_mut().backspace();
                             changed = true;
@@ -239,6 +241,8 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             changed = true;
                             handled = true;
                         }
+
+                        // Navigation & selection
                         Keycode::Home => {
                             self.buf_mut().set_cursor(0, shift);
                             changed = true;
@@ -262,6 +266,13 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             changed = true;
                             handled = true;
                         }
+                        Keycode::KeyA if ctrl => {
+                            self.buf_mut().select_all();
+                            changed = true;
+                            handled = true;
+                        }
+
+                        // Ignored keys
                         Keycode::Esc | Keycode::Tab | Keycode::Enter => {
                             handled = true;
                         }
@@ -269,7 +280,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                     }
                 }
 
-                if !handled {
+                if !handled && !ctrl {
                     if let Some(ref t) = key_event.text {
                         self.buf_mut().insert_str(t);
                         changed = true;
@@ -401,7 +412,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 let rect_width = (s_px - c_px).abs();
 
                 drawing_context.display.draw_rect(
-                    rect(x + 4.0f32 + rect_x, y + 4.0f32, rect_width, text_height),
+                    rect(
+                        x + 4.0f32 + rect_x,
+                        y + (height - text_height as f32) / 2.0,
+                        rect_width,
+                        text_height,
+                    ),
                     Color::rgba(0.0, 0.47, 0.83, 0.35),
                 );
             }
