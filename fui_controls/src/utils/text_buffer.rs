@@ -133,4 +133,48 @@ impl TextBuffer {
             }
         }
     }
+
+    pub fn move_word_left(&mut self, extend_selection: bool) {
+        let chars = {
+            let text = self.content.read();
+            text.chars().take(self.cursor_pos).collect::<Vec<_>>()
+        };
+
+        if chars.is_empty() {
+            return;
+        }
+
+        let mut pos = self.cursor_pos;
+
+        // skip initial whitespace to the left
+        while pos > 0 && chars[pos - 1].is_whitespace() {
+            pos -= 1;
+        }
+        // skip the word itself
+        while pos > 0 && !chars[pos - 1].is_whitespace() {
+            pos -= 1;
+        }
+
+        self.set_cursor(pos, extend_selection);
+    }
+
+    pub fn move_word_right(&mut self, extend_selection: bool) {
+        let chars = {
+            let text = self.content.read();
+            text.chars().collect::<Vec<_>>()
+        };
+
+        let mut pos = self.cursor_pos;
+
+        // skip initial whitespace to the right
+        while pos < chars.len() && chars[pos].is_whitespace() {
+            pos += 1;
+        }
+        // skip the word itself
+        while pos < chars.len() && !chars[pos].is_whitespace() {
+            pos += 1;
+        }
+
+        self.set_cursor(pos, extend_selection);
+    }
 }

@@ -299,14 +299,22 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             handled = true;
                         }
                         Keycode::Left => {
-                            let cur = self.buf().get_cursor();
-                            self.buf_mut().set_cursor(cur.saturating_sub(1), shift);
+                            if ctrl {
+                                self.buf_mut().move_word_left(shift);
+                            } else {
+                                let cur = self.buf().get_cursor();
+                                self.buf_mut().set_cursor(cur.saturating_sub(1), shift);
+                            }
                             changed = true;
                             handled = true;
                         }
                         Keycode::Right => {
-                            let cur = self.buf().get_cursor();
-                            self.buf_mut().set_cursor(cur + 1, shift);
+                            if ctrl {
+                                self.buf_mut().move_word_right(shift);
+                            } else {
+                                let cur = self.buf().get_cursor();
+                                self.buf_mut().set_cursor(cur + 1, shift);
+                            }
                             changed = true;
                             handled = true;
                         }
