@@ -4,6 +4,9 @@ pub use application::*;
 mod assets;
 pub use assets::*;
 
+mod clipboard;
+pub use clipboard::*;
+
 mod event_converter;
 
 mod file_dialog;

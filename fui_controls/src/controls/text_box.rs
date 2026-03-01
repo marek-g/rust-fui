@@ -181,6 +181,46 @@ impl DefaultTextBoxStyle {
             text_lock.clone()
         }
     }
+
+    fn copy_to_clipboard(&self, control_context: &mut ControlContext) {
+        if let Some(selected) = self.buf().get_selected_string() {
+            if let Some(clipboard) = control_context
+                .get_services()
+                .as_ref()
+                .map(|s| s.get_clipboard_service())
+            {
+                clipboard.set_text(&selected, ClipboardMode::Clipboard);
+            }
+        }
+    }
+
+    fn paste_from_clipboard(&mut self, control_context: &mut ControlContext) -> bool {
+        if let Some(clipboard) = control_context
+            .get_services()
+            .as_ref()
+            .map(|s| s.get_clipboard_service())
+        {
+            if let Some(text) = clipboard.get_text(ClipboardMode::Clipboard) {
+                self.buf_mut().insert_str(&text);
+                return true;
+            }
+        }
+        false
+    }
+
+    fn cut_to_clipboard(&mut self, control_context: &mut ControlContext) -> bool {
+        if let Some(selected) = self.buf_mut().delete_selected_text() {
+            if let Some(clipboard) = control_context
+                .get_services()
+                .as_ref()
+                .map(|s| s.get_clipboard_service())
+            {
+                clipboard.set_text(&selected, ClipboardMode::Clipboard);
+            }
+            return true;
+        }
+        false
+    }
 }
 
 impl Style<TextBox> for DefaultTextBoxStyle {
@@ -237,8 +277,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                             handled = true;
                         }
                         Keycode::Delete => {
-                            self.buf_mut().delete();
-                            changed = true;
+                            if shift {
+                                changed = self.cut_to_clipboard(control_context);
+                            } else {
+                                self.buf_mut().delete();
+                                changed = true;
+                            }
                             handled = true;
                         }
 
@@ -269,6 +313,28 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                         Keycode::KeyA if ctrl => {
                             self.buf_mut().select_all();
                             changed = true;
+                            handled = true;
+                        }
+
+                        // Clipboard
+                        Keycode::KeyC if ctrl => {
+                            self.copy_to_clipboard(control_context);
+                            handled = true;
+                        }
+                        Keycode::Insert if ctrl => {
+                            self.copy_to_clipboard(control_context);
+                            handled = true;
+                        }
+                        Keycode::KeyV if ctrl => {
+                            changed = self.paste_from_clipboard(control_context);
+                            handled = true;
+                        }
+                        Keycode::Insert if shift => {
+                            changed = self.paste_from_clipboard(control_context);
+                            handled = true;
+                        }
+                        Keycode::KeyX if ctrl => {
+                            changed = self.cut_to_clipboard(control_context);
                             handled = true;
                         }
 

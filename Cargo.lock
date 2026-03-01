@@ -3895,9 +3895,9 @@ dependencies = [
 
 [[package]]
 name = "windowing_qt"
-version = "0.17.1"
+version = "0.17.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af5f5963fe532f396e141b25944f306fff478b9754047ec0397b193a00805532"
+checksum = "bce97df3bbbaa0eee13feea97ccc3ef4145e379a2188688ec1cda5fdb5ae8a94"
 dependencies = [
  "bindgen",
  "cbindgen",

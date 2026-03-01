@@ -1,4 +1,4 @@
-use crate::{AppFileDialog, APPLICATION_GUI_CONTEXT};
+use crate::{AppFileDialog, Clipboard, APPLICATION_GUI_CONTEXT};
 use crate::{WindowOptions, APPLICATION_VM_CONTEXT};
 use anyhow::Result;
 use fui_core::{Children, FuiDrawingContext, Grid, Rect, Services, Size, ViewContext};
@@ -122,7 +122,11 @@ impl Window {
         });
 
         let window_service_rc: Rc<dyn WindowService> = window_data_rc.clone();
-        let services = fui_core::Services::new(&window_service_rc, Rc::new(AppFileDialog {}));
+        let services = fui_core::Services::new(
+            &window_service_rc,
+            Rc::new(Clipboard {}),
+            Rc::new(AppFileDialog {}),
+        );
         window_data_rc
             .root_control
             .borrow_mut()
