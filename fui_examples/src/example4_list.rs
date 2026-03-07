@@ -36,12 +36,12 @@ impl MainViewModel {
             counter: Cell::new(0),
         });
 
-        main_vm.add_n(4);
+        main_vm.clone().add_n(4);
 
         main_vm
     }
 
-    pub fn add(self: &Rc<Self>) {
+    pub fn add(self: Rc<Self>) {
         let new_item = ItemViewModel::new(
             self.counter.get(),
             format!("Element {}", self.counter.get()),
@@ -52,18 +52,18 @@ impl MainViewModel {
         self.items.borrow_mut().push(new_item);
     }
 
-    pub fn add_n(self: &Rc<Self>, n: i32) {
+    pub fn add_n(self: Rc<Self>, n: i32) {
         for _ in 0..n {
-            self.add();
+            self.clone().add();
         }
     }
 
-    pub fn remove_all(self: &Rc<Self>) {
+    pub fn remove_all(self: Rc<Self>) {
         println!("Remove all!");
         self.items.borrow_mut().clear();
     }
 
-    pub fn delete(self: &Rc<Self>, item: &Rc<ItemViewModel>) {
+    pub fn delete(self: Rc<Self>, item: &Rc<ItemViewModel>) {
         println!("Delete {}!", item.id);
         self.items.borrow_mut().retain(|i| !Rc::ptr_eq(i, item));
     }
@@ -79,15 +79,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0f32),
                     Button {
-                        clicked: Callback::new_rc(self, |vm, _| vm.add()),
+                        clicked: Callback::new_sync_rc(self, MainViewModel::add),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: Callback::new_rc(self, |vm, _| vm.add_n(100)),
+                        clicked: Callback::new_sync_rc_args(self, |vm, _| vm.add_n(100)),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: Callback::new_rc(self, |vm, _| vm.remove_all()),
+                        clicked: Callback::new_sync_rc(self, MainViewModel::remove_all),
                         Text { text: "Remove all" },
                     },
                 },
@@ -108,10 +108,10 @@ impl ViewModel for MainViewModel {
                                     ui!(Text { text: &item.name }),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                        clicked: Callback::new_sync({
+                                        clicked: Callback::new_sync_args({
                         let vm = view_model.clone();
                         let item = item.clone();
-                        move |_| vm.delete(&item)
+                        move |_| vm.clone().delete(&item)
                     }),
                                         Text { text: "Delete" },
                                     }),

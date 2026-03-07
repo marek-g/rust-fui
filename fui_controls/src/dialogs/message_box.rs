@@ -102,7 +102,7 @@ impl MessageBox {
             // and calls button callback
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
-            let new_callback = Callback::new_sync({
+            let new_callback = Callback::new_sync_args({
                 let sender = sender.clone();
                 move |_| {
                     window_clone.remove_layer(&content_clone);

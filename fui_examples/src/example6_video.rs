@@ -70,11 +70,11 @@ impl ViewModel for MainViewModel {
                 },
                 Horizontal {
                     Button {
-                        clicked: Callback::new_rc(self, |vm, _| vm.play()),
+                        clicked: Callback::new_sync_rc_args(self, |vm, _| vm.play()),
                         Text { text: "Play" }
                     },
                     Button {
-                        clicked: Callback::new_rc(self, |vm, _| vm.stop()),
+                        clicked: Callback::new_sync_rc_args(self, |vm, _| vm.stop()),
                         Text { text: "Stop" }
                     },
                 },

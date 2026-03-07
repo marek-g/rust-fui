@@ -26,44 +26,61 @@ impl<A: 'static + Clone> Callback<A> {
         }
     }
 
-    pub fn new_sync<F: 'static + FnMut(A)>(f: F) -> Self {
+    pub fn new_sync_args<F: 'static + FnMut(A)>(f: F) -> Self {
         let mut callback = Callback::empty();
-        callback.set_sync(f);
+        callback.set_sync_args(f);
         callback
     }
 
-    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(arg: &Rc<T>, f: F) -> Self {
+    pub fn new_sync_rc<T: 'static, F: 'static + FnMut(Rc<T>)>(vm: &Rc<T>, f: F) -> Self {
         let mut callback = Callback::empty();
-        callback.set_rc(arg, f);
+        callback.set_rc(vm, f);
         callback
     }
 
-    pub fn new_async<F, Fut>(f: F) -> Self
+    pub fn new_sync_rc_args<T: 'static, F: 'static + FnMut(Rc<T>, A)>(vm: &Rc<T>, f: F) -> Self {
+        let mut callback = Callback::empty();
+        callback.set_rc_args(vm, f);
+        callback
+    }
+
+    pub fn new_async_args<F, Fut>(f: F) -> Self
     where
         F: FnMut(A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
     {
         let mut callback = Callback::empty();
-        callback.set_async(f);
+        callback.set_async_args(f);
         callback
     }
 
-    pub fn new_async_rc<T, F, Fut>(arg: &Rc<T>, f: F) -> Self
+    pub fn new_async_rc<T, F, Fut>(vm: &Rc<T>, f: F) -> Self
+    where
+        T: 'static,
+        F: FnMut(Rc<T>) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
+        let mut callback = Callback::empty();
+        callback.set_async_rc(vm, f);
+        callback
+    }
+
+    pub fn new_async_rc_args<T, F, Fut>(vm: &Rc<T>, f: F) -> Self
     where
         T: 'static,
         F: FnMut(Rc<T>, A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
     {
         let mut callback = Callback::empty();
-        callback.set_async_rc(arg, f);
+        callback.set_async_rc_args(vm, f);
         callback
     }
 
-    pub fn set_sync<F: 'static + FnMut(A)>(&mut self, f: F) {
+    pub fn set_sync_args<F: 'static + FnMut(A)>(&mut self, f: F) {
         *self.callback.borrow_mut() = Some(Box::new(f));
     }
 
-    pub fn set_async<F, Fut>(&mut self, mut f: F)
+    pub fn set_async_args<F, Fut>(&mut self, mut f: F)
     where
         F: FnMut(A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
@@ -75,26 +92,51 @@ impl<A: 'static + Clone> Callback<A> {
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, arg: &Rc<T>, mut f: F) {
-        let arg_clone = arg.clone();
-        let f2 = move |args: A| {
-            let arg = arg_clone.clone();
-            f(arg, args);
+    pub fn set_rc<T: 'static, F: 'static + FnMut(Rc<T>)>(&mut self, vm: &Rc<T>, mut f: F) {
+        let vm_clone = vm.clone();
+        let f2 = move |_args: A| {
+            let vm = vm_clone.clone();
+            f(vm);
         };
 
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_async_rc<T, F, Fut>(&mut self, arg: &Rc<T>, mut f: F)
+    pub fn set_rc_args<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, vm: &Rc<T>, mut f: F) {
+        let vm_clone = vm.clone();
+        let f2 = move |args: A| {
+            let vm = vm_clone.clone();
+            f(vm, args);
+        };
+
+        *self.callback.borrow_mut() = Some(Box::new(f2));
+    }
+
+    pub fn set_async_rc<T, F, Fut>(&mut self, vm: &Rc<T>, mut f: F)
+    where
+        T: 'static,
+        F: FnMut(Rc<T>) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
+        let vm_clone = vm.clone();
+        let f2 = move |_args: A| {
+            let vm = vm_clone.clone();
+            spawn_local_and_forget(f(vm));
+        };
+
+        *self.callback.borrow_mut() = Some(Box::new(f2));
+    }
+
+    pub fn set_async_rc_args<T, F, Fut>(&mut self, vm: &Rc<T>, mut f: F)
     where
         T: 'static,
         F: FnMut(Rc<T>, A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
     {
-        let arg_clone = arg.clone();
+        let vm_clone = vm.clone();
         let f2 = move |args: A| {
-            let arg = arg_clone.clone();
-            spawn_local_and_forget(f(arg, args));
+            let vm = vm_clone.clone();
+            spawn_local_and_forget(f(vm, args));
         };
 
         *self.callback.borrow_mut() = Some(Box::new(f2));
