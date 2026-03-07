@@ -13,7 +13,11 @@ use tokio::task::LocalSet;
 use typemap::TypeMap;
 
 struct MainViewModel {
-    pub services: Services,
+    // Services
+    window_service: Rc<dyn WindowService>,
+    file_service: Rc<dyn FileDialogService>,
+
+    // Properties
     pub text: Property<String>,
     pub text2: Property<String>,
     pub progress: Property<f32>,
@@ -26,7 +30,12 @@ struct MainViewModel {
 impl MainViewModel {
     pub fn new(services: Services) -> Rc<Self> {
         Rc::new(MainViewModel {
-            services,
+            window_service: services
+                .get_window_service()
+                .clone()
+                .expect("WindowService is missing"),
+            file_service: services.get_file_dialog_service(),
+
             text: Property::new("My text"),
             text2: Property::new("ąęść"),
             progress: Property::new(0.5f32),
@@ -68,35 +77,24 @@ impl ViewModel for MainViewModel {
         let tab1 = ui!(
             Grid {
                 Title: "Tab 1",
-
                 columns: 1,
                 default_height: Length::Auto,
 
                 Grid {
                     Margin: Thickness::all(8.0f32),
-
                     columns: 2,
                     default_height: Length::Auto,
 
-                    TextBox {
-                        text: self.text.clone(),
-                    },
-                    Text {
-                        Margin: Thickness::left(5.0f32),
-                        text: &self.text,
-                    },
+                    TextBox { text: self.text.clone() },
+                    Text { Margin: Thickness::left(5.0f32), text: &self.text },
 
                     TextBox {
-                        Style: Default {
-                            password: true,
-                        },
+                        Style: Default { password: true },
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                         text: self.text2.clone(),
                     },
                     Text {
-                        Style: Default {
-                            color: [1.0f32, 0.8f32, 0.0f32, 1.0f32],
-                        },
+                        Style: Default { color: [1.0f32, 0.8f32, 0.0f32, 1.0f32] },
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
                         text: &self.text2,
                     },
@@ -115,7 +113,6 @@ impl ViewModel for MainViewModel {
                         Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
                         Column: 0,
                         Row: 3,
-
                         selected_item: self.drop_down_selected_item.clone(),
                         items: vec![
                             StringViewModel::new("Element A"),
@@ -144,7 +141,6 @@ impl ViewModel for MainViewModel {
                 Grid {
                     Column: 0, Row: 1,
                     Margin: Thickness::all(8.0f32),
-
                     columns: 3,
                     default_height: Length::Auto,
 
@@ -165,9 +161,7 @@ impl ViewModel for MainViewModel {
 
                     Vertical {
                         Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
-                        radio4,
-                        radio5,
-                        radio6,
+                        radio4, radio5, radio6,
                     },
 
                     Vertical {
@@ -192,12 +186,8 @@ impl ViewModel for MainViewModel {
         let tab2 = ui!(
             Grid {
                 Title: "Tab 2",
-
                 columns: 2,
-
-                Text {
-                    text: (&self.counter, |counter| format!("Counter {}", counter))
-                },
+                Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
                     clicked: Callback::new_rc(self, |vm, _| vm.decrease()),
@@ -208,14 +198,12 @@ impl ViewModel for MainViewModel {
                     clicked: Callback::new_rc(self, |vm, _| vm.increase()),
                     Text { text: "Increase" },
                 },
-                Text {
-                    text: (&self.counter2, |counter| format!("Counter2 {}", counter))
-                },
+                Text { text: (&self.counter2, |counter| format!("Counter2 {}", counter)) },
             }
         );
 
         let exit_callback = Callback::new_async({
-            let window = self.services.get_window_service().clone().unwrap();
+            let window = self.window_service.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -233,7 +221,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_text_callback = Callback::new_async({
-            let window = self.services.get_window_service().clone().unwrap();
+            let window = self.window_service.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -243,7 +231,7 @@ impl ViewModel for MainViewModel {
         });
 
         let input_password_callback = Callback::new_async({
-            let window = self.services.get_window_service().clone().unwrap();
+            let window = self.window_service.clone();
             move |_| {
                 let window = window.clone();
                 async move {
@@ -255,14 +243,13 @@ impl ViewModel for MainViewModel {
         });
 
         let file_open_callback = Callback::new_async({
-            let services = self.services.clone();
-            let window = self.services.get_window_service().clone().unwrap();
+            let window = self.window_service.clone();
+            let file_service = self.file_service.clone();
             move |_| {
                 let window = window.clone();
-                let services = services.clone();
+                let file_service = file_service.clone();
                 async move {
-                    let file_dialog_service = services.get_file_dialog_service();
-                    let file = file_dialog_service
+                    let file = file_service
                         .pick_file(
                             FileDialogData::new()
                                 .with_title("Please select a file!")
@@ -280,14 +267,13 @@ impl ViewModel for MainViewModel {
         });
 
         let file_save_callback = Callback::new_async({
-            let services = self.services.clone();
-            let window = self.services.get_window_service().clone().unwrap();
+            let window = self.window_service.clone();
+            let file_service = self.file_service.clone();
             move |_| {
                 let window = window.clone();
-                let services = services.clone();
+                let file_service = file_service.clone();
                 async move {
-                    let file_dialog_service = services.get_file_dialog_service();
-                    let file = file_dialog_service
+                    let file = file_service
                         .pick_save_file(
                             FileDialogData::new()
                                 .with_title("Please select a file to save to!")
