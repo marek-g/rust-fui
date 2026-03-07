@@ -53,6 +53,66 @@ impl MainViewModel {
     pub fn decrease(self: &Rc<Self>) {
         self.counter.change(|c| c - 1);
     }
+
+    pub async fn file_open(self: &Rc<Self>) {
+        let file = self
+            .file_service
+            .pick_file(
+                FileDialogData::new()
+                    .with_title("Please select a file!")
+                    .with_initial_path("/tmp")
+                    .with_filter("All files (*.*)", &["*.*"])
+                    .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"]),
+            )
+            .await;
+
+        MessageBox::new(format!("{:?}", file))
+            .with_button("Ok")
+            .show(&self.window_service)
+            .await;
+    }
+
+    pub async fn file_save(self: &Rc<Self>) {
+        let file = self
+            .file_service
+            .pick_save_file(
+                FileDialogData::new()
+                    .with_title("Please select a file to save to!")
+                    .with_initial_path("test.dat")
+                    .with_filter("All files (*.*)", &["*.*"])
+                    .with_filter("Markdown (*.md)", &["*.md"]),
+            )
+            .await;
+
+        MessageBox::new(format!("{:?}", file))
+            .with_button("Ok")
+            .show(&self.window_service)
+            .await;
+    }
+
+    pub async fn input_text(self: &Rc<Self>) {
+        let _ = InputDialog::new("Enter text")
+            .get_text(&self.window_service, "")
+            .await;
+    }
+
+    pub async fn input_password(self: &Rc<Self>) {
+        let _ = InputDialog::new("Enter password")
+            .get_password(&self.window_service)
+            .await;
+    }
+
+    pub async fn exit_app(self: &Rc<Self>) {
+        if MessageBox::new("Do you really want to exit?")
+            .with_button("Yes")
+            .with_button("No")
+            .show(&self.window_service)
+            .await
+            == 0
+        {
+            Application::exit();
+        }
+    }
 }
 
 type DropDown1 = DropDown<StringViewModel>;
@@ -173,13 +233,16 @@ impl ViewModel for MainViewModel {
                     },
                 },
 
-        PathEdit {
-            Column: 0, Row: 2,
-            label: "Save file: ",
-            kind: PathKind::OpenFile,
-            filters: vec![FileFilter { name: "All files (*.*)".to_string(), filters: vec!["*".to_string()] }, FileFilter { name: "Movies (*.mpg, *.avi)".to_string(), filters: vec!["mpg".to_string(), "avi".to_string()] },
-        FileFilter { name: "Markdown (*.md)".to_string(), filters: vec!["md".to_string()]}],
-        },
+                PathEdit {
+                    Column: 0, Row: 2,
+                    label: "Save file: ",
+                    kind: PathKind::OpenFile,
+                    filters: vec![
+                        FileFilter { name: "All files (*.*)".to_string(), filters: vec!["*".to_string()] },
+                        FileFilter { name: "Movies (*.mpg, *.avi)".to_string(), filters: vec!["mpg".to_string(), "avi".to_string()] },
+                        FileFilter { name: "Markdown (*.md)".to_string(), filters: vec!["md".to_string()]}
+                    ],
+                },
             }
         );
 
@@ -202,100 +265,18 @@ impl ViewModel for MainViewModel {
             }
         );
 
-        let exit_callback = Callback::new_async({
-            let window = self.window_service.clone();
-            move |_| {
-                let window = window.clone();
-                async move {
-                    if MessageBox::new("Do you really want to exit?")
-                        .with_button("Yes")
-                        .with_button("No")
-                        .show(&window)
-                        .await
-                        == 0
-                    {
-                        Application::exit();
-                    }
-                }
-            }
-        });
-
-        let input_text_callback = Callback::new_async({
-            let window = self.window_service.clone();
-            move |_| {
-                let window = window.clone();
-                async move {
-                    let _ = InputDialog::new("Enter text").get_text(&window, "").await;
-                }
-            }
-        });
-
-        let input_password_callback = Callback::new_async({
-            let window = self.window_service.clone();
-            move |_| {
-                let window = window.clone();
-                async move {
-                    let _ = InputDialog::new("Enter password")
-                        .get_password(&window)
-                        .await;
-                }
-            }
-        });
-
-        let file_open_callback = Callback::new_async({
-            let window = self.window_service.clone();
-            let file_service = self.file_service.clone();
-            move |_| {
-                let window = window.clone();
-                let file_service = file_service.clone();
-                async move {
-                    let file = file_service
-                        .pick_file(
-                            FileDialogData::new()
-                                .with_title("Please select a file!")
-                                .with_initial_path("/tmp")
-                                .with_filter("All files (*.*)", &["*.*"])
-                                .with_filter("Markdown (*.md, *.org)", &["*.md", "*.org"]),
-                        )
-                        .await;
-                    MessageBox::new(format!("{:?}", file))
-                        .with_button("Ok")
-                        .show(&window)
-                        .await;
-                }
-            }
-        });
-
-        let file_save_callback = Callback::new_async({
-            let window = self.window_service.clone();
-            let file_service = self.file_service.clone();
-            move |_| {
-                let window = window.clone();
-                let file_service = file_service.clone();
-                async move {
-                    let file = file_service
-                        .pick_save_file(
-                            FileDialogData::new()
-                                .with_title("Please select a file to save to!")
-                                .with_initial_path("test.dat")
-                                .with_filter("All files (*.*)", &["*.*"])
-                                .with_filter("Markdown (*.md)", &["*.md"]),
-                        )
-                        .await;
-                    MessageBox::new(format!("{:?}", file))
-                        .with_button("Ok")
-                        .show(&window)
-                        .await;
-                }
-            }
-        });
-
         let menu_items = vec![
             MenuItem::folder(
                 "File",
                 vec![
-                    MenuItem::simple("Open...", file_open_callback),
-                    MenuItem::simple("Save...", file_save_callback),
+                    MenuItem::simple(
+                        "Open...",
+                        Callback::new_async_rc(self, |vm, _| async move { vm.file_open().await }),
+                    ),
+                    MenuItem::simple(
+                        "Save...",
+                        Callback::new_async_rc(self, |vm, _| async move { vm.file_save().await }),
+                    ),
                     MenuItem::folder(
                         "Export",
                         vec![
@@ -305,14 +286,26 @@ impl ViewModel for MainViewModel {
                         ],
                     ),
                     MenuItem::Separator,
-                    MenuItem::simple("Exit", exit_callback),
+                    MenuItem::simple(
+                        "Exit",
+                        Callback::new_async_rc(self, |vm, _| async move { vm.exit_app().await }),
+                    ),
                 ],
             ),
             MenuItem::folder(
                 "Dialogs",
                 vec![
-                    MenuItem::simple("Input text", input_text_callback),
-                    MenuItem::simple("Input password", input_password_callback),
+                    MenuItem::simple(
+                        "Input text",
+                        Callback::new_async_rc(self, |vm, _| async move { vm.input_text().await }),
+                    ),
+                    MenuItem::simple(
+                        "Input password",
+                        Callback::new_async_rc(
+                            self,
+                            |vm, _| async move { vm.input_password().await },
+                        ),
+                    ),
                 ],
             ),
             MenuItem::folder(

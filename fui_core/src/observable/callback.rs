@@ -32,6 +32,12 @@ impl<A: 'static + Clone> Callback<A> {
         callback
     }
 
+    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(arg: &Rc<T>, f: F) -> Self {
+        let mut callback = Callback::empty();
+        callback.set_rc(arg, f);
+        callback
+    }
+
     pub fn new_async<F, Fut>(f: F) -> Self
     where
         F: FnMut(A) -> Fut + 'static,
@@ -42,9 +48,14 @@ impl<A: 'static + Clone> Callback<A> {
         callback
     }
 
-    pub fn new_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(arg: &Rc<T>, f: F) -> Self {
+    pub fn new_async_rc<T, F, Fut>(arg: &Rc<T>, f: F) -> Self
+    where
+        T: 'static,
+        F: FnMut(Rc<T>, A) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
         let mut callback = Callback::empty();
-        callback.set_rc(arg, f);
+        callback.set_async_rc(arg, f);
         callback
     }
 
@@ -69,6 +80,21 @@ impl<A: 'static + Clone> Callback<A> {
         let f2 = move |args: A| {
             let arg = arg_clone.clone();
             f(arg, args);
+        };
+
+        *self.callback.borrow_mut() = Some(Box::new(f2));
+    }
+
+    pub fn set_async_rc<T, F, Fut>(&mut self, arg: &Rc<T>, mut f: F)
+    where
+        T: 'static,
+        F: FnMut(Rc<T>, A) -> Fut + 'static,
+        Fut: Future<Output = ()> + 'static,
+    {
+        let arg_clone = arg.clone();
+        let f2 = move |args: A| {
+            let arg = arg_clone.clone();
+            spawn_local_and_forget(f(arg, args));
         };
 
         *self.callback.borrow_mut() = Some(Box::new(f2));
