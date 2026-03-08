@@ -75,11 +75,11 @@ impl ViewModel for MainViewModel {
                     text: (&self.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
-                    clicked: Callback::new_sync_rc_args(self, |vm, _| vm.decrease()),
+                    clicked: cb!(self, decrease),
                     Text { text: "Decrease" }
                 },
                 ButtonText {
-                    clicked: Callback::new_sync_rc_args(self, |vm, _| vm.increase()),
+                    clicked: cb!(self, increase),
                     text: "Increase"
                 },
                 Text {

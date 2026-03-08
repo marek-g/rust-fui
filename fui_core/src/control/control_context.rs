@@ -109,20 +109,21 @@ impl ControlContext {
         self.is_dirty = is_dirty;
 
         if is_dirty {
-            match self.get_parent() { Some(ref parent) => {
-                parent.borrow_mut().get_context_mut().set_is_dirty(is_dirty)
-            } _ => {
-                // this is a root control
-                if is_change {
-                    // post window repaint
-                    // (cannot call it directly because services can be already borrowed)
-                    if let Some(services) = self.services.clone() {
-                        spawn_local_and_forget(async move {
-                            services.get_window_service().map(|s| s.repaint());
-                        });
+            match self.get_parent() {
+                Some(ref parent) => parent.borrow_mut().get_context_mut().set_is_dirty(is_dirty),
+                _ => {
+                    // this is a root control
+                    if is_change {
+                        // post window repaint
+                        // (cannot call it directly because services can be already borrowed)
+                        if let Some(services) = self.services.clone() {
+                            spawn_local_and_forget(async move {
+                                services.get_window_service().map(|s| s.repaint());
+                            });
+                        }
                     }
                 }
-            }}
+            }
         }
     }
 

@@ -46,15 +46,15 @@ impl MainViewModel {
         })
     }
 
-    pub fn increase(self: Rc<Self>) {
+    pub fn increase(self: &Rc<Self>) {
         self.counter.change(|c| c + 1);
     }
 
-    pub fn decrease(self: Rc<Self>) {
+    pub fn decrease(self: &Rc<Self>) {
         self.counter.change(|c| c - 1);
     }
 
-    pub async fn file_open(self: Rc<Self>) {
+    pub async fn file_open(self: &Rc<Self>) {
         let file = self
             .file_service
             .pick_file(
@@ -72,7 +72,7 @@ impl MainViewModel {
             .await;
     }
 
-    pub async fn file_save(self: Rc<Self>) {
+    pub async fn file_save(self: &Rc<Self>) {
         let file = self
             .file_service
             .pick_save_file(
@@ -90,19 +90,19 @@ impl MainViewModel {
             .await;
     }
 
-    pub async fn input_text(self: Rc<Self>) {
+    pub async fn input_text(self: &Rc<Self>) {
         let _ = InputDialog::new("Enter text")
             .get_text(&self.window_service, "")
             .await;
     }
 
-    pub async fn input_password(self: Rc<Self>) {
+    pub async fn input_password(self: &Rc<Self>) {
         let _ = InputDialog::new("Enter password")
             .get_password(&self.window_service)
             .await;
     }
 
-    pub async fn exit_app(self: Rc<Self>) {
+    pub async fn exit_app(self: &Rc<Self>) {
         if MessageBox::new("Do you really want to exit?")
             .with_button("Yes")
             .with_button("No")
@@ -253,12 +253,12 @@ impl ViewModel for MainViewModel {
                 Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_sync_rc(self, MainViewModel::decrease),
+                    clicked: cb!(self, decrease),
                     Text { text: "Decrease" },
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: Callback::new_sync_rc(self, MainViewModel::increase),
+                    clicked: cb!(self, increase),
                     Text { text: "Increase" },
                 },
                 Text { text: (&self.counter2, |counter| format!("Counter2 {}", counter)) },
@@ -269,14 +269,8 @@ impl ViewModel for MainViewModel {
             MenuItem::folder(
                 "File",
                 vec![
-                    MenuItem::simple(
-                        "Open...",
-                        Callback::new_async_rc(self, MainViewModel::file_open),
-                    ),
-                    MenuItem::simple(
-                        "Save...",
-                        Callback::new_async_rc(self, MainViewModel::file_save),
-                    ),
+                    MenuItem::simple("Open...", cb!(self, async file_open)),
+                    MenuItem::simple("Save...", cb!(self, async file_save)),
                     MenuItem::folder(
                         "Export",
                         vec![
@@ -286,23 +280,14 @@ impl ViewModel for MainViewModel {
                         ],
                     ),
                     MenuItem::Separator,
-                    MenuItem::simple(
-                        "Exit",
-                        Callback::new_async_rc(self, MainViewModel::exit_app),
-                    ),
+                    MenuItem::simple("Exit", cb!(self, async exit_app)),
                 ],
             ),
             MenuItem::folder(
                 "Dialogs",
                 vec![
-                    MenuItem::simple(
-                        "Input text",
-                        Callback::new_async_rc(self, MainViewModel::input_text),
-                    ),
-                    MenuItem::simple(
-                        "Input password",
-                        Callback::new_async_rc(self, MainViewModel::input_password),
-                    ),
+                    MenuItem::simple("Input text", cb!(self, async input_text)),
+                    MenuItem::simple("Input password", cb!(self, async input_password)),
                 ],
             ),
             MenuItem::folder(

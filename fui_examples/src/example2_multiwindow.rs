@@ -27,11 +27,11 @@ impl MainViewModel {
         })
     }
 
-    pub fn increase(self: Rc<Self>) {
+    pub fn increase(self: &Rc<Self>) {
         self.counter.change(|c| c + 1);
     }
 
-    pub fn decrease(self: Rc<Self>) {
+    pub fn decrease(self: &Rc<Self>) {
         self.counter.change(|c| c - 1);
     }
 }
@@ -49,11 +49,11 @@ impl ViewModel for MainViewModel {
                     text: (&self.counter, |counter| format!("Counter {}", counter))
                 },
                 Button {
-                    clicked: Callback::new_sync_rc(self, MainViewModel::decrease),
+                    clicked: cb!(self, decrease),
                     Text { text: "Decrease" }
                 },
                 Button {
-                    clicked: Callback::new_sync_rc(self, MainViewModel::increase),
+                    clicked: cb!(self, increase),
                     Text { text: "Increase" }
                 },
                 Text {
