@@ -103,20 +103,17 @@ impl ViewModel for MainViewModel {
                             self.items.borrow().flat_map({
                                 let view_model = self.clone();
                                 move |item| {
-                                vec![
-                                    ui!(Text { text: "Flat map!" }),
-                                    ui!(Text { text: &item.name }),
-                                    ui!(Button {
-                                        Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                        clicked: Callback::new_sync({
-                                            let vm = view_model.clone();
-                                            let item = item.clone();
-                                            move |_| vm.delete(&item)
+                                    let item = item.clone();
+                                    vec![
+                                        ui!(Text { text: "Flat map!" }),
+                                        ui!(Text { text: &item.name }),
+                                        ui!(Button {
+                                            Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
+                                            clicked: cb!(&view_model, delete(&item)),
+                                            Text { text: "Delete" },
                                         }),
-                                        Text { text: "Delete" },
-                                    }),
-                                ]
-                            }}),
+                                    ]
+                                }}),
 
                             self.items.borrow().map(|item| {
                                 ui!(Text { text: format!("Simple map! ({})", item.id) })
