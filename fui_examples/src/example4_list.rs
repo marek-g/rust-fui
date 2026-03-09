@@ -108,7 +108,7 @@ impl ViewModel for MainViewModel {
                                     ui!(Text { text: &item.name }),
                                     ui!(Button {
                                         Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                        clicked: Callback::new_sync_args({
+                                        clicked: Callback::new_sync({
                                             let vm = view_model.clone();
                                             let item = item.clone();
                                             move |_| vm.delete(&item)

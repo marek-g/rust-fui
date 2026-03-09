@@ -77,13 +77,11 @@ impl Menu {
                 }
             }
 
-            close_siblings_callbacks[i]
-                .borrow_mut()
-                .set_sync_args(move |_| {
-                    for i in 0..close_item_popup_callbacks_for_i.len() {
-                        close_item_popup_callbacks_for_i[i].emit(());
-                    }
-                });
+            close_siblings_callbacks[i].borrow_mut().set_sync(move |_| {
+                for i in 0..close_item_popup_callbacks_for_i.len() {
+                    close_item_popup_callbacks_for_i[i].emit(());
+                }
+            });
         }
 
         menu
@@ -129,7 +127,7 @@ impl Menu {
                     // open sub menu on tap down
                     let is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let is_open_prop_clone = is_open_prop.clone();
-                    on_tap_up_callback.set_sync_args(move |_| {
+                    on_tap_up_callback.set_sync(move |_| {
                         if has_sub_items {
                             is_menu_active_prop_clone.set(true);
                             is_open_prop_clone.set(true);
@@ -145,7 +143,7 @@ impl Menu {
                     let is_menu_active_prop_clone = is_menu_active_prop.clone();
                     let is_open_prop_clone = is_open_prop.clone();
                     let close_siblings_callback_clone = close_siblings_callback_rc.clone();
-                    on_hover_callback.set_sync_args(move |value| {
+                    on_hover_callback.set_sync(move |value| {
                         background_property_clone.set(
                             if value || is_menu_active_prop_clone.get() {
                                 Color::rgba(0.0, 0.0, 0.0, 0.8)
@@ -176,7 +174,7 @@ impl Menu {
                     let foreground_property_clone = foreground_property.clone();
                     let is_open_prop_clone = is_open_prop.clone();
                     let close_siblings_callback_clone = close_siblings_callback_rc.clone();
-                    on_hover_callback.set_sync_args(move |value| {
+                    on_hover_callback.set_sync(move |value| {
                         background_property_clone.set(if value || has_sub_items {
                             Color::rgba(0.0, 0.0, 0.0, 0.8)
                         } else {
@@ -200,7 +198,7 @@ impl Menu {
                     });
 
                     let is_menu_active_prop_clone = is_menu_active_prop.clone();
-                    on_tap_up_callback.set_sync_args(move |_| {
+                    on_tap_up_callback.set_sync(move |_| {
                         if !has_sub_items {
                             // close menu
                             is_menu_active_prop_clone.set(false);
@@ -323,20 +321,18 @@ impl Menu {
                             }
                         }
 
-                        close_siblings_callbacks[i]
-                            .borrow_mut()
-                            .set_sync_args(move |_| {
-                                for i in 0..close_item_popup_callbacks_for_i.len() {
-                                    close_item_popup_callbacks_for_i[i].emit(());
-                                }
-                            });
+                        close_siblings_callbacks[i].borrow_mut().set_sync(move |_| {
+                            for i in 0..close_item_popup_callbacks_for_i.len() {
+                                close_item_popup_callbacks_for_i[i].emit(());
+                            }
+                        });
                     }
 
                     // when clicked outside last open submenu
                     // make whole menu inactive (and close all submenu windows)
                     let mut auto_hide_occured_callback = Callback::empty();
                     let is_menu_active_prop_clone = is_menu_active_prop.clone();
-                    auto_hide_occured_callback.set_sync_args(move |_| {
+                    auto_hide_occured_callback.set_sync(move |_| {
                         is_menu_active_prop_clone.set(false);
                     });
 
@@ -350,7 +346,7 @@ impl Menu {
 
                     // return callback that closes the popup
                     let is_open_prop_clone = is_open_prop.clone();
-                    close_popup_callback.set_sync_args(move |_| {
+                    close_popup_callback.set_sync(move |_| {
                         // close this popup
                         is_open_prop_clone.set(false);
                         // close all sub-popups

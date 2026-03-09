@@ -1,75 +1,114 @@
-/// A helper macro for `fui` Callbacks that eliminates `Rc` cloning boilerplate.
-///
-/// This macro handles synchronization (sync/async), ui-provided arguments,
-/// and custom manual parameters for viewmodel method binding.
+/// A helper macro for `fui` Callbacks that eliminates `Rc` cloning boilerplate
+/// and provides ergonomic syntax for binding ViewModel methods to UI events.
 ///
 /// # Usage Patterns
-/// - `cb!(self, method)` -> sync, no args.
-/// - `cb!(self, method(10, "abc"))` -> sync, with manual args.
-/// - `cb!(self, arg method)` -> sync, with one ui-provided arg.
-/// - `cb!(self, arg method(true, _))` -> sync, ui arg (`_`) mixed with manual args.
-/// - `cb!(self, async method)` -> async, no args.
-/// - `cb!(self, async method(10))` -> async, with manual args.
-/// - `cb!(self, async arg method)` -> async, with one ui-provided arg.
-/// - `cb!(self, async arg method("search", _))` -> async, ui arg (`_`) mixed with manual args.
+///
+/// ## Sync callbacks
+///
+/// ```rust,ignore
+/// // Method with no arguments - UI argument is ignored
+/// cb!(self, decrease)
+/// // Expands to: Callback::new_sync_rc(self, |obj, _| obj.decrease())
+///
+/// // Method that uses the UI-provided argument
+/// cb!(self, handle_click(_))
+/// // Expands to: Callback::new_sync_rc(self, |obj, _| obj.handle_click(_))
+///
+/// // Method with manual arguments only
+/// cb!(self, set_value(42))
+/// // Expands to: Callback::new_sync_rc(self, |obj, _| obj.set_value(42))
+///
+/// // Method with mix of manual and UI arguments
+/// cb!(self, process("start", _, 100))
+/// // Expands to: Callback::new_sync_rc(self, |obj, _| obj.process("start", _, 100))
+/// ```
+///
+/// ## Async callbacks
+///
+/// ```rust,ignore
+/// // Async method with no arguments
+/// cb!(self, async file_open)
+/// // Expands to: Callback::new_async_rc(self, |obj, _| async move { obj.file_open().await })
+///
+/// // Async method using UI argument
+/// cb!(self, async handle_input(_))
+/// // Expands to: Callback::new_async_rc(self, |obj, _| async move { obj.handle_input(_).await })
+///
+/// // Async with manual + UI arguments
+/// cb!(self, async save_data("backup", _))
+/// // Expands to: Callback::new_async_rc(self, |obj, _| async move { obj.save_data("backup", _).await })
+/// ```
 ///
 /// # Requirements
-/// - the `$owner` must be an `Rc<T>`.
-/// - methods must be available on `T`.
-/// - for `arg` variants, ui-provided values and manual clones must implement `Clone`.
+/// - `$owner` must be an `Rc<T>` where `T` implements the method being called.
+/// - Methods taking `self: Rc<Self>` work directly; for `&self` methods, ensure proper binding.
+/// - The placeholder `_` represents the UI-provided argument of type `A` from `Callback<A>`.
+/// - If a method requires `Clone` on the UI argument, call `_.clone()` explicitly in the argument list.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// use fui_core::Callback;
+/// use std::rc::Rc;
+///
+/// struct ViewModel;
+/// impl ViewModel {
+///     fn increment(self: Rc<Self>) { /* ... */ }
+///     fn on_click(self: Rc<Self>, event: MouseEvent) { /* ... */ }
+///     async fn save(self: Rc<Self>, path: &str, event: MouseEvent) { /* ... */ }
+/// }
+///
+/// let vm = Rc::new(ViewModel);
+///
+/// // Simple sync callback, event ignored
+/// let c1: Callback<()> = cb!(vm, increment);
+///
+/// // Sync callback using the UI event
+/// let c2: Callback<MouseEvent> = cb!(vm, on_click(_));
+///
+/// // Async callback with manual + UI argument
+/// let c3: Callback<MouseEvent> = cb!(vm, async save("/data.txt", _));
+/// ```
+///
+/// # Notes
+/// - This macro **always** uses `new_sync_rc` / `new_async_rc` internally because it is
+///   designed for binding ViewModel methods that take `Rc<Self>`.
+/// - All generated closures have the signature `|obj, ui_arg|`. Use `_` to ignore `ui_arg`
+///   when not needed.
+/// - No automatic cloning of `ui_arg` is performed. If your method requires a `Clone`,
+///   write `_.clone()` explicitly in the argument list.
+/// - For async methods, the closure is wrapped in `async move` to properly capture ownership.
 #[macro_export]
 macro_rules! cb {
-    // async + ui arg + manual args
-    ($owner:expr, async arg $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_async_rc($owner, |obj, _| {
-            let obj = obj.clone();
-            let _ = _.clone();
-            async move { obj.$method($($args)*).await }
-        })
-    };
-
-    // async + manual args
+    // === ASYNC with manual arguments (UI arg may be used via `_` in the list) ===
     ($owner:expr, async $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_async_rc($owner, |obj| {
+        $crate::Callback::new_async_rc($owner, move |obj, _| {
             let obj = obj.clone();
             async move { obj.$method($($args)*).await }
         })
     };
 
-    // async + ui arg
-    ($owner:expr, async arg $method:ident) => {
-        $crate::Callback::new_async_rc($owner, |obj, _| {
-            let obj = obj.clone();
-            let _ = _.clone();
-            async move { obj.$method(_).await }
-        })
-    };
-
-    // async
+    // === ASYNC without manual arguments (UI arg ignored) ===
     ($owner:expr, async $method:ident) => {
-        $crate::Callback::new_async_rc($owner, |obj| {
+        $crate::Callback::new_async_rc($owner, move |obj, _| {
             let obj = obj.clone();
             async move { obj.$method().await }
         })
     };
 
-    // sync + ui arg + manual args
-    ($owner:expr, arg $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_sync_rc($owner, |obj, _| obj.$method($($args)*))
-    };
-
-    // sync + manual args
+    // === SYNC with manual arguments (UI arg may be used via `_` in the list) ===
     ($owner:expr, $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_sync_rc($owner, |obj| obj.$method($($args)*))
+        $crate::Callback::new_sync_rc($owner, move |obj, _| {
+            let obj = obj.clone();
+            obj.$method($($args)*)
+        })
     };
 
-    // sync + ui arg
-    ($owner:expr, arg $method:ident) => {
-        $crate::Callback::new_sync_rc($owner, |obj, _| obj.$method(_))
-    };
-
-    // sync
+    // === SYNC without manual arguments (UI arg ignored) ===
     ($owner:expr, $method:ident) => {
-        $crate::Callback::new_sync_rc($owner, |obj| obj.$method())
+        $crate::Callback::new_sync_rc($owner, move |obj, _| {
+            let obj = obj.clone();
+            obj.$method()
+        })
     };
 }

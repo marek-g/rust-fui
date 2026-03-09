@@ -57,7 +57,7 @@ impl PathEdit {
 
         let control_weak = Rc::downgrade(&control);
 
-        choose_callback.set_async_args({
+        choose_callback.set_async({
             move |_| {
                 let control_weak = control_weak.clone();
                 let path_prop = self.path.clone();

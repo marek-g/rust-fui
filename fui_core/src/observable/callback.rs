@@ -14,6 +14,9 @@ use std::rc::Rc;
 /// Before the first use, you must register your Dispatcher abstraction
 /// with register_current_thread_dispatcher() function.
 ///
+/// # Generic parameter `A`
+/// The type of the argument passed from the UI layer when `emit()` is called.
+///
 #[derive(Clone)]
 pub struct Callback<A> {
     callback: Rc<RefCell<Option<Box<dyn 'static + FnMut(A)>>>>,
@@ -26,38 +29,44 @@ impl<A: 'static + Clone> Callback<A> {
         }
     }
 
-    pub fn new_sync_args<F: 'static + FnMut(A)>(f: F) -> Self {
+    // === SYNC ===
+
+    /// Creates a sync callback that receives the UI-provided argument of type `A`.
+    /// Use `|_|` to ignore the argument, or `|arg|` / `|arg| method(arg)` to use it.
+    pub fn new_sync<F: 'static + FnMut(A)>(f: F) -> Self {
         let mut callback = Callback::empty();
-        callback.set_sync_args(f);
+        callback.set_sync(f);
         callback
     }
 
-    pub fn new_sync_rc<T: 'static, F: 'static + FnMut(Rc<T>)>(vm: &Rc<T>, f: F) -> Self {
+    /// Creates a sync callback that receives `Rc<T>` (ViewModel) and the UI-provided argument `A`.
+    /// Use `|obj, _|` to ignore UI arg, or `|obj, arg|` to use it.
+    pub fn new_sync_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(vm: &Rc<T>, f: F) -> Self {
         let mut callback = Callback::empty();
-        callback.set_rc(vm, f);
+        callback.set_sync_rc(vm, f);
         callback
     }
 
-    pub fn new_sync_rc_args<T: 'static, F: 'static + FnMut(Rc<T>, A)>(vm: &Rc<T>, f: F) -> Self {
-        let mut callback = Callback::empty();
-        callback.set_rc_args(vm, f);
-        callback
-    }
+    // === ASYNC ===
 
-    pub fn new_async_args<F, Fut>(f: F) -> Self
+    /// Creates an async callback that receives the UI-provided argument of type `A`.
+    /// The closure must return a `Future<Output = ()>`.
+    pub fn new_async<F, Fut>(f: F) -> Self
     where
         F: FnMut(A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
     {
         let mut callback = Callback::empty();
-        callback.set_async_args(f);
+        callback.set_async(f);
         callback
     }
 
+    /// Creates an async callback that receives `Rc<T>` (ViewModel) and the UI-provided argument `A`.
+    /// The closure must return a `Future<Output = ()>`.
     pub fn new_async_rc<T, F, Fut>(vm: &Rc<T>, f: F) -> Self
     where
         T: 'static,
-        F: FnMut(Rc<T>) -> Fut + 'static,
+        F: FnMut(Rc<T>, A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
     {
         let mut callback = Callback::empty();
@@ -65,22 +74,13 @@ impl<A: 'static + Clone> Callback<A> {
         callback
     }
 
-    pub fn new_async_rc_args<T, F, Fut>(vm: &Rc<T>, f: F) -> Self
-    where
-        T: 'static,
-        F: FnMut(Rc<T>, A) -> Fut + 'static,
-        Fut: Future<Output = ()> + 'static,
-    {
-        let mut callback = Callback::empty();
-        callback.set_async_rc_args(vm, f);
-        callback
-    }
+    // === SETTERS ===
 
-    pub fn set_sync_args<F: 'static + FnMut(A)>(&mut self, f: F) {
+    pub fn set_sync<F: 'static + FnMut(A)>(&mut self, f: F) {
         *self.callback.borrow_mut() = Some(Box::new(f));
     }
 
-    pub fn set_async_args<F, Fut>(&mut self, mut f: F)
+    pub fn set_async<F, Fut>(&mut self, mut f: F)
     where
         F: FnMut(A) -> Fut + 'static,
         Fut: Future<Output = ()> + 'static,
@@ -88,46 +88,19 @@ impl<A: 'static + Clone> Callback<A> {
         let f2 = move |args: A| {
             spawn_local_and_forget(f(args));
         };
-
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
-    pub fn set_rc<T: 'static, F: 'static + FnMut(Rc<T>)>(&mut self, vm: &Rc<T>, mut f: F) {
-        let vm_clone = vm.clone();
-        let f2 = move |_args: A| {
-            let vm = vm_clone.clone();
-            f(vm);
-        };
-
-        *self.callback.borrow_mut() = Some(Box::new(f2));
-    }
-
-    pub fn set_rc_args<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, vm: &Rc<T>, mut f: F) {
+    pub fn set_sync_rc<T: 'static, F: 'static + FnMut(Rc<T>, A)>(&mut self, vm: &Rc<T>, mut f: F) {
         let vm_clone = vm.clone();
         let f2 = move |args: A| {
             let vm = vm_clone.clone();
             f(vm, args);
         };
-
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 
     pub fn set_async_rc<T, F, Fut>(&mut self, vm: &Rc<T>, mut f: F)
-    where
-        T: 'static,
-        F: FnMut(Rc<T>) -> Fut + 'static,
-        Fut: Future<Output = ()> + 'static,
-    {
-        let vm_clone = vm.clone();
-        let f2 = move |_args: A| {
-            let vm = vm_clone.clone();
-            spawn_local_and_forget(f(vm));
-        };
-
-        *self.callback.borrow_mut() = Some(Box::new(f2));
-    }
-
-    pub fn set_async_rc_args<T, F, Fut>(&mut self, vm: &Rc<T>, mut f: F)
     where
         T: 'static,
         F: FnMut(Rc<T>, A) -> Fut + 'static,
@@ -138,7 +111,6 @@ impl<A: 'static + Clone> Callback<A> {
             let vm = vm_clone.clone();
             spawn_local_and_forget(f(vm, args));
         };
-
         *self.callback.borrow_mut() = Some(Box::new(f2));
     }
 

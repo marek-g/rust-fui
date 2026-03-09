@@ -96,7 +96,7 @@ impl InputDialog {
             }
         };
 
-        cancel_callback.set_sync_args({
+        cancel_callback.set_sync({
             let sender = sender.clone();
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
@@ -106,7 +106,7 @@ impl InputDialog {
             }
         });
 
-        ok_callback.set_sync_args({
+        ok_callback.set_sync({
             let sender = sender.clone();
             let window_clone = window.clone();
             let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();

@@ -38,13 +38,13 @@ where
 
         let is_popup_open_property_clone = is_popup_open_property.clone();
         let mut show_callback = Callback::empty();
-        show_callback.set_sync_args(move |_| {
+        show_callback.set_sync(move |_| {
             is_popup_open_property_clone.set(true);
         });
 
         let is_popup_open_property_clone = is_popup_open_property.clone();
         let mut hide_callback = Callback::empty();
-        hide_callback.set_sync_args(move |_| {
+        hide_callback.set_sync(move |_| {
             is_popup_open_property_clone.set(false);
         });
 
