@@ -3,7 +3,6 @@ use std::rc::Rc;
 
 use fui_drawing::Color;
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 use fui_core::*;
 use fui_macros::ui;
@@ -16,7 +15,7 @@ use crate::{DataHolder, RadioController};
 //
 
 pub struct Title;
-impl typemap::Key for Title {
+impl TypeMapKey for Title {
     type Value = Property<String>;
 }
 

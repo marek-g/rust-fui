@@ -15,7 +15,6 @@ use std::io::Read;
 use std::path::Path;
 use tokio::task::LocalSet;
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 struct MainViewModel {
     pub counter: Property<i32>,

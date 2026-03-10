@@ -2,7 +2,6 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 use fui_core::*;
 use fui_macros::ui;

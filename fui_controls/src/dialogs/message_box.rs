@@ -7,7 +7,6 @@ use futures_channel::oneshot::Canceled;
 use std::cell::RefCell;
 use std::future::Future;
 use std::rc::Rc;
-use typemap::TypeMap;
 
 pub struct DialogButtonViewModel {
     pub text: Property<String>,

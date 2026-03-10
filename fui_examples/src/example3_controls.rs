@@ -10,8 +10,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
-use typemap::TypeMap;
-
 struct MainViewModel {
     // Services
     window_service: Rc<dyn WindowService>,

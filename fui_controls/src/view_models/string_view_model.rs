@@ -1,9 +1,8 @@
 use crate::Text;
-use fui_core::{Children, ControlObject, ViewContext, ViewModel};
+use fui_core::{Children, ControlObject, TypeMap, ViewContext, ViewModel};
 use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
-use typemap::TypeMap;
 
 ///
 /// This view model is useful to use with many controls

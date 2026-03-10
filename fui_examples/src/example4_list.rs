@@ -10,8 +10,6 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
-use typemap::TypeMap;
-
 #[derive(Clone)]
 struct ItemViewModel {
     pub id: i32,

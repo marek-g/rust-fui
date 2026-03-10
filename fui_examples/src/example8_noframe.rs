@@ -5,7 +5,6 @@ use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
-use typemap::TypeMap;
 use windowing_api::WindowFrameType;
 
 use std::cell::RefCell;

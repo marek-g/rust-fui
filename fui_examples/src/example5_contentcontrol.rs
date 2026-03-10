@@ -10,8 +10,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
-use typemap::TypeMap;
-
 struct MainViewModel {
     pub item1: Rc<Item1ViewModel>,
     pub item2: Rc<Item2ViewModel>,

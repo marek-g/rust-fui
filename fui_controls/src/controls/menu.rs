@@ -4,7 +4,6 @@ use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 use crate::controls::*;
 use crate::{DataHolder, GestureArea};

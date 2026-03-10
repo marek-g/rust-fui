@@ -22,7 +22,6 @@ rust-embed = "8"
 anyhow = "1"
 shared_library = "0.1"
 typed-builder = "0.23"
-typemap = "0.3"
 cpu-time = "1"
 rand = "0.9"
 tokio = { version = "1", features = ["full"] }

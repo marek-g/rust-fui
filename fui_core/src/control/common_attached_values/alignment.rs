@@ -1,5 +1,4 @@
-use crate::{Rect, Size};
-use typemap::TypeMap;
+use crate::{Rect, Size, TypeMap, TypeMapKey};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Alignment {
@@ -58,11 +57,11 @@ impl Alignment {
 //
 
 pub struct HorizontalAlignment;
-impl typemap::Key for HorizontalAlignment {
+impl TypeMapKey for HorizontalAlignment {
     type Value = Alignment;
 }
 
 pub struct VerticalAlignment;
-impl typemap::Key for VerticalAlignment {
+impl TypeMapKey for VerticalAlignment {
     type Value = Alignment;
 }

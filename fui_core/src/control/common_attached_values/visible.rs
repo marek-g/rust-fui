@@ -2,9 +2,9 @@
 // Attached values
 //
 
-use crate::Property;
+use crate::{Property, TypeMapKey};
 
 pub struct Visible;
-impl typemap::Key for Visible {
+impl TypeMapKey for Visible {
     type Value = Property<bool>;
 }

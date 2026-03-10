@@ -1,12 +1,11 @@
-use crate::{Rect, Size, Thickness};
-use typemap::TypeMap;
+use crate::{Rect, Size, Thickness, TypeMap, TypeMapKey};
 
 //
 // Attached values
 //
 
 pub struct Margin;
-impl typemap::Key for Margin {
+impl TypeMapKey for Margin {
     type Value = Thickness;
 }
 

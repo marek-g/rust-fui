@@ -4,7 +4,6 @@ use fui_macros::ui;
 use std::cell::RefCell;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 #[derive(Copy, Clone)]
 pub enum PathKind {

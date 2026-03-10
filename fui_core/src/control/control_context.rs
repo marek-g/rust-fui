@@ -1,9 +1,8 @@
 use crate::view::ViewContext;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
-use typemap::TypeMap;
 
-use crate::control::*;
+use crate::{control::*, TypeMap};
 use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {

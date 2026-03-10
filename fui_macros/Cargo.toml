@@ -21,4 +21,3 @@ proc-macro2 = "1.0"
 
 [dev-dependencies]
 typed-builder = "0.23"
-typemap = "0.3"

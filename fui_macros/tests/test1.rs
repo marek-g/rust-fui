@@ -1,8 +1,38 @@
 use fui_macros::ui;
+use std::any::{Any, TypeId};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
-use typemap::{Key, TypeMap};
+
+pub trait TypeMapKey {
+    type Value: 'static;
+}
+
+pub struct TypeMap {
+    map: HashMap<TypeId, Box<dyn Any>>,
+}
+
+impl TypeMap {
+    pub fn new() -> Self {
+        TypeMap {
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn insert<K: TypeMapKey + 'static>(&mut self, value: K::Value) -> Option<K::Value> {
+        let id = TypeId::of::<K>();
+        let old = self.map.insert(id, Box::new(value));
+
+        old.and_then(|b| b.downcast::<K::Value>().ok().map(|b| *b))
+    }
+
+    pub fn get<K: TypeMapKey + 'static>(&self) -> Option<&K::Value> {
+        self.map
+            .get(&TypeId::of::<K>())
+            .and_then(|boxed| boxed.downcast_ref::<K::Value>())
+    }
+}
 
 /// Children collection of a control.
 ///
@@ -135,7 +165,7 @@ impl<'a> IntoIterator for &'a Children {
 
 // attached value Row of type i32
 struct Row;
-impl Key for Row {
+impl TypeMapKey for Row {
     type Value = i32;
 }
 

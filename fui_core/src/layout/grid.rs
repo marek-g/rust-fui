@@ -32,7 +32,7 @@ use std::rc::Rc;
 
 use crate::{
     round_layout_value, Children, ControlContext, ControlEvent, ControlObject, EventContext,
-    FuiDrawingContext, Point, Rect, Size, Style, StyledControl, ViewContext,
+    FuiDrawingContext, Point, Rect, Size, Style, StyledControl, TypeMapKey, ViewContext,
 };
 use typed_builder::TypedBuilder;
 
@@ -161,22 +161,22 @@ struct CellCache {
 //
 
 pub struct Row;
-impl typemap::Key for Row {
+impl TypeMapKey for Row {
     type Value = i32;
 }
 
 pub struct RowSpan;
-impl typemap::Key for RowSpan {
+impl TypeMapKey for RowSpan {
     type Value = i32;
 }
 
 pub struct Column;
-impl typemap::Key for Column {
+impl TypeMapKey for Column {
     type Value = i32;
 }
 
 pub struct ColumnSpan;
-impl typemap::Key for ColumnSpan {
+impl TypeMapKey for ColumnSpan {
     type Value = i32;
 }
 

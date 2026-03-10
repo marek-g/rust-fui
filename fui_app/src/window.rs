@@ -1,7 +1,7 @@
 use crate::{AppFileDialog, Clipboard, APPLICATION_GUI_CONTEXT};
 use crate::{WindowOptions, APPLICATION_VM_CONTEXT};
 use anyhow::Result;
-use fui_core::{Children, FuiDrawingContext, Grid, Rect, Services, Size, ViewContext};
+use fui_core::{Children, FuiDrawingContext, Grid, Rect, Services, Size, TypeMap, ViewContext};
 use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_drawing::prelude::*;
@@ -13,7 +13,6 @@ use std::ptr::null_mut;
 use std::rc::{Rc, Weak};
 use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, oneshot};
-use typemap::TypeMap;
 use windowing_api::{CursorShape, Edge};
 
 pub type WindowId = i64;

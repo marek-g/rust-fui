@@ -918,7 +918,6 @@ dependencies = [
  "shared_library",
  "tokio",
  "typed-builder",
- "typemap",
  "windowing_api",
  "windowing_qt",
 ]
@@ -932,7 +931,6 @@ dependencies = [
  "fui_macros",
  "futures-channel",
  "typed-builder",
- "typemap",
  "windowing_api",
 ]
 
@@ -969,7 +967,6 @@ dependencies = [
  "futures-signals",
  "tokio",
  "typed-builder",
- "typemap",
  "windowing_api",
 ]
 
@@ -995,7 +992,6 @@ dependencies = [
  "time",
  "tokio",
  "typed-builder",
- "typemap",
  "windowing_api",
  "windowing_qt",
 ]
@@ -1008,7 +1004,6 @@ dependencies = [
  "quote",
  "syn 2.0.117",
  "typed-builder",
- "typemap",
 ]
 
 [[package]]
@@ -3412,12 +3407,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
 
 [[package]]
-name = "traitobject"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04a79e25382e2e852e8da874249358d382ebaf259d0d34e75d8db16a7efabbc7"
-
-[[package]]
 name = "ttf-parser"
 version = "0.25.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3444,15 +3433,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "typemap"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "653be63c80a3296da5551e1bfd2cca35227e13cdd08c6668903ae2f4f77aa1f6"
-dependencies = [
- "unsafe-any",
-]
-
-[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3475,15 +3455,6 @@ name = "unicode-xid"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
-
-[[package]]
-name = "unsafe-any"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f30360d7979f5e9c6e6cea48af192ea8fab4afb3cf72597154b8f08935bc9c7f"
-dependencies = [
- "traitobject",
-]
 
 [[package]]
 name = "utf8parse"

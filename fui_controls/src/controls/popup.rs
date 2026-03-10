@@ -5,7 +5,6 @@ use fui_core::RelativeLayout;
 use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 #[derive(Copy, Clone)]
 pub enum PopupPlacement {

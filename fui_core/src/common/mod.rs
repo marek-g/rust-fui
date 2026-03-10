@@ -15,3 +15,6 @@ pub use size::*;
 
 mod thickness;
 pub use thickness::*;
+
+mod type_map;
+pub use type_map::*;

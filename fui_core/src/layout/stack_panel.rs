@@ -4,8 +4,8 @@ use std::rc::Rc;
 
 use crate::{
     Alignment, ControlContext, ControlEvent, ControlObject, EventContext, FuiDrawingContext,
-    HorizontalAlignment, Orientation, Point, Rect, Size, Style, StyledControl, VerticalAlignment,
-    ViewContext,
+    HorizontalAlignment, Orientation, Point, Rect, Size, Style, StyledControl, TypeMapKey,
+    VerticalAlignment, ViewContext,
 };
 use typed_builder::TypedBuilder;
 
@@ -16,7 +16,7 @@ use super::Length;
 //
 
 pub struct Grow;
-impl typemap::Key for Grow {
+impl TypeMapKey for Grow {
     type Value = Length;
 }
 

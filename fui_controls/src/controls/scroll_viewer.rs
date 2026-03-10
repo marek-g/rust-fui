@@ -4,7 +4,6 @@ use std::rc::Rc;
 use fui_core::*;
 use fui_macros::ui;
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 
 use crate::controls::border::Border;
 use crate::controls::scroll_area::{ScrollArea, ViewportInfo};
