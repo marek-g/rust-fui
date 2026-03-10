@@ -1,6 +1,6 @@
 [package]
 name = "fui_app"
-version = "0.18.0-pre"
+version = "0.18.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Application backend of FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
@@ -12,10 +12,10 @@ readme = "README.md"
 edition = "2024"
 
 [dependencies]
-fui_core = { path = "../fui_core", version = "0.18.0-pre" }
-fui_drawing = { path = "../../rust-fui/fui_drawing", version = "0.18.0-pre" }
-fui_macros = { path = "../fui_macros", version = "0.18.0-pre" }
-fui_controls = { path = "../fui_controls", version = "0.18.0-pre" }
+fui_core = { path = "../fui_core", version = "0.18.0" }
+fui_drawing = { path = "../../rust-fui/fui_drawing", version = "0.18.0" }
+fui_macros = { path = "../fui_macros", version = "0.18.0" }
+fui_controls = { path = "../fui_controls", version = "0.18.0" }
 windowing_qt = "0.17.4"
 windowing_api = "0.13"
 rust-embed = "8"

@@ -1,6 +1,6 @@
 [package]
 name = "fui_macros"
-version = "0.18.0-pre"
+version = "0.18.0"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Macros for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
