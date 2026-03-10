@@ -21,8 +21,8 @@ use std::sync::{Arc, Mutex};
 //use winit::platform::unix::WindowExtUnix;
 
 pub struct PlayerGl {
-    pub texture: PlayerTexture,
-    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
+    //pub texture: PlayerTexture,
+    //drawing_context: Rc<RefCell<FuiDrawingContext>>,
     //window_manager: Rc<RefCell<WindowManager>>,
     pipeline: Option<gstreamer::Pipeline>,
     //dispatcher: Arc<Mutex<dyn Dispatcher>>,
@@ -33,15 +33,15 @@ pub struct PlayerGl {
 impl PlayerGl {
     #[cfg(target_os = "linux")]
     pub fn new(
-        drawing_context: &Rc<RefCell<fui_app::DrawingContext>>,
+        //drawing_context: &Rc<RefCell<FuiDrawingContext>>,
         //window_manager: &Rc<RefCell<WindowManager>>,
         event_loop: &winit::event_loop::EventLoop<()>,
     ) -> Result<Self> {
         gstreamer::init()?;
 
         Ok(PlayerGl {
-            texture: PlayerTexture::new(drawing_context.clone()),
-            drawing_context: drawing_context.clone(),
+            //texture: PlayerTexture::new(drawing_context.clone()),
+            //drawing_context: drawing_context.clone(),
             //window_manager: window_manager.clone(),
             pipeline: None,
             //dispatcher: Arc::new(Mutex::new(Dispatcher::for_current_thread())),
@@ -383,7 +383,7 @@ impl PlayerGl {
                 let mills: f64 = timespec.second() as f64
                     + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);
                 //println!("buffer size: {}, thread id: {:?}, time: {:?}", buffer.len(), std::thread::current().id(), mills);
-                self.texture.update_texture(texture_id)?
+                //self.texture.update_texture(texture_id)?
             }
         }
         Ok(())
@@ -403,17 +403,17 @@ pub struct PlayerTexture {
     texture_id: i32,
     width: u16,
     height: u16,
-    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
+    //drawing_context: Rc<RefCell<FuiDrawingContext>>,
 }
 
 impl PlayerTexture {
-    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<FuiDrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::empty(),
             texture_id: -1,
             width: 0,
             height: 0,
-            drawing_context,
+            //drawing_context,
         }
     }
 
@@ -432,7 +432,7 @@ impl PlayerTexture {
             mills
         );
 
-        {
+        /*{
             let texture = drawing_gl::GlTexture::from_external(
                 texture_id,
                 self.width,
@@ -447,7 +447,7 @@ impl PlayerTexture {
 
             resources.textures_mut().insert(self.texture_id, texture);
         }
-        self.updated.emit(self.texture_id);
+        self.updated.emit(self.texture_id);*/
 
         Ok(())
     }

@@ -16,7 +16,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<FuiDrawingContext>>) -> Self {
         gstreamer::init().unwrap();
 
         Player {
@@ -124,17 +124,17 @@ pub struct PlayerTexture {
     texture_id: i32,
     width: u16,
     height: u16,
-    drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
+    //drawing_context: Rc<RefCell<fui_app::DrawingContext>>,
 }
 
 impl PlayerTexture {
-    pub fn new(drawing_context: Rc<RefCell<fui_app::DrawingContext>>) -> Self {
+    pub fn new(drawing_context: Rc<RefCell<FuiDrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::empty(),
             texture_id: -1,
             width: 0,
             height: 0,
-            drawing_context,
+            //drawing_context,
         }
     }
 
@@ -153,7 +153,7 @@ impl PlayerTexture {
             mills
         );
 
-        if self.texture_id == -1 {
+        /*if self.texture_id == -1 {
             let mut drawing_context = self.drawing_context.borrow_mut();
             self.texture_id = drawing_context.create_texture(
                 &buffer,
@@ -174,7 +174,7 @@ impl PlayerTexture {
             )?;
         }
 
-        self.updated.emit(self.texture_id);
+        self.updated.emit(self.texture_id);*/
 
         Ok(())
     }
