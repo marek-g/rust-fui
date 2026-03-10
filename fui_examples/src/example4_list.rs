@@ -69,6 +69,8 @@ impl MainViewModel {
 
 impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+        let vm = self.clone();
+
         ui!(
             Grid {
                 columns: 1,
@@ -98,24 +100,19 @@ impl ViewModel for MainViewModel {
                         Grid {
                             columns: 3,
 
-                            self.items.borrow().flat_map({
-                                let view_model = self.clone();
-                                move |item| {
-                                    let item = item.clone();
-                                    vec![
-                                        ui!(Text { text: "Flat map!" }),
-                                        ui!(Text { text: &item.name }),
-                                        ui!(Button {
-                                            Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                            clicked: cb!(&view_model, delete(&item)),
-                                            Text { text: "Delete" },
-                                        }),
-                                    ]
-                                }}),
+                            for item in self.items {
+                                Text { text: "Flat map!" },
+                                Text { text: &item.name },
+                                Button {
+                                    Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
+                                    clicked: cb!(&vm, delete(&item)),
+                                    Text { text: "Delete" },
+                                },
+                            },
 
-                            self.items.borrow().map(|item| {
-                                ui!(Text { text: format!("Simple map! ({})", item.id) })
-                            })
+                            for item in self.items {
+                                Text { text: format!("Simple map! ({})", item.id) }
+                            },
                         },
 
                         Text { text: "This is the end." },

@@ -1,6 +1,6 @@
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
-use syn::{braced, Expr, Ident, Token};
+use syn::{braced, Expr, Ident, Pat, Token};
 
 /// Syntax of ui! macro.
 ///
@@ -63,6 +63,9 @@ pub enum CtrlParam {
 
     // control, &vm.items
     ChildExpr(Expr),
+
+    // for item in self.items { Button { ... } }
+    ForLoop(CtrlForLoop),
 }
 
 impl Parse for CtrlParam {
@@ -71,6 +74,8 @@ impl Parse for CtrlParam {
             input.parse::<keyword::Style>()?;
             input.parse::<Token![:]>()?;
             input.parse().map(CtrlParam::Style)
+        } else if input.peek(Token![for]) {
+            input.parse().map(CtrlParam::ForLoop)
         } else if input.peek(Ident) && input.peek2(Token![:]) {
             input.parse().map(CtrlParam::Property)
         } else if input.peek(Ident) && input.peek2(syn::token::Brace) {
@@ -92,6 +97,28 @@ impl Parse for CtrlProperty {
         input.parse::<Token![:]>()?;
         let expr: Expr = input.parse()?;
         Ok(CtrlProperty { name, expr })
+    }
+}
+
+pub struct CtrlForLoop {
+    pub pat: Pat,
+    pub expr: Expr,
+    pub body: Punctuated<CtrlParam, Token![,]>,
+}
+
+impl Parse for CtrlForLoop {
+    fn parse(input: ParseStream) -> Result<Self> {
+        input.parse::<Token![for]>()?;
+        let pat: Pat = syn::Pat::parse_single(input)?;
+        input.parse::<Token![in]>()?;
+        let expr: Expr = input.parse()?;
+
+        let content;
+        braced!(content in input);
+
+        let body = content.parse_terminated(CtrlParam::parse, Token![,])?;
+
+        Ok(CtrlForLoop { pat, expr, body })
     }
 }
 

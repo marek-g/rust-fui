@@ -170,6 +170,41 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
             sources.push(quote_control(static_child));
         } else if let CtrlParam::ChildExpr(expression) = child {
             sources.push(quote!(#expression));
+        } else if let CtrlParam::ForLoop(for_loop) = child {
+            let pat = for_loop.pat;
+            let expr = for_loop.expr;
+
+            let mut loop_children = Vec::new();
+            for c in for_loop.body {
+                if let CtrlParam::ChildCtrl(ctrl) = c {
+                    loop_children.push(quote_control(ctrl));
+                } else if let CtrlParam::ChildExpr(e) = c {
+                    loop_children.push(quote!(#e));
+                }
+            }
+
+            // Decydujemy o użyciu map lub flat_map w zależności od ilości elementów
+            let source = if loop_children.len() == 1 {
+                let single_child = &loop_children[0];
+                quote! {
+                    (#expr).borrow().map({
+                        move |#pat| {
+                            let #pat = #pat.clone();
+                            #single_child
+                        }
+                    })
+                }
+            } else {
+                quote! {
+                    (#expr).borrow().flat_map({
+                        move |#pat| {
+                            let #pat = #pat.clone();
+                            vec![ #(#loop_children),* ]
+                        }
+                    })
+                }
+            };
+            sources.push(source);
         }
     }
 
@@ -202,6 +237,8 @@ fn decouple_params(
                     properties.push(property);
                 }
             }
+        } else if let CtrlParam::ForLoop(for_loop) = el {
+            children.push(CtrlParam::ForLoop(for_loop));
         } else if let CtrlParam::ChildCtrl(control) = el {
             children.push(CtrlParam::ChildCtrl(control))
         } else if let CtrlParam::ChildExpr(expression) = el {
