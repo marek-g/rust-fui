@@ -1,6 +1,6 @@
 [package]
 name = "fui_drawing"
-version = "0.18.0"
+version = "0.19.0-pre"
 authors = ["Marek Gibek <marek-dev@yandex.com>"]
 description = "Drawing objects for FUI UI Framework"
 keywords = ["gui", "ui", "framework", "mvvm", "widgets"]
