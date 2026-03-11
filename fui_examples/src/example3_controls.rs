@@ -1,6 +1,6 @@
 #![windows_subsystem = "windows"]
 
-use anyhow::{Error, Result};
+use anyhow::Result;
 use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
@@ -343,7 +343,7 @@ async fn main() -> Result<()> {
 
             app.run().await?;
 
-            Ok::<(), Error>(())
+            Ok(())
         })
         .await
 }
