@@ -187,7 +187,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
             let source = if loop_children.len() == 1 {
                 let single_child = &loop_children[0];
                 quote! {
-                    (#expr).borrow().map({
+                    (#expr).map({
                         move |#pat| {
                             let #pat = #pat.clone();
                             #single_child
@@ -196,7 +196,7 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
                 }
             } else {
                 quote! {
-                    (#expr).borrow().flat_map({
+                    (#expr).flat_map({
                         move |#pat| {
                             let #pat = #pat.clone();
                             vec![ #(#loop_children),* ]

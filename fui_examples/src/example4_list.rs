@@ -23,14 +23,14 @@ impl ItemViewModel {
 }
 
 struct MainViewModel {
-    pub items: RefCell<ObservableVec<Rc<ItemViewModel>>>,
+    pub items: ObservableVec<Rc<ItemViewModel>>,
     counter: Cell<i32>,
 }
 
 impl MainViewModel {
     pub fn new() -> Rc<Self> {
         let main_vm = Rc::new(MainViewModel {
-            items: RefCell::new(ObservableVec::new()),
+            items: ObservableVec::new(),
             counter: Cell::new(0),
         });
 
@@ -47,7 +47,7 @@ impl MainViewModel {
         self.counter.set(self.counter.get() + 1);
 
         println!("Add {}!", new_item.name);
-        self.items.borrow_mut().push(new_item);
+        self.items.push(new_item);
     }
 
     pub fn add_n(self: &Rc<Self>, n: i32) {
@@ -58,12 +58,12 @@ impl MainViewModel {
 
     pub fn remove_all(self: &Rc<Self>) {
         println!("Remove all!");
-        self.items.borrow_mut().clear();
+        self.items.clear();
     }
 
     pub fn delete(self: &Rc<Self>, item: &Rc<ItemViewModel>) {
         println!("Delete {}!", item.id);
-        self.items.borrow_mut().retain(|i| !Rc::ptr_eq(i, item));
+        self.items.retain(|i| !Rc::ptr_eq(i, item));
     }
 }
 
