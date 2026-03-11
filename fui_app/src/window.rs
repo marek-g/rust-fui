@@ -6,7 +6,7 @@ use fui_core::{ControlObject, EventProcessor, ObservableVec};
 use fui_core::{ViewModel, WindowService};
 use fui_drawing::prelude::*;
 use fui_macros::ui;
-use rand::{thread_rng, Rng};
+use rand::{rng, Rng};
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::ptr::null_mut;
@@ -597,7 +597,7 @@ fn create_background_texture(drawing_context: &DrawingContextGl) -> DrawingTextu
     let step = 4;
     for y in (0..256).step_by(step) {
         for x in (0..256).step_by(step) {
-            let color_value = thread_rng().gen_range(0..15);
+            let color_value = rng().random_range(0..15);
 
             for x_step in 0..step {
                 for y_step in 0..step {
