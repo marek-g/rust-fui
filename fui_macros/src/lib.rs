@@ -183,27 +183,67 @@ fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {
                 }
             }
 
-            // Decydujemy o użyciu map lub flat_map w zależności od ilości elementów
+            let mut uses_self = false;
+
+            // decide if to use map or flat_map depending on number of children
             let source = if loop_children.len() == 1 {
                 let single_child = &loop_children[0];
-                quote! {
-                    (#expr).map({
-                        move |#pat| {
-                            let #pat = #pat.clone();
-                            #single_child
+                let single_child_replaced = replace_self(quote!(#single_child), &mut uses_self);
+
+                if uses_self {
+                    quote! {
+                        {
+                            let _self_cloned = self.clone();
+                            (#expr).map({
+                                move |#pat| {
+                                    let #pat = #pat.clone();
+                                    let _self_cloned = &_self_cloned;
+                                    #single_child_replaced
+                                }
+                            })
                         }
-                    })
+                    }
+                } else {
+                    quote! {
+                        (#expr).map({
+                            move |#pat| {
+                                let #pat = #pat.clone();
+                                #single_child
+                            }
+                        })
+                    }
                 }
             } else {
-                quote! {
-                    (#expr).flat_map({
-                        move |#pat| {
-                            let #pat = #pat.clone();
-                            vec![ #(#loop_children),* ]
+                let loop_children_replaced: Vec<_> = loop_children
+                    .iter()
+                    .map(|c| replace_self(quote!(#c), &mut uses_self))
+                    .collect();
+
+                if uses_self {
+                    quote! {
+                        {
+                            let _self_cloned = self.clone();
+                            (#expr).flat_map({
+                                move |#pat| {
+                                    let #pat = #pat.clone();
+                                    let _self_cloned = &_self_cloned;
+                                    vec![ #(#loop_children_replaced),* ]
+                                }
+                            })
                         }
-                    })
+                    }
+                } else {
+                    quote! {
+                        (#expr).flat_map({
+                            move |#pat| {
+                                let #pat = #pat.clone();
+                                vec![ #(#loop_children),* ]
+                            }
+                        })
+                    }
                 }
             };
+
             sources.push(source);
         }
     }
@@ -247,4 +287,31 @@ fn decouple_params(
     }
 
     (style, properties, attached_values, children)
+}
+
+/// A function that recursively passes through a TokenStream.
+/// Changes each instance of 'self' to '_self_cloned' and sets the 'uses_self' flag.
+fn replace_self(
+    stream: proc_macro2::TokenStream,
+    uses_self: &mut bool,
+) -> proc_macro2::TokenStream {
+    use proc_macro2::TokenTree;
+    stream
+        .into_iter()
+        .map(|tt| match tt {
+            TokenTree::Ident(ref ident) if ident == "self" => {
+                *uses_self = true;
+                TokenTree::Ident(proc_macro2::Ident::new("_self_cloned", ident.span()))
+            }
+            TokenTree::Group(group) => {
+                let mut new_group = proc_macro2::Group::new(
+                    group.delimiter(),
+                    replace_self(group.stream(), uses_self),
+                );
+                new_group.set_span(group.span());
+                TokenTree::Group(new_group)
+            }
+            _ => tt,
+        })
+        .collect()
 }

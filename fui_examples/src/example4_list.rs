@@ -69,8 +69,6 @@ impl MainViewModel {
 
 impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
-        let vm = self.clone();
-
         ui!(
             Grid {
                 columns: 1,
@@ -105,7 +103,7 @@ impl ViewModel for MainViewModel {
                                 Text { text: &item.name },
                                 Button {
                                     Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
-                                    clicked: cb!(&vm, delete(&item)),
+                                    clicked: cb!(self, delete(&item)),
                                     Text { text: "Delete" },
                                 },
                             },
