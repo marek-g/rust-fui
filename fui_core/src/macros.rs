@@ -37,51 +37,84 @@
 macro_rules! cb {
 	// async with explicit argument name: cb!(obj, |v| async method(v))
     ($owner:expr, |$arg_name:ident| async $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_async_rc($owner, move |obj, $arg_name| {
-            let obj = obj.clone();
-            async move { obj.$method($($args)*).await }
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_async(move |$arg_name| {
+                let weak_owner = weak_owner.clone();
+                async move {
+                    if let Some(obj) = weak_owner.upgrade() {
+                        obj.$method($($args)*).await;
+                    }
+                }
+            })
+        }
     };
 
     // async with manual arguments
     ($owner:expr, async $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_async_rc($owner, move |obj, arg| {
-            let obj = obj.clone();
-			let arg = arg;
-            async move { obj.$method($($args)*).await }
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_async(move |arg| {
+                let weak_owner = weak_owner.clone();
+                async move {
+                    if let Some(obj) = weak_owner.upgrade() {
+						let arg = arg;
+                        obj.$method($($args)*).await;
+                    }
+                }
+            })
+        }
     };
 
     // async without arguments
     ($owner:expr, async $method:ident) => {
-        $crate::Callback::new_async_rc($owner, move |obj, _| {
-            let obj = obj.clone();
-            async move { obj.$method().await }
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_async(move |_| {
+                let weak_owner = weak_owner.clone();
+                async move {
+                    if let Some(obj) = weak_owner.upgrade() {
+                        obj.$method().await;
+                    }
+                }
+            })
+        }
     };
 
 	// sync with explicit argument name: cb!(obj, |v| method(v))
     ($owner:expr, |$arg_name:ident| $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_sync_rc($owner, move |obj, $arg_name| {
-            let obj = obj.clone();
-            obj.$method($($args)*)
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_sync(move |$arg_name| {
+                if let Some(obj) = weak_owner.upgrade() {
+                    obj.$method($($args)*)
+                }
+            })
+        }
     };
 
     // sync with manual arguments
     ($owner:expr, $method:ident ( $($args:tt)* )) => {
-        $crate::Callback::new_sync_rc($owner, move |obj, arg| {
-            let obj = obj.clone();
-			let arg = arg;
-            obj.$method($($args)*)
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_sync(move |arg| {
+                if let Some(obj) = weak_owner.upgrade() {
+					let arg = arg;
+                    obj.$method($($args)*)
+                }
+            })
+        }
     };
 
     // sync without arguments
     ($owner:expr, $method:ident) => {
-        $crate::Callback::new_sync_rc($owner, move |obj, _| {
-            let obj = obj.clone();
-            obj.$method()
-        })
+        {
+            let weak_owner = std::rc::Rc::downgrade(&$owner);
+            $crate::Callback::new_sync(move |_| {
+                if let Some(obj) = weak_owner.upgrade() {
+                    obj.$method()
+                }
+            })
+        }
     };
 }
