@@ -41,6 +41,7 @@ pub struct WindowVMThreadData {
     event_processor: RefCell<EventProcessor>,
     root_control: Rc<RefCell<dyn ControlObject>>,
     view: RefCell<Option<Rc<RefCell<dyn ControlObject>>>>,
+    view_model: RefCell<Option<Rc<dyn std::any::Any>>>,
     services: RefCell<Option<fui_core::Services>>,
 
     control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
@@ -116,6 +117,7 @@ impl Window {
             event_processor: RefCell::new(EventProcessor::new()),
             root_control: content,
             view: RefCell::new(None),
+            view_model: RefCell::new(None),
             services: RefCell::new(None),
             control_layers,
         });
@@ -165,7 +167,7 @@ impl Window {
         self.data.id
     }
 
-    pub fn set_vm<V: ViewModel>(&mut self, view_model: Rc<V>) {
+    pub fn set_vm<V: ViewModel + 'static>(&mut self, view_model: Rc<V>) {
         let new_view = ViewModel::create_view(&view_model);
 
         let window_data = self.data.clone();
@@ -174,6 +176,9 @@ impl Window {
         }
         window_data.add_layer(new_view.clone());
         window_data.view.borrow_mut().replace(new_view);
+
+        // store the ViewModel so it stays alive as long as the Window
+        window_data.view_model.replace(Some(view_model));
     }
 
     pub fn get_window_service(&self) -> Rc<dyn fui_core::WindowService + 'static> {
