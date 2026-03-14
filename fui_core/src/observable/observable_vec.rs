@@ -4,6 +4,7 @@ use futures_signals::signal_vec::{MutableVec, MutableVecLockMut, MutableVecLockR
 
 use crate::{spawn_local, ObservableCollection, Subscription, VecDiff};
 
+#[derive(Clone)]
 pub struct ObservableVec<T: 'static + Clone> {
     items: MutableVec<T>,
 }
