@@ -1,3 +1,4 @@
+use proc_macro2::TokenTree;
 use syn::parse::{Parse, ParseStream, Result};
 use syn::punctuated::Punctuated;
 use syn::{braced, Expr, Ident, Pat, Token};
@@ -252,6 +253,100 @@ mod tests {
             }
         } else {
             panic!("Expected CtrlParam::Style");
+        }
+    }
+}
+
+/// Extracts all `self.property_name.get()` method calls from an expression.
+///
+/// This is used for automatic dependency tracking in the ui! macro.
+/// When a property is accessed via `.get()`, it indicates that the value
+/// should be tracked for changes.
+///
+/// # Example
+///
+/// For expression `format!("{}: {}", self.name.get(), self.counter.get())`,
+/// returns `["name", "counter"]`.
+pub fn extract_self_properties_via_get(expr: &Expr) -> Vec<Ident> {
+    use syn::visit::Visit;
+
+    struct GetVisitor {
+        fields: Vec<Ident>,
+    }
+
+    impl<'ast> Visit<'ast> for GetVisitor {
+        fn visit_expr(&mut self, node: &'ast Expr) {
+            // Looking for pattern: self.field.get()
+            // Expr::MethodCall with method == "get" and receiver == self.field
+            if let Expr::MethodCall(method_call) = node {
+                if method_call.method == "get" {
+                    if let Expr::Field(field) = &*method_call.receiver {
+                        if let Expr::Path(path) = &*field.base {
+                            if path.path.is_ident("self") {
+                                if let syn::Member::Named(ident) = &field.member {
+                                    self.fields.push(ident.clone());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Also search inside macros (e.g., format!(...))
+            if let Expr::Macro(expr_macro) = node {
+                let tokens = expr_macro.mac.tokens.clone();
+                extract_fields_from_tokens(tokens, &mut self.fields);
+            }
+
+            syn::visit::visit_expr(self, node);
+        }
+    }
+
+    let mut visitor = GetVisitor { fields: Vec::new() };
+    visitor.visit_expr(expr);
+    visitor.fields
+}
+
+// Helper function to extract self.field.get() from macro token streams
+fn extract_fields_from_tokens(tokens: proc_macro2::TokenStream, fields: &mut Vec<Ident>) {
+    let mut token_iter = tokens.into_iter().peekable();
+
+    while let Some(token) = token_iter.next() {
+        match token {
+            TokenTree::Ident(ident) if ident == "self" => {
+                // Check if next is '.'
+                if let Some(TokenTree::Punct(punct)) = token_iter.peek() {
+                    if punct.as_char() == '.' {
+                        token_iter.next(); // consume '.'
+
+                        // Get field name
+                        if let Some(TokenTree::Ident(field_name)) = token_iter.peek() {
+                            let field_name = field_name.clone();
+                            token_iter.next(); // consume field name
+
+                            // Check for another '.'
+                            if let Some(TokenTree::Punct(punct)) = token_iter.peek() {
+                                if punct.as_char() == '.' {
+                                    token_iter.next(); // consume '.'
+
+                                    // Check for 'get'
+                                    if let Some(TokenTree::Ident(method)) = token_iter.peek() {
+                                        if method == "get" {
+                                            fields.push(field_name);
+                                            token_iter.next(); // consume 'get'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            TokenTree::Group(group) => {
+                // Recursively search inside groups (parentheses, brackets, etc.)
+                extract_fields_from_tokens(group.stream(), fields);
+            }
+            _ => {}
         }
     }
 }

@@ -84,7 +84,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
-use typemap::TypeMap;
 use winit::window::WindowBuilder;
 
 struct MainViewModel {
@@ -107,9 +106,9 @@ impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui!(
             Horizontal {
-                Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
+                Text { text: format!("Counter {}", self.counter.get()) },
                 Button {
-                    clicked: Callback::new_rc(self, |vm, _| vm.increase()),
+                    clicked: cb!(self, increase),
                     Text { text: "Increase" }
                 },
             }
@@ -117,17 +116,26 @@ impl ViewModel for MainViewModel {
     }
 }
 
+#[tokio::main(flavor = "current_thread")]
 fn main() -> anyhow::Result<()> {
-    let mut app = Application::new("Example: button").unwrap();
+    LocalSet::new()
+        .run_until(async {
+            let app = Application::new("Example").await?;
 
-    app.add_window(
-        WindowBuilder::new().with_title("Example: button"),
-        MainViewModel::new(),
-    )?;
+            let mut window = Window::create(
+                WindowOptions::new()
+                    .with_title("Example")
+                    .with_size(800, 600),
+            )
+            .await?;
 
-    app.run();
+            window.set_vm(MainViewModel::new());
 
-    Ok(())
+            app.run().await?;
+
+            Ok(())
+        })
+        .await
 }
 ```
 

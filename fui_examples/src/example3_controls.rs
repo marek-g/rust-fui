@@ -182,10 +182,7 @@ impl ViewModel for MainViewModel {
                     },
                     Text {
                         Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
-                        text: (&self.drop_down_selected_item, |vm: Option<Rc<StringViewModel>>| match &vm {
-                            None => "-".to_string(),
-                            Some(vm) => vm.text.clone(),
-                        }),
+                        text: format!("{}", self.drop_down_selected_item.get().map_or("-".to_string(), |vm| vm.text.clone()))
                     },
                 },
 
@@ -248,7 +245,7 @@ impl ViewModel for MainViewModel {
             Grid {
                 Title: "Tab 2",
                 columns: 2,
-                Text { text: (&self.counter, |counter| format!("Counter {}", counter)) },
+                Text { text: format!("Counter {}", self.counter.get()) },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
                     clicked: cb!(self, decrease),
@@ -259,7 +256,7 @@ impl ViewModel for MainViewModel {
                     clicked: cb!(self, increase),
                     Text { text: "Increase" },
                 },
-                Text { text: (&self.counter2, |counter| format!("Counter2 {}", counter)) },
+                Text { text: format!("Counter2 {}", self.counter2.get()) },
             }
         );
 

@@ -1,10 +1,39 @@
 use futures_signals::signal::{Mutable, MutableLockMut, MutableLockRef, SignalExt};
 use std::ops::{Deref, DerefMut};
+use std::rc::Rc;
 use std::sync::{Arc, RwLock};
 
 use crate::ObservableCollection;
 use crate::{spawn_local, Subscription, VecDiff};
 use fui_drawing::Color;
+
+/// Type-erased subscription that can subscribe to any Property<V> and notify
+/// a target property when the source changes.
+pub struct PropertySubscription {
+    subscribe: Rc<dyn Fn(Rc<dyn Fn()>) -> Subscription>,
+}
+
+impl PropertySubscription {
+    /// Creates a new PropertySubscription from a source Property.
+    pub fn from_property<V>(property: &Property<V>) -> Self
+    where
+        V: 'static + Clone + PartialEq,
+    {
+        let property = property.clone();
+        PropertySubscription {
+            subscribe: Rc::new(move |notify_fn| {
+                property.on_changed(move |_| {
+                    notify_fn();
+                })
+            }),
+        }
+    }
+
+    /// Subscribes to the source property and calls the notify function when it changes.
+    pub fn subscribe(&self, notify_fn: Rc<dyn Fn()>) -> Subscription {
+        (self.subscribe)(notify_fn)
+    }
+}
 
 #[repr(transparent)]
 pub struct PropertyReadGuard<'a, T> {
@@ -43,21 +72,21 @@ impl<'a, T> DerefMut for PropertyWriteGuard<'a, T> {
 
 pub struct Property<T> {
     data: Mutable<T>,
-    bind_handle: Arc<RwLock<Option<Subscription>>>,
+    bind_handles: Arc<RwLock<Vec<Subscription>>>,
 }
 
 impl<T: 'static + Clone + PartialEq> Property<T> {
     pub fn new<U: Into<T>>(val: U) -> Self {
         Property {
             data: Mutable::new(val.into()),
-            bind_handle: Arc::new(RwLock::new(None)),
+            bind_handles: Arc::new(RwLock::new(Vec::new())),
         }
     }
 
     pub fn binded_from(src_property: &Property<T>) -> Self {
         let new_property = Property {
             data: Mutable::new(src_property.get()),
-            bind_handle: Arc::new(RwLock::new(None)),
+            bind_handles: Arc::new(RwLock::new(Vec::new())),
         };
         new_property.bind(src_property);
         new_property
@@ -142,10 +171,10 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
                 async {}
             }
         }));
-        self.bind_handle
+        self.bind_handles
             .write()
             .unwrap()
-            .replace(Subscription::SpawnLocal(handle));
+            .push(Subscription::SpawnLocal(handle));
     }
 
     pub fn bind_c<TSrc: 'static + Clone + PartialEq, F: 'static + Fn(TSrc) -> T>(
@@ -160,10 +189,70 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
                 async {}
             }
         }));
-        self.bind_handle
+        self.bind_handles
             .write()
             .unwrap()
-            .replace(Subscription::SpawnLocal(handle));
+            .push(Subscription::SpawnLocal(handle));
+    }
+
+    /// Creates a new Property with value computed from an expression
+    /// that depends on multiple source properties.
+    ///
+    /// The resulting property automatically tracks changes to all source properties
+    /// and recomputes its value when any of them changes.
+    ///
+    /// # Arguments
+    ///
+    /// * `expr_fn` - A closure that computes the value of the resulting property.
+    ///               This closure must be `'static` and typically requires `move` semantics
+    ///               with cloned source properties.
+    /// * `subscriptions` - A vector of `PropertySubscription` objects created from
+    ///                     source properties using `PropertySubscription::from_property()`.
+    ///
+    /// # Example
+    ///
+    /// ```ignore
+    /// use fui_core::{Property, PropertySubscription};
+    ///
+    /// let first_name = Property::new("John".to_string());
+    /// let last_name = Property::new("Doe".to_string());
+    ///
+    /// let full_name = Property::<String>::bind_from_expr(
+    ///     {
+    ///         let first_name = first_name.clone();
+    ///         let last_name = last_name.clone();
+    ///         move || format!("{} {}", first_name.get(), last_name.get())
+    ///     },
+    ///     vec![
+    ///         PropertySubscription::from_property(&first_name),
+    ///         PropertySubscription::from_property(&last_name),
+    ///     ]
+    /// );
+    ///
+    /// assert_eq!(full_name.get(), "John Doe");
+    ///
+    /// first_name.set("Jane".to_string());
+    /// assert_eq!(full_name.get(), "Jane Doe");
+    /// ```
+    pub fn bind_from_expr<F, R>(expr_fn: F, subscriptions: Vec<PropertySubscription>) -> Property<R>
+    where
+        R: 'static + Clone + PartialEq,
+        F: 'static + Fn() -> R,
+    {
+        let result_prop = Property::new(expr_fn());
+        let f = Rc::new(expr_fn);
+
+        // Subscribe to each source property
+        for subscription in subscriptions {
+            let f = f.clone();
+            let target = result_prop.clone();
+            let handle = subscription.subscribe(Rc::new(move || {
+                target.set(f());
+            }));
+            result_prop.bind_handles.write().unwrap().push(handle);
+        }
+
+        result_prop
     }
 
     pub fn on_changed<F: 'static + FnMut(T)>(&self, mut f: F) -> Subscription {
@@ -172,19 +261,25 @@ impl<T: 'static + Clone + PartialEq> Property<T> {
             async {}
         })))
     }
+
+    /// Adds a subscription to the internal bind_handles collection.
+    /// This is used by the ui! macro for automatic dependency tracking.
+    pub fn add_bind_subscription(&self, subscription: Subscription) {
+        self.bind_handles.write().unwrap().push(subscription);
+    }
 }
 
 impl<T: 'static + Clone + PartialEq> Clone for Property<T> {
     fn clone(&self) -> Self {
         Property::<T> {
             data: self.data.clone(),
-            bind_handle: self.bind_handle.clone(),
+            bind_handles: self.bind_handles.clone(),
         }
     }
 
     fn clone_from(&mut self, source: &Self) {
         self.data.clone_from(&source.data);
-        self.bind_handle.clone_from(&source.bind_handle);
+        self.bind_handles.clone_from(&source.bind_handles);
     }
 }
 
@@ -264,44 +359,6 @@ where
 {
     fn from(value: &mut Property<T>) -> Property<T> {
         Property::binded_two_way(value)
-    }
-}
-
-///
-/// Allows to easily write one-way binding with converter.
-///
-/// Example:
-///
-/// ui! { Control { text_property: (&vm.count, |c| c.to_string()) }}
-///
-impl<TSrc, TDest, F> From<(&Property<TSrc>, F)> for Property<TDest>
-where
-    TSrc: 'static + Clone + PartialEq,
-    TDest: 'static + Clone + PartialEq,
-    F: 'static + Fn(TSrc) -> TDest,
-{
-    fn from(value: (&Property<TSrc>, F)) -> Property<TDest> {
-        Property::binded_c_from(value.0, value.1)
-    }
-}
-
-///
-/// Allows to easily write two-way binding with converter.
-///
-/// Example:
-///
-/// ui! { Control { text_property: (&mut vm.count,
-///     |c| c.to_string(), |c| c.parse().unwrap()) }}
-///
-impl<TSrc, TDest, F1, F2> From<(&mut Property<TSrc>, F1, F2)> for Property<TDest>
-where
-    TSrc: 'static + Clone + PartialEq,
-    TDest: 'static + Clone + PartialEq,
-    F1: 'static + Fn(TSrc) -> TDest,
-    F2: 'static + Fn(TDest) -> TSrc,
-{
-    fn from(value: (&mut Property<TSrc>, F1, F2)) -> Property<TDest> {
-        Property::binded_c_two_way(value.0, value.1, value.2)
     }
 }
 

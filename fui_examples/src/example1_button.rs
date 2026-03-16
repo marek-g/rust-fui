@@ -67,7 +67,7 @@ impl ViewModel for MainViewModel {
                 Margin: Thickness::sides(0.0, 5.0),
                 Text {
                     Margin: Thickness::all(5.0),
-                    text: (&self.counter, |counter| format!("Counter {}", counter))
+                    text: format!("Counter {}", self.counter.get())
                 },
                 Button {
                     clicked: cb!(self, decrease),
@@ -79,7 +79,7 @@ impl ViewModel for MainViewModel {
                 },
                 Text {
                     Margin: Thickness::all(5.0),
-                    text: (&self.counter2, |counter| format!("Counter2 {}", counter))
+                    text: format!("Counter2 {}", self.counter2.get())
                 },
             }
         )

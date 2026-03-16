@@ -138,9 +138,11 @@ impl ViewModel for TabButtonViewModel {
 
                 Text {
                     Style: Dynamic {
-                        color: (&self.is_checked, |is_checked|
-                            if is_checked { Color::rgba(1.0, 0.8, 0.0, 1.0) }
-                            else { Color::rgba(1.0, 1.0, 1.0, 1.0) }),
+                        color: if self.is_checked.get() {
+                            Color::rgba(1.0, 0.8, 0.0, 1.0)
+                        } else {
+                            Color::rgba(1.0, 1.0, 1.0, 1.0)
+                        },
                     },
 
                     text: &self.title

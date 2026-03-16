@@ -49,8 +49,8 @@ impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         ui! {
             Vertical {
-                Text { 
-                    text: (&self.counter, |counter| format!("Count: {}", counter))
+                Text {
+                    text: format!("Count: {}", self.counter.get())
                 },
                 Button {
                     clicked: cb!(self, increase),
@@ -81,6 +81,42 @@ Properties support:
 - **Transformation**: Convert property values for display using closures
 - **Change notification**: Automatically update UI when values change
 
+### Property Binding in `ui!` Macro
+
+The `ui!` macro supports several ways to bind properties:
+
+#### 1. Automatic Tracking with `.get()` (Recommended)
+
+When you use `.get()` on a property inside an expression, the macro automatically tracks changes and updates the UI:
+
+```rust
+Text {
+    text: format!("Count: {}", self.counter.get())
+}
+```
+
+This is the simplest and most readable approach. The macro detects `self.property.get()` and automatically subscribes to property changes.
+
+#### 2. Simple Property Reference
+
+For direct property display without transformation:
+
+```rust
+Text {
+    text: &self.text  // One-way binding
+}
+```
+
+#### 3. **Two-Way Binding**
+
+For editable fields that sync with the view model:
+
+```rust
+TextBox {
+    text: self.text.clone()  // Two-way binding
+}
+```
+
 ### Methods
 
 View model methods are regular Rust methods that can:
@@ -101,7 +137,7 @@ Button {
 
 The `ui!` macro is used to declare the visual structure of your view. It supports:
 - Layout controls (`Vertical`, `Horizontal`, `Grid`)
-- Property bindings
+- Property bindings with automatic tracking
 - Event handlers
 - Iteration over collections
 
@@ -152,20 +188,46 @@ impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         // Bind two properties together
         self.counter2.bind(&self.counter);
-        
+
         ui! {
             Vertical {
-                Text { 
-                    text: (&self.counter, |c| format!("Counter: {}", c))
+                // Automatic tracking with .get()
+                Text {
+                    text: format!("Counter: {}", self.counter.get())
                 },
-                Text { 
-                    text: (&self.counter2, |c| format!("Mirror: {}", c))
+                Text {
+                    text: format!("Mirror: {}", self.counter2.get())
                 },
             }
         }
     }
 }
 ```
+
+### Manual Property Binding with `bind_from_expr`
+
+For complex scenarios outside the `ui!` macro, you can use `Property::bind_from_expr`:
+
+```rust
+use fui_core::{Property, PropertySubscription};
+
+let first_name = Property::new("John".to_string());
+let last_name = Property::new("Doe".to_string());
+
+let full_name = Property::<String>::bind_from_expr(
+    {
+        let first_name = first_name.clone();
+        let last_name = last_name.clone();
+        move || format!("{} {}", first_name.get(), last_name.get())
+    },
+    vec![
+        PropertySubscription::from_property(&first_name),
+        PropertySubscription::from_property(&last_name),
+    ]
+);
+```
+
+This creates a property that automatically updates when any of the source properties change. However, using `.get()` inside the `ui!` macro is preferred for simplicity.
 
 ## Setting the ViewModel
 

@@ -124,11 +124,49 @@ fn get_properties_builder(
     struct_name: Ident,
     properties: Vec<CtrlProperty>,
 ) -> proc_macro2::TokenStream {
+    use crate::parser::extract_self_properties_via_get;
+
     let mut method_calls = Vec::new();
     for property in properties {
         let name = property.name;
         let expr = property.expr;
-        method_calls.push(quote!(.#name((#expr).into())))
+
+        // Detect self.property.get() calls in the expression
+        let prop_fields = extract_self_properties_via_get(&expr);
+
+        if prop_fields.is_empty() {
+            // No .get() calls - standard expression without tracking
+            method_calls.push(quote!(.#name((#expr).into())));
+        } else {
+            // .get() calls detected - automatic dependency tracking
+            // Replace 'self' with '_self_cloned' in the expression
+            let mut _uses_self = false;
+            let expr_tokens = quote!(#expr);
+            let expr_replaced = replace_self(expr_tokens, &mut _uses_self);
+
+            // Also replace 'self' with '_self_cloned' in field names and generate subscription code
+            let subscription_code = prop_fields.iter().map(|ident| {
+                let field_tokens = quote!(self.#ident);
+                let mut _unused = false;
+                let field_replaced = replace_self(field_tokens, &mut _unused);
+                quote!({
+                    let _self_for_sub = _self_cloned.clone();
+                    let target = result.clone();
+                    let handle = #field_replaced.on_changed(move |_| {
+                        let _self_cloned = _self_for_sub.clone();
+                        target.set(#expr_replaced);
+                    });
+                    result.add_bind_subscription(handle);
+                })
+            });
+
+            method_calls.push(quote!(.#name({
+                let _self_cloned = self.clone();
+                let result = Property::new(#expr_replaced);
+                #(#subscription_code)*
+                result.into()
+            })));
+        }
     }
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
 }
