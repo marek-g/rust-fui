@@ -192,7 +192,7 @@ fn get_properties_builder(
                     ::fui_core::Callback::new_async(move |#pat: _| {
                         let _self_cloned = _self_cloned.clone();
                         async move {
-                            #expr_replaced
+                            (#expr_replaced).await
                         }
                     })
                 })
@@ -203,7 +203,7 @@ fn get_properties_builder(
                     ::fui_core::Callback::new_async(move |_| {
                         let _self_cloned = _self_cloned.clone();
                         async move {
-                            #expr_replaced
+                            (#expr_replaced).await
                         }
                     })
                 })
