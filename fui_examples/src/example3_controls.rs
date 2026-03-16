@@ -260,46 +260,81 @@ impl ViewModel for MainViewModel {
             }
         );
 
-        let menu_items = vec![
-            MenuItem::folder(
-                "File",
-                vec![
-                    MenuItem::simple("Open...", cb!(self, async file_open)),
-                    MenuItem::simple("Save...", cb!(self, async file_save)),
-                    MenuItem::folder(
-                        "Export",
-                        vec![
-                            MenuItem::simple("PDF...", Callback::empty()),
-                            MenuItem::simple("PNG...", Callback::empty()),
-                            MenuItem::simple("HTML...", Callback::empty()),
-                        ],
-                    ),
-                    MenuItem::Separator,
-                    MenuItem::simple("Exit", cb!(self, async exit_app)),
-                ],
-            ),
-            MenuItem::folder(
-                "Dialogs",
-                vec![
-                    MenuItem::simple("Input text", cb!(self, async input_text)),
-                    MenuItem::simple("Input password", cb!(self, async input_password)),
-                ],
-            ),
-            MenuItem::folder(
-                "Help",
-                vec![
-                    MenuItem::simple("Help", Callback::empty()),
-                    MenuItem::Separator,
-                    MenuItem::simple("About", Callback::empty()),
-                ],
-            ),
-        ];
-
         let content = ui!(Grid {
             rows: 2,
             heights: vec![(0, Length::Auto)],
 
-            Menu { items: menu_items },
+            MenuBar {
+                Menu {
+                    Text { Style: Default { color: [0.0, 0.0, 0.0, 1.0] }, text: "File" },
+
+                    MenuItem {
+                        activated async => self.file_open(),
+                        Text { Style: Default { color: [0.0, 0.0, 0.0, 1.0] }, text: "Open..."  }
+                    },
+
+                    MenuItem {
+                        activated async => self.file_save(),
+                        Text { text: "Save..." }
+                    },
+
+                    Menu {
+                        Text { text: "Export" },
+
+                        MenuItem {
+                            activated => {},
+                            Text { text: "PDF..." }
+                        },
+
+                        MenuItem {
+                            activated => {},
+                            Text { text: "PNG..." }
+                        },
+
+                        MenuItem {
+                            activated => {},
+                            Text { text: "HTML..." }
+                        },
+                    },
+
+                    MenuSeparator {},
+
+                    MenuItem {
+                        activated async => self.exit_app(),
+                        Text { text: "Exit" }
+                    },
+                },
+
+                Menu {
+                    Text { text: "Dialogs" },
+
+                    MenuItem {
+                        activated async => self.input_text(),
+                        Text { text: "Input text" }
+                    },
+
+                    MenuItem {
+                        activated async => self.input_password(),
+                        Text { text: "Input password" }
+                    },
+                },
+
+                Menu {
+                    Text { text: "Help" },
+
+                    MenuItem {
+                        activated => {},
+                        Text { text: "Help" }
+                    },
+
+                    MenuSeparator {},
+
+                    MenuItem {
+                        activated => {},
+                        Text { text: "About" }
+                    },
+                },
+            },
 
             TabControl {
                 Margin: Thickness::new(8.0, 12.0, 8.0, 8.0),
