@@ -77,15 +77,15 @@ impl ViewModel for MainViewModel {
                 Vertical {
                     Margin: Thickness::all(5.0),
                     Button {
-                        clicked: cb!(self, add),
+                        clicked => self.add(),
                         Text { text: "Add" },
                     },
                     Button {
-                        clicked: cb!(self, add_n(100)),
+                        clicked => self.add_n(100),
                         Text { text: "Add 100" },
                     },
                     Button {
-                        clicked: cb!(self, remove_all),
+                        clicked => self.remove_all(),
                         Text { text: "Remove all" },
                     },
                 },
@@ -103,7 +103,7 @@ impl ViewModel for MainViewModel {
                                 Text { text: &item.name },
                                 Button {
                                     Margin: Thickness::new(5.0, 0.0, 0.0, 0.0),
-                                    clicked: cb!(self, delete(&item)),
+                                    clicked => self.delete(&item),
                                     Text { text: "Delete" },
                                 },
                             },

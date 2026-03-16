@@ -8,6 +8,7 @@ use syn::{parse_macro_input, Ident, Token};
 
 mod parser;
 use crate::parser::Ctrl;
+use crate::parser::CtrlCallback;
 use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
 
@@ -107,9 +108,9 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
         params,
     } = ctrl;
 
-    let (style, properties, attached_values, children) = decouple_params(params);
+    let (style, properties, callbacks, attached_values, children) = decouple_params(params);
 
-    let properties_builder = get_properties_builder(control_name.clone(), properties);
+    let properties_builder = get_properties_builder(control_name.clone(), properties, callbacks);
     let style_builder = get_style_builder(control_name, style);
     let attached_values_typemap = get_attached_values_typemap(attached_values);
     let children_source = get_children_source(children);
@@ -123,6 +124,7 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
 fn get_properties_builder(
     struct_name: Ident,
     properties: Vec<CtrlProperty>,
+    callbacks: Vec<CtrlCallback>,
 ) -> proc_macro2::TokenStream {
     use crate::parser::extract_self_properties_via_get;
 
@@ -168,6 +170,70 @@ fn get_properties_builder(
             })));
         }
     }
+
+    // Generate callback code
+    for callback in callbacks {
+        let name = callback.name;
+        let arg_pat = callback.arg_pat;
+        let is_async = callback.is_async;
+        let expr = callback.expr;
+
+        // Replace 'self' with '_self_cloned' in the expression
+        let mut uses_self = false;
+        let expr_tokens = quote!(#expr);
+        let expr_replaced = replace_self(expr_tokens, &mut uses_self);
+
+        let callback_code = if is_async {
+            // Async callback
+            if let Some(pat) = arg_pat {
+                // With argument: name(arg) async => expression
+                quote!({
+                    let _self_cloned = self.clone();
+                    ::fui_core::Callback::new_async(move |#pat: _| {
+                        let _self_cloned = _self_cloned.clone();
+                        async move {
+                            #expr_replaced
+                        }
+                    })
+                })
+            } else {
+                // Without argument: name async => expression
+                quote!({
+                    let _self_cloned = self.clone();
+                    ::fui_core::Callback::new_async(move |_| {
+                        let _self_cloned = _self_cloned.clone();
+                        async move {
+                            #expr_replaced
+                        }
+                    })
+                })
+            }
+        } else {
+            // Sync callback
+            if let Some(pat) = arg_pat {
+                // With argument: name(arg) => expression
+                quote!({
+                    let _self_cloned = self.clone();
+                    ::fui_core::Callback::new_sync(move |#pat: _| {
+                        let _self_cloned = _self_cloned.clone();
+                        #expr_replaced
+                    })
+                })
+            } else {
+                // Without argument: name => expression
+                quote!({
+                    let _self_cloned = self.clone();
+                    ::fui_core::Callback::new_sync(move |_| {
+                        let _self_cloned = _self_cloned.clone();
+                        #expr_replaced
+                    })
+                })
+            }
+        };
+
+        method_calls.push(quote!(.#name(#callback_code)));
+    }
+
     quote!(<#struct_name>::builder()#(#method_calls)*.build())
 }
 
@@ -181,9 +247,9 @@ fn get_style_builder(control_name: Ident, style: Option<Ctrl>) -> proc_macro2::T
             let params_name =
                 Ident::new(&format!("{}{}StyleParams", name, control_name), name.span());
 
-            let (_style, properties, _attached_values, _children) = decouple_params(style.params);
+            let (_style, properties, _callbacks, _attached_values, _children) = decouple_params(style.params);
 
-            let properties_builder = get_properties_builder(params_name, properties);
+            let properties_builder = get_properties_builder(params_name, properties, vec![]);
 
             quote!(Some(Box::new(<#style_name>::new(#properties_builder))))
         }
@@ -294,6 +360,7 @@ fn decouple_params(
 ) -> (
     Option<Ctrl>,
     Vec<CtrlProperty>,
+    Vec<CtrlCallback>,
     Vec<CtrlProperty>,
     Vec<CtrlParam>,
 ) {
@@ -301,12 +368,15 @@ fn decouple_params(
     let mut properties = Vec::new();
     let mut attached_values = Vec::new();
     let mut children = Vec::new();
+    let mut callbacks = Vec::new();
 
     for el in params.into_pairs() {
         let el = el.into_value();
 
         if let CtrlParam::Style(s) = el {
             style = Some(s);
+        } else if let CtrlParam::Callback(callback) = el {
+            callbacks.push(callback);
         } else if let CtrlParam::Property(property) = el {
             if let Some(first_char) = property.name.to_string().chars().next() {
                 if first_char.is_uppercase() {
@@ -324,7 +394,7 @@ fn decouple_params(
         }
     }
 
-    (style, properties, attached_values, children)
+    (style, properties, callbacks, attached_values, children)
 }
 
 /// A function that recursively passes through a TokenStream.

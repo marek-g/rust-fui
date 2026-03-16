@@ -93,7 +93,7 @@ struct MainViewModel {
 impl MainViewModel {
     pub fn new() -> Rc<Self> {
         Rc::new(MainViewModel {
-            counter: Property::new(0),
+            counter: 0.into(),
         })
     }
 
@@ -108,7 +108,7 @@ impl ViewModel for MainViewModel {
             Horizontal {
                 Text { text: format!("Counter {}", self.counter.get()) },
                 Button {
-                    clicked: cb!(self, increase),
+                    clicked => self.increase(),
                     Text { text: "Increase" }
                 },
             }

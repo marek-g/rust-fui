@@ -248,12 +248,12 @@ impl ViewModel for MainViewModel {
                 Text { text: format!("Counter {}", self.counter.get()) },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: cb!(self, decrease),
+                    clicked => self.decrease(),
                     Text { text: "Decrease" },
                 },
                 Button {
                     VerticalAlignment: Alignment::Stretch,
-                    clicked: cb!(self, increase),
+                    clicked => self.increase(),
                     Text { text: "Increase" },
                 },
                 Text { text: format!("Counter2 {}", self.counter2.get()) },

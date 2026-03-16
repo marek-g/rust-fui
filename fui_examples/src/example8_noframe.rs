@@ -51,11 +51,11 @@ impl ViewModel for MainViewModel {
                 text: format!("Counter {}", self.counter.get())
                         },
                         Button {
-                clicked: cb!(self, decrease),
+                clicked => self.decrease(),
                 Text { text: "Decrease" }
                         },
                         Button {
-                clicked: cb!(self, increase),
+                clicked => self.increase(),
                 Text { text: "Increase" }
                         },
                         Text {

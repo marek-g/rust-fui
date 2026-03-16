@@ -68,11 +68,11 @@ impl ViewModel for MainViewModel {
                 },*/
                 Horizontal {
                     Button {
-                        clicked: cb!(self, play),
+                        clicked => self.play(),
                         Text { text: "Play" }
                     },
                     Button {
-                        clicked: cb!(self, stop),
+                        clicked => self.stop(),
                         Text { text: "Stop" }
                     },
                 },

@@ -32,7 +32,7 @@ struct MainViewModel {
 impl MainViewModel {
     pub fn new() -> Rc<Self> {
         Rc::new(MainViewModel {
-            counter: Property::new(0),
+            counter: 0.into(),
         })
     }
 
@@ -53,11 +53,11 @@ impl ViewModel for MainViewModel {
                     text: format!("Count: {}", self.counter.get())
                 },
                 Button {
-                    clicked: cb!(self, increase),
+                    clicked => self.increase(),
                     Text { text: "Increase" }
                 },
                 Button {
-                    clicked: cb!(self, decrease),
+                    clicked => self.decrease(),
                     Text { text: "Decrease" }
                 },
             }
@@ -124,13 +124,46 @@ View model methods are regular Rust methods that can:
 - Call business logic
 - Trigger async operations
 
-Methods are typically called from UI events using the `cb!` macro:
+Methods are typically called from UI events using callback syntax in the `ui!` macro:
 
 ```rust
+// Synchronous callback without argument
 Button {
-    clicked: cb!(self, increase),
+    clicked => self.increase(),
     Text { text: "Click me" }
 }
+
+// Synchronous callback with argument
+Button {
+    clicked(v) => self.handle_click(v),
+    Text { text: "Click me" }
+}
+
+// Async callback without argument
+Button {
+    clicked async => self.save_data(),
+    Text { text: "Save" }
+}
+
+// Async callback with argument
+Button {
+    clicked(v) async => self.process_item(v),
+    Text { text: "Process" }
+}
+```
+
+The callback syntax supports:
+- **`name => expression`** - Synchronous callback without argument (`Callback<()>`)
+- **`name(arg) => expression`** - Synchronous callback with argument (`Callback<T>`)
+- **`name async => expression`** - Async callback without argument
+- **`name(arg) async => expression`** - Async callback with argument
+
+The macro automatically clones `self` and replaces it with `_self_cloned` inside the closure to prevent memory leaks.
+
+For use outside the `ui!` macro, the `cb!` macro is still available:
+
+```rust
+MenuItem::simple("Save", cb!(self, async save_data))
 ```
 
 ### The `ui!` Macro
@@ -163,7 +196,7 @@ impl ViewModel for MainViewModel {
         ui! {
             Vertical {
                 Button {
-                    clicked: cb!(self, add_item),
+                    clicked => self.add_item(),
                     Text { text: "Add Item" }
                 },
                 ScrollViewer {

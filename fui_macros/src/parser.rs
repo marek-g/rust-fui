@@ -59,6 +59,9 @@ pub enum CtrlParam {
     // property: "value",
     Property(CtrlProperty),
 
+    // callback: name => expr or name(arg) => expr or name async => expr or name(arg) async => expr
+    Callback(CtrlCallback),
+
     // Button { ... }
     ChildCtrl(Ctrl),
 
@@ -77,6 +80,27 @@ impl Parse for CtrlParam {
             input.parse().map(CtrlParam::Style)
         } else if input.peek(Token![for]) {
             input.parse().map(CtrlParam::ForLoop)
+        } else if input.peek(Ident) && input.peek2(Token![=>]) {
+            // Callback syntax: name => expr
+            input.parse().map(CtrlParam::Callback)
+        } else if input.peek(Ident) && input.peek2(Token![async]) {
+            // Callback syntax: name async => expr
+            input.parse().map(CtrlParam::Callback)
+        } else if input.peek(Ident) && input.peek2(syn::token::Paren) {
+            // Could be callback with arg: name(arg) => expr or name(arg) async => expr
+            // Need to lookahead further to check for => or async
+            let lookahead = input.fork();
+            let _name: Ident = lookahead.parse()?;
+            let _content;
+            syn::parenthesized!(_content in lookahead);
+            // Check for async keyword or =>
+            let is_async_or_arrow = lookahead.peek(Token![async]) || lookahead.peek(Token![=>]);
+            if is_async_or_arrow {
+                input.parse().map(CtrlParam::Callback)
+            } else {
+                // It's a property with a complex expression starting with parentheses
+                input.parse().map(CtrlParam::Property)
+            }
         } else if input.peek(Ident) && input.peek2(Token![:]) {
             input.parse().map(CtrlParam::Property)
         } else if input.peek(Ident) && input.peek2(syn::token::Brace) {
@@ -98,6 +122,52 @@ impl Parse for CtrlProperty {
         input.parse::<Token![:]>()?;
         let expr: Expr = input.parse()?;
         Ok(CtrlProperty { name, expr })
+    }
+}
+
+/// Callback syntax:
+/// - name => expr (sync, no arg)
+/// - name(arg) => expr (sync, with arg)
+/// - name async => expr (async, no arg)
+/// - name(arg) async => expr (async, with arg)
+pub struct CtrlCallback {
+    pub name: Ident,
+    pub arg_pat: Option<Pat>,
+    pub is_async: bool,
+    pub expr: Expr,
+}
+
+impl Parse for CtrlCallback {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name: Ident = input.parse()?;
+
+        // Check for optional argument pattern: name(arg)
+        let arg_pat = if input.peek(syn::token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+            Some(Pat::parse_single(&content)?)
+        } else {
+            None
+        };
+
+        // Check for async keyword - look for the async token
+        let is_async = input.peek(Token![async]);
+        if is_async {
+            input.parse::<Token![async]>()?;
+        }
+
+        // Expect => token
+        input.parse::<Token![=>]>()?;
+
+        // Parse the expression
+        let expr: Expr = input.parse()?;
+
+        Ok(CtrlCallback {
+            name,
+            arg_pat,
+            is_async,
+            expr,
+        })
     }
 }
 
@@ -253,6 +323,84 @@ mod tests {
             }
         } else {
             panic!("Expected CtrlParam::Style");
+        }
+    }
+
+    #[test]
+    fn test_callback_sync_no_arg() {
+        use syn::parse_str;
+        let param: CtrlParam = parse_str("clicked => self.method()").unwrap();
+        if let CtrlParam::Callback(cb) = param {
+            assert_eq!(cb.name, Ident::new("clicked", Span::call_site()));
+            assert!(cb.arg_pat.is_none());
+            assert!(!cb.is_async);
+        } else {
+            panic!("Expected CtrlParam::Callback");
+        }
+    }
+
+    #[test]
+    fn test_callback_sync_with_arg() {
+        use syn::parse_str;
+        let param: CtrlParam = parse_str("changed(v) => self.method(v)").unwrap();
+        if let CtrlParam::Callback(cb) = param {
+            assert_eq!(cb.name, Ident::new("changed", Span::call_site()));
+            assert!(cb.arg_pat.is_some());
+            assert!(!cb.is_async);
+        } else {
+            panic!("Expected CtrlParam::Callback");
+        }
+    }
+
+    #[test]
+    fn test_callback_async_no_arg() {
+        use syn::parse_str;
+        let param: CtrlParam = parse_str("clicked async => self.async_method()").unwrap();
+        if let CtrlParam::Callback(cb) = param {
+            assert_eq!(cb.name, Ident::new("clicked", Span::call_site()));
+            assert!(cb.arg_pat.is_none());
+            assert!(cb.is_async);
+        } else {
+            panic!("Expected CtrlParam::Callback");
+        }
+    }
+
+    #[test]
+    fn test_callback_async_with_arg() {
+        use syn::parse_str;
+        let param: CtrlParam = parse_str("changed(v) async => self.async_method(v)").unwrap();
+        if let CtrlParam::Callback(cb) = param {
+            assert_eq!(cb.name, Ident::new("changed", Span::call_site()));
+            assert!(cb.arg_pat.is_some());
+            assert!(cb.is_async);
+        } else {
+            panic!("Expected CtrlParam::Callback");
+        }
+    }
+
+    #[test]
+    fn test_control_with_callback() {
+        use syn::parse_str;
+        let ctrl: Ctrl =
+            parse_str("Button { text: \"Click me\", clicked => self.handle_click() }").unwrap();
+        assert_eq!(ctrl.name, Ident::new("Button", Span::call_site()));
+        assert_eq!(ctrl.params.len(), 2);
+
+        let mut params = ctrl.params.into_iter();
+
+        let param = params.next().unwrap();
+        if let CtrlParam::Property(prop) = param {
+            assert_eq!(prop.name, Ident::new("text", Span::call_site()));
+        } else {
+            panic!("Expected CtrlParam::Property");
+        }
+
+        let param = params.next().unwrap();
+        if let CtrlParam::Callback(cb) = param {
+            assert_eq!(cb.name, Ident::new("clicked", Span::call_site()));
+            assert!(!cb.is_async);
+        } else {
+            panic!("Expected CtrlParam::Callback");
         }
     }
 }
