@@ -44,7 +44,7 @@ impl MainViewModel {
 
         Ok(Rc::new(RefCell::new(MainViewModel {
             player,
-            texture_id: Property::new(-1),
+            texture_id: (-1).into(),
             player_loop_subscription,
         })))
     }*/

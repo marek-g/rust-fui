@@ -34,12 +34,12 @@ impl MainViewModel {
                 .expect("WindowService is missing"),
             file_service: services.get_file_dialog_service(),
 
-            text: Property::new("My text"),
-            text2: Property::new("ąęść"),
-            progress: Property::new(0.5f32),
-            is_busy: Property::new(false),
-            counter: Property::new(10),
-            counter2: Property::new(0),
+            text: "My text".into(),
+            text2: "ąęść".into(),
+            progress: 0.5.into(),
+            is_busy: false.into(),
+            counter: 10.into(),
+            counter2: 0.into(),
             drop_down_selected_item: Property::new(None),
         })
     }

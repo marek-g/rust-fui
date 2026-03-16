@@ -20,8 +20,8 @@ struct MainViewModel {
 impl MainViewModel {
     pub fn new() -> Rc<Self> {
         Rc::new(MainViewModel {
-            counter: Property::new(10),
-            counter2: Property::new(0),
+            counter: 10.into(),
+            counter2: 0.into(),
         })
     }
 
