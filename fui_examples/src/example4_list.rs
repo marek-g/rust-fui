@@ -75,7 +75,7 @@ impl ViewModel for MainViewModel {
                 heights: vec![(0, Length::Auto)],
 
                 Vertical {
-                    Margin: Thickness::all(5.0f32),
+                    Margin: Thickness::all(5.0),
                     Button {
                         clicked: cb!(self, add),
                         Text { text: "Add" },
@@ -92,7 +92,7 @@ impl ViewModel for MainViewModel {
 
                 ScrollViewer {
                     Vertical {
-                        Margin: Thickness::all(5.0f32),
+                        Margin: Thickness::all(5.0),
                         Text { text: "The dynamic list can be mixed with static controls." },
 
                         Grid {
@@ -102,7 +102,7 @@ impl ViewModel for MainViewModel {
                                 Text { text: "Flat map!" },
                                 Text { text: &item.name },
                                 Button {
-                                    Margin: Thickness::new(5.0f32, 0.0f32, 0.0f32, 0.0f32),
+                                    Margin: Thickness::new(5.0, 0.0, 0.0, 0.0),
                                     clicked: cb!(self, delete(&item)),
                                     Text { text: "Delete" },
                                 },

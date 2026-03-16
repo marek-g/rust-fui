@@ -63,16 +63,16 @@ impl ViewModel for MainViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
         let root_control = ui!(
             Grid {
-                ScrollViewer {
+                /*ScrollViewer {
                     Bitmap { texture_id: &self.texture_id },
-                },
+                },*/
                 Horizontal {
                     Button {
-                        clicked: Callback::new_sync_rc_args(self, |vm, _| vm.play()),
+                        clicked: cb!(self, play),
                         Text { text: "Play" }
                     },
                     Button {
-                        clicked: Callback::new_sync_rc_args(self, |vm, _| vm.stop()),
+                        clicked: cb!(self, stop),
                         Text { text: "Stop" }
                     },
                 },
@@ -80,18 +80,18 @@ impl ViewModel for MainViewModel {
         );
 
         let root_control_copy = root_control.clone();
-        self.player
-            .borrow_mut()
-            .texture
-            .updated
-            .set_rc(self, move |vm, texture_id| {
-                vm.texture_id.set(texture_id);
-                // TODO: do it on bitmap control instead
-                root_control_copy
-                    .borrow_mut()
-                    .get_context_mut()
-                    .set_is_dirty(true);
-            });
+        /*self.player
+        .borrow_mut()
+        .texture
+        .updated
+        .set_rc(self, move |vm, texture_id| {
+            vm.texture_id.set(texture_id);
+            // TODO: do it on bitmap control instead
+            root_control_copy
+                .borrow_mut()
+                .get_context_mut()
+                .set_is_dirty(true);
+        });*/
 
         root_control
     }

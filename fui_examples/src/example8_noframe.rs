@@ -43,11 +43,11 @@ impl ViewModel for MainViewModel {
         Border { border_type: BorderType::Frame3D },
 
                 MoveResizeArea {
-            border_size: Thickness::all(3.0f32),
+            border_size: Thickness::all(3.0),
 
             Horizontal {
                         Text {
-                Margin: Thickness::all(5.0f32),
+                Margin: Thickness::all(5.0),
                 text: (&self.counter, |counter| format!("Counter {}", counter))
                         },
                         Button {
@@ -59,7 +59,7 @@ impl ViewModel for MainViewModel {
                 Text { text: "Increase" }
                         },
                         Text {
-                Margin: Thickness::all(5.0f32),
+                Margin: Thickness::all(5.0),
                 text: (&self.counter2, |counter| format!("Counter2 {}", counter))
                         },
             }

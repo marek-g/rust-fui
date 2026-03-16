@@ -139,36 +139,36 @@ impl ViewModel for MainViewModel {
                 default_height: Length::Auto,
 
                 Grid {
-                    Margin: Thickness::all(8.0f32),
+                    Margin: Thickness::all(8.0),
                     columns: 2,
                     default_height: Length::Auto,
 
                     TextBox { text: self.text.clone() },
-                    Text { Margin: Thickness::left(5.0f32), text: &self.text },
+                    Text { Margin: Thickness::left(5.0), text: &self.text },
 
                     TextBox {
                         Style: Default { password: true },
-                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(0.0, 5.0, 0.0, 0.0),
                         text: self.text2.clone(),
                     },
                     Text {
-                        Style: Default { color: [1.0f32, 0.8f32, 0.0f32, 1.0f32] },
-                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Style: Default { color: [1.0, 0.8, 0.0, 1.0] },
+                        Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
                         text: &self.text2,
                     },
 
                     ScrollBar {
-                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(0.0, 5.0, 0.0, 0.0),
                         orientation: Orientation::Horizontal,
                         value: self.progress.clone(),
                     },
                     ProgressBar {
-                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
                         value: &self.progress,
                     },
 
                     DropDown1 {
-                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(0.0, 5.0, 0.0, 0.0),
                         Column: 0,
                         Row: 3,
                         selected_item: self.drop_down_selected_item.clone(),
@@ -181,7 +181,7 @@ impl ViewModel for MainViewModel {
                         ],
                     },
                     Text {
-                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
                         text: (&self.drop_down_selected_item, |vm: Option<Rc<StringViewModel>>| match &vm {
                             None => "-".to_string(),
                             Some(vm) => vm.text.clone(),
@@ -198,12 +198,12 @@ impl ViewModel for MainViewModel {
 
                 Grid {
                     Column: 0, Row: 1,
-                    Margin: Thickness::all(8.0f32),
+                    Margin: Thickness::all(8.0),
                     columns: 3,
                     default_height: Length::Auto,
 
                     Vertical {
-                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(0.0, 5.0, 0.0, 0.0),
 
                         ToggleButton {
                             Style: Tab {},
@@ -218,12 +218,12 @@ impl ViewModel for MainViewModel {
                     },
 
                     Vertical {
-                        Margin: Thickness::new(5.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
                         radio4, radio5, radio6,
                     },
 
                     Vertical {
-                        Margin: Thickness::new(0.0f32, 5.0f32, 0.0f32, 0.0f32),
+                        Margin: Thickness::new(0.0, 5.0, 0.0, 0.0),
 
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 1"} },
                         ToggleButton { Style: CheckBox {}, Text { text: "CheckBox 2"} },
@@ -305,7 +305,7 @@ impl ViewModel for MainViewModel {
             Menu { items: menu_items },
 
             TabControl {
-                Margin: Thickness::new(8.0f32, 12.0f32, 8.0f32, 8.0f32),
+                Margin: Thickness::new(8.0, 12.0, 8.0, 8.0),
 
                 tab1,
                 tab2
