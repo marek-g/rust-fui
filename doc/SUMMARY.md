@@ -2,6 +2,7 @@
 
 [Intro](intro.md)
 
+- [View Models](view_models.md)
 - [Layout](layout.md)
   - [Alignment](layout_alignment.md)
   - [Margin](layout_margin.md)
