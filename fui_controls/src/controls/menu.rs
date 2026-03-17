@@ -60,43 +60,25 @@ impl MenuBar {
 }
 
 // ============================================================================
-// Menu
+// Menu (Top-level menu for MenuBar)
 // ============================================================================
 
-/// Menu is a control that renders its first child as a trigger.
+/// Menu is a top-level menu control for use in MenuBar.
+/// Renders its first child as a trigger in a horizontal layout.
 /// When clicked or hovered, it shows a popup with the remaining children.
 ///
 /// The first child is typically a Text control showing the menu title.
 /// Remaining children are shown in the popup when the menu is opened.
 ///
-/// # Example (top-level menu)
+/// # Example
 /// ```ignore
-/// Menu {
-///     Text { text: "File" },  // trigger
-///     MenuItem {
-///         activated => self.open(),
-///         Text { text: "Open" }
+/// MenuBar {
+///     Menu {
+///         Text { text: "File" },
+///         MenuItem { activated => self.open(), Text { text: "Open" } },
+///         MenuSeparator {},
+///         MenuItem { activated => self.exit(), Text { text: "Exit" } },
 ///     },
-///     MenuSeparator {},
-///     MenuItem {
-///         activated => self.exit(),
-///         Text { text: "Exit" }
-///     }
-/// }
-/// ```
-///
-/// # Example (submenu)
-/// ```ignore
-/// Menu {
-///     Text { text: "Export >" },  // trigger
-///     MenuItem {
-///         activated => self.export_pdf(),
-///         Text { text: "PDF" }
-///     },
-///     MenuItem {
-///         activated => self.export_png(),
-///         Text { text: "PNG" }
-///     }
 /// }
 /// ```
 #[derive(TypedBuilder)]
@@ -108,194 +90,184 @@ impl Menu {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<RefCell<dyn ControlObject>> {
-        // Shared state for this menu
-        let is_open_prop = Property::new(false);
-        let is_menu_active_prop = Property::new(false);
+        menu_impl(context, true)
+    }
+}
 
-        // Callback to close sibling menus
-        let close_siblings_callback: Rc<RefCell<Callback<()>>> =
-            Rc::new(RefCell::new(Callback::empty()));
+// ============================================================================
+// SubMenu (Nested menu inside another Menu)
+// ============================================================================
 
-        // Collect children
-        let children: Vec<_> = context.children.into_iter().collect();
-        if children.is_empty() {
-            return ui!(Text { text: "" });
-        }
+/// SubMenu is a nested menu control for use inside another Menu.
+/// Renders its first child as a trigger with a submenu indicator.
+/// When hovered, it shows a popup with the remaining children.
+///
+/// # Example
+/// ```ignore
+/// Menu {
+///     Text { text: "File" },
+///     SubMenu {
+///         Text { text: "Export >" },
+///         MenuItem { activated => self.export_pdf(), Text { text: "PDF" } },
+///         MenuItem { activated => self.export_png(), Text { text: "PNG" } },
+///     },
+/// }
+/// ```
+#[derive(TypedBuilder)]
+pub struct SubMenu {}
 
-        // First child is the trigger
-        let trigger = children.first().unwrap().clone();
-        let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
+impl SubMenu {
+    pub fn to_view(
+        self,
+        _style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<RefCell<dyn ControlObject>> {
+        menu_impl(context, false)
+    }
+}
 
-        // Remaining children go into the popup
-        let popup_children: Vec<_> = children.iter().skip(1).cloned().collect();
-        let has_popup_content = !popup_children.is_empty();
+// ============================================================================
+// Common Menu Implementation
+// ============================================================================
 
-        // Create popup content if there are children after the trigger
-        let mut popup_view = Children::None;
+fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<RefCell<dyn ControlObject>> {
+    // Shared state for this menu
+    let is_open_prop = Property::new(false);
 
-        if has_popup_content {
-            let popup_placement = PopupPlacement::LeftOrRightParent;
+    // Collect children
+    let children: Vec<_> = context.children.into_iter().collect();
+    if children.is_empty() {
+        return ui!(Text { text: "" });
+    }
 
-            // Build popup content
-            let popup_content_prop = ObservableVec::new();
-            let mut close_item_popup_callbacks = Vec::new();
-            let mut close_siblings_callbacks = Vec::new();
+    // First child is the trigger
+    let trigger = children.first().unwrap().clone();
+    let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
-            let mut uncovered_controls = vec![];
+    // Remaining children go into the popup
+    let popup_children: Vec<_> = children.iter().skip(1).cloned().collect();
+    let has_popup_content = !popup_children.is_empty();
 
-            for child in popup_children.into_iter() {
-                let close_sib_cb: Rc<RefCell<Callback<()>>> =
-                    Rc::new(RefCell::new(Callback::empty()));
+    // Create popup content if there are children after the trigger
+    let mut popup_view = Children::None;
 
-                popup_content_prop.push(child.clone());
-                close_siblings_callbacks.push(close_sib_cb);
-                close_item_popup_callbacks.push(Callback::empty());
-            }
-
-            // Setup sibling closing logic
-            for i in 0..close_siblings_callbacks.len() {
-                let callbacks_for_i: Vec<_> = close_item_popup_callbacks
-                    .iter()
-                    .enumerate()
-                    .filter(|(j, _)| *j != i)
-                    .map(|(_, cb)| cb.clone())
-                    .collect();
-
-                let close_sib_cb = close_siblings_callbacks[i].clone();
-                close_sib_cb.borrow_mut().set_sync(move |_| {
-                    for cb in &callbacks_for_i {
-                        cb.emit(());
-                    }
-                });
-            }
-
-            let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
-                Shadow {
-                    Style: Default { size: 12.0f32 },
-
-                    Border {
-                        border_type: BorderType::Raisen,
-                        Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
-
-                        Grid {
-                            columns: 1,
-                            default_width: Length::Fill(1.0f32),
-                            default_height: Length::Auto,
-
-                            &popup_content_prop,
-                        }
-                    }
-                }
-            );
-
-            // Add popup content to uncovered controls
-            uncovered_controls.push(Rc::downgrade(&popup_content));
-
-            // Use Menu auto-hide - closes when mouse leaves both trigger and popup
-            // This is the standard behavior for menus
-            let is_menu_active_for_autohide = is_menu_active_prop.clone();
-            let auto_hide_occured_callback = {
-                let background_property = background_property.clone();
-                Callback::new_sync(move |_| {
-                    is_menu_active_for_autohide.set(false);
-                    background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
-                })
-            };
-
-            // Track is_menu_active to close popup
-            let is_open_clone = is_open_prop.clone();
-            let _menu_active_subscription = is_menu_active_prop.on_changed(move |value: bool| {
-                if !value {
-                    is_open_clone.set(false);
-                }
-            });
-
-            let popup = ui!(Popup {
-                is_open: is_open_prop.clone(),
-                placement: popup_placement,
-                auto_hide: PopupAutoHide::Menu,
-                auto_hide_occured: auto_hide_occured_callback,
-                uncovered_controls: uncovered_controls,
-
-                popup_content,
-            });
-
-            popup_view = Children::SingleStatic(popup);
-        }
-
-        // Setup close_siblings callback - close this menu when sibling is opened
-        let is_open_clone = is_open_prop.clone();
-        close_siblings_callback.borrow_mut().set_sync(move |_| {
-            is_open_clone.set(false);
-        });
-
-        // On hover:
-        // - If menu bar is active, close siblings and open this popup
-        // - If menu bar is not active, just open this popup (first hover activation)
-        let on_hover_callback = {
-            let background_property = background_property.clone();
-            let is_open_prop = is_open_prop.clone();
-            let is_menu_active_prop = is_menu_active_prop.clone();
-            let close_siblings_callback = close_siblings_callback.clone();
-            Callback::new_sync(move |value: bool| {
-                background_property.set(
-                    if is_menu_active_prop.get() && (value || is_open_prop.get()) {
-                        Color::rgba(0.0, 0.0, 0.0, 0.8)
-                    } else {
-                        Color::rgba(0.0, 0.0, 0.0, 0.0)
-                    },
-                );
-
-                if
-                /*is_menu_active_prop.get() &&*/
-                value {
-                    // Open this popup if it has content
-                    if has_popup_content {
-                        // Close siblings first (if menu bar is active)
-                        // or activate menu bar (if not active yet)
-                        if is_menu_active_prop.get() {
-                            close_siblings_callback.borrow().emit(());
-                        } else {
-                            is_menu_active_prop.set(true);
-                        }
-                        is_open_prop.set(true);
-                    }
-                }
-            })
+    if has_popup_content {
+        let popup_placement = if is_top_level {
+            PopupPlacement::BelowOrAboveParent
+        } else {
+            PopupPlacement::LeftOrRightParent
         };
 
-        // On tap: activate menu
-        let on_tap_up_callback = {
-            let is_menu_active_prop = is_menu_active_prop.clone();
-            let is_open_prop = is_open_prop.clone();
-            Callback::new_sync(move |_| {
-                if has_popup_content {
-                    is_menu_active_prop.set(true);
-                    is_open_prop.set(true);
-                }
-            })
-        };
+        // Build popup content
+        let popup_content_prop = ObservableVec::new();
+        let mut uncovered_controls = vec![];
 
-        let trigger_wrapped = ui!(
-            GestureArea {
-                hover_change: on_hover_callback,
-                tap_up: on_tap_up_callback,
+        for child in popup_children.into_iter() {
+            popup_content_prop.push(child.clone());
+        }
+
+        let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
+            Shadow {
+                Style: Default { size: 12.0f32 },
 
                 Border {
-                    border_type: BorderType::None,
-                    Style: Default { background_color: background_property },
+                    border_type: BorderType::Raisen,
+                    Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
 
-                    trigger,
-                },
+                    Grid {
+                        columns: 1,
+                        default_width: Length::Fill(1.0f32),
+                        default_height: Length::Auto,
 
-                popup_view,
+                        &popup_content_prop,
+                    }
+                }
             }
         );
 
-        // Build final content
-        let content_prop = ObservableVec::new();
-        content_prop.push(trigger_wrapped);
+        // Add popup content to uncovered controls
+        uncovered_controls.push(Rc::downgrade(&popup_content));
 
+        // Use Menu auto-hide - closes when mouse leaves both trigger and popup
+        let auto_hide_occured_callback = {
+            let background_property = background_property.clone();
+            let is_open_prop = is_open_prop.clone();
+            Callback::new_sync(move |_| {
+                is_open_prop.set(false);
+                background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
+            })
+        };
+
+        let popup = ui!(Popup {
+            is_open: is_open_prop.clone(),
+            placement: popup_placement,
+            auto_hide: PopupAutoHide::Menu,
+            auto_hide_occured: auto_hide_occured_callback,
+            uncovered_controls: uncovered_controls,
+
+            popup_content,
+        });
+
+        popup_view = Children::SingleStatic(popup);
+    }
+
+    // On hover:
+    // - For top-level Menu: hover does nothing (requires click to activate)
+    // - For SubMenu: hover opens the submenu (parent is already open)
+    let on_hover_callback = {
+        let background_property = background_property.clone();
+        let is_open_prop = is_open_prop.clone();
+        Callback::new_sync(move |value: bool| {
+            background_property.set(
+                if value || is_open_prop.get() {
+                    Color::rgba(0.0, 0.0, 0.0, 0.8)
+                } else {
+                    Color::rgba(0.0, 0.0, 0.0, 0.0)
+                },
+            );
+
+            // Only respond to hover for submenus (top-level requires click)
+            if value && !is_top_level {
+                // Open this popup if it has content
+                if has_popup_content {
+                    is_open_prop.set(true);
+                }
+            }
+        })
+    };
+
+    // On tap: open this menu
+    let on_tap_up_callback = {
+        let is_open_prop = is_open_prop.clone();
+        Callback::new_sync(move |_| {
+            if has_popup_content {
+                is_open_prop.set(true);
+            }
+        })
+    };
+
+    let trigger_wrapped = ui!(
+        GestureArea {
+            hover_change: on_hover_callback,
+            tap_up: on_tap_up_callback,
+
+            Border {
+                border_type: BorderType::None,
+                Style: Default { background_color: background_property },
+
+                trigger,
+            },
+
+            popup_view,
+        }
+    );
+
+    // Build final content
+    let content_prop = ObservableVec::new();
+    content_prop.push(trigger_wrapped);
+
+    if is_top_level {
+        // Top-level menu: horizontal layout in MenuBar
         ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
@@ -306,6 +278,24 @@ impl Menu {
 
                     StackPanel {
                         orientation: Orientation::Horizontal,
+
+                        &content_prop,
+                    }
+                }
+            }
+        )
+    } else {
+        // Submenu: vertical layout inside popup
+        ui!(
+            Shadow {
+                Style: Default { size: 12.0f32 },
+
+                Border {
+                    border_type: BorderType::None,
+                    Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
+
+                    StackPanel {
+                        orientation: Orientation::Vertical,
 
                         &content_prop,
                     }

@@ -278,7 +278,7 @@ impl ViewModel for MainViewModel {
                         Text { text: "Save..." }
                     },
 
-                    Menu {
+                    SubMenu {
                         Text { text: "Export" },
 
                         MenuItem {
