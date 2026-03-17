@@ -2,7 +2,7 @@ use crate::view::ViewContext;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::{control::*, InheritedTypeMap, TypeMap};
+use crate::{control::*, TypeMap};
 use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {
@@ -14,7 +14,6 @@ pub struct ControlContext {
     dirty_event_subscriptions: Vec<Subscription>,
 
     attached_values: TypeMap,
-    inherited_values: InheritedTypeMap,
 
     services: Option<Services>,
 
@@ -32,7 +31,6 @@ impl ControlContext {
             children_collection_changed_event_subscription: None,
             dirty_event_subscriptions: Vec::new(),
             attached_values: view_context.attached_values,
-            inherited_values: view_context.inherited_values,
             services: None,
             rect: Rect::empty(),
             is_dirty: true,
@@ -61,11 +59,6 @@ impl ControlContext {
 
     pub fn set_parent(&mut self, parent_rc: &Rc<RefCell<dyn ControlObject>>) {
         self.parent = Some(Rc::downgrade(parent_rc));
-        
-        // Get parent's inherited values and merge with our own
-        let parent_ctx = parent_rc.borrow();
-        let merged = parent_ctx.get_context().get_inherited_values().merge(&self.inherited_values);
-        self.inherited_values = merged;
     }
 
     pub fn get_children(&self) -> &Children {
@@ -82,38 +75,6 @@ impl ControlContext {
 
     pub fn set_attached_values(&mut self, attached_values: TypeMap) {
         self.attached_values = attached_values;
-    }
-
-    pub fn get_inherited_values(&self) -> &InheritedTypeMap {
-        &self.inherited_values
-    }
-
-    pub fn set_inherited_values(&mut self, inherited_values: InheritedTypeMap) {
-        self.inherited_values = inherited_values;
-    }
-
-    /// Propagates inherited values to all children, merging parent values with child overrides.
-    ///
-    /// This should be called:
-    /// - After setting up the control's own inherited values
-    /// - When a new child is added via set_parent
-    ///
-    /// Child's own inherited values override parent's values for the same keys.
-    pub fn propagate_inherited_to_children(&self) {
-        let len = self.children.len();
-        for i in 0..len {
-            if let Some(child) = self.children.get(i) {
-                let mut child_borrow = child.borrow_mut();
-                let child_ctx = child_borrow.get_context_mut();
-
-                // Merge: parent values, overridden by child's own values
-                let merged = self.inherited_values.merge(&child_ctx.inherited_values);
-                child_ctx.inherited_values = merged;
-
-                // Recursively propagate to grandchildren
-                child_ctx.propagate_inherited_to_children();
-            }
-        }
     }
 
     pub fn get_services(&self) -> &Option<Services> {

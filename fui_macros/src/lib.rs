@@ -115,16 +115,10 @@ fn quote_control(ctrl: Ctrl) -> proc_macro2::TokenStream {
     let attached_values_typemap = get_attached_values_typemap(attached_values);
     let children_source = get_children_source(children);
 
-    quote! {
-        {
-            let __av = #attached_values_typemap;
-            #properties_builder.to_view(#style_builder, ViewContext {
-                attached_values: __av.0,
-                inherited_values: __av.1,
-                children: #children_source,
-            })
-        }
-    }
+    quote! { #properties_builder.to_view(#style_builder, ViewContext {
+        attached_values: #attached_values_typemap,
+        children: #children_source,
+    }) }
 }
 
 fn get_properties_builder(
@@ -267,19 +261,9 @@ fn get_attached_values_typemap(attached_values: Vec<CtrlProperty>) -> proc_macro
     for attached_value in attached_values {
         let name = attached_value.name;
         let expr = attached_value.expr;
-        // Use insert_attached_value which routes to the correct map based on registration
-        insert_statements.push(quote! {
-            ::fui_core::insert_attached_value::<#name>((#expr).into(), &mut attached_map, &mut inherited_map);
-        })
+        insert_statements.push(quote!(map.insert::<#name>((#expr).into());))
     }
-    quote! {
-        {
-            let mut attached_map = ::fui_core::TypeMap::new();
-            let mut inherited_map = ::fui_core::InheritedTypeMap::new();
-            #(#insert_statements)*
-            (attached_map, inherited_map)
-        }
-    }
+    quote!({ let mut map = TypeMap::new(); #(#insert_statements)* map })
 }
 
 fn get_children_source(children: Vec<CtrlParam>) -> proc_macro2::TokenStream {

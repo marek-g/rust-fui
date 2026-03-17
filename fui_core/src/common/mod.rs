@@ -18,9 +18,3 @@ pub use thickness::*;
 
 mod type_map;
 pub use type_map::*;
-
-mod inherited_type_map;
-pub use inherited_type_map::*;
-
-mod attached_value_registry;
-pub use attached_value_registry::*;

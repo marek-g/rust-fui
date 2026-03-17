@@ -7,7 +7,6 @@
   - [Alignment](layout_alignment.md)
   - [Margin](layout_margin.md)
   - [Visible](layout_visible.md)
-- [Inherited Properties](inherited_properties.md)
 - [Events](events.md)
 - [Async support](async.md)
 - [Internationalization](i18n.md)

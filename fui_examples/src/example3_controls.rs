@@ -351,7 +351,6 @@ impl ViewModel for MainViewModel {
             None,
             ViewContext {
                 attached_values: TypeMap::new(),
-                inherited_values: InheritedTypeMap::new(),
                 children: Children::SingleStatic(content),
             },
         )

@@ -965,7 +965,6 @@ dependencies = [
  "fui_drawing",
  "fui_macros",
  "futures-signals",
- "once_cell",
  "tokio",
  "typed-builder",
  "windowing_api",
