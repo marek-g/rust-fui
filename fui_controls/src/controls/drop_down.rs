@@ -103,6 +103,7 @@ where
             None,
             ViewContext {
                 attached_values: context.attached_values,
+                inherited_values: context.inherited_values,
                 children: Children::SingleStatic(content),
             },
         )

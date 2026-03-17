@@ -1,10 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::{control::ControlObject, Children, TypeMap};
+use crate::{control::ControlObject, Children, InheritedTypeMap, TypeMap};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
+    pub inherited_values: InheritedTypeMap,
     pub children: Children,
 }
 
@@ -12,6 +13,7 @@ impl ViewContext {
     pub fn empty() -> ViewContext {
         ViewContext {
             attached_values: TypeMap::new(),
+            inherited_values: InheritedTypeMap::new(),
             children: Children::empty(),
         }
     }

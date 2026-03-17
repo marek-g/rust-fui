@@ -28,6 +28,9 @@ impl<D: 'static> StyledControl<D> {
         let control_weak = Rc::downgrade(&control);
         control.borrow_mut().control_context.set_self(control_weak);
 
+        // propagate inherited values to children
+        control.borrow().get_context().propagate_inherited_to_children();
+
         let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
         let handler = Box::new(
             move |changed_args: VecDiff<Rc<RefCell<dyn ControlObject>>>| {

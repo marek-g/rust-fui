@@ -93,6 +93,7 @@ impl ViewModel for MainViewModel {
                 ScrollViewer {
                     Vertical {
                         Margin: Thickness::all(5.0),
+
                         Text { text: "The dynamic list can be mixed with static controls." },
 
                         Grid {
