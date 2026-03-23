@@ -136,15 +136,17 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn measure(&mut self, drawing_context: &mut FuiDrawingContext, mut size: Size) {
-        let map = self.control_context.get_attached_values();
-        if let Some(visible) = map.get::<Visible>() {
+        if let Some(visible) = self.control_context.get_attached_value::<Visible>() {
             if !visible.get() {
                 self.control_context.set_rect(Rect::empty());
                 return;
             }
         }
 
-        size = Margin::remove_from_size(size, &self.control_context.get_attached_values());
+        size = Margin::remove_from_size(
+            size,
+            self.control_context.get_attached_value::<Margin>(),
+        );
 
         let mut measured_size = self.style.measure(
             &mut self.data,
@@ -153,8 +155,10 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
             size,
         );
 
-        measured_size =
-            Margin::add_to_size(measured_size, &self.control_context.get_attached_values());
+        measured_size = Margin::add_to_size(
+            measured_size,
+            self.control_context.get_attached_value::<Margin>(),
+        );
 
         self.control_context.set_rect(Rect::new(
             0.0f32,
@@ -165,8 +169,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
     }
 
     fn set_rect(&mut self, drawing_context: &mut FuiDrawingContext, rect: Rect) {
-        let map = self.control_context.get_attached_values();
-        if let Some(visible) = map.get::<Visible>() {
+        if let Some(visible) = self.control_context.get_attached_value::<Visible>() {
             if !visible.get() {
                 self.control_context.set_rect(Rect::empty());
                 return;
@@ -179,11 +182,15 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         let mut new_rect = Alignment::apply(
             measured_size,
             rect,
-            &map,
+            self.control_context.get_attached_value::<HorizontalAlignment>(),
+            self.control_context.get_attached_value::<VerticalAlignment>(),
             Alignment::Stretch,
             Alignment::Stretch,
         );
-        new_rect = Margin::remove_from_rect(new_rect, &map);
+        new_rect = Margin::remove_from_rect(
+            new_rect,
+            self.control_context.get_attached_value::<Margin>(),
+        );
 
         self.control_context.set_rect(new_rect);
         self.style.set_rect(

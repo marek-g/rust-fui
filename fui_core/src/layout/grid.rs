@@ -286,10 +286,10 @@ impl DefaultGridStyle {
         let mut max_column_from_attached = -1;
         for child in children.into_iter() {
             let child = child.borrow();
-            let map = child.get_context().get_attached_values();
+            let ctx = child.get_context();
 
-            let max_row = if let Some(row) = map.get::<Row>() {
-                if let Some(row_span) = map.get::<RowSpan>() {
+            let max_row = if let Some(row) = ctx.get_attached_value::<Row>() {
+                if let Some(row_span) = ctx.get_attached_value::<RowSpan>() {
                     row + row_span - 1
                 } else {
                     *row
@@ -299,8 +299,8 @@ impl DefaultGridStyle {
             };
             max_row_from_attached = max_row_from_attached.max(max_row);
 
-            let max_column = if let Some(column) = map.get::<Column>() {
-                if let Some(column_span) = map.get::<ColumnSpan>() {
+            let max_column = if let Some(column) = ctx.get_attached_value::<Column>() {
+                if let Some(column_span) = ctx.get_attached_value::<ColumnSpan>() {
                     column + column_span - 1
                 } else {
                     *column
@@ -436,17 +436,17 @@ impl DefaultGridStyle {
             let mut row_span = 1;
 
             let child = child.borrow();
-            let map = child.get_context().get_attached_values();
-            if let Some(row) = map.get::<Row>() {
+            let ctx = child.get_context();
+            if let Some(row) = ctx.get_attached_value::<Row>() {
                 row_index = *row;
             }
-            if let Some(column) = map.get::<Column>() {
+            if let Some(column) = ctx.get_attached_value::<Column>() {
                 column_index = *column;
             }
-            if let Some(rspan) = map.get::<RowSpan>() {
+            if let Some(rspan) = ctx.get_attached_value::<RowSpan>() {
                 row_span = *rspan;
             }
-            if let Some(cspan) = map.get::<ColumnSpan>() {
+            if let Some(cspan) = ctx.get_attached_value::<ColumnSpan>() {
                 column_span = *cspan;
             }
 

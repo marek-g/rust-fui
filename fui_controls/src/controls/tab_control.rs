@@ -98,8 +98,7 @@ impl TabButtonViewModel {
         let title = content
             .borrow()
             .get_context()
-            .get_attached_values()
-            .get::<Title>()
+            .get_attached_value::<Title>()
             .map(|t| t.clone())
             .unwrap_or_else(|| Property::new("Tab"));
 

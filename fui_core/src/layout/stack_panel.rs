@@ -108,8 +108,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let child = child.borrow();
                     let mut child_size = child.get_rect();
 
-                    let map = child.get_context().get_attached_values();
-                    if let Some(grow) = map.get::<Grow>() {
+                    if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                         match *grow {
                             Length::Exact(l) => {
                                 child_size.width = child_size.width.max(l);
@@ -140,8 +139,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let child = child.borrow();
                     let mut child_size = child.get_rect();
 
-                    let map = child.get_context().get_attached_values();
-                    if let Some(grow) = map.get::<Grow>() {
+                    if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                         match *grow {
                             Length::Exact(l) => {
                                 child_size.height = child_size.height.max(l);
@@ -182,11 +180,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         let grow_fills_sum: f32 = children
             .into_iter()
             .map(|child| {
-                if let Some(Length::Fill(fill)) = child
-                    .borrow()
-                    .get_context()
-                    .get_attached_values()
-                    .get::<Grow>()
+                if let Some(Length::Fill(fill)) =
+                    child.borrow().get_context().get_attached_value::<Grow>()
                 {
                     *fill
                 } else {
@@ -202,8 +197,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     .map(|child| {
                         let child = child.borrow();
                         let child_width = child.get_rect().width;
-                        let map = child.get_context().get_attached_values();
-                        if let Some(grow) = map.get::<Grow>() {
+                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                             match *grow {
                                 Length::Exact(l) => child_width.max(l),
                                 _ => child_width,
@@ -226,8 +220,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                         let child = child.borrow();
                         let mut child_size = child.get_rect();
 
-                        let map = child.get_context().get_attached_values();
-                        if let Some(grow) = map.get::<Grow>() {
+                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                             match *grow {
                                 Length::Exact(l) => {
                                     child_size.width = child_size.width.max(l);
@@ -260,8 +253,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     .map(|child| {
                         let child = child.borrow();
                         let child_height = child.get_rect().height;
-                        let map = child.get_context().get_attached_values();
-                        if let Some(grow) = map.get::<Grow>() {
+                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                             match *grow {
                                 Length::Exact(l) => child_height.max(l),
                                 _ => child_height,
@@ -284,8 +276,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                         let child = child.borrow();
                         let mut child_size = child.get_rect();
 
-                        let map = child.get_context().get_attached_values();
-                        if let Some(grow) = map.get::<Grow>() {
+                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
                             match *grow {
                                 Length::Exact(l) => {
                                     child_size.height = child_size.height.max(l);

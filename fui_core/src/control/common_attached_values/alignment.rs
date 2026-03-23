@@ -1,4 +1,4 @@
-use crate::{Rect, Size, TypeMap, TypeMapKey};
+use crate::{Rect, Size, TypeMapKey};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Alignment {
@@ -12,17 +12,18 @@ impl Alignment {
     pub fn apply(
         size: Size,
         dest_rect: Rect,
-        map: &TypeMap,
+        horizontal: Option<&Alignment>,
+        vertical: Option<&Alignment>,
         default_horizontal_alignment: Alignment,
         default_vertical_alignment: Alignment,
     ) -> Rect {
-        let horizontal = if let Some(h) = map.get::<HorizontalAlignment>() {
+        let horizontal = if let Some(h) = horizontal {
             *h
         } else {
             default_horizontal_alignment
         };
 
-        let vertical = if let Some(v) = map.get::<VerticalAlignment>() {
+        let vertical = if let Some(v) = vertical {
             *v
         } else {
             default_vertical_alignment

@@ -2,7 +2,7 @@ use crate::view::ViewContext;
 use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
-use crate::{control::*, TypeMap};
+use crate::{control::*, TypeMap, TypeMapKey};
 use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {
@@ -69,8 +69,8 @@ impl ControlContext {
         self.children_collection_changed_event_subscription = s;
     }
 
-    pub fn get_attached_values(&self) -> &TypeMap {
-        &self.attached_values
+    pub fn get_attached_value<K: TypeMapKey + 'static>(&self) -> Option<&K::Value> {
+        self.attached_values.get::<K>()
     }
 
     pub fn set_attached_values(&mut self, attached_values: TypeMap) {
