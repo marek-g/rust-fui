@@ -66,11 +66,33 @@ impl ControlContext {
     }
 
     pub fn set_children_collection_changed_event_subscription(&self, s: Option<Subscription>) {
-        *self.children_collection_changed_event_subscription.borrow_mut() = s;
+        *self
+            .children_collection_changed_event_subscription
+            .borrow_mut() = s;
     }
 
     pub fn get_attached_value<K: TypeMapKey + 'static>(&self) -> Option<Ref<'_, K::Value>> {
         Ref::filter_map(self.attached_values.borrow(), |map| map.get::<K>()).ok()
+    }
+
+    pub fn get_inherited_value<K: TypeMapKey + 'static>(&self) -> Option<K::Value>
+    where
+        K::Value: Clone,
+    {
+        if let Some(val) = self.get_attached_value::<K>() {
+            return Some(val.clone());
+        }
+
+        let mut current_parent = self.get_parent();
+        while let Some(parent) = current_parent {
+            let context = parent.get_context();
+            if let Some(val) = context.get_attached_value::<K>() {
+                return Some(val.clone());
+            }
+            current_parent = context.get_parent();
+        }
+
+        None
     }
 
     pub fn set_attached_values(&self, attached_values: TypeMap) {
@@ -83,9 +105,7 @@ impl ControlContext {
 
     pub fn set_services(&self, services: Option<Services>) {
         for child in self.children.into_iter() {
-            child
-                .get_context()
-                .set_services(services.clone());
+            child.get_context().set_services(services.clone());
         }
         *self.services.borrow_mut() = services;
     }
