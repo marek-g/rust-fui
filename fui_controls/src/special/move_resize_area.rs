@@ -104,12 +104,12 @@ impl DefaultMoveResizeAreaStyle {
 }
 
 impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
-    fn setup(&mut self, _data: &mut MoveResizeArea, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut MoveResizeArea, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         data: &mut MoveResizeArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -195,7 +195,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
     fn measure(
         &mut self,
         data: &mut MoveResizeArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -207,7 +207,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
             let mut desired_size = Size::new(0.0f32, 0.0f32);
 
             for child in children.into_iter() {
-                let mut child = child.borrow_mut();
+                let child = child.borrow_mut();
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
                 desired_size.width = desired_size.width.max(child_rc.width);
@@ -225,7 +225,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
     fn set_rect(
         &mut self,
         data: &mut MoveResizeArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -237,7 +237,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         );
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow_mut().set_rect(drawing_context, new_rect);
+            child.borrow().set_rect(drawing_context, new_rect);
         }
     }
 
@@ -273,7 +273,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow_mut().draw(drawing_context),
+            Some(child) => child.borrow().draw(drawing_context),
             _ => (),
         }
     }

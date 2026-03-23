@@ -89,7 +89,7 @@ impl ViewModel for MainViewModel {
             // TODO: do it on bitmap control instead
             root_control_copy
                 .borrow_mut()
-                .get_context_mut()
+                .get_context()
                 .set_is_dirty(true);
         });*/
 

@@ -60,14 +60,14 @@ impl DefaultTextStyle {
 }
 
 impl Style<Text> for DefaultTextStyle {
-    fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut Text, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.text);
     }
 
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -77,7 +77,7 @@ impl Style<Text> for DefaultTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
@@ -101,7 +101,7 @@ impl Style<Text> for DefaultTextStyle {
     fn set_rect(
         &mut self,
         _data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {
@@ -192,7 +192,7 @@ impl DynamicTextStyle {
 }
 
 impl Style<Text> for DynamicTextStyle {
-    fn setup(&mut self, data: &mut Text, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut Text, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.text);
         control_context.dirty_watch_property(&self.params.color);
     }
@@ -200,7 +200,7 @@ impl Style<Text> for DynamicTextStyle {
     fn handle_event(
         &mut self,
         _data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -210,7 +210,7 @@ impl Style<Text> for DynamicTextStyle {
     fn measure(
         &mut self,
         data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
@@ -234,7 +234,7 @@ impl Style<Text> for DynamicTextStyle {
     fn set_rect(
         &mut self,
         _data: &mut Text,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {

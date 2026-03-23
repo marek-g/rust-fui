@@ -55,7 +55,7 @@ impl DefaultButtonStyle {
 }
 
 impl Style<Button> for DefaultButtonStyle {
-    fn setup(&mut self, _data: &mut Button, control_context: &mut ControlContext) {
+    fn setup(&mut self, _data: &mut Button, control_context: &ControlContext) {
         control_context.dirty_watch_property(&self.is_hover);
         control_context.dirty_watch_property(&self.is_pressed);
         control_context.dirty_watch_property(&self.is_focused);
@@ -64,7 +64,7 @@ impl Style<Button> for DefaultButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut Button,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -113,7 +113,7 @@ impl Style<Button> for DefaultButtonStyle {
     fn measure(
         &mut self,
         _data: &mut Button,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         mut size: Size,
     ) -> Size {
@@ -127,7 +127,7 @@ impl Style<Button> for DefaultButtonStyle {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -140,7 +140,7 @@ impl Style<Button> for DefaultButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut Button,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -153,7 +153,7 @@ impl Style<Button> for DefaultButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -200,7 +200,7 @@ impl Style<Button> for DefaultButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if self.is_pressed.get() {
                 drawing_context.display.restore();
             }

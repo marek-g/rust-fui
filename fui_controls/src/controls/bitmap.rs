@@ -56,14 +56,14 @@ impl DefaultBitmapStyle {
 }
 
 impl Style<Bitmap> for DefaultBitmapStyle {
-    fn setup(&mut self, data: &mut Bitmap, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut Bitmap, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.texture);
     }
 
     fn handle_event(
         &mut self,
         _data: &mut Bitmap,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -73,7 +73,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn measure(
         &mut self,
         data: &mut Bitmap,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
@@ -89,7 +89,7 @@ impl Style<Bitmap> for DefaultBitmapStyle {
     fn set_rect(
         &mut self,
         _data: &mut Bitmap,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {

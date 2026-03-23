@@ -6,10 +6,8 @@ use std::{cell::RefCell, rc::Rc};
 
 pub trait ControlObject: ControlBehavior {
     fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
 
     fn get_context(&self) -> &ControlContext;
-    fn get_context_mut(&mut self) -> &mut ControlContext;
 
     ///
     /// Returns all the child controls including this one

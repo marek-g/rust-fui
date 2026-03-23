@@ -288,8 +288,8 @@ impl DefaultGridStyle {
             let child = child.borrow();
             let ctx = child.get_context();
 
-            let max_row = if let Some(row) = ctx.get_attached_value::<Row>() {
-                if let Some(row_span) = ctx.get_attached_value::<RowSpan>() {
+            let max_row = if let Some(row) = ctx.get_attached_value::<Row>().as_deref() {
+                if let Some(row_span) = ctx.get_attached_value::<RowSpan>().as_deref() {
                     row + row_span - 1
                 } else {
                     *row
@@ -299,8 +299,8 @@ impl DefaultGridStyle {
             };
             max_row_from_attached = max_row_from_attached.max(max_row);
 
-            let max_column = if let Some(column) = ctx.get_attached_value::<Column>() {
-                if let Some(column_span) = ctx.get_attached_value::<ColumnSpan>() {
+            let max_column = if let Some(column) = ctx.get_attached_value::<Column>().as_deref() {
+                if let Some(column_span) = ctx.get_attached_value::<ColumnSpan>().as_deref() {
                     column + column_span - 1
                 } else {
                     *column
@@ -437,16 +437,16 @@ impl DefaultGridStyle {
 
             let child = child.borrow();
             let ctx = child.get_context();
-            if let Some(row) = ctx.get_attached_value::<Row>() {
+            if let Some(row) = ctx.get_attached_value::<Row>().as_deref() {
                 row_index = *row;
             }
-            if let Some(column) = ctx.get_attached_value::<Column>() {
+            if let Some(column) = ctx.get_attached_value::<Column>().as_deref() {
                 column_index = *column;
             }
-            if let Some(rspan) = ctx.get_attached_value::<RowSpan>() {
+            if let Some(rspan) = ctx.get_attached_value::<RowSpan>().as_deref() {
                 row_span = *rspan;
             }
-            if let Some(cspan) = ctx.get_attached_value::<ColumnSpan>() {
+            if let Some(cspan) = ctx.get_attached_value::<ColumnSpan>().as_deref() {
                 column_span = *cspan;
             }
 
@@ -639,7 +639,7 @@ impl DefaultGridStyle {
                 Self::get_measure_size_for_range(definitions_v, cell.row_index, cell.row_span);
         }
 
-        child.borrow_mut().measure(
+        child.borrow().measure(
             drawing_context,
             Size::new(cell_measure_width, cell_measure_height),
         );
@@ -1458,12 +1458,12 @@ impl DefaultGridStyle {
 }
 
 impl Style<Grid> for DefaultGridStyle {
-    fn setup(&mut self, _data: &mut Grid, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut Grid, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         _data: &mut Grid,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -1473,7 +1473,7 @@ impl Style<Grid> for DefaultGridStyle {
     fn measure(
         &mut self,
         data: &mut Grid,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -1489,7 +1489,7 @@ impl Style<Grid> for DefaultGridStyle {
             self.definitions_v = Vec::new();
 
             for child in children.into_iter() {
-                let mut child = child.borrow_mut();
+                let child = child.borrow_mut();
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
                 grid_desired_size.width = grid_desired_size.width.max(child_rc.width);
@@ -1645,7 +1645,7 @@ impl Style<Grid> for DefaultGridStyle {
     fn set_rect(
         &mut self,
         _data: &mut Grid,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -1653,7 +1653,7 @@ impl Style<Grid> for DefaultGridStyle {
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow_mut().set_rect(drawing_context, rect);
+                child.borrow().set_rect(drawing_context, rect);
             }
         } else {
             Self::set_final_size(&mut self.definitions_u, rect.width, true);
@@ -1690,7 +1690,7 @@ impl Style<Grid> for DefaultGridStyle {
                     Self::get_final_size_for_range(&mut self.definitions_v, row_index, row_span),
                 );
 
-                child.borrow_mut().set_rect(drawing_context, rc);
+                child.borrow().set_rect(drawing_context, rc);
             }
         }
     }
@@ -1727,7 +1727,7 @@ impl Style<Grid> for DefaultGridStyle {
     ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            child.borrow_mut().draw(drawing_context);
+            child.borrow().draw(drawing_context);
         }
     }
 }

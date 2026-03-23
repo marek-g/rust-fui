@@ -74,12 +74,12 @@ impl DefaultStackPanelStyle {
 }
 
 impl Style<StackPanel> for DefaultStackPanelStyle {
-    fn setup(&mut self, _data: &mut StackPanel, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut StackPanel, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         _data: &mut StackPanel,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -89,7 +89,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     fn measure(
         &mut self,
         data: &mut StackPanel,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -104,11 +104,12 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 // calculate min sizes
                 let mut grow_fills_sum = 0.0f32;
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
+                    child.borrow().measure(drawing_context, available_size);
                     let child = child.borrow();
                     let mut child_size = child.get_rect();
 
-                    if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                    if let Some(grow) = child.get_context().get_attached_value::<Grow>().as_deref()
+                    {
                         match *grow {
                             Length::Exact(l) => {
                                 child_size.width = child_size.width.max(l);
@@ -135,11 +136,12 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 // calculate min sizes
                 let mut grow_fills_sum = 0.0f32;
                 for child in children.into_iter() {
-                    child.borrow_mut().measure(drawing_context, available_size);
+                    child.borrow().measure(drawing_context, available_size);
                     let child = child.borrow();
                     let mut child_size = child.get_rect();
 
-                    if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                    if let Some(grow) = child.get_context().get_attached_value::<Grow>().as_deref()
+                    {
                         match *grow {
                             Length::Exact(l) => {
                                 child_size.height = child_size.height.max(l);
@@ -169,7 +171,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     fn set_rect(
         &mut self,
         data: &mut StackPanel,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -180,8 +182,11 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         let grow_fills_sum: f32 = children
             .into_iter()
             .map(|child| {
-                if let Some(Length::Fill(fill)) =
-                    child.borrow().get_context().get_attached_value::<Grow>()
+                if let Some(Length::Fill(fill)) = child
+                    .borrow()
+                    .get_context()
+                    .get_attached_value::<Grow>()
+                    .as_deref()
                 {
                     *fill
                 } else {
@@ -197,7 +202,9 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     .map(|child| {
                         let child = child.borrow();
                         let child_width = child.get_rect().width;
-                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                        if let Some(grow) =
+                            child.get_context().get_attached_value::<Grow>().as_deref()
+                        {
                             match *grow {
                                 Length::Exact(l) => child_width.max(l),
                                 _ => child_width,
@@ -220,7 +227,9 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                         let child = child.borrow();
                         let mut child_size = child.get_rect();
 
-                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                        if let Some(grow) =
+                            child.get_context().get_attached_value::<Grow>().as_deref()
+                        {
                             match *grow {
                                 Length::Exact(l) => {
                                     child_size.width = child_size.width.max(l);
@@ -241,7 +250,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, child_rect.width, rect.height);
 
-                    let mut child = child.borrow_mut();
+                    let child = child.borrow_mut();
                     child.set_rect(drawing_context, dest_rect);
 
                     child_rect.x += child_rect.width;
@@ -253,7 +262,9 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     .map(|child| {
                         let child = child.borrow();
                         let child_height = child.get_rect().height;
-                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                        if let Some(grow) =
+                            child.get_context().get_attached_value::<Grow>().as_deref()
+                        {
                             match *grow {
                                 Length::Exact(l) => child_height.max(l),
                                 _ => child_height,
@@ -276,7 +287,9 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                         let child = child.borrow();
                         let mut child_size = child.get_rect();
 
-                        if let Some(grow) = child.get_context().get_attached_value::<Grow>() {
+                        if let Some(grow) =
+                            child.get_context().get_attached_value::<Grow>().as_deref()
+                        {
                             match *grow {
                                 Length::Exact(l) => {
                                     child_size.height = child_size.height.max(l);
@@ -297,7 +310,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, rect.width, child_rect.height);
 
-                    let mut child = child.borrow_mut();
+                    let child = child.borrow_mut();
                     child.set_rect(drawing_context, dest_rect);
 
                     child_rect.y += child_rect.height;
@@ -338,7 +351,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            child.borrow_mut().draw(drawing_context);
+            child.borrow().draw(drawing_context);
         }
     }
 }

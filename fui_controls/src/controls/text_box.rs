@@ -182,7 +182,7 @@ impl DefaultTextBoxStyle {
         }
     }
 
-    fn copy_to_clipboard(&self, control_context: &mut ControlContext) {
+    fn copy_to_clipboard(&self, control_context: &ControlContext) {
         if let Some(selected) = self.buf().get_selected_string() {
             if let Some(clipboard) = control_context
                 .get_services()
@@ -194,7 +194,7 @@ impl DefaultTextBoxStyle {
         }
     }
 
-    fn paste_from_clipboard(&mut self, control_context: &mut ControlContext) -> bool {
+    fn paste_from_clipboard(&mut self, control_context: &ControlContext) -> bool {
         if let Some(clipboard) = control_context
             .get_services()
             .as_ref()
@@ -208,7 +208,7 @@ impl DefaultTextBoxStyle {
         false
     }
 
-    fn cut_to_clipboard(&mut self, control_context: &mut ControlContext) -> bool {
+    fn cut_to_clipboard(&mut self, control_context: &ControlContext) -> bool {
         if let Some(selected) = self.buf_mut().delete_selected_text() {
             if let Some(clipboard) = control_context
                 .get_services()
@@ -224,7 +224,7 @@ impl DefaultTextBoxStyle {
 }
 
 impl Style<TextBox> for DefaultTextBoxStyle {
-    fn setup(&mut self, data: &mut TextBox, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut TextBox, control_context: &ControlContext) {
         self.buffer = Some(TextBuffer::new(data.text.clone()));
         control_context.dirty_watch_property(&data.text);
     }
@@ -232,7 +232,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn handle_event(
         &mut self,
         _data: &mut TextBox,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -373,7 +373,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn measure(
         &mut self,
         _data: &mut TextBox,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -394,7 +394,7 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn set_rect(
         &mut self,
         _data: &mut TextBox,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {

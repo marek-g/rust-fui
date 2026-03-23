@@ -100,7 +100,7 @@ impl ScrollViewer {
         };
 
         view.borrow_mut()
-            .get_context_mut()
+            .get_context()
             .set_attached_values(context.attached_values);
 
         view

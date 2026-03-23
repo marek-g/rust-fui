@@ -69,14 +69,14 @@ impl DefaultBorderStyle {
 }
 
 impl Style<Border> for DefaultBorderStyle {
-    fn setup(&mut self, _data: &mut Border, control_context: &mut ControlContext) {
+    fn setup(&mut self, _data: &mut Border, control_context: &ControlContext) {
         control_context.dirty_watch_property(&self.params.background_color);
     }
 
     fn handle_event(
         &mut self,
         _data: &mut Border,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -86,7 +86,7 @@ impl Style<Border> for DefaultBorderStyle {
     fn measure(
         &mut self,
         data: &mut Border,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -108,7 +108,7 @@ impl Style<Border> for DefaultBorderStyle {
                         size.height
                     },
                 );
-                content.borrow_mut().measure(drawing_context, child_size);
+                content.borrow().measure(drawing_context, child_size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -124,7 +124,7 @@ impl Style<Border> for DefaultBorderStyle {
     fn set_rect(
         &mut self,
         data: &mut Border,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -139,7 +139,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -226,7 +226,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
         }
     }
 }

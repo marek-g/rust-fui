@@ -50,12 +50,12 @@ impl DefaultGestureAreaStyle {
 }
 
 impl Style<GestureArea> for DefaultGestureAreaStyle {
-    fn setup(&mut self, _data: &mut GestureArea, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut GestureArea, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         data: &mut GestureArea,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -80,14 +80,14 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
     fn measure(
         &mut self,
         _data: &mut GestureArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
         match children.into_iter().next() {
             Some(child) => {
-                child.borrow_mut().measure(drawing_context, size);
+                child.borrow().measure(drawing_context, size);
                 let child_rect = child.borrow().get_rect();
                 Size::new(child_rect.width, child_rect.height)
             }
@@ -98,13 +98,13 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
     fn set_rect(
         &mut self,
         _data: &mut GestureArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow_mut().set_rect(drawing_context, rect);
+            child.borrow().set_rect(drawing_context, rect);
         }
     }
 
@@ -135,7 +135,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow_mut().draw(drawing_context),
+            Some(child) => child.borrow().draw(drawing_context),
             _ => (),
         }
     }

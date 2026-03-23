@@ -51,7 +51,7 @@ impl PathEdit {
 
         control
             .borrow_mut()
-            .get_context_mut()
+            .get_context()
             .set_attached_values(context.attached_values);
 
         let control_weak = Rc::downgrade(&control);

@@ -131,7 +131,7 @@ impl Window {
         window_data_rc
             .root_control
             .borrow_mut()
-            .get_context_mut()
+            .get_context()
             .set_services(Some(services.clone()));
         {
             let mut window_data_rc_services = window_data_rc.services.borrow_mut();
@@ -447,7 +447,7 @@ impl Window {
                             .root_control
                             .borrow_mut()
                             .measure(&mut fui_drawing_context, size);
-                        window_data.root_control.borrow_mut().set_rect(
+                        window_data.root_control.borrow().set_rect(
                             &mut fui_drawing_context,
                             Rect::new(0f32, 0f32, size.width, size.height),
                         );
@@ -460,7 +460,7 @@ impl Window {
                         window_data
                             .root_control
                             .borrow_mut()
-                            .get_context_mut()
+                            .get_context()
                             .set_is_dirty(false);
 
                         tx.send(Some(display_list_builder)).unwrap();

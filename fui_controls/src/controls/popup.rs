@@ -94,7 +94,7 @@ impl DefaultPopupStyle {
 }
 
 impl Style<Popup> for DefaultPopupStyle {
-    fn setup(&mut self, data: &mut Popup, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut Popup, control_context: &ControlContext) {
         let self_rc = control_context.get_self_rc();
         let popup_content_rc = self.popup_content.clone();
         let placement = data.placement;
@@ -175,7 +175,7 @@ impl Style<Popup> for DefaultPopupStyle {
     fn handle_event(
         &mut self,
         _data: &mut Popup,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -185,7 +185,7 @@ impl Style<Popup> for DefaultPopupStyle {
     fn measure(
         &mut self,
         _data: &mut Popup,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
@@ -195,7 +195,7 @@ impl Style<Popup> for DefaultPopupStyle {
     fn set_rect(
         &mut self,
         _data: &mut Popup,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {

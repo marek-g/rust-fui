@@ -61,7 +61,7 @@ impl DefaultProgressBarStyle {
 }
 
 impl Style<ProgressBar> for DefaultProgressBarStyle {
-    fn setup(&mut self, data: &mut ProgressBar, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ProgressBar, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.min_value);
         control_context.dirty_watch_property(&data.max_value);
         control_context.dirty_watch_property(&data.value);
@@ -70,7 +70,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn handle_event(
         &mut self,
         _data: &mut ProgressBar,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -80,7 +80,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn measure(
         &mut self,
         data: &mut ProgressBar,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
@@ -93,7 +93,7 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn set_rect(
         &mut self,
         _data: &mut ProgressBar,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _rect: Rect,
     ) {

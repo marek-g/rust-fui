@@ -48,12 +48,12 @@ impl DefaultShadowStyle {
 }
 
 impl Style<Shadow> for DefaultShadowStyle {
-    fn setup(&mut self, _data: &mut Shadow, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut Shadow, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         _data: &mut Shadow,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         _event: ControlEvent,
@@ -63,7 +63,7 @@ impl Style<Shadow> for DefaultShadowStyle {
     fn measure(
         &mut self,
         _data: &mut Shadow,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -71,7 +71,7 @@ impl Style<Shadow> for DefaultShadowStyle {
 
         match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -82,13 +82,13 @@ impl Style<Shadow> for DefaultShadowStyle {
     fn set_rect(
         &mut self,
         _data: &mut Shadow,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, rect);
+            content.borrow().set_rect(drawing_context, rect);
         }
     }
 
@@ -140,7 +140,7 @@ impl Style<Shadow> for DefaultShadowStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
         }
     }
 }

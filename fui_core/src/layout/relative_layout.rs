@@ -104,12 +104,12 @@ impl DefaultRelativeLayoutStyle {
 }
 
 impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
-    fn setup(&mut self, _data: &mut RelativeLayout, _control_context: &mut ControlContext) {}
+    fn setup(&mut self, _data: &mut RelativeLayout, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,
         data: &mut RelativeLayout,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -140,7 +140,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     fn measure(
         &mut self,
         _data: &mut RelativeLayout,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -157,7 +157,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     fn set_rect(
         &mut self,
         data: &mut RelativeLayout,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -274,7 +274,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, self.rect);
+            content.borrow().set_rect(drawing_context, self.rect);
         }
     }
 
@@ -323,7 +323,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow_mut().draw(drawing_context),
+            Some(child) => child.borrow().draw(drawing_context),
             _ => (),
         }
     }

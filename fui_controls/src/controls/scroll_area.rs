@@ -81,7 +81,7 @@ impl DefaultScrollAreaStyle {
 }
 
 impl Style<ScrollArea> for DefaultScrollAreaStyle {
-    fn setup(&mut self, data: &mut ScrollArea, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ScrollArea, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.offset_x);
         control_context.dirty_watch_property(&data.offset_y);
     }
@@ -89,7 +89,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn handle_event(
         &mut self,
         data: &mut ScrollArea,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -126,14 +126,14 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn measure(
         &mut self,
         _data: &mut ScrollArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
         self.content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -149,7 +149,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
     fn set_rect(
         &mut self,
         data: &mut ScrollArea,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -163,7 +163,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
                 rect.width + data.offset_x.get().round(),
                 rect.height + data.offset_y.get().round(),
             );
-            content.borrow_mut().set_rect(drawing_context, child_rect);
+            content.borrow().set_rect(drawing_context, child_rect);
         }
     }
 
@@ -209,7 +209,7 @@ impl Style<ScrollArea> for DefaultScrollAreaStyle {
                 .display
                 .clip_rect(rect(x, y, width, height), ClipOperation::Intersect);
 
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
 
             drawing_context.display.restore();
         }

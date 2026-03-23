@@ -104,7 +104,7 @@ impl DefaultScrollBarStyle {
 }
 
 impl Style<ScrollBar> for DefaultScrollBarStyle {
-    fn setup(&mut self, data: &mut ScrollBar, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ScrollBar, control_context: &ControlContext) {
         control_context.dirty_watch_property(&self.is_thumb_hover);
         control_context.dirty_watch_property(&self.is_thumb_pressed);
         control_context.dirty_watch_property(&data.min_value);
@@ -116,7 +116,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn handle_event(
         &mut self,
         data: &mut ScrollBar,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -199,7 +199,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn measure(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -226,7 +226,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn set_rect(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &mut ControlContext,
+        _control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {

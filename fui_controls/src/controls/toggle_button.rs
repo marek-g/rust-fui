@@ -55,7 +55,7 @@ impl DefaultToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for DefaultToggleButtonStyle {
-    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.is_checked);
         control_context.dirty_watch_property(&self.is_tapped);
         control_context.dirty_watch_property(&self.is_hover);
@@ -65,7 +65,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -116,14 +116,14 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -136,7 +136,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -149,7 +149,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -201,7 +201,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -236,7 +236,7 @@ impl CheckBoxToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
-    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.is_checked);
         control_context.dirty_watch_property(&self.is_tapped);
         control_context.dirty_watch_property(&self.is_hover);
@@ -246,7 +246,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -297,7 +297,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -316,7 +316,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                         size.height
                     },
                 );
-                content.borrow_mut().measure(drawing_context, child_size);
+                content.borrow().measure(drawing_context, child_size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -332,7 +332,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -345,7 +345,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -419,7 +419,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -452,7 +452,7 @@ impl TabToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for TabToggleButtonStyle {
-    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.is_checked);
         control_context.dirty_watch_property(&self.is_tapped);
         control_context.dirty_watch_property(&self.is_hover);
@@ -462,7 +462,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -514,14 +514,14 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -534,7 +534,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -547,7 +547,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -599,7 +599,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -636,7 +636,7 @@ impl RadioToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for RadioToggleButtonStyle {
-    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.is_checked);
         control_context.dirty_watch_property(&self.is_tapped);
         control_context.dirty_watch_property(&self.is_hover);
@@ -646,7 +646,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -698,7 +698,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
@@ -717,7 +717,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
                         size.height
                     },
                 );
-                content.borrow_mut().measure(drawing_context, child_size);
+                content.borrow().measure(drawing_context, child_size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -733,7 +733,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -746,7 +746,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -810,7 +810,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -849,7 +849,7 @@ impl DropDownToggleButtonStyle {
 }
 
 impl Style<ToggleButton> for DropDownToggleButtonStyle {
-    fn setup(&mut self, data: &mut ToggleButton, control_context: &mut ControlContext) {
+    fn setup(&mut self, data: &mut ToggleButton, control_context: &ControlContext) {
         control_context.dirty_watch_property(&data.is_checked);
         control_context.dirty_watch_property(&self.is_tapped);
         control_context.dirty_watch_property(&self.is_hover);
@@ -859,7 +859,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
     fn handle_event(
         &mut self,
         data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -911,14 +911,14 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
     fn measure(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow_mut().measure(drawing_context, size);
+                content.borrow().measure(drawing_context, size);
                 let rect = content.borrow().get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -931,7 +931,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
     fn set_rect(
         &mut self,
         _data: &mut ToggleButton,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
@@ -944,7 +944,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow_mut().set_rect(drawing_context, content_rect);
+            content.borrow().set_rect(drawing_context, content_rect);
         }
     }
 
@@ -996,7 +996,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow_mut().draw(drawing_context);
+            content.borrow().draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }

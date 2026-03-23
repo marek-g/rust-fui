@@ -9,12 +9,12 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 pub trait Style<D> {
-    fn setup(&mut self, data: &mut D, control_context: &mut ControlContext);
+    fn setup(&mut self, data: &mut D, control_context: &ControlContext);
 
     fn handle_event(
         &mut self,
         data: &mut D,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         event_context: &mut dyn EventContext,
         event: ControlEvent,
@@ -23,7 +23,7 @@ pub trait Style<D> {
     fn measure(
         &mut self,
         data: &mut D,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size;
@@ -31,7 +31,7 @@ pub trait Style<D> {
     fn set_rect(
         &mut self,
         data: &mut D,
-        control_context: &mut ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     );
