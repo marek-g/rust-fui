@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -18,7 +17,7 @@ impl ToggleButton {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -123,8 +122,8 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow().measure(drawing_context, size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -149,7 +148,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -158,7 +157,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {
@@ -201,7 +200,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -316,8 +315,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                         size.height
                     },
                 );
-                content.borrow().measure(drawing_context, child_size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, child_size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -345,7 +344,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -354,7 +353,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {
@@ -419,7 +418,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -521,8 +520,8 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow().measure(drawing_context, size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -547,7 +546,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -556,7 +555,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {
@@ -599,7 +598,7 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -717,8 +716,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
                         size.height
                     },
                 );
-                content.borrow().measure(drawing_context, child_size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, child_size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -746,7 +745,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -755,7 +754,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {
@@ -810,7 +809,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }
@@ -918,8 +917,8 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow().measure(drawing_context, size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -944,7 +943,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -953,7 +952,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
         _data: &ToggleButton,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {
@@ -996,7 +995,7 @@ impl Style<ToggleButton> for DropDownToggleButtonStyle {
                 drawing_context.display.save();
                 drawing_context.display.translate(1.0, 1.0);
             }
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
             if is_pressed {
                 drawing_context.display.restore();
             }

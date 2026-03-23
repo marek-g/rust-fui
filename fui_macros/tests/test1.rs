@@ -43,10 +43,10 @@ pub enum Children {
     None,
 
     /// The collection has a single child.
-    SingleStatic(Rc<RefCell<dyn ControlObject>>),
+    SingleStatic(Rc<dyn ControlObject>),
 
     /// The collection is a list of controls.
-    MultipleStatic(Vec<Rc<RefCell<dyn ControlObject>>>),
+    MultipleStatic(Vec<Rc<dyn ControlObject>>),
 }
 
 impl Children {
@@ -58,7 +58,7 @@ impl Children {
     /// Constructs Children collection from
     /// vector of Children collections.
     pub fn from(children_vec: Vec<Children>) -> Self {
-        let mut static_children: Vec<Rc<RefCell<dyn ControlObject>>> = Vec::new();
+        let mut static_children: Vec<Rc<dyn ControlObject>> = Vec::new();
 
         for next in children_vec {
             match next {
@@ -91,7 +91,7 @@ impl Children {
     }
 
     /// Tries to get Rc reference to the control at the `index` position.
-    pub fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    pub fn get(&self, index: usize) -> Option<Rc<dyn ControlObject>> {
         match self {
             Children::None => None,
             Children::SingleStatic(x) => {
@@ -107,15 +107,15 @@ impl Children {
 }
 
 /// Converts a single control to Children collection.
-impl From<Rc<RefCell<dyn ControlObject>>> for Children {
-    fn from(item: Rc<RefCell<dyn ControlObject>>) -> Children {
+impl From<Rc<dyn ControlObject>> for Children {
+    fn from(item: Rc<dyn ControlObject>) -> Children {
         Children::SingleStatic(item)
     }
 }
 
 /// Converts a single control to ChildEntry.
-impl<T: 'static + ControlObject> From<Rc<RefCell<T>>> for Children {
-    fn from(item: Rc<RefCell<T>>) -> Children {
+impl<T: 'static + ControlObject> From<Rc<T>> for Children {
+    fn from(item: Rc<T>) -> Children {
         Children::SingleStatic(item)
     }
 }
@@ -127,9 +127,9 @@ pub struct ChildrenIterator<'a> {
 }
 
 impl<'a> Iterator for ChildrenIterator<'a> {
-    type Item = Rc<RefCell<dyn ControlObject>>;
+    type Item = Rc<dyn ControlObject>;
 
-    fn next(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn next(&mut self) -> Option<Rc<dyn ControlObject>> {
         if self.pos < self.len {
             self.pos += 1;
             self.source.get(self.pos - 1)
@@ -140,7 +140,7 @@ impl<'a> Iterator for ChildrenIterator<'a> {
 }
 
 impl<'a> DoubleEndedIterator for ChildrenIterator<'a> {
-    fn next_back(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn next_back(&mut self) -> Option<Rc<dyn ControlObject>> {
         if self.len > self.pos {
             self.len -= 1;
             self.source.get(self.len)
@@ -151,7 +151,7 @@ impl<'a> DoubleEndedIterator for ChildrenIterator<'a> {
 }
 
 impl<'a> IntoIterator for &'a Children {
-    type Item = Rc<RefCell<dyn ControlObject>>;
+    type Item = Rc<dyn ControlObject>;
     type IntoIter = ChildrenIterator<'a>;
 
     fn into_iter(self) -> ChildrenIterator<'a> {
@@ -170,7 +170,7 @@ impl TypeMapKey for Row {
 }
 
 pub trait ControlObject {
-    fn draw(&mut self) -> String;
+    fn draw(&self) -> String;
 }
 
 pub struct ViewContext {
@@ -183,8 +183,8 @@ pub trait Style<D> {
 }
 
 pub struct StyledControl<D> {
-    pub data: D,
-    pub style: Box<dyn Style<D>>,
+    pub data: RefCell<D>,
+    pub style: RefCell<Box<dyn Style<D>>>,
     pub attached_values: TypeMap,
     pub children: Children,
 }
@@ -195,19 +195,19 @@ impl<D: 'static> StyledControl<D> {
         style: Box<dyn Style<D>>,
         attached_values: TypeMap,
         children: Children,
-    ) -> Rc<RefCell<Self>> {
-        Rc::new(RefCell::new(StyledControl {
-            data: data,
+    ) -> Rc<Self> {
+        Rc::new(StyledControl {
+            data: RefCell::new(data),
             attached_values: attached_values,
-            style,
+            style: RefCell::new(style),
             children: children,
-        }))
+        })
     }
 }
 
 impl<D: 'static> ControlObject for StyledControl<D> {
-    fn draw(&mut self) -> String {
-        let name = self.style.draw(&mut self.data);
+    fn draw(&self) -> String {
+        let name = self.style.borrow().draw(&mut self.data.borrow_mut());
         let mut attached_values = "".to_string();
         if let Some(row_attached_value) = self.attached_values.get::<Row>() {
             attached_values += &format!(".Row({})", row_attached_value);
@@ -216,7 +216,7 @@ impl<D: 'static> ControlObject for StyledControl<D> {
         let children = {
             let vec: Vec<String> = (&self.children)
                 .into_iter()
-                .map(|c| c.borrow_mut().draw())
+                .map(|c| c.draw())
                 .collect();
             vec.join(",")
         };
@@ -236,7 +236,7 @@ impl Horizontal {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<StyledControl<Self>>> {
+    ) -> Rc<StyledControl<Self>> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -275,7 +275,7 @@ impl Button {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<StyledControl<Self>>> {
+    ) -> Rc<StyledControl<Self>> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -316,7 +316,7 @@ impl Text {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<StyledControl<Self>>> {
+    ) -> Rc<StyledControl<Self>> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -358,7 +358,6 @@ fn test1() {
         }
     );
 
-    let mut control: std::cell::RefMut<dyn ControlObject> = control.borrow_mut();
     assert_eq!(
         "Horizontal(4).Row(1){Button{Text(\"Button\"){}},Text(\"Label\"){}}",
         control.draw()

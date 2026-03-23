@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::{control::ControlObject, Children, TypeMap};
@@ -22,7 +21,7 @@ impl ViewContext {
 /// Controls can be consumed during conversion.
 ///
 //pub trait Control: Sized {
-//    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<RefCell<StyledControl<Self>>>;
+//    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<StyledControl<Self>>;
 //}
 //
 // Instead of using this trait we expect control structs to just implement this method (by convention).
@@ -39,5 +38,5 @@ impl ViewContext {
 /// Used to convert view models to views.
 ///
 pub trait ViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>>;
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject>;
 }

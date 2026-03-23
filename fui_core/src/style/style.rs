@@ -5,7 +5,6 @@ use crate::common::*;
 use crate::control::*;
 use crate::events::ControlEvent;
 use crate::EventContext;
-use std::cell::RefCell;
 use std::rc::Rc;
 
 pub trait Style<D> {
@@ -41,7 +40,7 @@ pub trait Style<D> {
         data: &D,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>>;
+    ) -> Option<Rc<dyn ControlObject>>;
 
     fn draw(
         &mut self,

@@ -6,8 +6,8 @@ use crate::{control::*, TypeMap, TypeMapKey};
 use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 
 pub struct ControlContext {
-    self_weak: RefCell<Option<Weak<RefCell<dyn ControlObject>>>>,
-    parent: RefCell<Option<Weak<RefCell<dyn ControlObject>>>>,
+    self_weak: RefCell<Option<Weak<dyn ControlObject>>>,
+    parent: RefCell<Option<Weak<dyn ControlObject>>>,
     children: Children,
 
     children_collection_changed_event_subscription: RefCell<Option<Subscription>>,
@@ -37,19 +37,19 @@ impl ControlContext {
         }
     }
 
-    pub fn get_self_weak(&self) -> Weak<RefCell<dyn ControlObject>> {
+    pub fn get_self_weak(&self) -> Weak<dyn ControlObject> {
         self.self_weak.borrow().clone().unwrap()
     }
 
-    pub fn get_self_rc(&self) -> Rc<RefCell<dyn ControlObject>> {
+    pub fn get_self_rc(&self) -> Rc<dyn ControlObject> {
         self.self_weak.borrow().as_ref().unwrap().upgrade().unwrap()
     }
 
-    pub fn set_self(&self, self_weak: Weak<RefCell<dyn ControlObject>>) {
+    pub fn set_self(&self, self_weak: Weak<dyn ControlObject>) {
         *self.self_weak.borrow_mut() = Some(self_weak);
     }
 
-    pub fn get_parent(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    pub fn get_parent(&self) -> Option<Rc<dyn ControlObject>> {
         if let Some(ref test) = *self.parent.borrow() {
             test.upgrade()
         } else {
@@ -57,7 +57,7 @@ impl ControlContext {
         }
     }
 
-    pub fn set_parent(&self, parent_rc: &Rc<RefCell<dyn ControlObject>>) {
+    pub fn set_parent(&self, parent_rc: &Rc<dyn ControlObject>) {
         *self.parent.borrow_mut() = Some(Rc::downgrade(parent_rc));
     }
 
@@ -84,7 +84,6 @@ impl ControlContext {
     pub fn set_services(&self, services: Option<Services>) {
         for child in self.children.into_iter() {
             child
-                .borrow()
                 .get_context()
                 .set_services(services.clone());
         }
@@ -109,7 +108,7 @@ impl ControlContext {
 
         if is_dirty {
             match self.get_parent() {
-                Some(ref parent) => parent.borrow().get_context().set_is_dirty(is_dirty),
+                Some(ref parent) => parent.get_context().set_is_dirty(is_dirty),
                 _ => {
                     // this is a root control
                     if is_change {
@@ -134,7 +133,7 @@ impl ControlContext {
             .borrow_mut()
             .push(property.on_changed(move |_| {
                 self_weak.upgrade().map(|control| {
-                    control.borrow().get_context().set_is_dirty(true);
+                    control.get_context().set_is_dirty(true);
                 });
             }));
     }
@@ -146,7 +145,7 @@ impl ControlContext {
             let mut subs = self.dirty_event_subscriptions.borrow_mut();
             subs.push(visible.on_changed(move |_| {
                 self_weak.upgrade().map(|control| {
-                    control.borrow().get_context().set_is_dirty(true);
+                    control.get_context().set_is_dirty(true);
                 });
             }));
         }

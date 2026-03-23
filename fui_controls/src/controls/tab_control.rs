@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::Rc;
 
 use fui_drawing::Color;
@@ -34,9 +34,9 @@ impl TabControl {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let tabs_source =
-            &context.children as &dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>;
+            &context.children as &dyn ObservableCollection<Rc<dyn ControlObject>>;
         let selected_tab = Property::new(tabs_source.get(0).unwrap());
 
         let selected_tab_clone = selected_tab.clone();
@@ -85,18 +85,17 @@ impl TabControl {
 struct TabButtonViewModel {
     pub title: Property<String>,
     pub is_checked: Property<bool>,
-    pub content: Rc<RefCell<dyn ControlObject>>,
-    pub selected_tab: Property<Rc<RefCell<dyn ControlObject>>>,
+    pub content: Rc<dyn ControlObject>,
+    pub selected_tab: Property<Rc<dyn ControlObject>>,
     pub event_subscription: Cell<Option<Subscription>>,
 }
 
 impl TabButtonViewModel {
     pub fn new(
-        content: &Rc<RefCell<dyn ControlObject>>,
-        selected_tab: &Property<Rc<RefCell<dyn ControlObject>>>,
+        content: &Rc<dyn ControlObject>,
+        selected_tab: &Property<Rc<dyn ControlObject>>,
     ) -> Rc<Self> {
         let title = content
-            .borrow()
             .get_context()
             .get_attached_value::<Title>()
             .map(|t| t.clone())
@@ -128,7 +127,7 @@ impl TabButtonViewModel {
 }
 
 impl ViewModel for TabButtonViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui! {
             ToggleButton {
                 Style: Tab {},

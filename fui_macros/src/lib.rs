@@ -13,7 +13,7 @@ use crate::parser::CtrlParam;
 use crate::parser::CtrlProperty;
 
 //
-// let control: Rc<RefCell<dyn ControlObject>> = ...;
+// let control: Rc<dyn ControlObject> = ...;
 //
 // ui!(
 //     Horizontal {
@@ -40,8 +40,8 @@ use crate::parser::CtrlProperty;
 //                     .text("Button".to_string().into())
 //                     .build().to_view(None, ViewContext {
 //                         attached_values: TypeMap::new(),
-//                         children: Box::new(Vec::<Rc<RefCell<dyn ControlObject>>>::new()),
-//                     }) as Rc<RefCell<dyn ControlObject>>).into(),
+//                         children: Box::new(Vec::<Rc<dyn ControlObject>>::new()),
+//                     }) as Rc<dyn ControlObject>).into(),
 //
 //             )]),
 //         })).into(),

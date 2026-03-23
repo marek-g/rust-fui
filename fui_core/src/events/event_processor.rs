@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::{
     collections::VecDeque,
     rc::{Rc, Weak},
@@ -8,15 +7,15 @@ use crate::{control::*, FuiDrawingContext};
 use crate::{events::*, Point};
 
 struct QueuedEvent {
-    pub control: Rc<RefCell<dyn ControlObject>>,
+    pub control: Rc<dyn ControlObject>,
     pub event: ControlEvent,
 }
 
 pub struct EventProcessor {
-    hovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
-    hit_tested_control: Option<Weak<RefCell<dyn ControlObject>>>,
-    captured_control: Option<Weak<RefCell<dyn ControlObject>>>,
-    focused_control: Option<Weak<RefCell<dyn ControlObject>>>,
+    hovered_controls: Vec<Weak<dyn ControlObject>>,
+    hit_tested_control: Option<Weak<dyn ControlObject>>,
+    captured_control: Option<Weak<dyn ControlObject>>,
+    focused_control: Option<Weak<dyn ControlObject>>,
 
     cursor_pos: Option<Point>,
 
@@ -43,7 +42,7 @@ impl EventProcessor {
 
     pub fn handle_event(
         &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
+        root_view: &Rc<dyn ControlObject>,
         drawing_context: &mut FuiDrawingContext,
         event: &InputEvent,
     ) {
@@ -63,7 +62,7 @@ impl EventProcessor {
 
     fn handle_keyboard_event(
         &mut self,
-        _root_view: &Rc<RefCell<dyn ControlObject>>,
+        _root_view: &Rc<dyn ControlObject>,
         event: &InputEvent,
     ) {
         match event {
@@ -80,12 +79,12 @@ impl EventProcessor {
 
     fn handle_pointer_event(
         &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
+        root_view: &Rc<dyn ControlObject>,
         event: &InputEvent,
     ) {
         match event {
             InputEvent::CursorMoved { position, .. } => {
-                let hit_control = root_view.borrow().hit_test(*position);
+                let hit_control = root_view.hit_test(*position);
                 self.queue_event(
                     hit_control,
                     ControlEvent::PointerMove {
@@ -107,7 +106,7 @@ impl EventProcessor {
 
     fn handle_gesture_event(
         &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
+        root_view: &Rc<dyn ControlObject>,
         event: &InputEvent,
     ) {
         self.gesture_detector
@@ -121,7 +120,7 @@ impl EventProcessor {
                             ControlEvent::TapDown { position },
                         );
                     } else {
-                        let hit_control = root_view.borrow().hit_test(position);
+                        let hit_control = root_view.hit_test(position);
                         if let Some(ref hit_control) = hit_control {
                             self.set_focused_control(Some(hit_control.clone()));
 
@@ -152,7 +151,7 @@ impl EventProcessor {
 
     fn handle_hover_event(
         &mut self,
-        root_view: &Rc<RefCell<dyn ControlObject>>,
+        root_view: &Rc<dyn ControlObject>,
         event: &InputEvent,
     ) {
         match event {
@@ -177,9 +176,9 @@ impl EventProcessor {
         }
     }
 
-    fn recalculate_hover(&mut self, root_view: &Rc<RefCell<dyn ControlObject>>) {
+    fn recalculate_hover(&mut self, root_view: &Rc<dyn ControlObject>) {
         if let Some(position) = self.cursor_pos {
-            let mut controls_to_hover = root_view.borrow().get_hit_path(position);
+            let mut controls_to_hover = root_view.get_hit_path(position);
             let hit_tested_control = controls_to_hover.iter().next().map(|c| c.clone());
 
             // if there is captured control, only captured control can be hovered
@@ -271,20 +270,19 @@ impl EventProcessor {
     /// Please use the queue_event() in all the other places.
     fn send_event_to_control(
         &mut self,
-        control: Option<Rc<RefCell<dyn ControlObject>>>,
+        control: Option<Rc<dyn ControlObject>>,
         drawing_context: &mut FuiDrawingContext,
         event: ControlEvent,
     ) {
         if let Some(ref control) = control {
             control
-                .borrow_mut()
                 .handle_event(drawing_context, self, event);
         };
     }
 }
 
 impl EventContext for EventProcessor {
-    fn get_captured_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn get_captured_control(&self) -> Option<Rc<dyn ControlObject>> {
         if let Some(ref control) = self.captured_control {
             control.upgrade()
         } else {
@@ -292,11 +290,11 @@ impl EventContext for EventProcessor {
         }
     }
 
-    fn set_captured_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
+    fn set_captured_control(&mut self, control: Option<Rc<dyn ControlObject>>) {
         self.captured_control = control.map(|ref c| Rc::downgrade(c));
     }
 
-    fn get_focused_control(&self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn get_focused_control(&self) -> Option<Rc<dyn ControlObject>> {
         if let Some(ref control) = self.focused_control {
             control.upgrade()
         } else {
@@ -304,7 +302,7 @@ impl EventContext for EventProcessor {
         }
     }
 
-    fn set_focused_control(&mut self, control: Option<Rc<RefCell<dyn ControlObject>>>) {
+    fn set_focused_control(&mut self, control: Option<Rc<dyn ControlObject>>) {
         self.queue_event(self.get_focused_control(), ControlEvent::FocusChange(false));
         self.focused_control = control.clone().map(|ref c| Rc::downgrade(c));
         self.queue_event(control, ControlEvent::FocusChange(true));
@@ -312,7 +310,7 @@ impl EventContext for EventProcessor {
 
     fn queue_event(
         &mut self,
-        control: Option<Rc<RefCell<dyn ControlObject>>>,
+        control: Option<Rc<dyn ControlObject>>,
         event: ControlEvent,
     ) {
         if let Some(control) = control {

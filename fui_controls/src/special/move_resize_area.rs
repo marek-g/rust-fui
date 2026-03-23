@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -29,7 +28,7 @@ impl MoveResizeArea {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -207,7 +206,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
             let mut desired_size = Size::new(0.0f32, 0.0f32);
 
             for child in children.into_iter() {
-                let child = child.borrow_mut();
+                let child = child;
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
                 desired_size.width = desired_size.width.max(child_rc.width);
@@ -237,7 +236,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         );
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow().set_rect(drawing_context, new_rect);
+            child.set_rect(drawing_context, new_rect);
         }
     }
 
@@ -246,11 +245,11 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
         _data: &MoveResizeArea,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             for child in children.into_iter() {
-                let c = child.borrow();
+                let c = child;
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let hit_control = c.hit_test(point);
@@ -273,7 +272,7 @@ impl Style<MoveResizeArea> for DefaultMoveResizeAreaStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow().draw(drawing_context),
+            Some(child) => child.draw(drawing_context),
             _ => (),
         }
     }

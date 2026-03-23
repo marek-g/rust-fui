@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -25,7 +24,7 @@ impl Border {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -108,8 +107,8 @@ impl Style<Border> for DefaultBorderStyle {
                         size.height
                     },
                 );
-                content.borrow().measure(drawing_context, child_size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, child_size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -139,7 +138,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, content_rect);
+            content.set_rect(drawing_context, content_rect);
         }
     }
 
@@ -148,11 +147,11 @@ impl Style<Border> for DefaultBorderStyle {
         _data: &Border,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
-                let c = content.borrow();
+                let c = content;
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let child_hit_test = c.hit_test(point);
@@ -226,7 +225,7 @@ impl Style<Border> for DefaultBorderStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().draw(drawing_context);
+            content.draw(drawing_context);
         }
     }
 }

@@ -34,7 +34,7 @@ pub struct RadioController<R>
 where
     R: 'static + RadioElement,
 {
-    _elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
+    _elements: Rc<RefCell<dyn ObservableCollection<Rc<dyn ControlObject>>>>,
     _subscriptions: Rc<RefCell<Vec<Subscription>>>,
 
     _phantom_data: PhantomData<R>,
@@ -46,10 +46,10 @@ where
 {
     pub fn new<E>(elements: E) -> Self
     where
-        E: 'static + ObservableCollection<Rc<RefCell<dyn ControlObject>>>,
+        E: 'static + ObservableCollection<Rc<dyn ControlObject>>,
     {
         let mut subscriptions = Vec::new();
-        let elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>> =
+        let elements: Rc<RefCell<dyn ObservableCollection<Rc<dyn ControlObject>>>> =
             Rc::new(RefCell::new(elements));
 
         for radio_element in elements.borrow_mut().deref() {
@@ -61,7 +61,6 @@ where
 
         let is_checked = elements.borrow_mut().into_iter().fold(false, |acc, el| {
             acc || el
-                .borrow()
                 .as_any()
                 .downcast_ref::<R>()
                 .unwrap()
@@ -69,7 +68,7 @@ where
         });
         if !is_checked {
             if let Some(el) = elements.borrow_mut().into_iter().next() {
-                el.borrow()
+                el
                     .as_any()
                     .downcast_ref::<R>()
                     .unwrap()
@@ -94,7 +93,6 @@ where
                 } => {
                     if elements_clone.borrow().len() == 0 {
                         radio_element
-                            .borrow()
                             .as_any()
                             .downcast_ref::<R>()
                             .unwrap()
@@ -128,7 +126,6 @@ where
                 } => {
                     if elements_clone.borrow().len() == 0 {
                         radio_element
-                            .borrow()
                             .as_any()
                             .downcast_ref::<R>()
                             .unwrap()
@@ -149,19 +146,18 @@ where
     }
 
     fn uncheck_other_when_checked(
-        element: Rc<RefCell<dyn ControlObject>>,
-        elements: Rc<RefCell<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>,
+        element: Rc<dyn ControlObject>,
+        elements: Rc<RefCell<dyn ObservableCollection<Rc<dyn ControlObject>>>>,
     ) -> Subscription {
         let element_clone = element.clone();
         element
-            .borrow()
             .as_any()
             .downcast_ref::<R>()
             .unwrap()
             .on_checked(Box::new(move || {
                 for el in elements.borrow_mut().deref() {
                     if !Rc::ptr_eq(&el, &element_clone) {
-                        el.borrow()
+                        el
                             .as_any()
                             .downcast_ref::<R>()
                             .unwrap()

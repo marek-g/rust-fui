@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::f32;
 use std::rc::Rc;
 
@@ -35,7 +34,7 @@ impl StackPanel {
         self,
         style: Option<Box<dyn Style<Self>>>,
         mut context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         // set default alignment to Start
         context
             .attached_values
@@ -104,9 +103,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 // calculate min sizes
                 let mut grow_fills_sum = 0.0f32;
                 for child in children.into_iter() {
-                    child.borrow().measure(drawing_context, available_size);
-                    let child = child.borrow();
-                    let mut child_size = child.get_rect();
+                    child.measure(drawing_context, available_size);
+                                        let mut child_size = child.get_rect();
 
                     if let Some(grow) = child.get_context().get_attached_value::<Grow>().as_deref()
                     {
@@ -136,9 +134,8 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 // calculate min sizes
                 let mut grow_fills_sum = 0.0f32;
                 for child in children.into_iter() {
-                    child.borrow().measure(drawing_context, available_size);
-                    let child = child.borrow();
-                    let mut child_size = child.get_rect();
+                    child.measure(drawing_context, available_size);
+                                        let mut child_size = child.get_rect();
 
                     if let Some(grow) = child.get_context().get_attached_value::<Grow>().as_deref()
                     {
@@ -183,7 +180,6 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
             .into_iter()
             .map(|child| {
                 if let Some(Length::Fill(fill)) = child
-                    .borrow()
                     .get_context()
                     .get_attached_value::<Grow>()
                     .as_deref()
@@ -200,8 +196,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 let child_sizes_sum: f32 = children
                     .into_iter()
                     .map(|child| {
-                        let child = child.borrow();
-                        let child_width = child.get_rect().width;
+                                                let child_width = child.get_rect().width;
                         if let Some(grow) =
                             child.get_context().get_attached_value::<Grow>().as_deref()
                         {
@@ -224,8 +219,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
 
                 for child in children.into_iter() {
                     {
-                        let child = child.borrow();
-                        let mut child_size = child.get_rect();
+                                                let mut child_size = child.get_rect();
 
                         if let Some(grow) =
                             child.get_context().get_attached_value::<Grow>().as_deref()
@@ -250,8 +244,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, child_rect.width, rect.height);
 
-                    let child = child.borrow_mut();
-                    child.set_rect(drawing_context, dest_rect);
+                                        child.set_rect(drawing_context, dest_rect);
 
                     child_rect.x += child_rect.width;
                 }
@@ -260,8 +253,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                 let child_sizes_sum: f32 = children
                     .into_iter()
                     .map(|child| {
-                        let child = child.borrow();
-                        let child_height = child.get_rect().height;
+                                                let child_height = child.get_rect().height;
                         if let Some(grow) =
                             child.get_context().get_attached_value::<Grow>().as_deref()
                         {
@@ -284,8 +276,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
 
                 for child in children.into_iter() {
                     {
-                        let child = child.borrow();
-                        let mut child_size = child.get_rect();
+                                                let mut child_size = child.get_rect();
 
                         if let Some(grow) =
                             child.get_context().get_attached_value::<Grow>().as_deref()
@@ -310,8 +301,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
                     let dest_rect =
                         Rect::new(child_rect.x, child_rect.y, rect.width, child_rect.height);
 
-                    let child = child.borrow_mut();
-                    child.set_rect(drawing_context, dest_rect);
+                                        child.set_rect(drawing_context, dest_rect);
 
                     child_rect.y += child_rect.height;
                 }
@@ -324,11 +314,11 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
         _data: &StackPanel,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             for child in children.into_iter() {
-                let c = child.borrow();
+                let c = child;
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let hit_control = c.hit_test(point);
@@ -351,7 +341,7 @@ impl Style<StackPanel> for DefaultStackPanelStyle {
     ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            child.borrow().draw(drawing_context);
+            child.draw(drawing_context);
         }
     }
 }

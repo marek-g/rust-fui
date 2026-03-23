@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::Point;
@@ -24,7 +23,7 @@ impl GestureDetector {
 
     pub fn handle_event(
         &mut self,
-        _root_view: &Rc<RefCell<dyn ControlObject>>,
+        _root_view: &Rc<dyn ControlObject>,
         event: &InputEvent,
     ) -> Option<Gesture> {
         match event {

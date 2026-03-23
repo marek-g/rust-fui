@@ -6,7 +6,7 @@ use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
 
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -68,7 +68,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui!(
             Grid {
                 columns: 1,

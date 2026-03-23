@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::common::*;
@@ -19,7 +18,7 @@ pub trait ControlBehavior {
     fn set_rect(&self, drawing_context: &mut FuiDrawingContext, rect: Rect);
     fn get_rect(&self) -> Rect;
 
-    fn hit_test(&self, point: Point) -> Option<Rc<RefCell<dyn ControlObject>>>;
+    fn hit_test(&self, point: Point) -> Option<Rc<dyn ControlObject>>;
 
     /// Draws control content.
     fn draw(&self, drawing_context: &mut FuiDrawingContext);

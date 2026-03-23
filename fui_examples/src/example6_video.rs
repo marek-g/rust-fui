@@ -60,7 +60,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         let root_control = ui!(
             Grid {
                 /*ScrollViewer {
@@ -88,7 +88,6 @@ impl ViewModel for MainViewModel {
             vm.texture_id.set(texture_id);
             // TODO: do it on bitmap control instead
             root_control_copy
-                .borrow_mut()
                 .get_context()
                 .set_is_dirty(true);
         });*/

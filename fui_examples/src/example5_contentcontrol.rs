@@ -6,7 +6,6 @@ use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
 
-use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -14,7 +13,7 @@ struct MainViewModel {
     pub item1: Rc<Item1ViewModel>,
     pub item2: Rc<Item2ViewModel>,
 
-    pub content: Property<Rc<RefCell<dyn ControlObject>>>,
+    pub content: Property<Rc<dyn ControlObject>>,
 }
 
 impl MainViewModel {
@@ -34,7 +33,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui!(
             Grid {
                 columns: 1,
@@ -69,7 +68,7 @@ impl Item1ViewModel {
 }
 
 impl ViewModel for Item1ViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui!(
             Horizontal {
                 Text { text: "Item 1" },
@@ -87,7 +86,7 @@ impl Item2ViewModel {
 }
 
 impl ViewModel for Item2ViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui!(
             Horizontal {
                 Text { text: "Item 2" },

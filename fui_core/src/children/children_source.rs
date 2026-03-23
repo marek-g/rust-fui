@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::control::ControlObject;
@@ -18,7 +17,7 @@ impl<V: ViewModel + 'static> From<Vec<Rc<V>>> for Box<dyn ObservableCollection<R
 }
 
 impl<V: ViewModel + 'static> From<&Vec<Rc<V>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
     fn from(src: &Vec<Rc<V>>) -> Self {
         Box::new(src.map(|vm| ViewModel::create_view(vm)))
@@ -29,7 +28,7 @@ impl<V: ViewModel + 'static> From<&Vec<Rc<V>>>
 /// Converts ObservableVec of view models to observable collection.
 ///
 impl<V> From<&ObservableVec<Rc<V>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 where
     V: 'static + ViewModel,
 {
@@ -38,10 +37,10 @@ where
     }
 }
 
-impl From<&ObservableVec<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<&ObservableVec<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: &ObservableVec<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: &ObservableVec<Rc<dyn ControlObject>>) -> Self {
         Box::new(src.map(|el| el.clone()))
     }
 }
@@ -51,7 +50,7 @@ impl From<&ObservableVec<Rc<RefCell<dyn ControlObject>>>>
 ///
 
 impl<V> From<ObservableCollectionMap<Rc<V>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 where
     V: 'static + ViewModel,
 {
@@ -60,16 +59,16 @@ where
     }
 }
 
-impl From<ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<ObservableCollectionMap<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: ObservableCollectionMap<Rc<dyn ControlObject>>) -> Self {
         Box::new(src)
     }
 }
 
 impl<V> From<&ObservableCollectionMap<Rc<V>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 where
     V: 'static + ViewModel,
 {
@@ -78,10 +77,10 @@ where
     }
 }
 
-impl From<&ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<&ObservableCollectionMap<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: &ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: &ObservableCollectionMap<Rc<dyn ControlObject>>) -> Self {
         Box::new(src.map(|el| el.clone()))
     }
 }
@@ -90,18 +89,18 @@ impl From<&ObservableCollectionMap<Rc<RefCell<dyn ControlObject>>>>
 /// Converts ObservableCollectionFlatMap to observable collection.
 ///
 
-impl From<ObservableCollectionFlatMap<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<ObservableCollectionFlatMap<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: ObservableCollectionFlatMap<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: ObservableCollectionFlatMap<Rc<dyn ControlObject>>) -> Self {
         Box::new(src)
     }
 }
 
-impl From<&ObservableCollectionFlatMap<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<&ObservableCollectionFlatMap<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: &ObservableCollectionFlatMap<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: &ObservableCollectionFlatMap<Rc<dyn ControlObject>>) -> Self {
         Box::new(src.map(|el| el.clone()))
     }
 }
@@ -110,15 +109,15 @@ impl From<&ObservableCollectionFlatMap<Rc<RefCell<dyn ControlObject>>>>
 /// Converts Property to observable collection.
 ///
 
-impl From<&Property<Rc<RefCell<dyn ControlObject>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl From<&Property<Rc<dyn ControlObject>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
-    fn from(src: &Property<Rc<RefCell<dyn ControlObject>>>) -> Self {
+    fn from(src: &Property<Rc<dyn ControlObject>>) -> Self {
         Box::new(src.clone())
     }
 }
 
-impl<V> From<&Property<Rc<V>>> for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+impl<V> From<&Property<Rc<V>>> for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 where
     V: 'static + ViewModel + PartialEq,
 {
@@ -128,7 +127,7 @@ where
 }
 
 impl<V> From<&Property<Option<Rc<V>>>>
-    for Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>
+    for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 where
     V: 'static + ViewModel + PartialEq,
 {

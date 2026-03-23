@@ -1,5 +1,4 @@
 use crate::{Children, ControlObject};
-use std::cell::RefCell;
 use std::rc::Rc;
 
 pub struct ChildrenIterator<'a> {
@@ -9,9 +8,9 @@ pub struct ChildrenIterator<'a> {
 }
 
 impl<'a> Iterator for ChildrenIterator<'a> {
-    type Item = Rc<RefCell<dyn ControlObject>>;
+    type Item = Rc<dyn ControlObject>;
 
-    fn next(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn next(&mut self) -> Option<Rc<dyn ControlObject>> {
         if self.pos < self.len {
             self.pos += 1;
             self.source.get(self.pos - 1)
@@ -22,7 +21,7 @@ impl<'a> Iterator for ChildrenIterator<'a> {
 }
 
 impl<'a> DoubleEndedIterator for ChildrenIterator<'a> {
-    fn next_back(&mut self) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn next_back(&mut self) -> Option<Rc<dyn ControlObject>> {
         if self.len > self.pos {
             self.len -= 1;
             self.source.get(self.len)
@@ -33,7 +32,7 @@ impl<'a> DoubleEndedIterator for ChildrenIterator<'a> {
 }
 
 impl<'a> IntoIterator for &'a Children {
-    type Item = Rc<RefCell<dyn ControlObject>>;
+    type Item = Rc<dyn ControlObject>;
     type IntoIter = ChildrenIterator<'a>;
 
     fn into_iter(self) -> ChildrenIterator<'a> {

@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -37,7 +36,7 @@ impl ScrollBar {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -238,7 +237,7 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         _data: &ScrollBar,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             Some(control_context.get_self_rc())
         } else {

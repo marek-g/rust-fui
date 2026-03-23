@@ -1,5 +1,4 @@
 use anyhow::Result;
-use fui_app::*;
 use fui_core::*;
 use gstreamer::prelude::*;
 use media_gstreamer;
@@ -32,12 +31,12 @@ impl Player {
 
         let (sender, receiver) = channel();
         self.receiver = Some(receiver);
-        let sender = Arc::new(Mutex::new(sender));
+        let _sender = Arc::new(Mutex::new(sender));
 
         // Create the elements
         //let (pipeline, video_app_sink) = pipeline_factory::create_pipeline_videotest();
         //self.texture.set_size(320, 240);
-        let (pipeline, video_app_sink) = media_gstreamer::create_appsink_pipeline_url(
+        let (_pipeline, _video_app_sink) = media_gstreamer::create_appsink_pipeline_url(
             "http://ftp.nluug.nl/pub/graphics/blender/demo/movies/Sintel.2010.720p.mkv",
         );
         self.texture.set_size(1280, 544);
@@ -128,7 +127,7 @@ pub struct PlayerTexture {
 }
 
 impl PlayerTexture {
-    pub fn new(drawing_context: Rc<RefCell<FuiDrawingContext>>) -> Self {
+    pub fn new(_drawing_context: Rc<RefCell<FuiDrawingContext>>) -> Self {
         PlayerTexture {
             updated: Callback::empty(),
             texture_id: -1,
@@ -143,7 +142,7 @@ impl PlayerTexture {
         self.height = height;
     }
 
-    fn update_texture(&mut self, buffer: Vec<u8>) -> Result<()> {
+    fn update_texture(&mut self, _buffer: Vec<u8>) -> Result<()> {
         let timespec = time::OffsetDateTime::now_utc();
         let mills: f64 =
             timespec.second() as f64 + (timespec.nanosecond() as f64 / 1000.0 / 1000.0 / 1000.0);

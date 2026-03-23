@@ -23,7 +23,11 @@
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
+/// use fui_core::cb;
+/// 
+/// // Example usage:
+///
 /// // 1. Using the callback's value
 /// let c1 = cb!(self, |msg| handle_message(msg));
 ///

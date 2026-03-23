@@ -39,12 +39,12 @@ pub struct WindowVMThreadData {
     id: WindowId,
 
     event_processor: RefCell<EventProcessor>,
-    root_control: Rc<RefCell<dyn ControlObject>>,
-    view: RefCell<Option<Rc<RefCell<dyn ControlObject>>>>,
+    root_control: Rc<dyn ControlObject>,
+    view: RefCell<Option<Rc<dyn ControlObject>>>,
     view_model: RefCell<Option<Rc<dyn std::any::Any>>>,
     services: RefCell<Option<fui_core::Services>>,
 
-    control_layers: ObservableVec<Rc<RefCell<dyn ControlObject>>>,
+    control_layers: ObservableVec<Rc<dyn ControlObject>>,
 }
 
 #[derive(Clone)]
@@ -104,7 +104,7 @@ impl Window {
 
         let window_id = rx.await?;
 
-        let control_layers = ObservableVec::<Rc<RefCell<dyn ControlObject>>>::new();
+        let control_layers = ObservableVec::<Rc<dyn ControlObject>>::new();
 
         let content = ui!(
             Grid {
@@ -130,7 +130,6 @@ impl Window {
         );
         window_data_rc
             .root_control
-            .borrow_mut()
             .get_context()
             .set_services(Some(services.clone()));
         {
@@ -360,9 +359,8 @@ impl Window {
                         let min_size = {
                             window_data
                                 .root_control
-                                .borrow_mut()
                                 .measure(&mut fui_drawing_context, size);
-                            window_data.root_control.borrow_mut().get_rect()
+                            window_data.root_control.get_rect()
                         };
 
                         tx.send(Some(min_size)).unwrap();
@@ -445,21 +443,18 @@ impl Window {
 
                         window_data
                             .root_control
-                            .borrow_mut()
                             .measure(&mut fui_drawing_context, size);
-                        window_data.root_control.borrow().set_rect(
+                        window_data.root_control.set_rect(
                             &mut fui_drawing_context,
                             Rect::new(0f32, 0f32, size.width, size.height),
                         );
 
                         window_data
                             .root_control
-                            .borrow_mut()
                             .draw(&mut fui_drawing_context);
 
                         window_data
                             .root_control
-                            .borrow_mut()
                             .get_context()
                             .set_is_dirty(false);
 
@@ -517,11 +512,11 @@ impl Drop for WindowVMThreadData {
 }
 
 impl fui_core::WindowService for WindowVMThreadData {
-    fn add_layer(&self, control: Rc<RefCell<dyn ControlObject>>) {
+    fn add_layer(&self, control: Rc<dyn ControlObject>) {
         self.control_layers.push(control);
     }
 
-    fn remove_layer(&self, control: &Rc<RefCell<dyn ControlObject>>) {
+    fn remove_layer(&self, control: &Rc<dyn ControlObject>) {
         self.control_layers.retain(|el| !Rc::ptr_eq(el, control));
     }
 

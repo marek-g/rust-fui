@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -30,7 +29,7 @@ impl ScrollViewer {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let offset_x_prop = Property::new(0.0f32);
         let offset_y_prop = Property::new(0.0f32);
 
@@ -99,8 +98,7 @@ impl ScrollViewer {
             }
         };
 
-        view.borrow_mut()
-            .get_context()
+        view.get_context()
             .set_attached_values(context.attached_values);
 
         view

@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
@@ -14,7 +13,7 @@ impl Horizontal {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StackPanel::builder()
             .orientation(Orientation::Horizontal)
             .build()

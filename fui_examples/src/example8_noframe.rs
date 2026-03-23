@@ -7,7 +7,6 @@ use fui_core::*;
 use fui_macros::ui;
 use windowing_api::WindowFrameType;
 
-use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -34,7 +33,7 @@ impl MainViewModel {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         self.counter2.bind(&self.counter);
         self.counter.bind(&self.counter2);
 

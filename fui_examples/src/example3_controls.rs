@@ -6,7 +6,6 @@ use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
 
-use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -116,16 +115,16 @@ impl MainViewModel {
 type DropDown1 = DropDown<StringViewModel>;
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         self.counter2.bind(&self.counter);
         self.counter.bind(&self.counter2);
 
         let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
-            as Rc<RefCell<dyn ControlObject>>;
+            as Rc<dyn ControlObject>;
         let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} })
-            as Rc<RefCell<dyn ControlObject>>;
+            as Rc<dyn ControlObject>;
         let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} })
-            as Rc<RefCell<dyn ControlObject>>;
+            as Rc<dyn ControlObject>;
         let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
             radio4.clone(),
             radio5.clone(),

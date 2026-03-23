@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -14,7 +13,7 @@ impl<T: 'static> DataHolder<T> {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -65,8 +64,8 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content.borrow().measure(drawing_context, size);
-                let rect = content.borrow().get_rect();
+                content.measure(drawing_context, size);
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::empty(),
@@ -84,7 +83,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     ) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow().set_rect(drawing_context, rect);
+            child.set_rect(drawing_context, rect);
         }
     }
 
@@ -93,10 +92,10 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
         _data: &DataHolder<T>,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow_mut().hit_test(point),
+            Some(child) => child.hit_test(point),
             _ => None,
         }
     }
@@ -109,7 +108,7 @@ impl<T: 'static> Style<DataHolder<T>> for DefaultDataHolderStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow().draw(drawing_context),
+            Some(child) => child.draw(drawing_context),
             _ => (),
         }
     }

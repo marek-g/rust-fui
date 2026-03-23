@@ -6,7 +6,6 @@ use fui_controls::*;
 use fui_core::*;
 use fui_macros::ui;
 
-use std::cell::RefCell;
 use std::rc::Rc;
 use tokio::task::LocalSet;
 
@@ -47,7 +46,7 @@ impl ButtonText {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         _context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         ui! {
             Button {
                 clicked: self.clicked,
@@ -58,7 +57,7 @@ impl ButtonText {
 }
 
 impl ViewModel for MainViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         self.counter2.bind(&self.counter);
         self.counter.bind(&self.counter2);
 

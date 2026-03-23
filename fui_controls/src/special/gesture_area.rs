@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::Rc;
 
 use fui_core::*;
@@ -21,7 +20,7 @@ impl GestureArea {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -87,8 +86,8 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         let children = control_context.get_children();
         match children.into_iter().next() {
             Some(child) => {
-                child.borrow().measure(drawing_context, size);
-                let child_rect = child.borrow().get_rect();
+                child.measure(drawing_context, size);
+                let child_rect = child.get_rect();
                 Size::new(child_rect.width, child_rect.height)
             }
             _ => Size::new(0.0f32, 0.0f32),
@@ -104,7 +103,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
     ) {
         let children = control_context.get_children();
         if let Some(child) = children.into_iter().next() {
-            child.borrow().set_rect(drawing_context, rect);
+            child.set_rect(drawing_context, rect);
         }
     }
 
@@ -113,10 +112,10 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
         _data: &GestureArea,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         let children = control_context.get_children();
         let rect = match children.into_iter().next() {
-            Some(child) => child.borrow().get_rect(),
+            Some(child) => child.get_rect(),
             _ => Rect::new(0.0f32, 0.0f32, 0.0f32, 0.0f32),
         };
 
@@ -135,7 +134,7 @@ impl Style<GestureArea> for DefaultGestureAreaStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow().draw(drawing_context),
+            Some(child) => child.draw(drawing_context),
             _ => (),
         }
     }

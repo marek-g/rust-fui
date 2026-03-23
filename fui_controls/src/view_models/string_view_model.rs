@@ -1,7 +1,6 @@
 use crate::Text;
 use fui_core::{Children, ControlObject, TypeMap, ViewContext, ViewModel};
 use fui_macros::ui;
-use std::cell::RefCell;
 use std::rc::Rc;
 
 ///
@@ -21,7 +20,7 @@ impl StringViewModel {
 }
 
 impl ViewModel for StringViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui! {
             Text { text: &*self.text }
         }

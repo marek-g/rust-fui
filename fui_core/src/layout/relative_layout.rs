@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 
 use crate::{
@@ -9,8 +8,8 @@ use typed_builder::TypedBuilder;
 
 pub enum RelativePlacement {
     FullSize,
-    BelowOrAboveControl(Weak<RefCell<dyn ControlObject>>),
-    LeftOrRightControl(Weak<RefCell<dyn ControlObject>>),
+    BelowOrAboveControl(Weak<dyn ControlObject>),
+    LeftOrRightControl(Weak<dyn ControlObject>),
 }
 
 #[derive(Copy, Clone)]
@@ -61,7 +60,7 @@ pub struct RelativeLayout {
     /// RelativeLayout does not pass through events to controls below
     /// except the area covered by this list of controls
     #[builder(default = Vec::new())]
-    pub uncovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
+    pub uncovered_controls: Vec<Weak<dyn ControlObject>>,
 }
 
 impl RelativeLayout {
@@ -69,7 +68,7 @@ impl RelativeLayout {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -172,7 +171,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             RelativePlacement::BelowOrAboveControl(relative_control) => {
                 match relative_control.upgrade() {
                     Some(relative_control) => {
-                        self.relative_control_rect = relative_control.borrow().get_rect();
+                        self.relative_control_rect = relative_control.get_rect();
 
                         let height_above = self.relative_control_rect.y;
                         let height_below = rect.height
@@ -192,7 +191,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
             RelativePlacement::LeftOrRightControl(relative_control) => {
                 match relative_control.upgrade() {
                     Some(relative_control) => {
-                        self.relative_control_rect = relative_control.borrow().get_rect();
+                        self.relative_control_rect = relative_control.get_rect();
 
                         let width_left = self.relative_control_rect.x;
                         let width_right = rect.width
@@ -213,9 +212,8 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
                 content
-                    .borrow_mut()
                     .measure(drawing_context, available_size);
-                let rect = content.borrow().get_rect();
+                let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
             _ => Size::new(0f32, 0f32),
@@ -274,7 +272,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
         let children = control_context.get_children();
         if let Some(ref content) = children.into_iter().next() {
-            content.borrow().set_rect(drawing_context, self.rect);
+            content.set_rect(drawing_context, self.rect);
         }
     }
 
@@ -283,13 +281,13 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         data: &RelativeLayout,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         // If the point is inside child area
         // pass the check to the child.
         if point.is_inside(&self.rect) {
             let children = control_context.get_children();
             if let Some(ref content) = children.into_iter().next() {
-                let c = content.borrow();
+                let c = content;
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let hit_control = c.hit_test(point);
@@ -305,7 +303,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         // and they will receive event.
         for uncovered_control in &data.uncovered_controls {
             if let Some(uncovered_control) = uncovered_control.upgrade() {
-                if point.is_inside(&uncovered_control.borrow().get_rect()) {
+                if point.is_inside(&uncovered_control.get_rect()) {
                     return None;
                 }
             }
@@ -323,7 +321,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         let children = control_context.get_children();
         match children.into_iter().next() {
-            Some(child) => child.borrow().draw(drawing_context),
+            Some(child) => child.draw(drawing_context),
             _ => (),
         }
     }

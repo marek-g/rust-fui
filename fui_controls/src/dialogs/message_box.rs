@@ -23,7 +23,7 @@ impl DialogButtonViewModel {
 }
 
 impl ViewModel for DialogButtonViewModel {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         ui! {
             Button {
                 clicked: self.callback.clone(),
@@ -100,7 +100,7 @@ impl MessageBox {
             // create new_callback that closes dialog layer
             // and calls button callback
             let window_clone = window.clone();
-            let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
+            let content_clone: Rc<dyn ControlObject> = content.clone();
             let new_callback = Callback::new_sync({
                 let sender = sender.clone();
                 move |_| {

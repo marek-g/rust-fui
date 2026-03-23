@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::Rc;
 
 use typed_builder::TypedBuilder;
@@ -32,7 +32,7 @@ where
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let is_popup_open_property = Property::new(false);
 
         let is_popup_open_property_clone = is_popup_open_property.clone();
@@ -164,7 +164,7 @@ impl<V> ViewModel for MenuItemViewModel<V>
 where
     V: ViewModel + PartialEq + 'static,
 {
-    fn create_view(self: &Rc<Self>) -> Rc<RefCell<dyn ControlObject>> {
+    fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject> {
         let clicked_callback = self.clicked_callback.clone();
         let content = self.source_vm.create_view();
         ui! {

@@ -17,20 +17,20 @@ pub struct StyledControl<D> {
 }
 
 impl<D: 'static> StyledControl<D> {
-    pub fn new(data: D, style: Box<dyn Style<D>>, view_context: ViewContext) -> Rc<RefCell<Self>> {
-        let control = Rc::new(RefCell::new(StyledControl {
+    pub fn new(data: D, style: Box<dyn Style<D>>, view_context: ViewContext) -> Rc<Self> {
+        let control = Rc::new(StyledControl {
             data: RefCell::new(data),
             style: RefCell::new(style),
             control_context: ControlContext::new(view_context),
-        }));
+        });
 
         // set self
         let control_weak = Rc::downgrade(&control);
-        control.borrow().control_context.set_self(control_weak);
+        control.control_context.set_self(control_weak);
 
-        let control_clone: Rc<RefCell<dyn ControlObject>> = control.clone();
+        let control_clone: Rc<dyn ControlObject> = control.clone();
         let handler = Box::new(
-            move |changed_args: VecDiff<Rc<RefCell<dyn ControlObject>>>| {
+            move |changed_args: VecDiff<Rc<dyn ControlObject>>| {
                 let child = match changed_args {
                     VecDiff::Clear {} => None,
                     VecDiff::InsertAt { index: _, value } => Some(value),
@@ -45,44 +45,39 @@ impl<D: 'static> StyledControl<D> {
 
                 if let Some(child) = child {
                     child
-                        .borrow()
                         .get_context()
                         .set_parent(&control_clone);
 
                     // dynamically created controls require to set services
-                    let services = control_clone.borrow().get_context().get_services();
-                    child.borrow().get_context().set_services(services);
+                    let services = control_clone.get_context().get_services();
+                    child.get_context().set_services(services);
                 }
 
                 control_clone
-                    .borrow()
                     .get_context()
                     .set_is_dirty(true);
             },
         );
         let subscription = control
-            .borrow()
             .get_context()
             .get_children()
             .on_changed(handler);
 
         control
-            .borrow()
             .get_context()
             .set_children_collection_changed_event_subscription(subscription);
 
         for child in control
-            .borrow()
             .get_context()
             .get_children()
             .into_iter()
         {
-            let control: Rc<RefCell<dyn ControlObject>> = control.clone();
+            let control: Rc<dyn ControlObject> = control.clone();
 
-            child.borrow().get_context().set_parent(&control);
+            child.get_context().set_parent(&control);
         }
 
-        control.borrow().setup();
+        control.setup();
 
         control
     }
@@ -193,7 +188,7 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         self.control_context.get_rect()
     }
 
-    fn hit_test(&self, point: Point) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn hit_test(&self, point: Point) -> Option<Rc<dyn ControlObject>> {
         let rect = self.control_context.get_rect();
         if rect.width == 0.0f32 || rect.height == 0.0f32 {
             return None;

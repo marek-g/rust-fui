@@ -1,7 +1,6 @@
 use fui_core::{ControlObject, Property, Style, ViewContext};
 use fui_drawing::Color;
 use fui_macros::ui;
-use std::cell::RefCell;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
@@ -36,7 +35,7 @@ impl MenuBar {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         // Create StackPanel with the same context (preserves children and attached values)
         let stack_panel = StackPanel::builder()
             .orientation(Orientation::Horizontal)
@@ -89,7 +88,7 @@ impl Menu {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         menu_impl(context, true)
     }
 }
@@ -121,7 +120,7 @@ impl SubMenu {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         menu_impl(context, false)
     }
 }
@@ -130,7 +129,7 @@ impl SubMenu {
 // Common Menu Implementation
 // ============================================================================
 
-fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<RefCell<dyn ControlObject>> {
+fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> {
     // Shared state for this menu
     let is_open_prop = Property::new(false);
 
@@ -166,7 +165,7 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<RefCell<dyn Control
             popup_content_prop.push(child.clone());
         }
 
-        let popup_content: Rc<RefCell<dyn ControlObject>> = ui!(
+        let popup_content: Rc<dyn ControlObject> = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
 
@@ -330,7 +329,7 @@ impl MenuItem {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let activated_callback = self.activated.clone();
 
         let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
@@ -411,7 +410,7 @@ impl MenuSeparator {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         _context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         ui!(Border {
             border_type: BorderType::None,
             Style: Default {

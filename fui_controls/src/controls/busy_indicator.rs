@@ -3,7 +3,6 @@ use crate::DataHolder;
 use fui_core::*;
 use fui_drawing::Color;
 use fui_macros::ui;
-use std::cell::RefCell;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
@@ -18,7 +17,7 @@ impl BusyIndicator {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let content = ui! {
             Grid {
                 Visible: self.is_busy,

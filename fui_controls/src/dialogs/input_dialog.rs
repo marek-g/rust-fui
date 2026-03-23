@@ -98,7 +98,7 @@ impl InputDialog {
         cancel_callback.set_sync({
             let sender = sender.clone();
             let window_clone = window.clone();
-            let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
+            let content_clone: Rc<dyn ControlObject> = content.clone();
             move |_| {
                 window_clone.remove_layer(&content_clone);
                 sender.borrow_mut().take().unwrap().send(None).unwrap();
@@ -108,7 +108,7 @@ impl InputDialog {
         ok_callback.set_sync({
             let sender = sender.clone();
             let window_clone = window.clone();
-            let content_clone: Rc<RefCell<dyn ControlObject>> = content.clone();
+            let content_clone: Rc<dyn ControlObject> = content.clone();
             move |_| {
                 window_clone.remove_layer(&content_clone);
                 sender

@@ -2,7 +2,7 @@ use crate::control::control_behavior::ControlBehavior;
 use crate::{control::control_context::ControlContext, Point};
 use std::any::Any;
 use std::rc::Weak;
-use std::{cell::RefCell, rc::Rc};
+use std::rc::Rc;
 
 pub trait ControlObject: ControlBehavior {
     fn as_any(&self) -> &dyn Any;
@@ -16,13 +16,13 @@ pub trait ControlObject: ControlBehavior {
     ///
     /// The order is from the bottom to the top.
     ///
-    fn get_controls_at_point(&self, point: Point) -> Vec<Weak<RefCell<dyn ControlObject>>> {
+    fn get_controls_at_point(&self, point: Point) -> Vec<Weak<dyn ControlObject>> {
         let rect = self.get_rect();
         let mut res = Vec::new();
         if point.is_inside(&rect) {
             let children = self.get_context().get_children();
             for child in children {
-                res.append(&mut child.borrow().get_controls_at_point(point));
+                res.append(&mut child.get_controls_at_point(point));
             }
             res.push(self.get_context().get_self_weak())
         }
@@ -33,7 +33,7 @@ pub trait ControlObject: ControlBehavior {
     /// Returns the `hit` control and all its parent controls
     /// up to and including this one.
     ///
-    fn get_hit_path(&self, point: Point) -> Vec<Weak<RefCell<dyn ControlObject>>> {
+    fn get_hit_path(&self, point: Point) -> Vec<Weak<dyn ControlObject>> {
         let mut res = Vec::new();
         let mut hit_control = self.hit_test(point);
         while let Some(control) = &hit_control {
@@ -42,7 +42,7 @@ pub trait ControlObject: ControlBehavior {
             hit_control = if Rc::ptr_eq(&control, &self.get_context().get_self_rc()) {
                 None
             } else {
-                control.borrow().get_context().get_parent()
+                control.get_context().get_parent()
             }
         }
         res

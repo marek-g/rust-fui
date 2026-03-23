@@ -1,5 +1,4 @@
 use crate::{ControlObject, ObservableCollection, ObservableComposite, Subscription, VecDiff};
-use std::cell::RefCell;
 use std::rc::Rc;
 
 /// Children is a collection of controls.
@@ -11,13 +10,13 @@ pub enum Children {
     None,
 
     /// The collection has a single child.
-    SingleStatic(Rc<RefCell<dyn ControlObject>>),
+    SingleStatic(Rc<dyn ControlObject>),
 
     /// The collection is a list of controls.
-    MultipleStatic(Vec<Rc<RefCell<dyn ControlObject>>>),
+    MultipleStatic(Vec<Rc<dyn ControlObject>>),
 
     /// The children comes from a single observable collection.
-    SingleDynamic(Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>),
+    SingleDynamic(Box<dyn ObservableCollection<Rc<dyn ControlObject>>>),
 }
 
 impl Children {
@@ -30,9 +29,9 @@ impl Children {
     /// vector of Children collections.
     pub fn from(children_vec: Vec<Children>) -> Self {
         let mut sources_to_compose: Vec<
-            Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>,
+            Box<dyn ObservableCollection<Rc<dyn ControlObject>>>,
         > = Vec::new();
-        let mut static_children: Vec<Rc<RefCell<dyn ControlObject>>> = Vec::new();
+        let mut static_children: Vec<Rc<dyn ControlObject>> = Vec::new();
 
         for next in children_vec {
             match next {
@@ -82,7 +81,7 @@ impl Children {
     }
 
     /// Tries to get Rc reference to the control at the `index` position.
-    pub fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    pub fn get(&self, index: usize) -> Option<Rc<dyn ControlObject>> {
         match self {
             Children::None => None,
             Children::SingleStatic(x) => {
@@ -99,40 +98,40 @@ impl Children {
 }
 
 /// Converts a single control to Children collection.
-impl From<Rc<RefCell<dyn ControlObject>>> for Children {
-    fn from(item: Rc<RefCell<dyn ControlObject>>) -> Children {
+impl From<Rc<dyn ControlObject>> for Children {
+    fn from(item: Rc<dyn ControlObject>) -> Children {
         Children::SingleStatic(item)
     }
 }
 
 /// Converts a single control to Children collection.
-impl<T: ControlObject + 'static> From<Rc<RefCell<T>>> for Children {
-    fn from(item: Rc<RefCell<T>>) -> Children {
-        Children::SingleStatic(item)
+impl<T: ControlObject + 'static> From<Rc<T>> for Children {
+    fn from(item: Rc<T>) -> Children {
+        Children::SingleStatic(item as Rc<dyn ControlObject>)
     }
 }
 
 /// Converts vector of controls to Children collection.
-impl From<Vec<Rc<RefCell<dyn ControlObject>>>> for Children {
-    fn from(items: Vec<Rc<RefCell<dyn ControlObject>>>) -> Children {
+impl From<Vec<Rc<dyn ControlObject>>> for Children {
+    fn from(items: Vec<Rc<dyn ControlObject>>) -> Children {
         Children::MultipleStatic(items)
     }
 }
 
 /// Converts vector of controls to Children collection.
-impl<T: 'static + ControlObject> From<Vec<Rc<RefCell<T>>>> for Children {
-    fn from(items: Vec<Rc<RefCell<T>>>) -> Children {
+impl<T: 'static + ControlObject> From<Vec<Rc<T>>> for Children {
+    fn from(items: Vec<Rc<T>>) -> Children {
         Children::MultipleStatic(
             items
                 .into_iter()
-                .map(|item| item as Rc<RefCell<dyn ControlObject>>)
+                .map(|item| item as Rc<dyn ControlObject>)
                 .collect(),
         )
     }
 }
 
 /// Converts an observable collection to Children collection.
-impl<T: Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>> From<T> for Children {
+impl<T: Into<Box<dyn ObservableCollection<Rc<dyn ControlObject>>>>> From<T> for Children {
     fn from(items: T) -> Children {
         Children::SingleDynamic(items.into())
     }
@@ -141,18 +140,18 @@ impl<T: Into<Box<dyn ObservableCollection<Rc<RefCell<dyn ControlObject>>>>>> Fro
 ///
 /// ObservableCollection for Children.
 ///
-impl ObservableCollection<Rc<RefCell<dyn ControlObject>>> for Children {
+impl ObservableCollection<Rc<dyn ControlObject>> for Children {
     fn len(&self) -> usize {
         Children::len(self)
     }
 
-    fn get(&self, index: usize) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    fn get(&self, index: usize) -> Option<Rc<dyn ControlObject>> {
         Children::get(self, index)
     }
 
     fn on_changed(
         &self,
-        f: Box<dyn FnMut(VecDiff<Rc<RefCell<dyn ControlObject>>>)>,
+        f: Box<dyn FnMut(VecDiff<Rc<dyn ControlObject>>)>,
     ) -> Option<Subscription> {
         match self {
             Children::None | Children::SingleStatic(_) | Children::MultipleStatic(_) => None,

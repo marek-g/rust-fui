@@ -25,7 +25,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::f32;
 use std::rc::Rc;
@@ -234,7 +233,7 @@ impl Grid {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -285,7 +284,7 @@ impl DefaultGridStyle {
         let mut max_row_from_attached = -1;
         let mut max_column_from_attached = -1;
         for child in children.into_iter() {
-            let child = child.borrow();
+            let child = child;
             let ctx = child.get_context();
 
             let max_row = if let Some(row) = ctx.get_attached_value::<Row>().as_deref() {
@@ -435,7 +434,7 @@ impl DefaultGridStyle {
             let mut column_span = 1;
             let mut row_span = 1;
 
-            let child = child.borrow();
+            let child = child;
             let ctx = child.get_context();
             if let Some(row) = ctx.get_attached_value::<Row>().as_deref() {
                 row_index = *row;
@@ -547,7 +546,7 @@ impl DefaultGridStyle {
         for cell in cells {
             let child = children.get(cell.child_index).unwrap();
 
-            let old_width = child.borrow().get_rect().width;
+            let old_width = child.get_rect().width;
             Self::measure_cell(
                 drawing_context,
                 &cell,
@@ -556,7 +555,7 @@ impl DefaultGridStyle {
                 definitions_v,
                 force_infinity_v,
             );
-            let new_rect = child.borrow().get_rect();
+            let new_rect = child.get_rect();
             let new_width = new_rect.width;
             let new_height = new_rect.height;
             has_desired_size_u_changed |=
@@ -612,7 +611,7 @@ impl DefaultGridStyle {
     fn measure_cell(
         drawing_context: &mut FuiDrawingContext,
         cell: &CellCache,
-        child: &Rc<RefCell<dyn ControlObject>>,
+        child: &Rc<dyn ControlObject>,
         definitions_u: &mut Vec<DefinitionBase>,
         definitions_v: &mut Vec<DefinitionBase>,
         force_infinity_v: bool,
@@ -639,7 +638,7 @@ impl DefaultGridStyle {
                 Self::get_measure_size_for_range(definitions_v, cell.row_index, cell.row_span);
         }
 
-        child.borrow().measure(
+        child.measure(
             drawing_context,
             Size::new(cell_measure_width, cell_measure_height),
         );
@@ -1489,7 +1488,7 @@ impl Style<Grid> for DefaultGridStyle {
             self.definitions_v = Vec::new();
 
             for child in children.into_iter() {
-                let child = child.borrow_mut();
+                let child = child;
                 child.measure(drawing_context, size);
                 let child_rc = child.get_rect();
                 grid_desired_size.width = grid_desired_size.width.max(child_rc.width);
@@ -1653,7 +1652,7 @@ impl Style<Grid> for DefaultGridStyle {
 
         if self.definitions_u.len() == 0 && self.definitions_v.len() == 0 {
             for child in children.into_iter() {
-                child.borrow().set_rect(drawing_context, rect);
+                child.set_rect(drawing_context, rect);
             }
         } else {
             Self::set_final_size(&mut self.definitions_u, rect.width, true);
@@ -1690,7 +1689,7 @@ impl Style<Grid> for DefaultGridStyle {
                     Self::get_final_size_for_range(&mut self.definitions_v, row_index, row_span),
                 );
 
-                child.borrow().set_rect(drawing_context, rc);
+                child.set_rect(drawing_context, rc);
             }
         }
     }
@@ -1700,11 +1699,11 @@ impl Style<Grid> for DefaultGridStyle {
         _data: &Grid,
         control_context: &ControlContext,
         point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         if point.is_inside(&control_context.get_rect()) {
             let children = control_context.get_children();
             for child in children.into_iter().rev() {
-                let c = child.borrow();
+                let c = child;
                 let rect = c.get_rect();
                 if point.is_inside(&rect) {
                     let hit_control = c.hit_test(point);
@@ -1727,7 +1726,7 @@ impl Style<Grid> for DefaultGridStyle {
     ) {
         let children = control_context.get_children();
         for child in children.into_iter() {
-            child.borrow().draw(drawing_context);
+            child.draw(drawing_context);
         }
     }
 }

@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::Cell;
 use std::rc::{Rc, Weak};
 
 use fui_core::RelativeLayout;
@@ -51,7 +51,7 @@ pub struct Popup {
     /// Popup does not pass through events to controls below
     /// except the area covered by this list of controls
     #[builder(default = Vec::new())]
-    pub uncovered_controls: Vec<Weak<RefCell<dyn ControlObject>>>,
+    pub uncovered_controls: Vec<Weak<dyn ControlObject>>,
 }
 
 impl Popup {
@@ -59,7 +59,7 @@ impl Popup {
         self,
         style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         StyledControl::new(
             self,
             style.unwrap_or_else(|| {
@@ -80,7 +80,7 @@ impl Popup {
 pub struct DefaultPopupStyleParams {}
 
 pub struct DefaultPopupStyle {
-    popup_content: Rc<Cell<Option<Rc<RefCell<dyn ControlObject>>>>>,
+    popup_content: Rc<Cell<Option<Rc<dyn ControlObject>>>>,
     event_subscriptions: Vec<Subscription>,
 }
 
@@ -111,7 +111,6 @@ impl Style<Popup> for DefaultPopupStyle {
 
         let is_open_handler = move |is_open| {
             let window_service = self_rc
-                .borrow()
                 .get_context()
                 .get_services()
                 .as_ref()
@@ -119,7 +118,7 @@ impl Style<Popup> for DefaultPopupStyle {
                 .unwrap_or(None);
 
             if let Some(window_service) = window_service {
-                let self_popup = self_rc.borrow_mut();
+                let self_popup = self_rc.clone();
                 if let Some(first_child) =
                     self_popup.get_context().get_children().into_iter().next()
                 {
@@ -146,7 +145,7 @@ impl Style<Popup> for DefaultPopupStyle {
                             PopupAutoHide::Menu => RelativeAutoHide::Menu,
                         };
 
-                        let content = ui! {
+                        let content: Rc<dyn ControlObject> = ui! {
                             RelativeLayout {
                                 placement: relative_placement,
                                 auto_hide: relative_auto_hide,
@@ -206,7 +205,7 @@ impl Style<Popup> for DefaultPopupStyle {
         _data: &Popup,
         _control_context: &ControlContext,
         _point: Point,
-    ) -> Option<Rc<RefCell<dyn ControlObject>>> {
+    ) -> Option<Rc<dyn ControlObject>> {
         None
     }
 

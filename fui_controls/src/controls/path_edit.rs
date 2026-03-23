@@ -1,7 +1,6 @@
 use crate::controls::*;
 use fui_core::*;
 use fui_macros::ui;
-use std::cell::RefCell;
 use std::rc::Rc;
 use typed_builder::TypedBuilder;
 
@@ -32,7 +31,7 @@ impl PathEdit {
         self,
         _style: Option<Box<dyn Style<Self>>>,
         mut context: ViewContext,
-    ) -> Rc<RefCell<dyn ControlObject>> {
+    ) -> Rc<dyn ControlObject> {
         let mut choose_callback = Callback::empty();
 
         let control = ui! {
@@ -50,7 +49,6 @@ impl PathEdit {
         }
 
         control
-            .borrow_mut()
             .get_context()
             .set_attached_values(context.attached_values);
 
@@ -65,7 +63,7 @@ impl PathEdit {
                 async move {
                     if let Some(file_dialog_service) = control_weak
                         .upgrade()
-                        .map(|c| c.borrow().get_context().get_services().clone())
+                        .map(|c| c.get_context().get_services().clone())
                         .flatten()
                         .map(|s| s.get_file_dialog_service())
                     {
