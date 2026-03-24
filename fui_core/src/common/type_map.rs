@@ -50,6 +50,11 @@ impl TypeMap {
             .and_then(|boxed| boxed.downcast_mut::<K::Value>())
     }
 
+    /// Clears the content of the map.
+    pub fn clear(&mut self) {
+        self.map.clear();
+    }
+
     /// Removes the value associated with the key `K` from the map.
     pub fn remove<K: TypeMapKey + 'static>(&mut self) -> Option<K::Value> {
         self.map

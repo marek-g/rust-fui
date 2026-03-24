@@ -14,6 +14,7 @@ pub struct ControlContext {
     dirty_event_subscriptions: RefCell<Vec<Subscription>>,
 
     attached_values: RefCell<TypeMap>,
+    inherited_values_cache: RefCell<TypeMap>,
 
     services: RefCell<Option<Services>>,
 
@@ -31,6 +32,7 @@ impl ControlContext {
             children_collection_changed_event_subscription: RefCell::new(None),
             dirty_event_subscriptions: RefCell::new(Vec::new()),
             attached_values: RefCell::new(view_context.attached_values),
+            inherited_values_cache: RefCell::new(TypeMap::new()),
             services: RefCell::new(None),
             rect: Cell::new(Rect::empty()),
             is_dirty: Cell::new(true),
@@ -59,6 +61,7 @@ impl ControlContext {
 
     pub fn set_parent(&self, parent_rc: &Rc<dyn ControlObject>) {
         *self.parent.borrow_mut() = Some(Rc::downgrade(parent_rc));
+        self.inherited_values_cache.borrow_mut().clear();
     }
 
     pub fn get_children(&self) -> &Children {
@@ -79,20 +82,41 @@ impl ControlContext {
     where
         K::Value: Clone,
     {
+        // Check cache first
+        if let Some(cached) = self.inherited_values_cache.borrow().get::<K>() {
+            return Some(cached.clone());
+        }
+
+        // Check local attached values (don't cache these)
         if let Some(val) = self.get_attached_value::<K>() {
             return Some(val.clone());
         }
 
+        // Traverse parents to find inherited value
         let mut current_parent = self.get_parent();
+        let mut found_in_parent = false;
+        let mut result = None;
+
         while let Some(parent) = current_parent {
             let context = parent.get_context();
             if let Some(val) = context.get_attached_value::<K>() {
-                return Some(val.clone());
+                result = Some(val.clone());
+                found_in_parent = true;
+                break;
             }
             current_parent = context.get_parent();
         }
 
-        None
+        // Cache the value only if we found it in a parent (not locally)
+        if found_in_parent {
+            if let Some(ref val) = result {
+                self.inherited_values_cache
+                    .borrow_mut()
+                    .insert::<K>(val.clone());
+            }
+        }
+
+        result
     }
 
     pub fn set_attached_values(&self, attached_values: TypeMap) {
