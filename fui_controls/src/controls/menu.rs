@@ -1,31 +1,42 @@
 use fui_core::{ControlObject, Property, Style, TypeMapKey, ViewContext};
 use fui_drawing::Color;
 use fui_macros::ui;
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 use typed_builder::TypedBuilder;
 
-use std::sync::atomic::{AtomicI32, AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::controls::*;
 use crate::GestureArea;
+use crate::{controls::*, DataHolder};
 use fui_core::*;
 
 // ============================================================================
 // Attached Values for Menu State Tracking
 // ============================================================================
 
+pub struct MenuData {
+    pub active_menu_id: Property<i32>,
+    pub top_level_triggers: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
+    pub menu_id_counter: Cell<i32>,
+    pub last_active_time: Cell<u64>,
+}
+
 pub struct ActiveMenu;
 
 impl TypeMapKey for ActiveMenu {
-    // 0 = brak aktywnego menu, > 0 = ID aktualnie otwartego menu
-    type Value = Property<i32>;
+    type Value = Rc<MenuData>;
 }
 
-// Global counters/state for robust menu bar handling
-static MENU_ID_COUNTER: AtomicI32 = AtomicI32::new(1);
-static LAST_ACTIVE_TIME: AtomicU64 = AtomicU64::new(0);
+// TODO: move it to attached value somehow
+thread_local! {
+    static MENU_DATA: Rc<MenuData> = Rc::new(MenuData {
+            active_menu_id: Property::new(0i32),
+            top_level_triggers: Rc::new(RefCell::new(Vec::new())),
+            menu_id_counter: Cell::new(1),
+            last_active_time: Cell::new(0),
+        });
+}
 
 fn get_time_ms() -> u64 {
     SystemTime::now()
@@ -47,9 +58,17 @@ impl MenuBar {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
-        let active_menu_prop = Property::new(0i32);
+        /*// Inicjalizujemy współdzielony stan dla całego paska menu
+            let menu_data = Rc::new(MenuData {
+                active_menu_id: Property::new(0i32),
+                top_level_triggers: Rc::new(RefCell::new(Vec::new())),
+                menu_id_counter: Cell::new(1),
+                last_active_time: Cell::new(0),
+        });*/
+        let menu_data = MENU_DATA.with(|menu_data| menu_data.clone());
+
         let mut attached_values = context.attached_values;
-        attached_values.insert::<ActiveMenu>(active_menu_prop.clone());
+        attached_values.insert::<ActiveMenu>(menu_data);
 
         let updated_context = ViewContext {
             attached_values,
@@ -113,7 +132,22 @@ impl SubMenu {
 // ============================================================================
 
 fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> {
-    let my_menu_id = MENU_ID_COUNTER.fetch_add(1, Ordering::Relaxed);
+    // Pobieramy współdzielony stan MenuBar
+    //let menu_data = context.get_inherited_value::<ActiveMenu>();
+    let menu_data = Some(MENU_DATA.with(|menu_data| menu_data.clone()));
+
+    let my_menu_id = if let Some(md) = &menu_data {
+        if is_top_level {
+            let id = md.menu_id_counter.get();
+            md.menu_id_counter.set(id + 1);
+            id
+        } else {
+            0
+        }
+    } else {
+        0
+    };
+
     let is_open_prop = Property::new(false);
 
     let children: Vec<_> = context.children.into_iter().collect();
@@ -124,25 +158,42 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
     let trigger = children.first().unwrap().clone();
     let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
+    // listen for changes of the active menu, so the old one can close
+    let mut subscription = None;
+    if is_top_level {
+        if let Some(md) = &menu_data {
+            let is_open_prop_clone = is_open_prop.clone();
+            let background_property_clone = background_property.clone();
+            let my_id = my_menu_id;
+
+            subscription = Some(md.active_menu_id.on_changed(move |new_active_id: i32| {
+                // Jeśli aktywowane zostało inne menu, a my nadal jesteśmy otwarci - zamykamy się
+                if new_active_id != my_id && is_open_prop_clone.get() {
+                    is_open_prop_clone.set(false);
+                    background_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
+                }
+            }));
+        }
+    }
+
     let popup_children: Vec<_> = children.iter().skip(1).cloned().collect();
     let has_popup_content = !popup_children.is_empty();
 
-    let self_weak: Rc<RefCell<Option<Weak<dyn ControlObject>>>> = Rc::new(RefCell::new(None));
-
-    let get_active_menu = {
-        let self_weak = self_weak.clone();
-        move || -> Option<Property<i32>> {
-            if !is_top_level {
-                return None;
-            }
-            let weak = self_weak.borrow();
-            weak.as_ref()
-                .and_then(|w| w.upgrade())
-                .and_then(|ctrl| ctrl.get_context().get_inherited_value::<ActiveMenu>())
+    // Rejestrujemy ten trigger w głównym stanie paska menu
+    if is_top_level {
+        if let Some(md) = &menu_data {
+            md.top_level_triggers
+                .borrow_mut()
+                .push(Rc::downgrade(&trigger));
         }
-    };
+    }
 
     let mut popup_view = Children::None;
+
+    // Lista modyfikowalna po utworzeniu Popup
+    let uncovered_controls = Rc::new(RefCell::new(Vec::new()));
+    let popup_content_weak: Rc<RefCell<Option<Weak<dyn ControlObject>>>> =
+        Rc::new(RefCell::new(None));
 
     if has_popup_content {
         let popup_placement = if is_top_level {
@@ -152,9 +203,8 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
         };
 
         let popup_content_prop = ObservableVec::new();
-        let mut uncovered_controls = vec![];
 
-        for child in popup_children.into_iter() {
+        for child in popup_children.iter() {
             popup_content_prop.push(child.clone());
         }
 
@@ -174,49 +224,78 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
             }
         );
 
-        uncovered_controls.push(Rc::downgrade(&popup_content));
+        *popup_content_weak.borrow_mut() = Some(Rc::downgrade(&popup_content));
 
         let auto_hide_occured_callback = {
             let background_property = background_property.clone();
             let is_open_prop = is_open_prop.clone();
-            let get_active_menu = get_active_menu.clone();
+            let menu_data = menu_data.clone();
 
             Callback::new_sync(move |_| {
                 is_open_prop.set(false);
                 background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
-                if let Some(active_menu) = get_active_menu() {
-                    // Tylko czyscimy ActiveMenu jesli to MY nim aktualnie zarzadzamy!
-                    // Zapobiega to zamykaniu menu podczas przelaczania (Issue 2)
-                    if active_menu.get() == my_menu_id {
-                        active_menu.set(0);
-                        LAST_ACTIVE_TIME.store(get_time_ms(), Ordering::Relaxed);
+                if let Some(md) = &menu_data {
+                    if md.active_menu_id.get() == my_menu_id {
+                        md.active_menu_id.set(0);
+                        md.last_active_time.set(get_time_ms());
                     }
                 }
             })
         };
 
+        let auto_hide = if is_top_level {
+            PopupAutoHide::MenuTopLevel
+        } else {
+            PopupAutoHide::Menu
+        };
+
         let popup = ui!(Popup {
             is_open: is_open_prop.clone(),
             placement: popup_placement,
-            auto_hide: PopupAutoHide::Menu,
+            auto_hide: auto_hide,
             auto_hide_occured: auto_hide_occured_callback,
-            uncovered_controls: uncovered_controls,
+            uncovered_controls: uncovered_controls.clone(),
             popup_content,
         });
 
         popup_view = Children::SingleStatic(popup);
     }
 
+    // Funkcja pomocnicza: buduje pełną listę uncovered tuż przed otwarciem
+    let sync_uncovered_controls = {
+        let menu_data = menu_data.clone();
+        let uncovered_controls = uncovered_controls.clone();
+        let popup_content_weak = popup_content_weak.clone();
+
+        move || {
+            let mut unc = uncovered_controls.borrow_mut();
+            unc.clear();
+
+            // Dodajemy WSZYSTKIE triggery top-level (również sąsiadów wyrenderowanych po nas)
+            if let Some(md) = &menu_data {
+                for t in md.top_level_triggers.borrow().iter() {
+                    unc.push(t.clone());
+                }
+            }
+            // Dodajemy własną zawartość (aby kliknięcie w rozwinięte menu go nie zamykało)
+            if let Some(pc) = popup_content_weak.borrow().as_ref() {
+                unc.push(pc.clone());
+            }
+        }
+    };
+
     let trigger_with_gestures = {
         let on_hover_callback = {
             let background_property = background_property.clone();
             let is_open_prop = is_open_prop.clone();
-            let get_active_menu = get_active_menu.clone();
+            let menu_data = menu_data.clone();
+            let sync_uncovered_controls = sync_uncovered_controls.clone();
 
             Callback::new_sync(move |value: bool| {
                 if value && !is_top_level {
                     if has_popup_content {
+                        sync_uncovered_controls();
                         is_open_prop.set(true);
                     }
                     background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
@@ -229,29 +308,24 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
                 } else if is_top_level {
                     let mut is_active = false;
 
-                    if let Some(active_menu) = get_active_menu() {
-                        let current_active = active_menu.get();
+                    if let Some(md) = &menu_data {
+                        let current_active = md.active_menu_id.get();
+                        let recently_closed = (get_time_ms() - md.last_active_time.get()) < 150;
 
-                        // Zostawiamy niewielki zapas czasu po "auto_hide" poprzedniego menu, zeby rodzeństwo moglo prawidlowo sie otworzyc.
-                        let recently_closed =
-                            (get_time_ms() - LAST_ACTIVE_TIME.load(Ordering::Relaxed)) < 150;
-
-                        // Jesli inna kontrolka jest aktywna LUB menu zostalo zaledwie chwile temu zamkniete:
                         if current_active > 0 || recently_closed {
                             is_active = true;
                             if value && !is_open_prop.get() && has_popup_content {
+                                sync_uncovered_controls();
                                 is_open_prop.set(true);
-                                active_menu.set(my_menu_id);
+                                md.active_menu_id.set(my_menu_id);
                             }
                         }
                     }
 
-                    // Tlo zmieniamy TYLKO wtedy, gdy menu bar jest w istocie aktywny albo klikniety!
-                    // Rozwiazuje Issue 1.
                     background_property.set(if is_open_prop.get() || (value && is_active) {
                         Color::rgba(0.0, 0.0, 0.0, 0.8)
                     } else if value {
-                        Color::rgba(0.0, 0.0, 0.0, 0.1) // Delikatny highlight dla nieaktywnego paska (opcjonalnie mozesz ustwić 0.0)
+                        Color::rgba(0.0, 0.0, 0.0, 0.1)
                     } else {
                         Color::rgba(0.0, 0.0, 0.0, 0.0)
                     });
@@ -261,8 +335,9 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
 
         let on_tap_up_callback = {
             let is_open_prop = is_open_prop.clone();
-            let get_active_menu = get_active_menu.clone();
+            let menu_data = menu_data.clone();
             let background_property = background_property.clone();
+            let sync_uncovered_controls = sync_uncovered_controls.clone();
 
             Callback::new_sync(move |_| {
                 if has_popup_content {
@@ -271,21 +346,25 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
                         if currently_open {
                             is_open_prop.set(false);
                             background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
-                            if let Some(active_menu) = get_active_menu() {
-                                if active_menu.get() == my_menu_id {
-                                    active_menu.set(0);
-                                    LAST_ACTIVE_TIME.store(get_time_ms(), Ordering::Relaxed);
+                            if let Some(md) = &menu_data {
+                                if md.active_menu_id.get() == my_menu_id {
+                                    md.active_menu_id.set(0);
+                                    md.last_active_time.set(get_time_ms());
                                 }
                             }
                         } else {
+                            sync_uncovered_controls();
                             is_open_prop.set(true);
                             background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
-                            if let Some(active_menu) = get_active_menu() {
-                                active_menu.set(my_menu_id);
+                            if let Some(md) = &menu_data {
+                                md.active_menu_id.set(my_menu_id);
                             }
                         }
                     } else {
                         let currently_open = is_open_prop.get();
+                        if !currently_open {
+                            sync_uncovered_controls();
+                        }
                         is_open_prop.set(!currently_open);
                     }
                 }
@@ -310,7 +389,7 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
     content_prop.push(trigger_with_gestures);
 
     let result = if is_top_level {
-        ui!(
+        let content = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
                 Border {
@@ -322,6 +401,15 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
                     }
                 }
             }
+        );
+
+        let data_holder = DataHolder { data: subscription };
+        data_holder.to_view(
+            None,
+            ViewContext {
+                attached_values: context.attached_values,
+                children: Children::SingleStatic(content),
+            },
         )
     } else {
         ui!(
@@ -338,8 +426,6 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
             }
         )
     };
-
-    *self_weak.borrow_mut() = Some(Rc::downgrade(&result));
 
     result
 }

@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 
 use fui_core::RelativeLayout;
@@ -31,6 +31,10 @@ pub enum PopupAutoHide {
     /// away the popup and it's parent or clicks outside it
     /// (the submenu like behavior).
     Menu,
+
+    /// The layout will call auto_hide_request when user clicks outside it,
+    /// or moves cursor onto another menu trigger (top-level menu behavior).
+    MenuTopLevel,
 }
 
 #[derive(TypedBuilder)]
@@ -50,8 +54,8 @@ pub struct Popup {
 
     /// Popup does not pass through events to controls below
     /// except the area covered by this list of controls
-    #[builder(default = Vec::new())]
-    pub uncovered_controls: Vec<Weak<dyn ControlObject>>,
+    #[builder(default = Rc::new(RefCell::new(Vec::new())))]
+    pub uncovered_controls: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
 }
 
 impl Popup {
@@ -100,7 +104,9 @@ impl Style<Popup> for DefaultPopupStyle {
         let placement = data.placement;
         let auto_hide = data.auto_hide;
         let auto_hide_occured = data.auto_hide_occured.clone();
-        let uncovered_controls = data.uncovered_controls.to_vec();
+
+        // Klonujemy referencję do Rc współdzielonego ze światem zewnętrznym
+        let uncovered_controls = data.uncovered_controls.clone();
 
         let mut auto_hide_request_callback = Callback::empty();
         let is_open_property_clone = data.is_open.clone();
@@ -143,6 +149,7 @@ impl Style<Popup> for DefaultPopupStyle {
                             PopupAutoHide::None => RelativeAutoHide::None,
                             PopupAutoHide::ClickedOutside => RelativeAutoHide::ClickedOutside,
                             PopupAutoHide::Menu => RelativeAutoHide::Menu,
+                            PopupAutoHide::MenuTopLevel => RelativeAutoHide::MenuTopLevel,
                         };
 
                         let content: Rc<dyn ControlObject> = ui! {
@@ -150,7 +157,7 @@ impl Style<Popup> for DefaultPopupStyle {
                                 placement: relative_placement,
                                 auto_hide: relative_auto_hide,
                                 auto_hide_request: auto_hide_request_callback.clone(),
-                                uncovered_controls: uncovered_controls.to_vec(),
+                                uncovered_controls: uncovered_controls.clone(),
 
                                 first_child,
                             }

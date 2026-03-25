@@ -1,3 +1,5 @@
+use crate::common::Point;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Rect {
     pub x: f32,
@@ -23,5 +25,12 @@ impl Rect {
             width: width,
             height: height,
         }
+    }
+
+    pub fn contains(&self, point: &Point) -> bool {
+        point.x >= self.x
+            && point.x <= self.x + self.width
+            && point.y >= self.y
+            && point.y <= self.y + self.height
     }
 }

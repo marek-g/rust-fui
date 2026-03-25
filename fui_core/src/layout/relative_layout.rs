@@ -1,4 +1,7 @@
-use std::rc::{Rc, Weak};
+use std::{
+    cell::RefCell,
+    rc::{Rc, Weak},
+};
 
 use crate::{
     Callback, ControlContext, ControlEvent, ControlObject, EventContext, FuiDrawingContext, Point,
@@ -24,6 +27,10 @@ pub enum RelativeAutoHide {
     /// away the layout and it's parent or clicks outside it
     /// (the submenu like behavior).
     Menu,
+
+    /// The layout will call auto_hide_request when user clicks outside it,
+    /// or moves cursor onto another menu trigger (top-level menu behavior).
+    MenuTopLevel,
 }
 
 ///
@@ -59,8 +66,8 @@ pub struct RelativeLayout {
 
     /// RelativeLayout does not pass through events to controls below
     /// except the area covered by this list of controls
-    #[builder(default = Vec::new())]
-    pub uncovered_controls: Vec<Weak<dyn ControlObject>>,
+    #[builder(default = Rc::new(RefCell::new(Vec::new())))]
+    pub uncovered_controls: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
 }
 
 impl RelativeLayout {
@@ -115,9 +122,9 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
     ) {
         match event {
             ControlEvent::TapDown { .. } => match data.auto_hide {
-                RelativeAutoHide::ClickedOutside | RelativeAutoHide::Menu => {
-                    data.auto_hide_request.emit(())
-                }
+                RelativeAutoHide::ClickedOutside
+                | RelativeAutoHide::Menu
+                | RelativeAutoHide::MenuTopLevel => data.auto_hide_request.emit(()),
                 _ => (),
             },
 
@@ -126,6 +133,30 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
                     if !position.is_inside(&self.relative_control_rect)
                         && !position.is_inside(&self.rect)
                     {
+                        data.auto_hide_request.emit(())
+                    }
+                }
+                RelativeAutoHide::MenuTopLevel => {
+                    // Check if inside main popup or parent trigger
+                    let inside_popup = position.is_inside(&self.rect);
+                    let inside_parent = position.is_inside(&self.relative_control_rect);
+
+                    // Check if over any other menu trigger (uncovered controls that are menus)
+                    let over_other_menu =
+                        data.uncovered_controls.borrow().iter().any(|uncovered| {
+                            uncovered.upgrade().map_or(false, |ctrl| {
+                                // Only trigger hide if over a different menu trigger
+                                // (not the parent of this popup)
+                                let relative_origin = crate::Point::new(
+                                    self.relative_control_rect.x,
+                                    self.relative_control_rect.y,
+                                );
+                                !ctrl.get_rect().contains(&relative_origin)
+                                    && position.is_inside(&ctrl.get_rect())
+                            })
+                        });
+
+                    if !inside_popup && !inside_parent && over_other_menu {
                         data.auto_hide_request.emit(())
                     }
                 }
@@ -211,8 +242,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
 
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
-                content
-                    .measure(drawing_context, available_size);
+                content.measure(drawing_context, available_size);
                 let rect = content.get_rect();
                 Size::new(rect.width, rect.height)
             }
@@ -301,7 +331,7 @@ impl Style<RelativeLayout> for DefaultRelativeLayoutStyle {
         // If the point is over one of the `uncovered_controls`
         // return None, so the parent will hit test them
         // and they will receive event.
-        for uncovered_control in &data.uncovered_controls {
+        for uncovered_control in data.uncovered_controls.borrow().iter() {
             if let Some(uncovered_control) = uncovered_control.upgrade() {
                 if point.is_inside(&uncovered_control.get_rect()) {
                     return None;
