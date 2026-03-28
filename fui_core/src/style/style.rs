@@ -8,7 +8,11 @@ use crate::EventContext;
 use std::rc::Rc;
 
 pub trait Style<D> {
+    // initialization - bottom-up
     fn setup(&mut self, data: &mut D, control_context: &ControlContext);
+
+    // parent attached - top-down
+    fn parent_attached(&mut self, _data: &mut D, _control_context: &ControlContext) {}
 
     fn handle_event(
         &mut self,

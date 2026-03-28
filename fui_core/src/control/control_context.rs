@@ -8,6 +8,7 @@ use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
 pub struct ControlContext {
     self_weak: RefCell<Option<Weak<dyn ControlObject>>>,
     parent: RefCell<Option<Weak<dyn ControlObject>>>,
+    is_attached: Cell<bool>,
     children: Children,
 
     children_collection_changed_event_subscription: RefCell<Option<Subscription>>,
@@ -28,6 +29,7 @@ impl ControlContext {
         ControlContext {
             self_weak: RefCell::new(None),
             parent: RefCell::new(None),
+            is_attached: Cell::new(false),
             children: view_context.children,
             children_collection_changed_event_subscription: RefCell::new(None),
             dirty_event_subscriptions: RefCell::new(Vec::new()),
@@ -62,6 +64,10 @@ impl ControlContext {
     pub fn set_parent(&self, parent_rc: &Rc<dyn ControlObject>) {
         *self.parent.borrow_mut() = Some(Rc::downgrade(parent_rc));
         self.inherited_values_cache.borrow_mut().clear();
+
+        if parent_rc.get_context().is_attached.get() {
+            self.attach_tree();
+        }
     }
 
     pub fn get_children(&self) -> &Children {
@@ -72,6 +78,27 @@ impl ControlContext {
         *self
             .children_collection_changed_event_subscription
             .borrow_mut() = s;
+    }
+
+    pub fn get_services(&self) -> Option<Services> {
+        self.services.borrow().clone()
+    }
+
+    pub fn set_services(&self, services: Option<Services>) {
+        for child in self.children.into_iter() {
+            child.get_context().set_services(services.clone());
+        }
+        *self.services.borrow_mut() = services;
+    }
+
+    // control is attached to the window
+    pub fn attach_tree(&self) {
+        self.is_attached.set(true);
+        self.get_self_rc().parent_attached();
+        for child in self.children.into_iter() {
+            child.get_context().is_attached.set(true);
+            child.get_context().attach_tree();
+        }
     }
 
     pub fn get_attached_value<K: TypeMapKey + 'static>(&self) -> Option<Ref<'_, K::Value>> {
@@ -121,17 +148,6 @@ impl ControlContext {
 
     pub fn set_attached_values(&self, attached_values: TypeMap) {
         *self.attached_values.borrow_mut() = attached_values;
-    }
-
-    pub fn get_services(&self) -> Option<Services> {
-        self.services.borrow().clone()
-    }
-
-    pub fn set_services(&self, services: Option<Services>) {
-        for child in self.children.into_iter() {
-            child.get_context().set_services(services.clone());
-        }
-        *self.services.borrow_mut() = services;
     }
 
     pub fn get_rect(&self) -> Rect {

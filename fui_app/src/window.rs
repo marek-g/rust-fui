@@ -115,7 +115,7 @@ impl Window {
         let window_data_rc = Rc::new(WindowVMThreadData {
             id: window_id,
             event_processor: RefCell::new(EventProcessor::new()),
-            root_control: content,
+            root_control: content.clone(),
             view: RefCell::new(None),
             view_model: RefCell::new(None),
             services: RefCell::new(None),
@@ -152,6 +152,9 @@ impl Window {
                     .insert(window_id, Rc::downgrade(&window.data))
             }
         });
+
+        // send parent_attached() to the content control
+        content.get_context().attach_tree();
 
         Ok(window)
     }
@@ -449,14 +452,9 @@ impl Window {
                             Rect::new(0f32, 0f32, size.width, size.height),
                         );
 
-                        window_data
-                            .root_control
-                            .draw(&mut fui_drawing_context);
+                        window_data.root_control.draw(&mut fui_drawing_context);
 
-                        window_data
-                            .root_control
-                            .get_context()
-                            .set_is_dirty(false);
+                        window_data.root_control.get_context().set_is_dirty(false);
 
                         tx.send(Some(display_list_builder)).unwrap();
                     } else {

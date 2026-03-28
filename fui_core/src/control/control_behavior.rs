@@ -8,6 +8,8 @@ use crate::FuiDrawingContext;
 pub trait ControlBehavior {
     fn setup(&self);
 
+    fn parent_attached(&self);
+
     fn handle_event(
         &self,
         drawing_context: &mut FuiDrawingContext,

@@ -29,49 +29,36 @@ impl<D: 'static> StyledControl<D> {
         control.control_context.set_self(control_weak);
 
         let control_clone: Rc<dyn ControlObject> = control.clone();
-        let handler = Box::new(
-            move |changed_args: VecDiff<Rc<dyn ControlObject>>| {
-                let child = match changed_args {
-                    VecDiff::Clear {} => None,
-                    VecDiff::InsertAt { index: _, value } => Some(value),
-                    VecDiff::RemoveAt { index: _ } => None,
-                    VecDiff::Move {
-                        old_index: _,
-                        new_index: _,
-                    } => None,
-                    VecDiff::Pop {} => None,
-                    VecDiff::Push { value } => Some(value),
-                };
+        let handler = Box::new(move |changed_args: VecDiff<Rc<dyn ControlObject>>| {
+            let child = match changed_args {
+                VecDiff::Clear {} => None,
+                VecDiff::InsertAt { index: _, value } => Some(value),
+                VecDiff::RemoveAt { index: _ } => None,
+                VecDiff::Move {
+                    old_index: _,
+                    new_index: _,
+                } => None,
+                VecDiff::Pop {} => None,
+                VecDiff::Push { value } => Some(value),
+            };
 
-                if let Some(child) = child {
-                    child
-                        .get_context()
-                        .set_parent(&control_clone);
+            if let Some(child) = child {
+                // dynamically created controls require to set services
+                let services = control_clone.get_context().get_services();
+                child.get_context().set_services(services);
 
-                    // dynamically created controls require to set services
-                    let services = control_clone.get_context().get_services();
-                    child.get_context().set_services(services);
-                }
+                child.get_context().set_parent(&control_clone);
+            }
 
-                control_clone
-                    .get_context()
-                    .set_is_dirty(true);
-            },
-        );
-        let subscription = control
-            .get_context()
-            .get_children()
-            .on_changed(handler);
+            control_clone.get_context().set_is_dirty(true);
+        });
+        let subscription = control.get_context().get_children().on_changed(handler);
 
         control
             .get_context()
             .set_children_collection_changed_event_subscription(subscription);
 
-        for child in control
-            .get_context()
-            .get_children()
-            .into_iter()
-        {
+        for child in control.get_context().get_children().into_iter() {
             let control: Rc<dyn ControlObject> = control.clone();
 
             child.get_context().set_parent(&control);
@@ -100,7 +87,15 @@ impl<D: 'static> ControlObject for StyledControl<D> {
 impl<D: 'static> ControlBehavior for StyledControl<D> {
     fn setup(&self) {
         self.control_context.dirty_watch_attached_properties();
-        self.style.borrow_mut().setup(&mut *self.data.borrow_mut(), &self.control_context);
+        self.style
+            .borrow_mut()
+            .setup(&mut *self.data.borrow_mut(), &self.control_context);
+    }
+
+    fn parent_attached(&self) {
+        self.style
+            .borrow_mut()
+            .parent_attached(&mut *self.data.borrow_mut(), &self.control_context);
     }
 
     fn handle_event(
@@ -128,7 +123,9 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
 
         size = Margin::remove_from_size(
             size,
-            self.control_context.get_attached_value::<Margin>().as_deref(),
+            self.control_context
+                .get_attached_value::<Margin>()
+                .as_deref(),
         );
 
         let mut measured_size = self.style.borrow_mut().measure(
@@ -140,7 +137,9 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
 
         measured_size = Margin::add_to_size(
             measured_size,
-            self.control_context.get_attached_value::<Margin>().as_deref(),
+            self.control_context
+                .get_attached_value::<Margin>()
+                .as_deref(),
         );
 
         self.control_context.set_rect(Rect::new(
@@ -165,14 +164,20 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         let mut new_rect = Alignment::apply(
             measured_size,
             rect,
-            self.control_context.get_attached_value::<HorizontalAlignment>().as_deref(),
-            self.control_context.get_attached_value::<VerticalAlignment>().as_deref(),
+            self.control_context
+                .get_attached_value::<HorizontalAlignment>()
+                .as_deref(),
+            self.control_context
+                .get_attached_value::<VerticalAlignment>()
+                .as_deref(),
             Alignment::Stretch,
             Alignment::Stretch,
         );
         new_rect = Margin::remove_from_rect(
             new_rect,
-            self.control_context.get_attached_value::<Margin>().as_deref(),
+            self.control_context
+                .get_attached_value::<Margin>()
+                .as_deref(),
         );
 
         self.control_context.set_rect(new_rect);
@@ -194,7 +199,8 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
             return None;
         }
 
-        self.style.borrow()
+        self.style
+            .borrow()
             .hit_test(&self.data.borrow(), &self.control_context, point)
     }
 
@@ -204,7 +210,8 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
             return;
         }
 
-        self.style.borrow_mut()
+        self.style
+            .borrow_mut()
             .draw(&self.data.borrow(), &self.control_context, drawing_context)
     }
 }
