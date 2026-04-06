@@ -163,6 +163,7 @@ impl Style<Popup> for DefaultPopupStyle {
                             }
                         };
 
+                        content.get_context().set_parent(&self_popup);
                         popup_content_rc.set(Some(content.clone()));
                         window_service.add_layer(content);
                     } else {

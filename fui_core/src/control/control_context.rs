@@ -22,6 +22,7 @@ pub struct ControlContext {
     rect: Cell<Rect>,
 
     is_dirty: Cell<bool>,
+    on_parent_attached: RefCell<Option<Box<dyn FnOnce(&ControlContext)>>>,
 }
 
 impl ControlContext {
@@ -38,6 +39,7 @@ impl ControlContext {
             services: RefCell::new(None),
             rect: Cell::new(Rect::empty()),
             is_dirty: Cell::new(true),
+            on_parent_attached: RefCell::new(None),
         }
     }
 
@@ -97,11 +99,23 @@ impl ControlContext {
         if was_attached {
             return;
         }
+
+        if let Some(builder) = self.on_parent_attached.borrow_mut().take() {
+            builder(self);
+        }
+
         self.is_attached.set(true);
         self.get_self_rc().parent_attached();
         for child in self.children.into_iter() {
             child.get_context().attach_tree();
         }
+    }
+
+    pub fn set_on_parent_attached<F>(&self, f: F)
+    where
+        F: FnOnce(&ControlContext) + 'static,
+    {
+        *self.on_parent_attached.borrow_mut() = Some(Box::new(f));
     }
 
     pub fn detach_tree(&self) {

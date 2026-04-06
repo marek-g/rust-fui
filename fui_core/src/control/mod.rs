@@ -1,6 +1,9 @@
 mod common_attached_values;
 pub use common_attached_values::*;
 
+mod composite_control;
+pub use composite_control::*;
+
 mod control_behavior;
 pub use control_behavior::*;
 

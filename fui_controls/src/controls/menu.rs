@@ -1,4 +1,4 @@
-use fui_core::{ControlObject, Property, Style, TypeMapKey, ViewContext};
+use fui_core::{CompositeControl, ControlObject, Property, Style, TypeMapKey, ViewContext};
 use fui_drawing::Color;
 use fui_macros::ui;
 use std::cell::{Cell, RefCell};
@@ -28,16 +28,6 @@ impl TypeMapKey for ActiveMenu {
     type Value = Rc<MenuData>;
 }
 
-// TODO: move it to attached value somehow
-thread_local! {
-    static MENU_DATA: Rc<MenuData> = Rc::new(MenuData {
-            active_menu_id: Property::new(0i32),
-            top_level_triggers: Rc::new(RefCell::new(Vec::new())),
-            menu_id_counter: Cell::new(1),
-            last_active_time: Cell::new(0),
-        });
-}
-
 fn get_time_ms() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -58,14 +48,13 @@ impl MenuBar {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
-        /*// Inicjalizujemy współdzielony stan dla całego paska menu
-            let menu_data = Rc::new(MenuData {
-                active_menu_id: Property::new(0i32),
-                top_level_triggers: Rc::new(RefCell::new(Vec::new())),
-                menu_id_counter: Cell::new(1),
-                last_active_time: Cell::new(0),
-        });*/
-        let menu_data = MENU_DATA.with(|menu_data| menu_data.clone());
+        // Initialize shared state for the entire menu bar
+        let menu_data = Rc::new(MenuData {
+            active_menu_id: Property::new(0i32),
+            top_level_triggers: Rc::new(RefCell::new(Vec::new())),
+            menu_id_counter: Cell::new(1),
+            last_active_time: Cell::new(0),
+        });
 
         let mut attached_values = context.attached_values;
         attached_values.insert::<ActiveMenu>(menu_data);
@@ -106,7 +95,10 @@ impl Menu {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
-        menu_impl(context, true)
+        CompositeControl::new(context, move |ctx: &ControlContext| {
+            let menu_data = ctx.get_inherited_value::<ActiveMenu>();
+            menu_impl(ctx.get_children(), menu_data, true, TypeMap::new())
+        })
     }
 }
 
@@ -123,7 +115,10 @@ impl SubMenu {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
-        menu_impl(context, false)
+        CompositeControl::new(context, move |ctx: &ControlContext| {
+            let menu_data = ctx.get_inherited_value::<ActiveMenu>();
+            menu_impl(ctx.get_children(), menu_data, false, TypeMap::new())
+        })
     }
 }
 
@@ -131,11 +126,12 @@ impl SubMenu {
 // Common Menu Implementation
 // ============================================================================
 
-fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> {
-    // Pobieramy współdzielony stan MenuBar
-    //let menu_data = context.get_inherited_value::<ActiveMenu>();
-    let menu_data = Some(MENU_DATA.with(|menu_data| menu_data.clone()));
-
+fn menu_impl(
+    children_collection: &Children,
+    menu_data: Option<Rc<MenuData>>,
+    is_top_level: bool,
+    _attached_values: TypeMap,
+) -> Rc<dyn ControlObject> {
     let my_menu_id = if let Some(md) = &menu_data {
         if is_top_level {
             let id = md.menu_id_counter.get();
@@ -150,7 +146,7 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
 
     let is_open_prop = Property::new(false);
 
-    let children: Vec<_> = context.children.into_iter().collect();
+    let children: Vec<_> = children_collection.into_iter().collect();
     if children.is_empty() {
         return ui!(Text { text: "" });
     }
@@ -407,7 +403,7 @@ fn menu_impl(context: ViewContext, is_top_level: bool) -> Rc<dyn ControlObject> 
         data_holder.to_view(
             None,
             ViewContext {
-                attached_values: context.attached_values,
+                attached_values: TypeMap::new(),
                 children: Children::SingleStatic(content),
             },
         )
