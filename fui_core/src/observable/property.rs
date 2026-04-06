@@ -382,8 +382,12 @@ where
     }
 
     fn on_changed(&self, mut f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
+        let mut old_value = Some(self.get());
         Some(Property::on_changed(self, move |v| {
-            f(VecDiff::RemoveAt { index: 0 });
+            if let Some(old) = old_value.take() {
+                f(VecDiff::RemoveAt { index: 0, value: old });
+            }
+            old_value = Some(v.clone());
             f(VecDiff::InsertAt { index: 0, value: v });
         }))
     }
@@ -410,8 +414,12 @@ where
     }
 
     fn on_changed(&self, mut f: Box<dyn FnMut(VecDiff<T>)>) -> Option<Subscription> {
+        let mut old_value = self.get();
         Some(Property::on_changed(self, move |v| {
-            f(VecDiff::Clear {});
+            f(VecDiff::Clear {
+                values: old_value.take().map(|v| vec![v]).unwrap_or_default(),
+            });
+            old_value = v.clone();
             if let Some(v) = v {
                 f(VecDiff::InsertAt { index: 0, value: v });
             }

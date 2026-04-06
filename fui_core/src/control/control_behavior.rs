@@ -10,6 +10,8 @@ pub trait ControlBehavior {
 
     fn parent_attached(&self);
 
+    fn parent_detached(&self);
+
     fn handle_event(
         &self,
         drawing_context: &mut FuiDrawingContext,

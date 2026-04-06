@@ -93,12 +93,31 @@ impl ControlContext {
 
     // control is attached to the window
     pub fn attach_tree(&self) {
+        let was_attached = self.is_attached.get();
+        if was_attached {
+            return;
+        }
         self.is_attached.set(true);
         self.get_self_rc().parent_attached();
         for child in self.children.into_iter() {
-            child.get_context().is_attached.set(true);
             child.get_context().attach_tree();
         }
+    }
+
+    pub fn detach_tree(&self) {
+        let was_attached = self.is_attached.get();
+        if !was_attached {
+            return;
+        }
+        self.is_attached.set(false);
+        self.get_self_rc().parent_detached();
+        for child in self.children.into_iter() {
+            child.get_context().detach_tree();
+        }
+    }
+
+    pub fn is_attached(&self) -> bool {
+        self.is_attached.get()
     }
 
     pub fn get_attached_value<K: TypeMapKey + 'static>(&self) -> Option<Ref<'_, K::Value>> {

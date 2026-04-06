@@ -2,15 +2,15 @@ use crate::Subscription;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VecDiff<A> {
-    Clear {},
+    Clear { values: Vec<A> },
 
     InsertAt { index: usize, value: A },
 
-    RemoveAt { index: usize },
+    RemoveAt { index: usize, value: A },
 
     Move { old_index: usize, new_index: usize },
 
-    Pop {},
+    Pop { value: A },
 
     Push { value: A },
 }

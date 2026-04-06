@@ -39,7 +39,7 @@ impl<T: 'static + Clone> ObservableComposite<T> {
 
                 // apply offset to event args and update lengths collection
                 match changed_args {
-                    VecDiff::Clear {} => {
+                    VecDiff::Clear { values } => {
                         let number_of_sources = lengths_clone.borrow().len();
                         let mut lengths = lengths_clone.borrow_mut();
                         let other_collections_size: usize = (0..number_of_sources)
@@ -47,12 +47,17 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                             .map(|i| lengths[i])
                             .sum();
                         if other_collections_size == 0 {
-                            changed_event_clone.borrow().emit(VecDiff::Clear {});
+                            changed_event_clone
+                                .borrow()
+                                .emit(VecDiff::Clear { values });
                         } else {
-                            for i in (0..lengths[source_index]).rev() {
+                            for (i, value) in values.into_iter().enumerate().rev() {
                                 changed_event_clone
                                     .borrow()
-                                    .emit(VecDiff::RemoveAt { index: offset + i });
+                                    .emit(VecDiff::RemoveAt {
+                                        index: offset + i,
+                                        value,
+                                    });
                             }
                             lengths[source_index] = 0;
                         }
@@ -66,12 +71,13 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                         });
                     }
 
-                    VecDiff::RemoveAt { index } => {
+                    VecDiff::RemoveAt { index, value } => {
                         let mut lengths = lengths_clone.borrow_mut();
                         if lengths[source_index] > 0 {
                             lengths[source_index] -= 1;
                             changed_event_clone.borrow().emit(VecDiff::RemoveAt {
                                 index: offset + index,
+                                value,
                             });
                         }
                     }
@@ -86,13 +92,14 @@ impl<T: 'static + Clone> ObservableComposite<T> {
                         });
                     }
 
-                    VecDiff::Pop {} => {
+                    VecDiff::Pop { value } => {
                         let mut lengths = lengths_clone.borrow_mut();
                         if lengths[source_index] > 0 {
                             let index = lengths[source_index] - 1;
                             lengths[source_index] -= 1;
                             changed_event_clone.borrow().emit(VecDiff::RemoveAt {
                                 index: offset + index,
+                                value,
                             });
                         }
                     }

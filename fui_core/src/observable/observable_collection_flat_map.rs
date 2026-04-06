@@ -119,12 +119,12 @@ where
             let sub_collection_data_indexes_rc = sub_collection_data_indexes_rc.clone();
             let changed_event_rc = changed_event_rc.clone();
             move |changed_args| match changed_args {
-                VecDiff::Clear {} => {
+                VecDiff::Clear { values: _ } => {
                     // we are removing all sub-collections
-                    items_rc.borrow_mut().clear();
+                    let old_items = std::mem::replace(&mut *items_rc.borrow_mut(), Vec::new());
                     sub_collection_data_rc.borrow_mut().clear();
                     sub_collection_data_indexes_rc.borrow_mut().clear();
-                    changed_event_rc.borrow().emit(VecDiff::Clear {});
+                    changed_event_rc.borrow().emit(VecDiff::Clear { values: old_items });
                 }
 
                 VecDiff::InsertAt { index, value } => {
@@ -139,7 +139,7 @@ where
                     );
                 }
 
-                VecDiff::RemoveAt { index } => {
+                VecDiff::RemoveAt { index, value: _ } => {
                     // we are removing a single sub-collection
                     remove_collection_at(
                         index,
@@ -214,7 +214,7 @@ where
                     }
                 }
 
-                VecDiff::Pop {} => {
+                VecDiff::Pop { value: _ } => {
                     // we are popping a single sub-collection
                     let len = sub_collection_data_rc.borrow().len();
                     remove_collection_at(
@@ -265,7 +265,7 @@ where
 {
     let handler = Box::new({
         move |changed_args: VecDiff<TDst>| match changed_args {
-            VecDiff::Clear {} => {
+            VecDiff::Clear { values: _ } => {
                 // clear all elements from current sub-collection
                 // (but not remove it)
 
@@ -284,8 +284,11 @@ where
                 let mut items = items_rc.borrow_mut();
                 let changed_event = changed_event_rc.borrow();
                 for i in (pos..pos + size).rev() {
-                    items.remove(i as usize);
-                    changed_event.emit(VecDiff::RemoveAt { index: i as usize });
+                    let value = items.remove(i as usize);
+                    changed_event.emit(VecDiff::RemoveAt {
+                        index: i as usize,
+                        value,
+                    });
                 }
             }
 
@@ -298,7 +301,7 @@ where
                 changed_event_rc.clone(),
             ),
 
-            VecDiff::RemoveAt { index } => {
+            VecDiff::RemoveAt { index, value: _ } => {
                 remove_element_at(
                     index,
                     items_rc.clone(),
@@ -329,7 +332,7 @@ where
                 )
             }
 
-            VecDiff::Pop {} => {
+            VecDiff::Pop { value: _ } => {
                 let sub_collection_data = sub_collection_data_rc.borrow_mut();
                 let collection_index = sub_collection_data_index_rc.get() as usize;
                 let index = (sub_collection_data[collection_index].size - 1) as usize;
@@ -388,8 +391,11 @@ fn remove_collection_at<T: 'static + Clone>(
     let mut items = items_rc.borrow_mut();
     let changed_event = changed_event_rc.borrow();
     for i in (removed_data.pos..removed_data.pos + removed_data.size).rev() {
-        items.remove(i as usize);
-        changed_event.emit(VecDiff::RemoveAt { index: i as usize });
+        let value = items.remove(i as usize);
+        changed_event.emit(VecDiff::RemoveAt {
+            index: i as usize,
+            value,
+        });
     }
 }
 
@@ -477,9 +483,10 @@ fn remove_element_at<T: Clone + 'static>(
     // remove item
     let mut items = items_rc.borrow_mut();
     let value = items.remove(pos + index);
-    changed_event_rc
-        .borrow()
-        .emit(VecDiff::RemoveAt { index: pos + index });
+    changed_event_rc.borrow().emit(VecDiff::RemoveAt {
+        index: pos + index,
+        value: value.clone(),
+    });
     value
 }
 

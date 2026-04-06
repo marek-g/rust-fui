@@ -60,6 +60,10 @@ impl Style<Button> for DefaultButtonStyle {
         control_context.dirty_watch_property(&self.is_focused);
     }
 
+    fn parent_attached(&mut self, _data: &mut Button, _control_context: &ControlContext) {
+        println!("Button attached!");
+    }
+
     fn handle_event(
         &mut self,
         data: &mut Button,

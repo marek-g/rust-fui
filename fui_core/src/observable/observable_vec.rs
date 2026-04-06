@@ -36,36 +36,58 @@ impl<T: 'static + Clone> ObservableVec<T> {
     where
         F: 'static + FnMut(VecDiff<T>),
     {
+        let mut mirror: Vec<T> = self.items.lock_ref().to_vec();
+
         let future = self.items.borrow().signal_vec_cloned().for_each(move |v| {
             match v {
                 futures_signals::signal_vec::VecDiff::Replace { values } => {
-                    f(VecDiff::Clear {});
-                    values
-                        .into_iter()
-                        .enumerate()
-                        .for_each(|(index, value)| f(VecDiff::InsertAt { index, value }));
+                    let old_values = std::mem::replace(&mut mirror, values.clone());
+                    f(VecDiff::Clear { values: old_values });
+                    mirror.iter().enumerate().for_each(|(index, value)| {
+                        f(VecDiff::InsertAt {
+                            index,
+                            value: value.clone(),
+                        })
+                    });
                 }
                 futures_signals::signal_vec::VecDiff::InsertAt { index, value } => {
+                    mirror.insert(index, value.clone());
                     f(VecDiff::InsertAt { index, value })
                 }
                 futures_signals::signal_vec::VecDiff::UpdateAt { index, value } => {
-                    f(VecDiff::RemoveAt { index });
+                    let old_value = std::mem::replace(&mut mirror[index], value.clone());
+                    f(VecDiff::RemoveAt {
+                        index,
+                        value: old_value,
+                    });
                     f(VecDiff::InsertAt { index, value });
                 }
                 futures_signals::signal_vec::VecDiff::RemoveAt { index } => {
-                    f(VecDiff::RemoveAt { index })
+                    let value = mirror.remove(index);
+                    f(VecDiff::RemoveAt { index, value })
                 }
                 futures_signals::signal_vec::VecDiff::Move {
                     old_index,
                     new_index,
-                } => f(VecDiff::Move {
-                    old_index,
-                    new_index,
-                }),
-                futures_signals::signal_vec::VecDiff::Push { value } => f(VecDiff::Push { value }),
-                futures_signals::signal_vec::VecDiff::Pop {} => f(VecDiff::Pop {}),
+                } => {
+                    let value = mirror.remove(old_index);
+                    mirror.insert(new_index, value.clone());
+                    f(VecDiff::Move {
+                        old_index,
+                        new_index,
+                    });
+                }
+                futures_signals::signal_vec::VecDiff::Push { value } => {
+                    mirror.push(value.clone());
+                    f(VecDiff::Push { value })
+                }
+                futures_signals::signal_vec::VecDiff::Pop {} => {
+                    let value = mirror.pop().unwrap();
+                    f(VecDiff::Pop { value })
+                }
                 futures_signals::signal_vec::VecDiff::Clear {} => {
-                    f(VecDiff::Clear {});
+                    let old_values = std::mem::replace(&mut mirror, Vec::new());
+                    f(VecDiff::Clear { values: old_values });
                 }
             }
             async {}

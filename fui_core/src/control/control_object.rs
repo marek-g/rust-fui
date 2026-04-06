@@ -1,8 +1,8 @@
 use crate::control::control_behavior::ControlBehavior;
 use crate::{control::control_context::ControlContext, Point};
 use std::any::Any;
-use std::rc::Weak;
 use std::rc::Rc;
+use std::rc::Weak;
 
 pub trait ControlObject: ControlBehavior {
     fn as_any(&self) -> &dyn Any;

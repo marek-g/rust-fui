@@ -30,25 +30,37 @@ impl<D: 'static> StyledControl<D> {
 
         let control_clone: Rc<dyn ControlObject> = control.clone();
         let handler = Box::new(move |changed_args: VecDiff<Rc<dyn ControlObject>>| {
-            let child = match changed_args {
-                VecDiff::Clear {} => None,
-                VecDiff::InsertAt { index: _, value } => Some(value),
-                VecDiff::RemoveAt { index: _ } => None,
+            match changed_args {
+                VecDiff::Clear { values } => {
+                    for child in values {
+                        child.get_context().detach_tree();
+                    }
+                }
+                VecDiff::InsertAt { index: _, value } => {
+                    // dynamically created controls require to set services
+                    let services = control_clone.get_context().get_services();
+                    value.get_context().set_services(services);
+
+                    value.get_context().set_parent(&control_clone);
+                }
+                VecDiff::RemoveAt { index: _, value } => {
+                    value.get_context().detach_tree();
+                }
                 VecDiff::Move {
                     old_index: _,
                     new_index: _,
-                } => None,
-                VecDiff::Pop {} => None,
-                VecDiff::Push { value } => Some(value),
+                } => {}
+                VecDiff::Pop { value } => {
+                    value.get_context().detach_tree();
+                }
+                VecDiff::Push { value } => {
+                    // dynamically created controls require to set services
+                    let services = control_clone.get_context().get_services();
+                    value.get_context().set_services(services);
+
+                    value.get_context().set_parent(&control_clone);
+                }
             };
-
-            if let Some(child) = child {
-                // dynamically created controls require to set services
-                let services = control_clone.get_context().get_services();
-                child.get_context().set_services(services);
-
-                child.get_context().set_parent(&control_clone);
-            }
 
             control_clone.get_context().set_is_dirty(true);
         });
@@ -96,6 +108,12 @@ impl<D: 'static> ControlBehavior for StyledControl<D> {
         self.style
             .borrow_mut()
             .parent_attached(&mut *self.data.borrow_mut(), &self.control_context);
+    }
+
+    fn parent_detached(&self) {
+        self.style
+            .borrow_mut()
+            .parent_detached(&mut *self.data.borrow_mut(), &self.control_context);
     }
 
     fn handle_event(

@@ -56,9 +56,11 @@ where
             let items_rc = items_rc.clone();
             let changed_event_rc = changed_event_rc.clone();
             move |changed_args| match changed_args {
-                VecDiff::Clear {} => {
+                VecDiff::Clear { values } => {
                     (items_rc.borrow_mut() as RefMut<'_, Vec<TDst>>).clear();
-                    changed_event_rc.borrow().emit(VecDiff::Clear {});
+                    changed_event_rc.borrow().emit(VecDiff::Clear {
+                        values: values.iter().map(|v| f(v)).collect(),
+                    });
                 }
 
                 VecDiff::InsertAt { index, value } => {
@@ -68,14 +70,16 @@ where
                     vec.insert(index, new_item);
 
                     changed_event_rc.borrow().emit(VecDiff::InsertAt {
-                        index,
+                        index: index,
                         value: new_item_clone,
                     });
                 }
 
-                VecDiff::RemoveAt { index } => {
-                    items_rc.borrow_mut().remove(index);
-                    changed_event_rc.borrow().emit(VecDiff::RemoveAt { index });
+                VecDiff::RemoveAt { index, value: _ } => {
+                    let value = items_rc.borrow_mut().remove(index);
+                    changed_event_rc
+                        .borrow()
+                        .emit(VecDiff::RemoveAt { index, value });
                 }
 
                 VecDiff::Move {
@@ -85,18 +89,15 @@ where
                     let mut vec = items_rc.borrow_mut();
                     let value = vec.remove(old_index);
                     vec.insert(new_index, value.clone());
-                    changed_event_rc
-                        .borrow()
-                        .emit(VecDiff::RemoveAt { index: old_index });
-                    changed_event_rc.borrow().emit(VecDiff::InsertAt {
-                        index: new_index,
-                        value,
+                    changed_event_rc.borrow().emit(VecDiff::Move {
+                        old_index,
+                        new_index,
                     });
                 }
 
-                VecDiff::Pop {} => {
-                    items_rc.borrow_mut().pop().unwrap();
-                    changed_event_rc.borrow().emit(VecDiff::Pop {});
+                VecDiff::Pop { value: _ } => {
+                    let value = items_rc.borrow_mut().pop().unwrap();
+                    changed_event_rc.borrow().emit(VecDiff::Pop { value });
                 }
 
                 VecDiff::Push { value } => {

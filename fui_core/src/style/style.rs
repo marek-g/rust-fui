@@ -14,6 +14,9 @@ pub trait Style<D> {
     // parent attached - top-down
     fn parent_attached(&mut self, _data: &mut D, _control_context: &ControlContext) {}
 
+    // parent detached - top-down
+    fn parent_detached(&mut self, _data: &mut D, _control_context: &ControlContext) {}
+
     fn handle_event(
         &mut self,
         data: &mut D,
