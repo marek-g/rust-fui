@@ -4,6 +4,7 @@ use std::rc::Rc;
 use fui_drawing::Color;
 use typed_builder::TypedBuilder;
 
+use crate::style::*;
 use fui_core::*;
 use fui_macros::ui;
 
@@ -35,8 +36,7 @@ impl TabControl {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
-        let tabs_source =
-            &context.children as &dyn ObservableCollection<Rc<dyn ControlObject>>;
+        let tabs_source = &context.children as &dyn ObservableCollection<Rc<dyn ControlObject>>;
         let selected_tab = Property::new(tabs_source.get(0).unwrap());
 
         let selected_tab_clone = selected_tab.clone();
@@ -135,13 +135,11 @@ impl ViewModel for TabButtonViewModel {
                 is_checked: self.is_checked.clone(),
 
                 Text {
-                    Style: Dynamic {
-                        color: if self.is_checked.get() {
-                            Color::rgba(1.0, 0.8, 0.0, 1.0)
-                        } else {
-                            Color::rgba(1.0, 1.0, 1.0, 1.0)
-                        },
-                    },
+                    Foreground: Property::new(if self.is_checked.get() {
+                        Color::rgba(1.0, 0.8, 0.0, 1.0)
+                    } else {
+                        Color::rgba(1.0, 1.0, 1.0, 1.0)
+                    }),
 
                     text: &self.title
                 },

@@ -1,5 +1,16 @@
 use fui_drawing::*;
 
+// Default values for attached values
+
+/// Default foreground color (white)
+pub const DEFAULT_FOREGROUND: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
+/// Default font size (20.0)
+pub const DEFAULT_FONT_SIZE: f32 = 20.0;
+
+/// Default font family ("sans-serif")
+pub const DEFAULT_FONT_FAMILY: &str = "sans-serif";
+
 const BORDER_LIGHT1: [f32; 4] = [0.65, 0.65, 0.65, 1.0];
 const BORDER_LIGHT2: [f32; 4] = [0.35, 0.35, 0.35, 1.0];
 const BORDER_MEDIUM1: [f32; 4] = [0.15, 0.15, 0.15, 1.0];

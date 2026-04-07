@@ -60,16 +60,11 @@ where
         }
 
         let is_checked = elements.borrow_mut().into_iter().fold(false, |acc, el| {
-            acc || el
-                .as_any()
-                .downcast_ref::<R>()
-                .unwrap()
-                .is_checked()
+            acc || el.as_any().downcast_ref::<R>().unwrap().is_checked()
         });
         if !is_checked {
             if let Some(el) = elements.borrow_mut().into_iter().next() {
-                el
-                    .as_any()
+                el.as_any()
                     .downcast_ref::<R>()
                     .unwrap()
                     .set_is_checked(true);
@@ -157,8 +152,7 @@ where
             .on_checked(Box::new(move || {
                 for el in elements.borrow_mut().deref() {
                     if !Rc::ptr_eq(&el, &element_clone) {
-                        el
-                            .as_any()
+                        el.as_any()
                             .downcast_ref::<R>()
                             .unwrap()
                             .set_is_checked(false);

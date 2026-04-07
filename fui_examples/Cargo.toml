@@ -15,6 +15,7 @@ edition = "2024"
 fui_core = { path = "../fui_core", version = "0.19.0-pre" }
 fui_controls = { path = "../../rust-fui/fui_controls", version = "0.19.0-pre" }
 fui_macros = { path = "../../rust-fui/fui_macros", version = "0.19.0-pre" }
+fui_drawing = { path = "../fui_drawing", version = "0.19.0-pre" }
 fui_app = { path = "../../rust-fui/fui_app", version = "0.19.0-pre" }
 windowing_qt = "0.17"
 windowing_api = "0.13"

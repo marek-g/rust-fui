@@ -987,6 +987,7 @@ dependencies = [
  "fui_controls",
  "fui_controls_media",
  "fui_core",
+ "fui_drawing",
  "fui_macros",
  "impellers",
  "time",

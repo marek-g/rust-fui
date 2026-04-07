@@ -4,6 +4,7 @@ use anyhow::Result;
 use fui_app::*;
 use fui_controls::*;
 use fui_core::*;
+use fui_drawing::Color;
 use fui_macros::ui;
 
 use std::rc::Rc;
@@ -151,7 +152,7 @@ impl ViewModel for MainViewModel {
                         text: self.text2.clone(),
                     },
                     Text {
-                        Style: Default { color: [1.0, 0.8, 0.0, 1.0] },
+                        Foreground: Property::new(Color::rgba(1.0, 0.8, 0.0, 1.0)),
                         Margin: Thickness::new(5.0, 5.0, 0.0, 0.0),
                         text: &self.text2,
                     },
@@ -265,11 +266,11 @@ impl ViewModel for MainViewModel {
 
             MenuBar {
                 Menu {
-                    Text { Style: Default { color: [0.0, 0.0, 0.0, 1.0] }, text: "File" },
+                    Text { Foreground: Property::new(Color::rgba(0.0, 0.0, 0.0, 1.0)), text: "File" },
 
                     MenuItem {
                         activated async => self.file_open(),
-                        Text { Style: Default { color: [0.0, 0.0, 0.0, 1.0] }, text: "Open..."  }
+                        Text { Foreground: Property::new(Color::rgba(0.0, 0.0, 0.0, 1.0)), text: "Open..."  }
                     },
 
                     MenuItem {

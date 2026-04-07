@@ -2,6 +2,7 @@ pub use controllers::*;
 pub use controls::*;
 pub use dialogs::*;
 pub use special::*;
+pub use style::*;
 pub use view_models::*;
 
 mod controllers;
