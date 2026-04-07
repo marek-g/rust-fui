@@ -6,7 +6,6 @@ use fui_drawing::Color;
 use fui_macros::ui;
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
-use std::time::{SystemTime, UNIX_EPOCH};
 use typed_builder::TypedBuilder;
 
 use crate::GestureArea;
@@ -19,10 +18,12 @@ use fui_core::*;
 
 /// Shared state for a MenuBar and all its nested children.
 pub struct MenuData {
+    /// Holds the ID of the currently open top-level menu. 0 if none are active.
     pub active_menu_id: Property<i32>,
+    /// References to all top-level triggers to exclude them from auto-hide hits.
     pub top_level_triggers: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
+    /// Internal counter to assign unique IDs to top-level menus.
     pub menu_id_counter: Cell<i32>,
-    pub last_active_time: Cell<u64>,
 }
 
 /// Context key to access shared MenuData.
@@ -35,13 +36,6 @@ impl TypeMapKey for ActiveMenu {
 struct IsInsideMenu;
 impl TypeMapKey for IsInsideMenu {
     type Value = bool;
-}
-
-fn get_time_ms() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as u64
 }
 
 // ============================================================================
@@ -62,7 +56,6 @@ impl MenuBar {
             active_menu_id: Property::new(0i32),
             top_level_triggers: Rc::new(RefCell::new(Vec::new())),
             menu_id_counter: Cell::new(1),
-            last_active_time: Cell::new(0),
         });
 
         let mut attached_values = context.attached_values;
@@ -230,10 +223,10 @@ fn menu_impl(
                 is_open_prop.set(false);
                 background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
+                // Reset global state so clicking is required again
                 if let Some(md) = &menu_data {
                     if md.active_menu_id.get() == my_menu_id {
                         md.active_menu_id.set(0);
-                        md.last_active_time.set(get_time_ms());
                     }
                 }
             })
@@ -287,46 +280,37 @@ fn menu_impl(
             let menu_data = menu_data.clone();
             let sync_uncovered_controls = sync_uncovered_controls.clone();
 
-            Callback::new_sync(move |value: bool| {
-                if value && !is_top_level {
-                    // Sub-menu: Open immediately on hover
-                    if has_popup_content {
+            Callback::new_sync(move |is_hovered: bool| {
+                if !is_top_level {
+                    // Sub-menu logic: open on hover if any parent is open
+                    if is_hovered && has_popup_content {
                         sync_uncovered_controls();
                         is_open_prop.set(true);
                     }
-                    background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
-                } else if !is_top_level {
-                    // Sub-menu: Reset color on hover out
-                    background_property.set(if is_open_prop.get() {
+                    background_property.set(if is_hovered || is_open_prop.get() {
                         Color::rgba(0.0, 0.0, 0.0, 0.8)
                     } else {
                         Color::rgba(0.0, 0.0, 0.0, 0.0)
                     });
-                } else if is_top_level {
-                    // Top-level: Special logic for "sticky" opening when moving between menus
-                    let mut is_active = false;
+                } else if let Some(md) = &menu_data {
+                    // Top-level logic: only switch on hover if another menu is already active
+                    let current_active = md.active_menu_id.get();
 
-                    if let Some(md) = &menu_data {
-                        let current_active = md.active_menu_id.get();
-                        let recently_closed = (get_time_ms() - md.last_active_time.get()) < 150;
-
-                        if current_active > 0 || recently_closed {
-                            is_active = true;
-                            if value && !is_open_prop.get() && has_popup_content {
-                                sync_uncovered_controls();
-                                is_open_prop.set(true);
-                                md.active_menu_id.set(my_menu_id);
-                            }
-                        }
+                    if is_hovered && current_active != 0 && current_active != my_menu_id {
+                        sync_uncovered_controls();
+                        is_open_prop.set(true);
+                        md.active_menu_id.set(my_menu_id);
                     }
 
-                    background_property.set(if is_open_prop.get() || (value && is_active) {
-                        Color::rgba(0.0, 0.0, 0.0, 0.8)
-                    } else if value {
-                        Color::rgba(0.0, 0.0, 0.0, 0.1)
-                    } else {
-                        Color::rgba(0.0, 0.0, 0.0, 0.0)
-                    });
+                    background_property.set(
+                        if is_open_prop.get() || (is_hovered && current_active != 0) {
+                            Color::rgba(0.0, 0.0, 0.0, 0.8)
+                        } else if is_hovered {
+                            Color::rgba(0.0, 0.0, 0.0, 0.1)
+                        } else {
+                            Color::rgba(0.0, 0.0, 0.0, 0.0)
+                        },
+                    );
                 }
             })
         };
@@ -339,31 +323,24 @@ fn menu_impl(
 
             Callback::new_sync(move |_| {
                 if has_popup_content {
-                    if is_top_level {
-                        let currently_open = is_open_prop.get();
-                        if currently_open {
-                            is_open_prop.set(false);
-                            background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
-                            if let Some(md) = &menu_data {
-                                if md.active_menu_id.get() == my_menu_id {
-                                    md.active_menu_id.set(0);
-                                    md.last_active_time.set(get_time_ms());
-                                }
-                            }
-                        } else {
-                            sync_uncovered_controls();
-                            is_open_prop.set(true);
-                            background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
-                            if let Some(md) = &menu_data {
-                                md.active_menu_id.set(my_menu_id);
+                    let currently_open = is_open_prop.get();
+                    if currently_open {
+                        // Close menu and reset global active state
+                        is_open_prop.set(false);
+                        background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
+                        if let Some(md) = &menu_data {
+                            if md.active_menu_id.get() == my_menu_id {
+                                md.active_menu_id.set(0);
                             }
                         }
                     } else {
-                        let currently_open = is_open_prop.get();
-                        if !currently_open {
-                            sync_uncovered_controls();
+                        // Open menu and set global active state
+                        sync_uncovered_controls();
+                        is_open_prop.set(true);
+                        background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
+                        if let Some(md) = &menu_data {
+                            md.active_menu_id.set(my_menu_id);
                         }
-                        is_open_prop.set(!currently_open);
                     }
                 }
             })
@@ -386,8 +363,7 @@ fn menu_impl(
     let content_prop = ObservableVec::new();
     content_prop.push(trigger_with_gestures);
 
-    // Final layout depends on whether this is the main Bar or a vertical list
-    let result = if is_top_level {
+    if is_top_level {
         let content = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
@@ -424,9 +400,7 @@ fn menu_impl(
                 }
             }
         )
-    };
-
-    result
+    }
 }
 
 // ============================================================================
