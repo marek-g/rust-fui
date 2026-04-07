@@ -1,11 +1,13 @@
-use fui_core::{CompositeControl, ControlObject, Property, Style, TypeMapKey, ViewContext};
+use fui_core::{
+    Children, CompositeControl, ControlContext, ControlObject, ObservableVec, Property, Style,
+    TypeMap, TypeMapKey, ViewContext,
+};
 use fui_drawing::Color;
 use fui_macros::ui;
 use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
-use typed_builder::TypedBuilder;
-
 use std::time::{SystemTime, UNIX_EPOCH};
+use typed_builder::TypedBuilder;
 
 use crate::GestureArea;
 use crate::{controls::*, DataHolder};
@@ -15,6 +17,7 @@ use fui_core::*;
 // Attached Values for Menu State Tracking
 // ============================================================================
 
+/// Shared state for a MenuBar and all its nested children.
 pub struct MenuData {
     pub active_menu_id: Property<i32>,
     pub top_level_triggers: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
@@ -22,10 +25,16 @@ pub struct MenuData {
     pub last_active_time: Cell<u64>,
 }
 
+/// Context key to access shared MenuData.
 pub struct ActiveMenu;
-
 impl TypeMapKey for ActiveMenu {
     type Value = Rc<MenuData>;
+}
+
+/// Context key used to detect if a Menu is nested inside another Menu.
+struct IsInsideMenu;
+impl TypeMapKey for IsInsideMenu {
+    type Value = bool;
 }
 
 fn get_time_ms() -> u64 {
@@ -96,28 +105,19 @@ impl Menu {
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
         CompositeControl::new(context, move |ctx: &ControlContext| {
+            // Retrieve shared state from MenuBar
             let menu_data = ctx.get_inherited_value::<ActiveMenu>();
-            menu_impl(ctx.get_children(), menu_data, true, TypeMap::new())
-        })
-    }
-}
 
-// ============================================================================
-// SubMenu
-// ============================================================================
+            // Automatic Top-Level detection:
+            // It's a top-level menu if we have MenuData but we aren't marked as "inside" another menu yet.
+            let is_top_level =
+                menu_data.is_some() && ctx.get_inherited_value::<IsInsideMenu>().is_none();
 
-#[derive(TypedBuilder)]
-pub struct SubMenu {}
+            // Prepare attached values for children so they know they are nested
+            let mut inner_values = TypeMap::new();
+            inner_values.insert::<IsInsideMenu>(true);
 
-impl SubMenu {
-    pub fn to_view(
-        self,
-        _style: Option<Box<dyn Style<Self>>>,
-        context: ViewContext,
-    ) -> Rc<dyn ControlObject> {
-        CompositeControl::new(context, move |ctx: &ControlContext| {
-            let menu_data = ctx.get_inherited_value::<ActiveMenu>();
-            menu_impl(ctx.get_children(), menu_data, false, TypeMap::new())
+            menu_impl(ctx.get_children(), menu_data, is_top_level, inner_values)
         })
     }
 }
@@ -130,8 +130,9 @@ fn menu_impl(
     children_collection: &Children,
     menu_data: Option<Rc<MenuData>>,
     is_top_level: bool,
-    _attached_values: TypeMap,
+    attached_values: TypeMap,
 ) -> Rc<dyn ControlObject> {
+    // Assign a unique ID if this is a top-level trigger on the bar
     let my_menu_id = if let Some(md) = &menu_data {
         if is_top_level {
             let id = md.menu_id_counter.get();
@@ -145,16 +146,17 @@ fn menu_impl(
     };
 
     let is_open_prop = Property::new(false);
-
     let children: Vec<_> = children_collection.into_iter().collect();
+
     if children.is_empty() {
         return ui!(Text { text: "" });
     }
 
+    // First child is the label/trigger, subsequent children are the popup content
     let trigger = children.first().unwrap().clone();
     let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
-    // listen for changes of the active menu, so the old one can close
+    // Listen for global active menu changes to auto-close when another menu opens
     let mut subscription = None;
     if is_top_level {
         if let Some(md) = &menu_data {
@@ -163,7 +165,6 @@ fn menu_impl(
             let my_id = my_menu_id;
 
             subscription = Some(md.active_menu_id.on_changed(move |new_active_id: i32| {
-                // Jeśli aktywowane zostało inne menu, a my nadal jesteśmy otwarci - zamykamy się
                 if new_active_id != my_id && is_open_prop_clone.get() {
                     is_open_prop_clone.set(false);
                     background_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
@@ -175,7 +176,7 @@ fn menu_impl(
     let popup_children: Vec<_> = children.iter().skip(1).cloned().collect();
     let has_popup_content = !popup_children.is_empty();
 
-    // Rejestrujemy ten trigger w głównym stanie paska menu
+    // Register this trigger in the global MenuBar state for "uncovered" hit testing
     if is_top_level {
         if let Some(md) = &menu_data {
             md.top_level_triggers
@@ -185,8 +186,6 @@ fn menu_impl(
     }
 
     let mut popup_view = Children::None;
-
-    // Lista modyfikowalna po utworzeniu Popup
     let uncovered_controls = Rc::new(RefCell::new(Vec::new()));
     let popup_content_weak: Rc<RefCell<Option<Weak<dyn ControlObject>>>> =
         Rc::new(RefCell::new(None));
@@ -199,11 +198,11 @@ fn menu_impl(
         };
 
         let popup_content_prop = ObservableVec::new();
-
         for child in popup_children.iter() {
             popup_content_prop.push(child.clone());
         }
 
+        // The container for the menu items inside the popup
         let popup_content: Rc<dyn ControlObject> = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
@@ -258,7 +257,7 @@ fn menu_impl(
         popup_view = Children::SingleStatic(popup);
     }
 
-    // Funkcja pomocnicza: buduje pełną listę uncovered tuż przed otwarciem
+    // Helper: Syncs the list of controls that shouldn't close the popup when clicked
     let sync_uncovered_controls = {
         let menu_data = menu_data.clone();
         let uncovered_controls = uncovered_controls.clone();
@@ -268,13 +267,13 @@ fn menu_impl(
             let mut unc = uncovered_controls.borrow_mut();
             unc.clear();
 
-            // Dodajemy WSZYSTKIE triggery top-level (również sąsiadów wyrenderowanych po nas)
+            // Add all sibling top-level triggers
             if let Some(md) = &menu_data {
                 for t in md.top_level_triggers.borrow().iter() {
                     unc.push(t.clone());
                 }
             }
-            // Dodajemy własną zawartość (aby kliknięcie w rozwinięte menu go nie zamykało)
+            // Add the popup content itself
             if let Some(pc) = popup_content_weak.borrow().as_ref() {
                 unc.push(pc.clone());
             }
@@ -290,18 +289,21 @@ fn menu_impl(
 
             Callback::new_sync(move |value: bool| {
                 if value && !is_top_level {
+                    // Sub-menu: Open immediately on hover
                     if has_popup_content {
                         sync_uncovered_controls();
                         is_open_prop.set(true);
                     }
                     background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
                 } else if !is_top_level {
+                    // Sub-menu: Reset color on hover out
                     background_property.set(if is_open_prop.get() {
                         Color::rgba(0.0, 0.0, 0.0, 0.8)
                     } else {
                         Color::rgba(0.0, 0.0, 0.0, 0.0)
                     });
                 } else if is_top_level {
+                    // Top-level: Special logic for "sticky" opening when moving between menus
                     let mut is_active = false;
 
                     if let Some(md) = &menu_data {
@@ -384,6 +386,7 @@ fn menu_impl(
     let content_prop = ObservableVec::new();
     content_prop.push(trigger_with_gestures);
 
+    // Final layout depends on whether this is the main Bar or a vertical list
     let result = if is_top_level {
         let content = ui!(
             Shadow {
@@ -403,7 +406,7 @@ fn menu_impl(
         data_holder.to_view(
             None,
             ViewContext {
-                attached_values: TypeMap::new(),
+                attached_values,
                 children: Children::SingleStatic(content),
             },
         )

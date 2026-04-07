@@ -119,12 +119,12 @@ impl ViewModel for MainViewModel {
         self.counter2.bind(&self.counter);
         self.counter.bind(&self.counter2);
 
-        let radio4 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} })
-            as Rc<dyn ControlObject>;
-        let radio5 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} })
-            as Rc<dyn ControlObject>;
-        let radio6 = ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} })
-            as Rc<dyn ControlObject>;
+        let radio4 =
+            ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 4"} }) as Rc<dyn ControlObject>;
+        let radio5 =
+            ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 5"} }) as Rc<dyn ControlObject>;
+        let radio6 =
+            ui!(ToggleButton { Style: Radio {}, Text { text: "Radio 6"} }) as Rc<dyn ControlObject>;
         let radio_controller = RadioController::<StyledControl<ToggleButton>>::new(vec![
             radio4.clone(),
             radio5.clone(),
@@ -277,7 +277,7 @@ impl ViewModel for MainViewModel {
                         Text { text: "Save..." }
                     },
 
-                    SubMenu {
+                    Menu {
                         Text { text: "Export" },
 
                         MenuItem {
