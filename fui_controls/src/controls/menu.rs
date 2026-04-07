@@ -24,6 +24,8 @@ pub struct MenuData {
     pub top_level_triggers: Rc<RefCell<Vec<Weak<dyn ControlObject>>>>,
     /// Internal counter to assign unique IDs to top-level menus.
     pub menu_id_counter: Cell<i32>,
+    /// Signal used to close all open menus in this bar.
+    pub close_all: Callback<()>,
 }
 
 /// Context key to access shared MenuData.
@@ -51,11 +53,18 @@ impl MenuBar {
         _style: Option<Box<dyn Style<Self>>>,
         context: ViewContext,
     ) -> Rc<dyn ControlObject> {
+        let active_menu_id = Property::new(0i32);
+        let active_menu_id_clone = active_menu_id.clone();
+
         // Initialize shared state for the entire menu bar
         let menu_data = Rc::new(MenuData {
-            active_menu_id: Property::new(0i32),
+            active_menu_id,
             top_level_triggers: Rc::new(RefCell::new(Vec::new())),
             menu_id_counter: Cell::new(1),
+            // Logic to reset the menu bar state
+            close_all: Callback::new_sync(move |_| {
+                active_menu_id_clone.set(0);
+            }),
         });
 
         let mut attached_values = context.attached_values;
@@ -149,21 +158,27 @@ fn menu_impl(
     let trigger = children.first().unwrap().clone();
     let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
-    // Listen for global active menu changes to auto-close when another menu opens
+    // Listen for global active menu changes to auto-close when another menu opens or all menus are closed
     let mut subscription = None;
-    if is_top_level {
-        if let Some(md) = &menu_data {
-            let is_open_prop_clone = is_open_prop.clone();
-            let background_property_clone = background_property.clone();
-            let my_id = my_menu_id;
+    if let Some(md) = &menu_data {
+        let is_open_prop_clone = is_open_prop.clone();
+        let background_property_clone = background_property.clone();
+        let my_id = my_menu_id;
 
-            subscription = Some(md.active_menu_id.on_changed(move |new_active_id: i32| {
-                if new_active_id != my_id && is_open_prop_clone.get() {
-                    is_open_prop_clone.set(false);
-                    background_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
-                }
-            }));
-        }
+        subscription = Some(md.active_menu_id.on_changed(move |new_active_id: i32| {
+            // Updated logic: if it's a top-level, close if another one opens or if all close (0).
+            // If it's a sub-menu, close if all close (0).
+            let should_close = if is_top_level {
+                new_active_id != my_id
+            } else {
+                new_active_id == 0
+            };
+
+            if should_close && is_open_prop_clone.get() {
+                is_open_prop_clone.set(false);
+                background_property_clone.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
+            }
+        }));
     }
 
     let popup_children: Vec<_> = children.iter().skip(1).cloned().collect();
@@ -225,7 +240,7 @@ fn menu_impl(
 
                 // Reset global state so clicking is required again
                 if let Some(md) = &menu_data {
-                    if md.active_menu_id.get() == my_menu_id {
+                    if is_top_level && md.active_menu_id.get() == my_menu_id {
                         md.active_menu_id.set(0);
                     }
                 }
@@ -329,7 +344,7 @@ fn menu_impl(
                         is_open_prop.set(false);
                         background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.0));
                         if let Some(md) = &menu_data {
-                            if md.active_menu_id.get() == my_menu_id {
+                            if is_top_level && md.active_menu_id.get() == my_menu_id {
                                 md.active_menu_id.set(0);
                             }
                         }
@@ -339,7 +354,9 @@ fn menu_impl(
                         is_open_prop.set(true);
                         background_property.set(Color::rgba(0.0, 0.0, 0.0, 0.8));
                         if let Some(md) = &menu_data {
-                            md.active_menu_id.set(my_menu_id);
+                            if is_top_level {
+                                md.active_menu_id.set(my_menu_id);
+                            }
                         }
                     }
                 }
@@ -387,7 +404,8 @@ fn menu_impl(
             },
         )
     } else {
-        ui!(
+        // Wrap sub-menu in DataHolder to keep the subscription alive
+        let content = ui!(
             Shadow {
                 Style: Default { size: 12.0f32 },
                 Border {
@@ -399,6 +417,15 @@ fn menu_impl(
                     }
                 }
             }
+        );
+
+        let data_holder = DataHolder { data: subscription };
+        data_holder.to_view(
+            None,
+            ViewContext {
+                attached_values,
+                children: Children::SingleStatic(content),
+            },
         )
     }
 }
@@ -422,47 +449,56 @@ impl MenuItem {
         let activated_callback = self.activated.clone();
         let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
-        let children: Vec<_> = context.children.into_iter().collect();
-        if children.is_empty() {
-            return ui!(Text { text: "" });
-        }
+        // Use CompositeControl to access MenuData via inherited context
+        CompositeControl::new(context, move |ctx: &ControlContext| {
+            let menu_data = ctx.get_inherited_value::<ActiveMenu>();
+            let activated_callback = activated_callback.clone();
 
-        let content = children.first().unwrap().clone();
+            let children: Vec<_> = ctx.get_children().into_iter().collect();
+            let content = children
+                .first()
+                .cloned()
+                .unwrap_or_else(|| ui!(Text { text: "" }));
 
-        let on_hover_callback = {
-            let background_property = background_property.clone();
-            Callback::new_sync(move |value: bool| {
-                background_property.set(if value {
-                    Color::rgba(0.0, 0.0, 0.0, 0.8)
-                } else {
-                    Color::rgba(0.0, 0.0, 0.0, 0.0)
-                });
-            })
-        };
+            let on_hover_callback = {
+                let background_property = background_property.clone();
+                Callback::new_sync(move |value: bool| {
+                    background_property.set(if value {
+                        Color::rgba(0.0, 0.0, 0.0, 0.8)
+                    } else {
+                        Color::rgba(0.0, 0.0, 0.0, 0.0)
+                    });
+                })
+            };
 
-        let on_tap_up_callback = Callback::new_sync(move |_| {
-            activated_callback.emit(());
-        });
+            let on_tap_up_callback = Callback::new_sync(move |_| {
+                activated_callback.emit(());
+                // Signal MenuBar to close all open popups
+                if let Some(md) = &menu_data {
+                    md.close_all.emit(());
+                }
+            });
 
-        ui!(
-            GestureArea {
-                hover_change: on_hover_callback,
-                tap_up: on_tap_up_callback,
-                Border {
-                    border_type: BorderType::None,
-                    Style: Default { background_color: background_property },
-                    Grid {
-                        columns: 3,
-                        widths: vec![
-                            (0, Length::Exact(25.0f32)),
-                            (1, Length::Fill(1.0f32)),
-                            (2, Length::Exact(25.0f32)),
-                        ],
-                        content,
+            ui!(
+                GestureArea {
+                    hover_change: on_hover_callback,
+                    tap_up: on_tap_up_callback,
+                    Border {
+                        border_type: BorderType::None,
+                        Style: Default { background_color: background_property.clone() },
+                        Grid {
+                            columns: 3,
+                            widths: vec![
+                                (0, Length::Exact(25.0f32)),
+                                (1, Length::Fill(1.0f32)),
+                                (2, Length::Exact(25.0f32)),
+                            ],
+                            content,
+                        }
                     }
                 }
-            }
-        )
+            )
+        })
     }
 }
 
