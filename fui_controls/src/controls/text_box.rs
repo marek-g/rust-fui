@@ -6,7 +6,8 @@ use fui_core::*;
 use fui_drawing::prelude::*;
 use typed_builder::TypedBuilder;
 
-use crate::style::*;
+use crate::style::default_theme;
+use crate::style::{FontFamily, FontSize, Foreground};
 
 #[derive(TypedBuilder)]
 pub struct TextBox {
@@ -39,10 +40,6 @@ impl TextBox {
 pub struct DefaultTextBoxStyleParams {
     #[builder(default = false)]
     pub password: bool,
-    #[builder(default = "sans-serif")]
-    font_name: &'static str,
-    #[builder(default = 20f32)]
-    font_size: f32,
 }
 
 pub struct DefaultTextBoxStyle {
@@ -62,9 +59,9 @@ pub struct DefaultTextBoxStyle {
 }
 
 impl DefaultTextBoxStyle {
-    pub fn new(params: DefaultTextBoxStyleParams) -> Self {
+    pub fn new(_params: DefaultTextBoxStyleParams) -> Self {
         DefaultTextBoxStyle {
-            params,
+            params: _params,
             buffer: None,
 
             is_hover: false,
@@ -91,8 +88,13 @@ impl DefaultTextBoxStyle {
             .expect("Buffer should be initialized in setup")
     }
 
-    fn sync_with_buffer(&mut self, fonts: &DrawingFonts, rect: Rect) {
-        self.update_paragraph(fonts);
+    fn sync_with_buffer(
+        &mut self,
+        fonts: &DrawingFonts,
+        rect: Rect,
+        control_context: &ControlContext,
+    ) {
+        self.update_paragraph(fonts, control_context);
 
         // calc cursor px and selection px
         self.cursor_pos_px = self.calc_px_from_char(self.buf().get_cursor());
@@ -102,15 +104,27 @@ impl DefaultTextBoxStyle {
         self.update_offset_x(rect);
     }
 
-    fn update_paragraph(&mut self, fonts: &DrawingFonts) {
+    fn update_paragraph(&mut self, fonts: &DrawingFonts, control_context: &ControlContext) {
         let display_text = self.get_display_text();
 
+        // Get values from inherited attached values, fall back to defaults
+        let font_family = control_context
+            .get_inherited_value::<FontFamily>()
+            .map(|p| p.get())
+            .unwrap_or_else(|| default_theme::DEFAULT_FONT_FAMILY.to_string());
+
+        let font_size = control_context
+            .get_inherited_value::<FontSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::DEFAULT_FONT_SIZE.into());
+
+        let foreground = control_context
+            .get_inherited_value::<Foreground>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::DEFAULT_EDIT_TEXT_COLOR.into());
+
         let mut builder = DrawingParagraphBuilder::new(fonts).unwrap();
-        builder.push_style(ParagraphStyle::simple(
-            self.params.font_name,
-            self.params.font_size,
-            Color::rgb(0.0, 0.0, 0.0),
-        ));
+        builder.push_style(ParagraphStyle::simple(&font_family, font_size, &foreground));
         builder.add_text(&display_text);
         self.paragraph = Some(builder.build(f32::INFINITY).unwrap());
     }
@@ -151,8 +165,14 @@ impl DefaultTextBoxStyle {
         }
     }
 
-    fn calc_cursor_pos(&mut self, pos: &Point, rect: Rect, fonts: &DrawingFonts) -> usize {
-        self.update_paragraph(&fonts);
+    fn calc_cursor_pos(
+        &mut self,
+        pos: &Point,
+        rect: Rect,
+        fonts: &DrawingFonts,
+        control_context: &ControlContext,
+    ) -> usize {
+        self.update_paragraph(fonts, control_context);
 
         let paragraph = self.paragraph.as_ref().unwrap();
 
@@ -253,11 +273,12 @@ impl Style<TextBox> for DefaultTextBoxStyle {
 
             ControlEvent::TapDown { ref position } => {
                 let rect = control_context.get_rect();
-                let cursor_pos = self.calc_cursor_pos(position, rect, drawing_context.fonts);
+                let cursor_pos =
+                    self.calc_cursor_pos(position, rect, drawing_context.fonts, control_context);
 
                 let shift_pressed = false;
                 self.buf_mut().set_cursor(cursor_pos, shift_pressed);
-                self.sync_with_buffer(drawing_context.fonts, rect);
+                self.sync_with_buffer(drawing_context.fonts, rect, control_context);
                 control_context.set_is_dirty(true);
             }
 
@@ -361,7 +382,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
                 }
 
                 if changed {
-                    self.sync_with_buffer(drawing_context.fonts, control_context.get_rect());
+                    self.sync_with_buffer(
+                        drawing_context.fonts,
+                        control_context.get_rect(),
+                        control_context,
+                    );
                     control_context.set_is_dirty(true);
                 }
             }
@@ -372,11 +397,11 @@ impl Style<TextBox> for DefaultTextBoxStyle {
     fn measure(
         &mut self,
         _data: &mut TextBox,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
-        self.update_paragraph(&drawing_context.fonts);
+        self.update_paragraph(&drawing_context.fonts, control_context);
 
         let paragraph = self.paragraph.as_ref().unwrap();
         let paragraph_height = paragraph.get_height();
