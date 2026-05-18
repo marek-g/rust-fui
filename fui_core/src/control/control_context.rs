@@ -1,6 +1,8 @@
 use crate::view::ViewContext;
 use std::cell::{Cell, Ref, RefCell};
 use std::rc::{Rc, Weak};
+use std::collections::HashSet;
+use std::any::TypeId;
 
 use crate::{control::*, TypeMap, TypeMapKey};
 use crate::{observable::*, spawn_local_and_forget, Children, Rect, Services};
@@ -16,6 +18,7 @@ pub struct ControlContext {
 
     attached_values: RefCell<TypeMap>,
     inherited_values_cache: RefCell<TypeMap>,
+    inherited_miss_cache: RefCell<HashSet<TypeId>>,
 
     services: RefCell<Option<Services>>,
 
@@ -36,6 +39,7 @@ impl ControlContext {
             dirty_event_subscriptions: RefCell::new(Vec::new()),
             attached_values: RefCell::new(view_context.attached_values),
             inherited_values_cache: RefCell::new(TypeMap::new()),
+            inherited_miss_cache: RefCell::new(HashSet::new()),
             services: RefCell::new(None),
             rect: Cell::new(Rect::empty()),
             is_dirty: Cell::new(true),
@@ -66,6 +70,7 @@ impl ControlContext {
     pub fn set_parent(&self, parent_rc: &Rc<dyn ControlObject>) {
         *self.parent.borrow_mut() = Some(Rc::downgrade(parent_rc));
         self.inherited_values_cache.borrow_mut().clear();
+        self.inherited_miss_cache.borrow_mut().clear();
 
         if parent_rc.get_context().is_attached.get() {
             self.attach_tree();
@@ -142,7 +147,12 @@ impl ControlContext {
     where
         K::Value: Clone,
     {
-        // Check cache first
+        // Check miss cache first (avoid full traversal when value not set anywhere)
+        if self.inherited_miss_cache.borrow().contains(&TypeId::of::<K>()) {
+            return None;
+        }
+
+        // Check hit cache first
         if let Some(cached) = self.inherited_values_cache.borrow().get::<K>() {
             return Some(cached.clone());
         }
@@ -174,6 +184,11 @@ impl ControlContext {
                     .borrow_mut()
                     .insert::<K>(val.clone());
             }
+        } else {
+            // Cache the miss so subsequent lookups skip the traversal
+            self.inherited_miss_cache
+                .borrow_mut()
+                .insert(TypeId::of::<K>());
         }
 
         result
