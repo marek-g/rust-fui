@@ -212,8 +212,7 @@ impl Style<ToggleButton> for DefaultToggleButtonStyle {
 // CheckBox ToggleButton Style
 //
 
-const CHECKBOX_BUTTON_SIZE: f32 = 24.0f32;
-const CHECKBOX_MARGIN: f32 = 6.0f32;
+
 
 #[derive(TypedBuilder)]
 pub struct CheckBoxToggleButtonStyleParams {}
@@ -300,17 +299,26 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
+        let check_box_button_size = control_context
+            .get_inherited_value::<CheckBoxButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::CHECK_BOX_BUTTON_SIZE);
+        let check_box_margin = control_context
+            .get_inherited_value::<CheckBoxMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::CHECK_BOX_MARGIN);
+
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
                 let child_size = Size::new(
                     if size.width.is_finite() {
-                        0f32.max(size.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32)
+                        0f32.max(size.width - check_box_button_size - check_box_margin * 2.0f32)
                     } else {
                         size.width
                     },
                     if size.height.is_finite() {
-                        CHECKBOX_BUTTON_SIZE.max(size.height)
+                        check_box_button_size.max(size.height)
                     } else {
                         size.height
                     },
@@ -323,8 +331,8 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         };
 
         Size::new(
-            content_size.width + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN * 2.0f32,
-            CHECKBOX_BUTTON_SIZE.max(content_size.height),
+            content_size.width + check_box_button_size + check_box_margin * 2.0f32,
+            check_box_button_size.max(content_size.height),
         )
     }
 
@@ -335,10 +343,19 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
+        let check_box_button_size = control_context
+            .get_inherited_value::<CheckBoxButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::CHECK_BOX_BUTTON_SIZE);
+        let check_box_margin = control_context
+            .get_inherited_value::<CheckBoxMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::CHECK_BOX_MARGIN);
+
         let content_rect = Rect::new(
-            rect.x + CHECKBOX_BUTTON_SIZE + CHECKBOX_MARGIN,
+            rect.x + check_box_button_size + check_box_margin,
             rect.y,
-            rect.width - CHECKBOX_BUTTON_SIZE - CHECKBOX_MARGIN * 2.0f32,
+            rect.width - check_box_button_size - check_box_margin * 2.0f32,
             rect.height,
         );
 
@@ -372,6 +389,11 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         let y = rect.y;
         let height = rect.height;
 
+        let check_box_button_size = control_context
+            .get_inherited_value::<CheckBoxButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::CHECK_BOX_BUTTON_SIZE);
+
         let is_pressed = if self.is_tapped.get() {
             true
         } else {
@@ -382,7 +404,7 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
             &mut drawing_context.display,
             x,
             y,
-            CHECKBOX_BUTTON_SIZE,
+            check_box_button_size,
             height,
             3.0f32,
             is_pressed,
@@ -393,15 +415,15 @@ impl Style<ToggleButton> for CheckBoxToggleButtonStyle {
         if is_pressed {
             let mut tick_path_builder = DrawingPathBuilder::default();
             tick_path_builder.move_to((
-                x + CHECKBOX_BUTTON_SIZE / 2.0f32 - 4.0f32,
+                x + check_box_button_size / 2.0f32 - 4.0f32,
                 y + height / 2.0f32 - 1.0f32,
             ));
             tick_path_builder.line_to((
-                x + CHECKBOX_BUTTON_SIZE / 2.0f32 - 1.0f32,
+                x + check_box_button_size / 2.0f32 - 1.0f32,
                 y + height / 2.0f32 + 5.0f32,
             ));
             tick_path_builder.line_to((
-                x + CHECKBOX_BUTTON_SIZE / 2.0f32 + 5.0f32,
+                x + check_box_button_size / 2.0f32 + 5.0f32,
                 y + height / 2.0f32 - 7.0f32,
             ));
 
@@ -611,10 +633,6 @@ impl Style<ToggleButton> for TabToggleButtonStyle {
 // (cannot be unpressed).
 //
 
-const RADIO_BUTTON_SIZE: f32 = 24.0f32;
-const RADIO_BULLET_SIZE: f32 = 14.0f32;
-const RADIO_MARGIN: f32 = 6.0f32;
-
 #[derive(TypedBuilder)]
 pub struct RadioToggleButtonStyleParams {}
 
@@ -701,17 +719,26 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
+        let radio_button_size = control_context
+            .get_inherited_value::<RadioButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_BUTTON_SIZE);
+        let radio_margin = control_context
+            .get_inherited_value::<RadioMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_MARGIN);
+
         let children = control_context.get_children();
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
                 let child_size = Size::new(
                     if size.width.is_finite() {
-                        0f32.max(size.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32)
+                        0f32.max(size.width - radio_button_size - radio_margin * 2.0f32)
                     } else {
                         size.width
                     },
                     if size.height.is_finite() {
-                        RADIO_BUTTON_SIZE.max(size.height)
+                        radio_button_size.max(size.height)
                     } else {
                         size.height
                     },
@@ -724,8 +751,8 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         };
 
         Size::new(
-            content_size.width + RADIO_BUTTON_SIZE + RADIO_MARGIN * 2.0f32,
-            RADIO_BUTTON_SIZE.max(content_size.height),
+            content_size.width + radio_button_size + radio_margin * 2.0f32,
+            radio_button_size.max(content_size.height),
         )
     }
 
@@ -736,10 +763,19 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
+        let radio_button_size = control_context
+            .get_inherited_value::<RadioButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_BUTTON_SIZE);
+        let radio_margin = control_context
+            .get_inherited_value::<RadioMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_MARGIN);
+
         let content_rect = Rect::new(
-            rect.x + RADIO_BUTTON_SIZE + RADIO_MARGIN,
+            rect.x + radio_button_size + radio_margin,
             rect.y,
-            rect.width - RADIO_BUTTON_SIZE - RADIO_MARGIN * 2.0f32,
+            rect.width - radio_button_size - radio_margin * 2.0f32,
             rect.height,
         );
 
@@ -773,6 +809,15 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         let y = r.y;
         let height = r.height;
 
+        let radio_button_size = control_context
+            .get_inherited_value::<RadioButtonSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_BUTTON_SIZE);
+        let radio_bullet_size = control_context
+            .get_inherited_value::<RadioBulletSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::RADIO_BULLET_SIZE);
+
         let is_pressed = if self.is_tapped.get() {
             true
         } else {
@@ -783,7 +828,7 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
             &mut drawing_context.display,
             x,
             y,
-            RADIO_BUTTON_SIZE,
+            radio_button_size,
             height,
             3.0f32,
             is_pressed,
@@ -794,10 +839,10 @@ impl Style<ToggleButton> for RadioToggleButtonStyle {
         if is_pressed {
             drawing_context.display.draw_oval(
                 rect(
-                    x + (RADIO_BUTTON_SIZE - RADIO_BULLET_SIZE) / 2.0,
-                    y + (height - RADIO_BULLET_SIZE) / 2.0,
-                    RADIO_BULLET_SIZE,
-                    RADIO_BULLET_SIZE,
+                    x + (radio_button_size - radio_bullet_size) / 2.0,
+                    y + (height - radio_bullet_size) / 2.0,
+                    radio_bullet_size,
+                    radio_bullet_size,
                 ),
                 Color::rgba(1.0, 1.0, 1.0, 0.8),
             );

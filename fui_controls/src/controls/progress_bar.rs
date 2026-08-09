@@ -43,10 +43,7 @@ impl ProgressBar {
 // Default ProgressBar Style
 //
 
-const START_MARGIN: f32 = 1.0f32;
-const END_MARGIN: f32 = 1.0f32;
-const SIDE_MARGIN: f32 = 1.0f32;
-const MIN_SIZE: f32 = 22.0f32;
+
 
 #[derive(TypedBuilder)]
 pub struct DefaultProgressBarStyleParams {}
@@ -79,13 +76,17 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
     fn measure(
         &mut self,
         data: &mut ProgressBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         _size: Size,
     ) -> Size {
+        let min_size = control_context
+            .get_inherited_value::<ProgressBarMinSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::PROGRESS_BAR_MIN_SIZE);
         match data.orientation {
-            Orientation::Horizontal => Size::new(MIN_SIZE, 20.0f32),
-            Orientation::Vertical => Size::new(20.0f32, MIN_SIZE),
+            Orientation::Horizontal => Size::new(min_size, 20.0f32),
+            Orientation::Vertical => Size::new(20.0f32, min_size),
         }
     }
 
@@ -123,9 +124,22 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
         let width = r.width;
         let height = r.height;
 
+        let start_margin = control_context
+            .get_inherited_value::<ProgressBarStartMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::PROGRESS_BAR_START_MARGIN);
+        let end_margin = control_context
+            .get_inherited_value::<ProgressBarEndMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::PROGRESS_BAR_END_MARGIN);
+        let side_margin = control_context
+            .get_inherited_value::<ProgressBarSideMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::PROGRESS_BAR_SIDE_MARGIN);
+
         let progress_bar_size_px = match data.orientation {
-            Orientation::Horizontal => width - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => height - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => width - start_margin - end_margin,
+            Orientation::Vertical => height - start_margin - end_margin,
         };
 
         let progress_bar_pos_px = (progress_bar_size_px
@@ -133,8 +147,8 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
             / (data.max_value.get() - data.min_value.get()))
         .round();
 
-        let foreground = [1.0, 0.8, 0.0, 0.75];
-        let background = [0.0, 0.0, 0.0, 0.25];
+        let foreground = default_theme::PROGRESS_BAR_FOREGROUND;
+        let background = default_theme::PROGRESS_BAR_BACKGROUND;
 
         default_theme::border_3d_single(
             &mut drawing_context.display,
@@ -149,15 +163,15 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
 
         match data.orientation {
             Orientation::Horizontal => {
-                let background_size = width - START_MARGIN - END_MARGIN - progress_bar_pos_px;
+                let background_size = width - start_margin - end_margin - progress_bar_pos_px;
 
                 if progress_bar_pos_px > 0.0f32 {
                     drawing_context.display.draw_rect(
                         rect(
-                            x + START_MARGIN,
-                            y + SIDE_MARGIN,
+                            x + start_margin,
+                            y + side_margin,
                             progress_bar_pos_px,
-                            height - SIDE_MARGIN - SIDE_MARGIN,
+                            height - side_margin - side_margin,
                         ),
                         foreground,
                     );
@@ -166,10 +180,10 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
                 if background_size > 0.0f32 {
                     drawing_context.display.draw_rect(
                         rect(
-                            x + START_MARGIN + progress_bar_pos_px,
-                            y + SIDE_MARGIN,
+                            x + start_margin + progress_bar_pos_px,
+                            y + side_margin,
                             background_size,
-                            height - SIDE_MARGIN - SIDE_MARGIN,
+                            height - side_margin - side_margin,
                         ),
                         background,
                     );
@@ -177,14 +191,14 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
             }
 
             Orientation::Vertical => {
-                let background_size = height - START_MARGIN - END_MARGIN - progress_bar_pos_px;
+                let background_size = height - start_margin - end_margin - progress_bar_pos_px;
 
                 if progress_bar_pos_px > 0.0f32 {
                     drawing_context.display.draw_rect(
                         rect(
-                            x + SIDE_MARGIN,
-                            y + START_MARGIN + background_size,
-                            width - SIDE_MARGIN - SIDE_MARGIN,
+                            x + side_margin,
+                            y + start_margin + background_size,
+                            width - side_margin - side_margin,
                             progress_bar_pos_px,
                         ),
                         foreground,
@@ -194,9 +208,9 @@ impl Style<ProgressBar> for DefaultProgressBarStyle {
                 if background_size > 0.0f32 {
                     drawing_context.display.draw_rect(
                         rect(
-                            x + SIDE_MARGIN,
-                            y + START_MARGIN,
-                            width - SIDE_MARGIN - SIDE_MARGIN,
+                            x + side_margin,
+                            y + start_margin,
+                            width - side_margin - side_margin,
                             background_size,
                         ),
                         background,

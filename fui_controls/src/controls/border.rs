@@ -41,8 +41,6 @@ impl Border {
 // Default Border Style
 //
 
-const BORDER_SIZE: f32 = 1.0f32;
-
 #[derive(TypedBuilder)]
 pub struct DefaultBorderStyleParams {
     #[builder(default = Property::new([0.0f32, 0.0f32, 0.0f32, 0.0f32]))]
@@ -58,11 +56,15 @@ impl DefaultBorderStyle {
         DefaultBorderStyle { params }
     }
 
-    fn get_border_size(data: &mut Border) -> f32 {
+    fn get_border_size(data: &mut Border, control_context: &ControlContext) -> f32 {
+        let border_size = control_context
+            .get_inherited_value::<BorderSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::BORDER_SIZE);
         match data.border_type {
             BorderType::None => 0f32,
-            BorderType::Sunken | BorderType::Raisen => BORDER_SIZE,
-            BorderType::Frame3D => BORDER_SIZE * 3.0f32,
+            BorderType::Sunken | BorderType::Raisen => border_size,
+            BorderType::Frame3D => border_size * 3.0f32,
         }
     }
 }
@@ -91,7 +93,7 @@ impl Style<Border> for DefaultBorderStyle {
     ) -> Size {
         let children = control_context.get_children();
 
-        let border_size = Self::get_border_size(data);
+        let border_size = Self::get_border_size(data, control_context);
 
         let content_size = match children.into_iter().next() {
             Some(ref content) => {
@@ -127,7 +129,7 @@ impl Style<Border> for DefaultBorderStyle {
         drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
-        let border_size = Self::get_border_size(data);
+        let border_size = Self::get_border_size(data, control_context);
 
         let content_rect = Rect::new(
             rect.x + border_size,

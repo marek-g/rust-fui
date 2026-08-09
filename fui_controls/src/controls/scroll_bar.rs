@@ -53,11 +53,7 @@ impl ScrollBar {
 // Default ScrollBar Style
 //
 
-const START_MARGIN: f32 = 1.0f32;
-const END_MARGIN: f32 = 1.0f32;
-const SIDE_MARGIN: f32 = 1.0f32;
-const MIN_THUMB_SIZE: f32 = 20.0f32;
-const MIN_SIZE: f32 = MIN_THUMB_SIZE * 2.0f32;
+
 
 #[derive(TypedBuilder)]
 pub struct DefaultScrollBarStyleParams {}
@@ -82,10 +78,23 @@ impl DefaultScrollBarStyle {
         }
     }
 
-    fn calc_sizes(&mut self, data: &ScrollBar, rect: Rect) {
+    fn calc_sizes(&mut self, data: &ScrollBar, control_context: &ControlContext, rect: Rect) {
+        let start_margin = control_context
+            .get_inherited_value::<ScrollBarStartMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_START_MARGIN);
+        let end_margin = control_context
+            .get_inherited_value::<ScrollBarEndMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_END_MARGIN);
+        let min_thumb_size = control_context
+            .get_inherited_value::<ScrollBarMinThumbSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_MIN_THUMB_SIZE);
+
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => rect.width - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => rect.height - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => rect.width - start_margin - end_margin,
+            Orientation::Vertical => rect.height - start_margin - end_margin,
         };
         let scroll_bar_size_f32 =
             data.max_value.get() - data.min_value.get() + data.viewport_size.get();
@@ -93,7 +102,7 @@ impl DefaultScrollBarStyle {
         self.thumb_size_px = ((data.viewport_size.get() * scroll_bar_size_px)
             / scroll_bar_size_f32)
             .round()
-            .max(MIN_THUMB_SIZE);
+            .max(min_thumb_size);
 
         self.thumb_pos_px = ((scroll_bar_size_px - self.thumb_size_px)
             * (data.value.get() - data.min_value.get())
@@ -123,9 +132,13 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         match event {
             ControlEvent::TapDown { position } => {
                 let rect = control_context.get_rect();
+                let start_margin = control_context
+                    .get_inherited_value::<ScrollBarStartMargin>()
+                    .map(|p| p.get())
+                    .unwrap_or(default_theme::SCROLL_BAR_START_MARGIN);
                 let pos = match data.orientation {
-                    Orientation::Horizontal => position.x - rect.x - START_MARGIN,
-                    Orientation::Vertical => position.y - rect.y - START_MARGIN,
+                    Orientation::Horizontal => position.x - rect.x - start_margin,
+                    Orientation::Vertical => position.y - rect.y - start_margin,
                 };
                 if pos >= self.thumb_pos_px && pos < self.thumb_pos_px + self.thumb_size_px {
                     self.is_thumb_pressed.set(true);
@@ -140,15 +153,23 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
             ControlEvent::TapMove { ref position } => {
                 if self.is_thumb_pressed.get() {
                     let rect = control_context.get_rect();
+                    let start_margin = control_context
+                        .get_inherited_value::<ScrollBarStartMargin>()
+                        .map(|p| p.get())
+                        .unwrap_or(default_theme::SCROLL_BAR_START_MARGIN);
+                    let end_margin = control_context
+                        .get_inherited_value::<ScrollBarEndMargin>()
+                        .map(|p| p.get())
+                        .unwrap_or(default_theme::SCROLL_BAR_END_MARGIN);
 
                     let scroll_bar_size_px = match data.orientation {
-                        Orientation::Horizontal => rect.width - START_MARGIN - END_MARGIN,
-                        Orientation::Vertical => rect.height - START_MARGIN - END_MARGIN,
+                        Orientation::Horizontal => rect.width - start_margin - end_margin,
+                        Orientation::Vertical => rect.height - start_margin - end_margin,
                     };
 
                     let pos = match data.orientation {
-                        Orientation::Horizontal => position.x - rect.x - START_MARGIN,
-                        Orientation::Vertical => position.y - rect.y - START_MARGIN,
+                        Orientation::Horizontal => position.x - rect.x - start_margin,
+                        Orientation::Vertical => position.y - rect.y - start_margin,
                     };
 
                     let new_thumb_pos_px = pos - self.pressed_offset;
@@ -198,26 +219,32 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn measure(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         size: Size,
     ) -> Size {
+        let min_thumb_size = control_context
+            .get_inherited_value::<ScrollBarMinThumbSize>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_MIN_THUMB_SIZE);
+        let min_size = min_thumb_size * 2.0;
+
         match data.orientation {
             Orientation::Horizontal => {
                 let space = if size.width.is_infinite() {
-                    MIN_SIZE
+                    min_size
                 } else {
                     size.width
                 };
-                Size::new(MIN_SIZE.max(space), 20.0f32)
+                Size::new(min_size.max(space), 20.0f32)
             }
             Orientation::Vertical => {
                 let space = if size.height.is_infinite() {
-                    MIN_SIZE
+                    min_size
                 } else {
                     size.height
                 };
-                Size::new(20.0f32, MIN_SIZE.max(space))
+                Size::new(20.0f32, min_size.max(space))
             }
         }
     }
@@ -225,11 +252,11 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
     fn set_rect(
         &mut self,
         data: &mut ScrollBar,
-        _control_context: &ControlContext,
+        control_context: &ControlContext,
         _drawing_context: &mut FuiDrawingContext,
         rect: Rect,
     ) {
-        self.calc_sizes(data, rect);
+        self.calc_sizes(data, control_context, rect);
     }
 
     fn hit_test(
@@ -257,26 +284,39 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         let width = r.width;
         let height = r.height;
 
+        let start_margin = control_context
+            .get_inherited_value::<ScrollBarStartMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_START_MARGIN);
+        let end_margin = control_context
+            .get_inherited_value::<ScrollBarEndMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_END_MARGIN);
+        let side_margin = control_context
+            .get_inherited_value::<ScrollBarSideMargin>()
+            .map(|p| p.get())
+            .unwrap_or(default_theme::SCROLL_BAR_SIDE_MARGIN);
+
         let scroll_bar_size_px = match data.orientation {
-            Orientation::Horizontal => width - START_MARGIN - END_MARGIN,
-            Orientation::Vertical => height - START_MARGIN - END_MARGIN,
+            Orientation::Horizontal => width - start_margin - end_margin,
+            Orientation::Vertical => height - start_margin - end_margin,
         };
 
-        let background = [0.0, 0.0, 0.0, 0.25];
+        let background = default_theme::SCROLL_BAR_BACKGROUND;
 
         if self.thumb_pos_px > 0.0f32 {
             drawing_context.display.draw_rect(
                 match data.orientation {
                     Orientation::Horizontal => rect(
-                        x + START_MARGIN,
-                        y + SIDE_MARGIN,
+                        x + start_margin,
+                        y + side_margin,
                         self.thumb_pos_px,
-                        height - SIDE_MARGIN - SIDE_MARGIN,
+                        height - side_margin - side_margin,
                     ),
                     Orientation::Vertical => rect(
-                        x + SIDE_MARGIN,
-                        y + START_MARGIN,
-                        width - SIDE_MARGIN - SIDE_MARGIN,
+                        x + side_margin,
+                        y + start_margin,
+                        width - side_margin - side_margin,
                         self.thumb_pos_px,
                     ),
                 },
@@ -287,19 +327,19 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
         match data.orientation {
             Orientation::Horizontal => default_theme::button(
                 &mut drawing_context.display,
-                x + self.thumb_pos_px + START_MARGIN,
-                y + SIDE_MARGIN,
+                x + self.thumb_pos_px + start_margin,
+                y + side_margin,
                 self.thumb_size_px,
-                height - SIDE_MARGIN - SIDE_MARGIN,
+                height - side_margin - side_margin,
                 self.is_thumb_pressed.get(),
                 self.is_thumb_hover.get(),
                 false,
             ),
             Orientation::Vertical => default_theme::button(
                 &mut drawing_context.display,
-                x + SIDE_MARGIN,
-                y + self.thumb_pos_px + START_MARGIN,
-                width - SIDE_MARGIN - SIDE_MARGIN,
+                x + side_margin,
+                y + self.thumb_pos_px + start_margin,
+                width - side_margin - side_margin,
                 self.thumb_size_px,
                 self.is_thumb_pressed.get(),
                 self.is_thumb_hover.get(),
@@ -311,15 +351,15 @@ impl Style<ScrollBar> for DefaultScrollBarStyle {
             drawing_context.display.draw_rect(
                 match data.orientation {
                     Orientation::Horizontal => rect(
-                        x + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
-                        y + SIDE_MARGIN,
+                        x + self.thumb_pos_px + self.thumb_size_px + start_margin,
+                        y + side_margin,
                         scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
-                        height - SIDE_MARGIN - SIDE_MARGIN,
+                        height - side_margin - side_margin,
                     ),
                     Orientation::Vertical => rect(
-                        x + SIDE_MARGIN,
-                        y + self.thumb_pos_px + self.thumb_size_px + START_MARGIN,
-                        width - SIDE_MARGIN - SIDE_MARGIN,
+                        x + side_margin,
+                        y + self.thumb_pos_px + self.thumb_size_px + start_margin,
+                        width - side_margin - side_margin,
                         scroll_bar_size_px - self.thumb_pos_px - self.thumb_size_px,
                     ),
                 },

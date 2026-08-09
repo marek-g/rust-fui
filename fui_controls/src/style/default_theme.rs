@@ -1,9 +1,14 @@
 use fui_drawing::*;
 
-// Default values for attached values
+// ============================================================================
+// Default values for inherited attached properties
+// ============================================================================
 
 /// Default foreground color (text)
 pub const DEFAULT_FOREGROUND: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+
+/// Default background color (transparent)
+pub const DEFAULT_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.0];
 
 /// Default edit text color
 pub const DEFAULT_EDIT_TEXT_COLOR: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -14,19 +19,113 @@ pub const DEFAULT_FONT_SIZE: f32 = 20.0;
 /// Default font family
 pub const DEFAULT_FONT_FAMILY: &str = "sans-serif";
 
-const BORDER_LIGHT1: [f32; 4] = [0.65, 0.65, 0.65, 1.0];
-const BORDER_LIGHT2: [f32; 4] = [0.35, 0.35, 0.35, 1.0];
-const BORDER_MEDIUM1: [f32; 4] = [0.15, 0.15, 0.15, 1.0];
-const BORDER_MEDIUM2: [f32; 4] = [0.12, 0.12, 0.12, 1.0];
-const BORDER_DARK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+// ============================================================================
+// Border colors (used in 3D border drawing)
+// ============================================================================
 
-const GRADIENT_TOP_NORMAL: [f32; 4] = [0.35, 0.35, 0.35, 1.0];
-const GRADIENT_BOT_NORMAL: [f32; 4] = [0.28, 0.28, 0.28, 1.0];
-const HOVER_HIGHLIGHT: [f32; 3] = [1.25f32, 1.25f32, 1.25f32];
-const PRESSED_HIGHLIGHT: [f32; 3] = [0.75f32, 0.75f32, 0.75f32];
-const FOCUSED_HIGHLIGHT: [f32; 3] = [2.0f32, 2.0f32, 1.0f32];
+pub const BORDER_LIGHT1: [f32; 4] = [0.65, 0.65, 0.65, 1.0];
+pub const BORDER_LIGHT2: [f32; 4] = [0.35, 0.35, 0.35, 1.0];
+pub const BORDER_MEDIUM1: [f32; 4] = [0.15, 0.15, 0.15, 1.0];
+pub const BORDER_MEDIUM2: [f32; 4] = [0.12, 0.12, 0.12, 1.0];
+pub const BORDER_DARK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
-pub const WINDOW_FRAME_COLOR: [f32; 4] = [0.0f32, 0.4f32, 1.0f32, 1.0f32];
+// ============================================================================
+// Gradient colors (used in button drawing)
+// ============================================================================
+
+pub const GRADIENT_TOP_NORMAL: [f32; 4] = [0.35, 0.35, 0.35, 1.0];
+pub const GRADIENT_BOT_NORMAL: [f32; 4] = [0.28, 0.28, 0.28, 1.0];
+
+// ============================================================================
+// Highlight multipliers (used in 3D border/button drawing)
+// ============================================================================
+
+pub const HOVER_HIGHLIGHT: [f32; 3] = [1.25, 1.25, 1.25];
+pub const PRESSED_HIGHLIGHT: [f32; 3] = [0.75, 0.75, 0.75];
+pub const FOCUSED_HIGHLIGHT: [f32; 3] = [2.0, 2.0, 1.0];
+
+// ============================================================================
+// Window frame color
+// ============================================================================
+
+pub const WINDOW_FRAME_COLOR: [f32; 4] = [0.0, 0.4, 1.0, 1.0];
+
+// ============================================================================
+// Control-specific colors
+// ============================================================================
+
+/// Progress bar foreground color
+pub const PROGRESS_BAR_FOREGROUND: [f32; 4] = [1.0, 0.8, 0.0, 0.75];
+
+/// Progress bar background color
+pub const PROGRESS_BAR_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.25];
+
+/// Scroll bar background color
+pub const SCROLL_BAR_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.25];
+
+/// Menu background color
+pub const MENU_BACKGROUND: [f32; 4] = [1.0, 1.0, 1.0, 0.8];
+
+/// Menu hover background color
+pub const MENU_HOVER_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.8];
+
+/// TextBox border color
+pub const TEXT_BOX_BORDER_COLOR: [f32; 4] = [0.4, 0.4, 0.4, 1.0];
+
+/// Text selection background color
+pub const TEXT_SELECTION_BACKGROUND: [f32; 4] = [0.0, 0.47, 0.83, 0.35];
+
+/// Text cursor color
+pub const TEXT_CURSOR_COLOR: [f32; 4] = [1.0, 1.0, 0.0, 1.0];
+
+/// Busy indicator overlay color
+pub const BUSY_INDICATOR_OVERLAY: [f32; 4] = [0.0, 0.0, 0.0, 0.7];
+
+// ============================================================================
+// Size defaults
+// ============================================================================
+
+/// Border size
+pub const BORDER_SIZE: f32 = 1.0;
+
+/// Check box button size
+pub const CHECK_BOX_BUTTON_SIZE: f32 = 24.0;
+
+/// Check box margin
+pub const CHECK_BOX_MARGIN: f32 = 6.0;
+
+/// Radio button size
+pub const RADIO_BUTTON_SIZE: f32 = 24.0;
+
+/// Radio bullet size
+pub const RADIO_BULLET_SIZE: f32 = 14.0;
+
+/// Radio margin
+pub const RADIO_MARGIN: f32 = 6.0;
+
+/// Scroll bar start margin
+pub const SCROLL_BAR_START_MARGIN: f32 = 1.0;
+
+/// Scroll bar end margin
+pub const SCROLL_BAR_END_MARGIN: f32 = 1.0;
+
+/// Scroll bar side margin
+pub const SCROLL_BAR_SIDE_MARGIN: f32 = 1.0;
+
+/// Scroll bar minimum thumb size
+pub const SCROLL_BAR_MIN_THUMB_SIZE: f32 = 20.0;
+
+/// Progress bar start margin
+pub const PROGRESS_BAR_START_MARGIN: f32 = 1.0;
+
+/// Progress bar end margin
+pub const PROGRESS_BAR_END_MARGIN: f32 = 1.0;
+
+/// Progress bar side margin
+pub const PROGRESS_BAR_SIDE_MARGIN: f32 = 1.0;
+
+/// Progress bar minimum size
+pub const PROGRESS_BAR_MIN_SIZE: f32 = 22.0;
 
 fn multiply_color(color: [f32; 4], factor: [f32; 3]) -> [f32; 4] {
     [
