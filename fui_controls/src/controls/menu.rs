@@ -8,6 +8,8 @@ use std::cell::{Cell, RefCell};
 use std::rc::{Rc, Weak};
 use typed_builder::TypedBuilder;
 
+use crate::style::default_theme::MENU_FOREGROUND;
+use crate::style::Foreground;
 use crate::GestureArea;
 use crate::{controls::*, DataHolder};
 use fui_core::*;
@@ -132,8 +134,10 @@ fn menu_impl(
     children_collection: &Children,
     menu_data: Option<Rc<MenuData>>,
     is_top_level: bool,
-    attached_values: TypeMap,
+    mut attached_values: TypeMap,
 ) -> Rc<dyn ControlObject> {
+    attached_values.insert::<Foreground>(Property::new(Color::from(MENU_FOREGROUND)));
+
     // Assign a unique ID if this is a top-level trigger on the bar
     let my_menu_id = if let Some(md) = &menu_data {
         if is_top_level {
@@ -404,18 +408,11 @@ fn menu_impl(
             },
         )
     } else {
-        // Wrap sub-menu in DataHolder to keep the subscription alive
+        // Sub-menu
         let content = ui!(
-            Shadow {
-                Style: Default { size: 12.0f32 },
-                Border {
-                    border_type: BorderType::None,
-                    Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
-                    StackPanel {
-                        orientation: Orientation::Vertical,
-                        &content_prop,
-                    }
-                }
+            Horizontal {
+                &content_prop,
+                Text { text: ">" }
             }
         );
 
@@ -481,6 +478,7 @@ impl MenuItem {
 
             ui!(
                 GestureArea {
+                    Foreground: Color::from(MENU_FOREGROUND),
                     hover_change: on_hover_callback,
                     tap_up: on_tap_up_callback,
                     Border {

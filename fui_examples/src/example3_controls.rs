@@ -265,14 +265,12 @@ impl ViewModel for MainViewModel {
             heights: vec![(0, Length::Auto)],
 
             MenuBar {
-                Foreground: Property::new(Color::rgba(0.0, 0.0, 0.0, 1.0)),
-
                 Menu {
                     Text { text: "File" },
 
                     MenuItem {
                         activated async => self.file_open(),
-                        Text { Foreground: Property::new(Color::rgba(0.0, 0.0, 0.0, 1.0)), text: "Open..."  }
+                        Text { text: "Open..."  }
                     },
 
                     MenuItem {

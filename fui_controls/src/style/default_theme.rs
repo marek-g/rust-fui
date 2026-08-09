@@ -63,6 +63,9 @@ pub const PROGRESS_BAR_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.25];
 /// Scroll bar background color
 pub const SCROLL_BAR_BACKGROUND: [f32; 4] = [0.0, 0.0, 0.0, 0.25];
 
+/// Menu text foreground
+pub const MENU_FOREGROUND: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
+
 /// Menu background color
 pub const MENU_BACKGROUND: [f32; 4] = [1.0, 1.0, 1.0, 0.8];
 
