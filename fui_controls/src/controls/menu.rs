@@ -168,7 +168,21 @@ fn menu_impl(
     }
 
     // First child is the label/trigger, subsequent children are the popup content
-    let trigger = children.first().unwrap().clone();
+    let mut trigger = children.first().unwrap().clone();
+    if !is_top_level {
+        trigger = ui!(
+            Horizontal {
+                HorizontalAlignment: Alignment::Stretch,
+
+                Horizontal {
+                    Grow: Length::Fill(1.0),
+                    trigger,
+                },
+                Text { text: ">" }
+            }
+        );
+    }
+
     let background_property = Property::new(Color::rgba(0.0, 0.0, 0.0, 0.0));
 
     // Listen for global active menu changes to auto-close when another menu opens or all menus are closed
@@ -394,9 +408,6 @@ fn menu_impl(
         )
     };
 
-    let content_prop = ObservableVec::new();
-    content_prop.push(trigger_with_gestures);
-
     if is_top_level {
         let content = ui!(
             Shadow {
@@ -406,7 +417,7 @@ fn menu_impl(
                     Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
                     StackPanel {
                         orientation: Orientation::Horizontal,
-                        &content_prop,
+                        trigger_with_gestures,
                     }
                 }
             }
@@ -422,28 +433,12 @@ fn menu_impl(
         )
     } else {
         // Sub-menu
-        let content = ui!(
-            Grid {
-                columns: 2,
-                widths: vec![
-                    (0, Length::Fill(1.0f32)),
-                    (1, Length::Auto),
-                ],
-
-                StackPanel {
-                    HorizontalAlignment: Alignment::Start,
-                    &content_prop,
-                },
-                Text { text: ">" }
-            }
-        );
-
         let data_holder = DataHolder { data: subscription };
         data_holder.to_view(
             None,
             ViewContext {
                 attached_values,
-                children: Children::SingleStatic(content),
+                children: Children::SingleStatic(trigger_with_gestures),
             },
         )
     }
