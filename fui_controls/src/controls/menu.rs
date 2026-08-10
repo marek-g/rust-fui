@@ -410,15 +410,12 @@ fn menu_impl(
 
     if is_top_level {
         let content = ui!(
-            Shadow {
-                Style: Default { size: 12.0f32 },
-                Border {
-                    border_type: BorderType::None,
-                    Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
-                    StackPanel {
-                        orientation: Orientation::Horizontal,
-                        trigger_with_gestures,
-                    }
+            Border {
+                border_type: BorderType::None,
+                Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
+                StackPanel {
+                    orientation: Orientation::Horizontal,
+                    trigger_with_gestures,
                 }
             }
         );

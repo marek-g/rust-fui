@@ -36,7 +36,7 @@ impl MainViewModel {
 
             text: "My text".into(),
             text2: "ąęść".into(),
-            progress: 0.5.into(),
+            progress: 0.5f32.into(),
             is_busy: false.into(),
             counter: 10.into(),
             counter2: 0.into(),
