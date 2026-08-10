@@ -69,7 +69,7 @@ impl MenuBar {
             }),
         });
 
-        let mut attached_values = context.attached_values;
+        let attached_values = context.attached_values;
         let children = context.children;
 
         let content = ui!(
@@ -383,7 +383,11 @@ fn menu_impl(
                 Border {
                     border_type: BorderType::None,
                     Style: Default { background_color: background_property.clone() },
-                    trigger,
+
+                    Grid {
+                        Margin: Thickness::sides(6.0f32, 3.0f32),
+                        trigger,
+                    },
                 },
                 popup_view,
             }
@@ -419,8 +423,17 @@ fn menu_impl(
     } else {
         // Sub-menu
         let content = ui!(
-            Horizontal {
-                &content_prop,
+            Grid {
+                columns: 2,
+                widths: vec![
+                    (0, Length::Fill(1.0f32)),
+                    (1, Length::Auto),
+                ],
+
+                StackPanel {
+                    HorizontalAlignment: Alignment::Start,
+                    &content_prop,
+                },
                 Text { text: ">" }
             }
         );
@@ -493,7 +506,9 @@ impl MenuItem {
                     Border {
                         border_type: BorderType::None,
                         Style: Default { background_color: background_property.clone() },
+
                         Grid {
+                            Margin: Thickness::sides(6.0f32, 3.0f32),
                             columns: 3,
                             widths: vec![
                                 (0, Length::Exact(25.0f32)),
