@@ -265,6 +265,8 @@ impl ViewModel for MainViewModel {
             heights: vec![(0, Length::Auto)],
 
             MenuBar {
+                HorizontalAlignment: Alignment::Center,
+
                 Menu {
                     Text { text: "File" },
 

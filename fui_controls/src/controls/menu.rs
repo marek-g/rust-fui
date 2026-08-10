@@ -70,27 +70,36 @@ impl MenuBar {
         });
 
         let mut attached_values = context.attached_values;
-        attached_values.insert::<ActiveMenu>(menu_data);
+        let children = context.children;
 
-        let updated_context = ViewContext {
-            attached_values,
-            children: context.children,
-        };
-
-        let stack_panel = StackPanel::builder()
-            .orientation(Orientation::Horizontal)
-            .build()
-            .to_view(None, updated_context);
-
-        ui!(
+        let content = ui!(
             Shadow {
+                HorizontalAlignment: Alignment::Stretch,
                 Style: Default { size: 12.0f32 },
+
                 Border {
                     border_type: BorderType::None,
+
                     Style: Default { background_color: Color::rgba(1.0, 1.0, 1.0, 0.8) },
-                    stack_panel,
+                    HorizontalAlignment: Alignment::Stretch,
+
+                    Horizontal {
+                        HorizontalAlignment: Alignment::Stretch,
+                        ActiveMenu: menu_data,
+
+                        children,
+                    }
                 }
             }
+        );
+
+        let data_holder = DataHolder { data: () };
+        data_holder.to_view(
+            None,
+            ViewContext {
+                attached_values: attached_values,
+                children: Children::SingleStatic(content),
+            },
         )
     }
 }
