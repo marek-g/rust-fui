@@ -14,7 +14,7 @@ pub enum PathKind {
 #[derive(TypedBuilder)]
 pub struct PathEdit {
     #[builder(default = Property::new("".to_string()))]
-    pub label: Property<String>,
+    pub prompt: Property<String>,
 
     #[builder(default = Property::new("".to_string()))]
     pub path: Property<String>,
@@ -30,23 +30,16 @@ impl PathEdit {
     pub fn to_view(
         self,
         _style: Option<Box<dyn Style<Self>>>,
-        mut context: ViewContext,
+        context: ViewContext,
     ) -> Rc<dyn ControlObject> {
         let mut choose_callback = Callback::empty();
 
         let control = ui! {
             Horizontal {
-                Text { text: self.label.clone() },
                 TextBox { Grow: Length::Fill(1.0f32), text: self.path.clone() },
                 Button { Text { text: "..." }, clicked: choose_callback.clone() },
             }
         };
-
-        if !context.attached_values.contains::<Margin>() {
-            context
-                .attached_values
-                .insert::<Margin>(Thickness::all(8.0f32));
-        }
 
         control
             .get_context()
@@ -58,7 +51,7 @@ impl PathEdit {
             move |_| {
                 let control_weak = control_weak.clone();
                 let path_prop = self.path.clone();
-                let label_prop = self.label.clone();
+                let prompt_prop = self.prompt.clone();
                 let filters = self.filters.clone();
                 async move {
                     if let Some(file_dialog_service) = control_weak
@@ -68,7 +61,7 @@ impl PathEdit {
                         .map(|s| s.get_file_dialog_service())
                     {
                         let dialog_data = FileDialogData::new()
-                            .with_title(&label_prop.get())
+                            .with_title(&prompt_prop.get())
                             .with_initial_path(path_prop.get())
                             .with_filters(filters);
                         let path = match self.kind {

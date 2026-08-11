@@ -228,15 +228,19 @@ impl ViewModel for MainViewModel {
                     },
                 },
 
-                PathEdit {
-                    Column: 0, Row: 2,
-                    label: "Save file: ",
-                    kind: PathKind::OpenFile,
-                    filters: vec![
-                        FileFilter { name: "All files (*.*)".to_string(), filters: vec!["*".to_string()] },
-                        FileFilter { name: "Movies (*.mpg, *.avi)".to_string(), filters: vec!["mpg".to_string(), "avi".to_string()] },
-                        FileFilter { name: "Markdown (*.md)".to_string(), filters: vec!["md".to_string()]}
-                    ],
+                Horizontal {
+                    Column: 0, Row: 2, Margin: Thickness::all(8.0),
+                    Text { Margin: Thickness::right(8.0), text: "Save file:" },
+                    PathEdit {
+                        Grow: Length::Fill(1.0f32),
+                        prompt: "Choose file to save to",
+                        kind: PathKind::OpenFile,
+                        filters: vec![
+                            FileFilter { name: "All files (*.*)".to_string(), filters: vec!["*".to_string()] },
+                            FileFilter { name: "Movies (*.mpg, *.avi)".to_string(), filters: vec!["mpg".to_string(), "avi".to_string()] },
+                            FileFilter { name: "Markdown (*.md)".to_string(), filters: vec!["md".to_string()]}
+                        ],
+                    },
                 },
             }
         );
