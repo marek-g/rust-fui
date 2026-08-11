@@ -893,7 +893,7 @@ dependencies = [
 
 [[package]]
 name = "fui_app"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -913,7 +913,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "fui_core",
  "fui_drawing",
@@ -925,7 +925,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls_media"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "anyhow",
  "drawing",
@@ -947,7 +947,7 @@ dependencies = [
 
 [[package]]
 name = "fui_core"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -961,7 +961,7 @@ dependencies = [
 
 [[package]]
 name = "fui_drawing"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "drawing_api",
  "drawing_impeller",
@@ -969,7 +969,7 @@ dependencies = [
 
 [[package]]
 name = "fui_examples"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "anyhow",
  "fui_app",
@@ -988,7 +988,7 @@ dependencies = [
 
 [[package]]
 name = "fui_macros"
-version = "0.19.0-pre"
+version = "0.19.0"
 dependencies = [
  "proc-macro2",
  "quote",
