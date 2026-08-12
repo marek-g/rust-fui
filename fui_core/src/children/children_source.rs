@@ -16,6 +16,24 @@ impl<V: ViewModel + 'static> From<Vec<Rc<V>>> for Box<dyn ObservableCollection<R
     }
 }
 
+///
+/// Converts ObservableVec of view models to observable collection (owned).
+///
+impl<V: ViewModel + 'static> From<ObservableVec<Rc<V>>> for Box<dyn ObservableCollection<Rc<V>>> {
+    fn from(collection: ObservableVec<Rc<V>>) -> Self {
+        Box::new(collection) as Box<dyn ObservableCollection<Rc<V>>>
+    }
+}
+
+///
+/// Converts ObservableVec of view models to observable collection (reference).
+///
+impl<V: ViewModel + 'static> From<&ObservableVec<Rc<V>>> for Box<dyn ObservableCollection<Rc<V>>> {
+    fn from(collection: &ObservableVec<Rc<V>>) -> Self {
+        Box::new(collection.clone()) as Box<dyn ObservableCollection<Rc<V>>>
+    }
+}
+
 impl<V: ViewModel + 'static> From<&Vec<Rc<V>>>
     for Box<dyn ObservableCollection<Rc<dyn ControlObject>>>
 {
