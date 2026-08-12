@@ -1057,6 +1057,9 @@ impl DefaultGridStyle {
     }
 
     fn set_final_size(definitions: &mut Vec<DefinitionBase>, final_size: f32, columns: bool) {
+        if definitions.is_empty() {
+            return;
+        }
         let def_count = definitions.len();
         let mut definition_indices_min = Vec::<i32>::with_capacity(def_count);
         let mut definition_indices_max = Vec::<i32>::with_capacity(def_count);
