@@ -117,7 +117,8 @@ where
     pub clicked_callback: Callback<()>,
     pub source_vm: Rc<V>,
     pub selected_item: Property<Option<Rc<V>>>,
-    pub event_subscription: Cell<Option<Subscription>>,
+    pub clicked_subscription: Cell<Option<Subscription>>,
+    pub selected_subscription: Cell<Option<Subscription>>,
 }
 
 impl<V> MenuItemViewModel<V>
@@ -138,13 +139,14 @@ where
             clicked_callback,
             source_vm,
             selected_item,
-            event_subscription: Cell::new(None),
+            clicked_subscription: Cell::new(None),
+            selected_subscription: Cell::new(None),
         });
 
         {
             let weak_vm = Rc::downgrade(&vm);
             let clicked_callback = vm.clicked_callback.clone();
-            vm.event_subscription
+            vm.clicked_subscription
                 .set(Some(vm.is_checked.on_changed(move |is_checked| {
                     if is_checked {
                         weak_vm.upgrade().map(|vm| {
@@ -154,6 +156,21 @@ where
                         clicked_callback.emit(());
                     }
                 })));
+        }
+
+        {
+            let weak_vm = Rc::downgrade(&vm);
+            vm.selected_subscription.set(Some(
+                vm.selected_item.on_changed(move |selected| {
+                    weak_vm.upgrade().map(|vm| {
+                        let should_check = match selected {
+                            Some(s) => *s == *vm.source_vm,
+                            None => false,
+                        };
+                        vm.is_checked.set(should_check);
+                    });
+                })
+            ));
         }
 
         vm

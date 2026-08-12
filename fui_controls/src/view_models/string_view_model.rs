@@ -8,7 +8,7 @@ use std::rc::Rc;
 /// to represent simple static text.
 /// For example as an text item for DropDown's items collection.
 ///
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct StringViewModel {
     pub text: String,
 }
