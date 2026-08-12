@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{control::ControlObject, Children, TypeMap};
+use crate::{Children, Style, TypeMap, control::ControlObject};
 
 pub struct ViewContext {
     pub attached_values: TypeMap,
@@ -20,23 +20,23 @@ impl ViewContext {
 /// Used to convert controls to views.
 /// Controls can be consumed during conversion.
 ///
-//pub trait Control: Sized {
-//    fn to_view(self, style: Option<Box<dyn Style<Self>>>, context: ViewContext) -> Rc<StyledControl<Self>>;
-//}
-//
-// Instead of using this trait we expect control structs to just implement this method (by convention).
-// It will be called from ui!() macro.
-// The reason why it is not a trait is that sometimes composite controls may not want
-// to return StyledControl<Self> but the root control of the composition that may be
-// for example StyledControl<Grid> or just dyn ControlObject.
-// Also we cannot always return dyn ControlObject, because sometimes we may want to create controls
-// with ui!() macro and later have access to its type, for example
-// in a cases like creating radio buttons and passing their references to the radio button controller.
-//
-
+/// It will be called from ui!() macro.
 ///
 /// Used to convert view models to views.
 ///
 pub trait ViewModel {
     fn create_view(self: &Rc<Self>) -> Rc<dyn ControlObject>;
+
+	fn to_view(
+        self,
+        _style: Option<Box<dyn Style<Self>>>,
+        context: ViewContext,
+    ) -> Rc<dyn ControlObject>
+    where
+        Self: Sized,
+    {
+        let view = Rc::new(self).create_view();
+        view.get_context().set_attached_values(context.attached_values);
+        view
+    }
 }
