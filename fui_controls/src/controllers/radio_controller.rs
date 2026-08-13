@@ -36,6 +36,7 @@ where
 {
     _elements: Rc<RefCell<dyn ObservableCollection<Rc<dyn ControlObject>>>>,
     _subscriptions: Rc<RefCell<Vec<Subscription>>>,
+    _elements_changed_event_subscription: Option<Subscription>,
 
     _phantom_data: PhantomData<R>,
 }
@@ -75,7 +76,7 @@ where
         let subscriptions_clone = subscriptions.clone();
 
         let elements_clone = elements.clone();
-        elements
+        let elements_changed_event_subscription = elements
             .borrow_mut()
             .on_changed(Box::new(move |args| match args {
                 VecDiff::Clear { .. } => {
@@ -136,6 +137,7 @@ where
         RadioController {
             _elements: elements,
             _subscriptions: subscriptions,
+            _elements_changed_event_subscription: elements_changed_event_subscription,
             _phantom_data: PhantomData,
         }
     }
