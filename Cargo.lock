@@ -913,7 +913,7 @@ dependencies = [
 
 [[package]]
 name = "fui_controls"
-version = "0.19.1"
+version = "0.19.2"
 dependencies = [
  "fui_core",
  "fui_drawing",
